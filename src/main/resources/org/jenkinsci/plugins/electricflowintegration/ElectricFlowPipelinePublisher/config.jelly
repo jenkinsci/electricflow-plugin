@@ -1,0 +1,122 @@
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core" xmlns:f="/lib/form">
+
+    <f:entry title="Configuration" field="credential">
+        <f:select onchnage="deleteParameterRows()" onchange="deleteParameterRows()"/>
+    </f:entry>
+  
+    <f:entry title="Project Name" field="projectName">
+        <f:select id="projectN" onchange="deleteParameterRows()"/>
+    </f:entry>
+
+
+    <f:entry title="Pipeline Name" field="pipelineName" >
+        <f:select id="pipelineN" onchange="fillParameters()"/>
+    </f:entry>
+
+    <f:entry title="" field="addParam" >
+        <f:select id="addP" onchange="fillParameters()" style="display:none;"/> <!--  -->
+    </f:entry>
+
+    <script>
+        fillParameters();
+
+        function deleteParameterRows() {
+            var paramRows = document.querySelectorAll("._ef_row");
+            [].forEach.call(paramRows, function (row) {
+                row.parentNode.removeChild(row);
+            });
+        }
+
+        function fillParameters() {
+            deleteParameterRows();
+
+            if (!document.getElementById('addP')) {
+                return;
+            }
+
+            var option = document.getElementById('addP').options[0];
+            var param = '{}';
+            if (option) {
+                param = option.value;
+            }
+            var json = JSON.parse(param);
+
+            var table = document.querySelector("[descriptorid='electricFlowSettings'] table");
+
+            if (json) {
+                if (json.pipeline) {
+                    try {
+                        json = JSON.parse(json.pipeline);
+                        json = json[0].parameters;
+                    }
+                    catch (error) {
+                        json = json.pipeline[0].parameters;
+                    }
+
+                    var row1 = table.insertRow(table.rows.length - 2);
+                    row1.className = "_ef_row";
+                    if (json.length) {
+                        row1.appendChild(createTitle());
+                        json.forEach(function (elem) {
+                            var row = table.insertRow(table.rows.length - 2);
+                            row.className = "_ef_parameters _ef_row";
+                            addParameterRow(row, elem.parameterName, elem.parameterValue);
+                        });
+                    }
+                }
+            }
+        }
+
+        function updateJson() {
+            var pipelineName = document.getElementById("pipelineN").value;
+            var json = JSON.parse('{"pipeline":[{"pipelineName":"' + pipelineName + '","parameters":[]}]}');
+            var parameters = document.querySelectorAll("._ef_parameters");
+            [].forEach.call(parameters, function (elem) {
+                json.pipeline[0].parameters.push({
+                    'parameterName': elem.querySelector(".setting-name").textContent,
+                    'parameterValue': elem.querySelector(".setting-input").value
+                })
+            });
+            document.getElementById('addP').options[0].value = JSON.stringify(json);
+            document.getElementById('addP').options[0].textContent = JSON.stringify(json);
+        }
+
+        function createTitle() {
+            var td = document.createElement('td');
+            td.colSpan = 4;
+            var div = document.createElement('div');
+            div.className = "section-header";
+            div.textContent = "Additional Parameters";
+            td.appendChild(div);
+            return td;
+        }
+
+        function addParameterRow(row, label, value) {
+            var td1 = document.createElement('td');
+            td1.className = 'setting-leftspace';
+            td1.innerHTML = '';
+            row.appendChild(td1);
+
+            var td2 = document.createElement('td');
+            td2.className = 'setting-name';
+            td2.innerHTML = label;
+            row.appendChild(td2);
+
+            var td3 = document.createElement('td');
+            td3.className = 'setting-main';
+            var input1 = document.createElement('input');
+            input1.name = 'parameterName';
+            input1.value = value;
+            input1.onchange = updateJson;
+            input1.className = 'setting-input';
+            td3.appendChild(input1);
+            row.appendChild(td3);
+
+            var td4 = document.createElement('td');
+            td4.className = 'setting-no-help';
+            row.appendChild(td4);
+        }
+    </script>
+
+</j:jelly>

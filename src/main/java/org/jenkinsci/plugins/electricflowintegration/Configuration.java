@@ -1,0 +1,134 @@
+
+// Configuration.java --
+//
+// Configuration.java is part of ElectricCommander.
+//
+// Copyright (c) 2005-2017 Electric Cloud, Inc.
+// All rights reserved.
+//
+
+package org.jenkinsci.plugins.electricflowintegration;
+
+import org.kohsuke.stapler.DataBoundConstructor;
+import org.kohsuke.stapler.QueryParameter;
+
+import hudson.Extension;
+
+import hudson.model.AbstractDescribableImpl;
+import hudson.model.Descriptor;
+
+import hudson.util.FormValidation;
+import hudson.util.ListBoxModel;
+import hudson.util.Secret;
+
+import java.io.IOException;
+
+/**
+ * Configuration to access ElectricFlow server.
+ */
+public class Configuration
+    extends AbstractDescribableImpl<Configuration>
+{
+
+    //~ Instance fields --------------------------------------------------------
+
+    private final String credentialName;
+    private final String electricFlowUser;
+    private final String electricFlowPassword;
+    private final String electricFlowUrl;
+    private final String electricFlowApiVersion;
+
+    //~ Constructors -----------------------------------------------------------
+
+    @DataBoundConstructor public Configuration(
+            String credentialName,
+            String electricFlowUrl,
+            String electricFlowUser,
+            String electricFlowPassword,
+            String electricFlowApiVersion)
+    {
+        this.credentialName   = credentialName;
+        this.electricFlowUrl  = electricFlowUrl;
+        this.electricFlowUser = electricFlowUser;
+
+        // encrypted one
+        Secret secret = Secret.fromString(electricFlowPassword);
+
+        this.electricFlowPassword = secret.getEncryptedValue();
+
+        // end
+        this.electricFlowApiVersion = electricFlowApiVersion;
+    }
+
+    //~ Methods ----------------------------------------------------------------
+
+    public String getCredentialName()
+    {
+        return this.credentialName;
+    }
+
+    public String getElectricFlowApiVersion()
+    {
+        return this.electricFlowApiVersion;
+    }
+
+    public String getElectricFlowPassword()
+    {
+        Secret encryptedPassword = Secret.fromString(this.electricFlowPassword);
+
+        return encryptedPassword.getPlainText();
+    }
+
+    public String getElectricFlowUrl()
+    {
+        return this.electricFlowUrl;
+    }
+
+    public String getElectricFlowUser()
+    {
+        return this.electricFlowUser;
+    }
+
+    //~ Inner Classes ----------------------------------------------------------
+
+    @Extension public static final class CredentialDescriptor
+        extends Descriptor<Configuration>
+    {
+
+        //~ Methods ------------------------------------------------------------
+
+        public ListBoxModel doFillElectricFlowApiVersionItems()
+        {
+            ListBoxModel m = new ListBoxModel();
+
+            m.add("v1", "v1");
+
+            return m;
+        }
+
+        public FormValidation doTestConnection(
+                @QueryParameter("electricFlowUrl") final String electricFlowUrl,
+                @QueryParameter("electricFlowUser") final String electricFlowUser,
+                @QueryParameter("electricFlowPassword") final String electricFlowPassword)
+            throws IOException
+        {
+
+            try {
+                ElectricFlowClient efClient  = new ElectricFlowClient(
+                        electricFlowUrl, electricFlowUser,
+                        electricFlowPassword);
+                efClient.getSessionId();
+
+                return FormValidation.ok("Success");
+            }
+            catch (Exception e) {
+                return FormValidation.error("Wrong credentials");
+            }
+        }
+
+        @Override public String getDisplayName()
+        {
+            return "Configuration";
+        }
+    }
+}
