@@ -56,6 +56,11 @@ public class ElectricFlowUploadArtifactPublisher
     extends Publisher
 {
 
+    //~ Static fields/initializers ---------------------------------------------
+
+    private static final Log log = LogFactory.getLog(
+            ElectricFlowUploadArtifactPublisher.class);
+
     //~ Instance fields --------------------------------------------------------
 
     private final String credential;
@@ -63,7 +68,6 @@ public class ElectricFlowUploadArtifactPublisher
     private String       artifactName;
     private String       artifactVersion;
     private String       filePath;
-    private final Log    log = LogFactory.getLog(this.getClass());
 
     //~ Constructors -----------------------------------------------------------
 
@@ -97,7 +101,7 @@ public class ElectricFlowUploadArtifactPublisher
                 log.debug("Publishing artifact...");
             }
 
-            String   workspaceDir = "";
+            String   workspaceDir;
             FilePath workspace    = build.getWorkspace();
 
             if (workspace != null) {
@@ -229,6 +233,10 @@ public class ElectricFlowUploadArtifactPublisher
         extends BuildStepDescriptor<Publisher>
     {
 
+        //~ Static fields/initializers -----------------------------------------
+
+        private static final Log log = LogFactory.getLog(DescriptorImpl.class);
+
         //~ Instance fields ----------------------------------------------------
 
         /**
@@ -238,10 +246,9 @@ public class ElectricFlowUploadArtifactPublisher
          * <p>If you don't want fields to be persisted, use {@code transient}.
          * </p>
          */
-        private String    electricFlowUrl;
-        private String    electricFlowUser;
-        private String    electricFlowPassword;
-        private final Log log = LogFactory.getLog(this.getClass());
+        private String electricFlowUrl;
+        private String electricFlowUser;
+        private String electricFlowPassword;
 
         //~ Constructors -------------------------------------------------------
 
@@ -287,17 +294,21 @@ public class ElectricFlowUploadArtifactPublisher
             ListBoxModel m = new ListBoxModel();
 
             m.add("Select repository", "");
-            if(credential.isEmpty()) {
+
+            if (credential.isEmpty()) {
                 return m;
             }
+
             try {
-                ElectricFlowConfigurationManager efCM =
-                        new ElectricFlowConfigurationManager();
-                Configuration                    cred = efCM.getCredentialByName(
-                        credential);
-                ElectricFlowClient efClient     = new ElectricFlowClient(
-                        cred.getElectricFlowUrl(), cred.getElectricFlowUser(), cred.getElectricFlowPassword());
-                List<String>       repositories;
+                ElectricFlowConfigurationManager efCM         =
+                    new ElectricFlowConfigurationManager();
+                Configuration                    cred         =
+                    efCM.getCredentialByName(credential);
+                ElectricFlowClient               efClient     =
+                    new ElectricFlowClient(cred.getElectricFlowUrl(),
+                        cred.getElectricFlowUser(),
+                        cred.getElectricFlowPassword());
+                List<String>                     repositories;
 
                 repositories = efClient.getArtifactRepositories();
 

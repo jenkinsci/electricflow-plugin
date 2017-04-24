@@ -14,13 +14,12 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.util.List;
-import java.util.ArrayList;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
+import java.util.ArrayList;
+import java.util.List;
 
 public class FileHelper
 {
@@ -33,55 +32,50 @@ public class FileHelper
             String newString)
         throws IOException
     {
-        StringBuilder     oldContent = new StringBuilder();
-        FileWriter writer;
-
-        // FileReader     fileReader       = new FileReader(fileToBeModified);
-        // BufferedReader reader           = new BufferedReader(fileReader);
-        BufferedReader reader = new BufferedReader(new InputStreamReader(
+        StringBuilder  oldContent = new StringBuilder();
+        BufferedReader reader     = new BufferedReader(new InputStreamReader(
                     new FileInputStream(filePath), "UTF-8"));
 
         // Reading all the lines of input text file into oldContent
         String line;
 
         while ((line = reader.readLine()) != null) {
-            oldContent.append(line).append(System.lineSeparator());
+            oldContent.append(line)
+                      .append(System.lineSeparator());
         }
 
         // Replacing oldString with newString in the oldContent
-        String newContent = oldContent.toString().replaceAll(oldString, newString);
+        String newContent = oldContent.toString()
+                                      .replaceAll(oldString, newString);
 
         // Rewriting the input text file with newContent
-
         Writer out = new BufferedWriter(new OutputStreamWriter(
-                new FileOutputStream(filePath), "UTF-8"));
+                    new FileOutputStream(filePath), "UTF-8"));
+
         out.append(newContent);
         out.flush();
 
         // Closing the resources
         reader.close();
         out.close();
-
     }
-    static List <File> getFilesFromDirectory(final File folder) {
+
+    static List<File> getFilesFromDirectory(final File folder)
+    {
         List<File> fileList = new ArrayList<>();
-        File[] list = folder.listFiles();
+        File[]     list     = folder.listFiles();
 
         if (list == null) {
             return fileList;
         }
-        
-        //for (final File fileEntry : folder.listFiles()) {
+
         for (final File fileEntry : list) {
-            if (fileEntry.isDirectory()) {
-                // listFilesForFolder(fileEntry);
-                continue;
-            }
-            else {
-                // fileList.add(fileEntry.getAbsolutePath());
+
+            if (!fileEntry.isDirectory()) {
                 fileList.add(fileEntry);
             }
         }
+
         return fileList;
     }
 }

@@ -54,7 +54,7 @@ public class Utils
                                                                   .get(
                                                                       ElectricFlowGlobalConfiguration.class);
 
-        if (cred != null) {
+        if (cred != null && cred.efConfigurations != null) {
             return cred.efConfigurations;
         }
 

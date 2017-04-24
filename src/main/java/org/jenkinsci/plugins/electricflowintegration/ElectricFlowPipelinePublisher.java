@@ -31,7 +31,6 @@ import hudson.Launcher;
 
 import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
-import hudson.model.Action;
 import hudson.model.BuildListener;
 
 import hudson.tasks.BuildStepDescriptor;
@@ -58,6 +57,11 @@ public class ElectricFlowPipelinePublisher
     extends Publisher
 {
 
+    //~ Static fields/initializers ---------------------------------------------
+
+    private static final Log log = LogFactory.getLog(
+            ElectricFlowPipelinePublisher.class);
+
     //~ Instance fields --------------------------------------------------------
 
     private String    projectName;
@@ -65,7 +69,6 @@ public class ElectricFlowPipelinePublisher
     private String    credential;
     private String    addParam;
     private JSONArray additionalOption;
-    private final Log log = LogFactory.getLog(this.getClass());
 
     //~ Constructors -----------------------------------------------------------
 
@@ -106,23 +109,14 @@ public class ElectricFlowPipelinePublisher
 
         // exp ends here
         try {
-            ElectricFlowClient efClient = new ElectricFlowClient(
+            ElectricFlowClient efClient       = new ElectricFlowClient(
                     electricFlowUrl, userName, userPassword);
+            List<String>       paramsResponse =
+                efClient.getPipelineFormalParameters(pipelineName);
 
-            try {
-                List<String> paramsResponse =
-                    efClient.getPipelineFormalParameters(pipelineName);
-
-                if (log.isDebugEnabled()) {
-                    log.debug("FormalParameters are: "
-                            + paramsResponse.toString());
-                }
-            }
-            catch (Exception e) {
-                log.error("Error occurred during formal parameters fetch: "
-                        + e.getMessage(), e);
-
-                return false;
+            if (log.isDebugEnabled()) {
+                log.debug("FormalParameters are: "
+                        + paramsResponse.toString());
             }
         }
         catch (Exception e) {
@@ -219,11 +213,6 @@ public class ElectricFlowPipelinePublisher
         return new JSONArray();
     }
 
-    // @Override public Action getProjectAction(AbstractProject<?, ?> project)
-    // {
-    //     return new ElectricFlowProjectAction(project);
-    // }
-
     public String getProjectName()
     {
         return projectName;
@@ -274,7 +263,7 @@ public class ElectricFlowPipelinePublisher
         extends BuildStepDescriptor<Publisher>
     {
 
-        //~ Instance fields ----------------------------------------------------
+        //~ Static fields/initializers -----------------------------------------
 
         /**
          * To persist global configuration information, simply store it in a
@@ -283,8 +272,7 @@ public class ElectricFlowPipelinePublisher
          * <p>If you don't want fields to be persisted, use {@code transient}.
          * </p>
          */
-        // public List<Configuration> efConfigurations;
-        private final Log          log = LogFactory.getLog(this.getClass());
+        private static final Log log = LogFactory.getLog(DescriptorImpl.class);
 
         //~ Constructors -------------------------------------------------------
 
@@ -298,22 +286,6 @@ public class ElectricFlowPipelinePublisher
         }
 
         //~ Methods ------------------------------------------------------------
-
-        // TODO Ask Dmitriy
-        // @Override public boolean configure(
-        //         StaplerRequest req,
-        //         JSONObject     formData)
-        //     throws FormException
-        // {
-
-        //     List<Configuration> configurations = req.bindJSONToList(Configuration.class, formData.get("configurations"));
-
-
-        //     this.efConfigurations = configurations;
-        //     save();
-            
-        //     return true;
-        // }
 
         public ListBoxModel doFillAddParamItems(
                 @QueryParameter String credential,
