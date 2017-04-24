@@ -14,7 +14,7 @@
   -->
   <f:section title="ElectricFlow">
 
-  <f:entry title="ElectricFlow Configurations" field="configurations">
+  <f:entry title="Configurations" field="configurations">
       <f:repeatable field="configurations" minimum="${0}">
           <table style="width:100%">
 
