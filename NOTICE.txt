@@ -1,0 +1,13 @@
+Electric Cloud
+Copyright [2002-2015] Electric Cloud
+
+This product includes software developed at
+Electric Cloud Inc. (https://www.electric-cloud.com).
+
+
+This product bundles IntelliJ IDEA Annotations 132.839 with modifications, which is available under a
+Apache 2.0 license.  For details, see http://www.jetbrains.org.
+
+
+This product bundles GWTP 0.8 with modifications, which is available under a
+Apache 2.0 license.  For details, see https://github.com/arcbees/gwtp
