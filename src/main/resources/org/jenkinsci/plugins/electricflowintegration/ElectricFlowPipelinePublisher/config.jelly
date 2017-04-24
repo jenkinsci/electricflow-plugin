@@ -87,7 +87,7 @@
             td.colSpan = 4;
             var div = document.createElement('div');
             div.className = "section-header";
-            div.textContent = "Additional Parameters";
+            div.textContent = "Pipeline Parameters";
             td.appendChild(div);
             return td;
         }
