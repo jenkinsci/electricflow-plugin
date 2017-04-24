@@ -18,8 +18,10 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
@@ -45,26 +47,18 @@ import net.sf.json.JSONObject;
 public class ElectricFlowClient
 {
 
+    //~ Static fields/initializers ---------------------------------------------
+
+    private static final Log log = LogFactory.getLog(ElectricFlowClient.class);
+
     //~ Instance fields --------------------------------------------------------
 
     private String    electricFlowUrl;
     private String    userName;
     private String    password;
     private String    workspaceDir;
-    private final Log log = LogFactory.getLog(this.getClass());
 
     //~ Constructors -----------------------------------------------------------
-
-// public ElectricFlowClient(String credential)
-// {
-// ElectricFlowConfigurationManager efCM =
-// new ElectricFlowConfigurationManager();
-// Configuration                    cred = efCM.getCredentialByName(
-// credential);
-//
-// new ElectricFlowClient(cred.getElectricFlowUrl(),
-// cred.getElectricFlowUser(), cred.getElectricFlowPassword());
-// }
     public ElectricFlowClient(String url, String name, String password) {
         this(url, name, password, "");
     }
@@ -137,54 +131,70 @@ public class ElectricFlowClient
             String file)
         throws IOException
     {
+        String             result          = "";
         String             requestEndpoint =
             "/rest/v1.0/createApplicationFromDeploymentPackage?request=createApplicationFromDeploymentPackage";
-        HttpsURLConnection conn            = this.getConnection(
-                requestEndpoint);
+        HttpsURLConnection conn            = null;
+        BufferedReader     br              = null;
 
-        conn.setRequestMethod("POST");
+        try {
+            conn = this.getConnection(requestEndpoint);
+            conn.setRequestMethod("POST");
 
-        JSONObject obj = new JSONObject();
+            JSONObject obj = new JSONObject();
 
-        obj.put("artifactFileName", file);
-        obj.put("artifactVersion", version);
-        obj.put("artifactKey", key);
-        obj.put("artifactGroup", group);
-        conn.setUseCaches(false);
-        conn.setDoInput(true);
-        conn.setDoOutput(true);
+            obj.put("artifactFileName", file);
+            obj.put("artifactVersion", version);
+            obj.put("artifactKey", key);
+            obj.put("artifactGroup", group);
+            conn.setUseCaches(false);
+            conn.setDoInput(true);
+            conn.setDoOutput(true);
 
-        byte[]       outputInBytes = obj.toString()
-                                        .getBytes("UTF-8");
-        OutputStream os            = conn.getOutputStream();
+            byte[]       outputInBytes = obj.toString()
+                                            .getBytes("UTF-8");
+            OutputStream os            = conn.getOutputStream();
 
-        os.write(outputInBytes);
-        os.close();
+            os.write(outputInBytes);
+            os.close();
 
-        InputStream       inputStream = conn.getInputStream();
-        InputStreamReader in          = new InputStreamReader(inputStream,
-                "UTF-8");
-        BufferedReader    br          = new BufferedReader(in);
-        String            output;
-        StringBuilder     buf         = new StringBuilder();
+            InputStream       inputStream = conn.getInputStream();
+            InputStreamReader in          = new InputStreamReader(inputStream,
+                    "UTF-8");
 
-        while ((output = br.readLine()) != null) {
-            buf.append(output);
+            br = new BufferedReader(in);
+
+            String        output;
+            StringBuilder buf = new StringBuilder();
+
+            while ((output = br.readLine()) != null) {
+                buf.append(output);
+            }
+
+            result = buf.toString();
+
+            if (log.isDebugEnabled()) {
+                log.debug("DeployApplication response: " + result);
+            }
+
+            if (conn.getResponseCode() != 201) {
+                log.warn("Failed : HTTP error code : "
+                        + conn.getResponseCode());
+            }
         }
-
-        String result = buf.toString();
-
-        if (log.isDebugEnabled()) {
-            log.debug("DeployApplication response: " + result);
+        catch (IOException e) {
+            throw new IOException(e);
         }
+        finally {
 
-        if (conn.getResponseCode() != 201) {
-            log.warn("Failed : HTTP error code : "
-                    + conn.getResponseCode());
+            if (br != null) {
+                br.close();
+            }
+
+            if (conn != null) {
+                conn.disconnect();
+            }
         }
-
-        br.close();
-        conn.disconnect();
 
         return result;
     }
@@ -194,30 +204,45 @@ public class ElectricFlowClient
             String pipelineName)
         throws Exception
     {
-        String             requestEndpoint =
-            "/rest/v1.0/pipelines?pipelineName=" + pipelineName
-                + "&projectName=" + projectName;
-        HttpsURLConnection conn            = this.getConnection(
-                requestEndpoint);
+        StringBuilder      myString        = new StringBuilder();
+        String             requestEndpoint = encodeURL(
+                "/rest/v1.0/pipelines?pipelineName="
+                    + pipelineName
+                    + "&projectName=" + projectName);
+        HttpsURLConnection conn            = null;
+        BufferedReader     br              = null;
 
-        conn.setRequestMethod("POST");
+        try {
+            conn = this.getConnection(requestEndpoint);
+            conn.setRequestMethod("POST");
 
-        if (conn.getResponseCode() != 200) {
-            throw new RuntimeException("Failed : HTTP error code : "
-                    + conn.getResponseCode());
+            if (conn.getResponseCode() != 200) {
+                throw new RuntimeException("Failed : HTTP error code : "
+                        + conn.getResponseCode());
+            }
+
+            br = new BufferedReader(new InputStreamReader(
+                        (conn.getInputStream()), "UTF-8"));
+
+            String output;
+
+            while ((output = br.readLine()) != null) {
+                myString.append(output);
+            }
         }
-
-        BufferedReader br       = new BufferedReader(new InputStreamReader(
-                    (conn.getInputStream()), "UTF-8"));
-        String         output;
-        StringBuilder  myString = new StringBuilder();
-
-        while ((output = br.readLine()) != null) {
-            myString.append(output);
+        catch (IOException e) {
+            throw new IOException(e);
         }
+        finally {
 
-        br.close();
-        conn.disconnect();
+            if (br != null) {
+                br.close();
+            }
+
+            if (conn != null) {
+                conn.disconnect();
+            }
+        }
 
         return myString.toString();
     }
@@ -226,8 +251,9 @@ public class ElectricFlowClient
             String    projectName,
             String    pipelineName,
             JSONArray additionalOptions)
-        throws Exception
+        throws IOException
     {
+        StringBuilder myString = new StringBuilder();
 
         // generating json
         JSONObject obj = new JSONObject();
@@ -258,45 +284,58 @@ public class ElectricFlowClient
 
         // end of json
         String             requestEndpoint = "/rest/v1.0/pipelines";
-        HttpsURLConnection conn            = this.getConnection(
-                requestEndpoint);
+        HttpsURLConnection conn            = null;
+        BufferedReader     br              = null;
 
-        conn.setRequestMethod("POST");
+        try {
+            conn = this.getConnection(requestEndpoint);
+            conn.setRequestMethod("POST");
 
-        // adding body
-        conn.setUseCaches(false);
-        conn.setDoInput(true);
-        conn.setDoOutput(true);
+            // adding body
+            conn.setUseCaches(false);
+            conn.setDoInput(true);
+            conn.setDoOutput(true);
 
-        byte[]       outputInBytes = obj.toString()
-                                        .getBytes("UTF-8");
-        OutputStream os            = conn.getOutputStream();
+            byte[]       outputInBytes = obj.toString()
+                                            .getBytes("UTF-8");
+            OutputStream os            = conn.getOutputStream();
 
-        os.write(outputInBytes);
-        os.close();
+            os.write(outputInBytes);
+            os.close();
 
-        if (log.isDebugEnabled()) {
+            if (log.isDebugEnabled()) {
 
-            // end of adding body
-            log.debug("New pipeline run...");
+                // end of adding body
+                log.debug("New pipeline run...");
+            }
+
+            if (conn.getResponseCode() != 200) {
+                throw new RuntimeException("Failed : HTTP error code : "
+                        + conn.getResponseCode());
+            }
+
+            br = new BufferedReader(new InputStreamReader(
+                        (conn.getInputStream()), "UTF-8"));
+
+            String output;
+
+            while ((output = br.readLine()) != null) {
+                myString.append(output);
+            }
         }
-
-        if (conn.getResponseCode() != 200) {
-            throw new RuntimeException("Failed : HTTP error code : "
-                    + conn.getResponseCode());
+        catch (IOException e) {
+            throw new IOException(e);
         }
+        finally {
 
-        BufferedReader br       = new BufferedReader(new InputStreamReader(
-                    (conn.getInputStream()), "UTF-8"));
-        String         output;
-        StringBuilder  myString = new StringBuilder();
+            if (br != null) {
+                br.close();
+            }
 
-        while ((output = br.readLine()) != null) {
-            myString.append(output);
+            if (conn != null) {
+                conn.disconnect();
+            }
         }
-
-        br.close();
-        conn.disconnect();
 
         return myString.toString();
     }
@@ -376,31 +415,52 @@ public class ElectricFlowClient
         return resultLine;
     }
 
+    private String encodeURL(String url)
+        throws UnsupportedEncodingException
+    {
+        return URLEncoder.encode(url, "UTF-8")
+                         .replaceAll("\\+", "%20");
+    }
+
     public List<String> getArtifactRepositories()
         throws Exception
     {
+        StringBuilder      myString        = new StringBuilder();
         String             requestEndpoint = "/rest/v1.0/repositories";
-        HttpsURLConnection conn            = this.getConnection(
-                requestEndpoint);
+        HttpsURLConnection conn            = null;
+        BufferedReader     br              = null;
 
-        conn.setRequestMethod("GET");
+        try {
+            conn = this.getConnection(requestEndpoint);
+            conn.setRequestMethod("GET");
 
-        if (conn.getResponseCode() != 200) {
-            throw new RuntimeException("Failed : HTTP error code : "
-                    + conn.getResponseCode());
+            if (conn.getResponseCode() != 200) {
+                throw new RuntimeException("Failed : HTTP error code : "
+                        + conn.getResponseCode());
+            }
+
+            br = new BufferedReader(new InputStreamReader(
+                        (conn.getInputStream()), "UTF-8"));
+
+            String output;
+
+            while ((output = br.readLine()) != null) {
+                myString.append(output);
+            }
         }
-
-        BufferedReader br       = new BufferedReader(new InputStreamReader(
-                    (conn.getInputStream()), "UTF-8"));
-        String         output;
-        StringBuilder  myString = new StringBuilder();
-
-        while ((output = br.readLine()) != null) {
-            myString.append(output);
+        catch (IOException e) {
+            throw new IOException(e);
         }
+        finally {
 
-        conn.disconnect();
-        br.close();
+            if (conn != null) {
+                conn.disconnect();
+            }
+
+            if (br != null) {
+                br.close();
+            }
+        }
 
         JSONObject   jsonObject   = JSONObject.fromObject(myString.toString());
         JSONArray    arr          = jsonObject.getJSONArray("repository");
@@ -449,58 +509,72 @@ public class ElectricFlowClient
     public List<String> getPipelineFormalParameters(String pipelineName)
         throws Exception
     {
-        List<String> formalParameters = new ArrayList<>();
-        String       pipelineId       = this.getPipelineIdByName(pipelineName);
+        StringBuilder myString         = new StringBuilder();
+        List<String>  formalParameters = new ArrayList<>();
+        String        pipelineId       = this.getPipelineIdByName(pipelineName);
 
         if (!pipelineId.isEmpty()) {
             String             requestEndpoint =
                 "/rest/v1.0/objects?request=findObjects";
-            HttpsURLConnection conn            = this.getConnection(
-                    requestEndpoint);
+            HttpsURLConnection conn            = null;
+            BufferedReader     br              = null;
 
-            conn.setRequestMethod("PUT");
+            try {
+                conn = this.getConnection(requestEndpoint);
+                conn.setRequestMethod("PUT");
 
-            JSONObject obj    = new JSONObject();
-            JSONObject filter = new JSONObject();
+                JSONObject obj    = new JSONObject();
+                JSONObject filter = new JSONObject();
 
-            filter.put("operator", "equals");
-            filter.put("propertyName", "container");
-            filter.put("operand1", "pipeline-" + pipelineId);
-            obj.put("filter", filter);
-            obj.put("objectType", "formalParameter");
-            conn.setUseCaches(false);
-            conn.setDoInput(true);
-            conn.setDoOutput(true);
+                filter.put("operator", "equals");
+                filter.put("propertyName", "container");
+                filter.put("operand1", "pipeline-" + pipelineId);
+                obj.put("filter", filter);
+                obj.put("objectType", "formalParameter");
+                conn.setUseCaches(false);
+                conn.setDoInput(true);
+                conn.setDoOutput(true);
 
-            if (log.isDebugEnabled()) {
-                log.debug("Formal params json: " + obj.toString());
+                if (log.isDebugEnabled()) {
+                    log.debug("Formal params json: " + obj.toString());
+                }
+
+                byte[]       outputInBytes = obj.toString()
+                                                .getBytes("UTF-8");
+                OutputStream os            = conn.getOutputStream();
+
+                os.write(outputInBytes);
+                os.close();
+
+                if (conn.getResponseCode() != 200) {
+                    log.warn("Failed : HTTP error code : "
+                            + conn.getResponseCode());
+
+                    return formalParameters;
+                }
+
+                br = new BufferedReader(new InputStreamReader(
+                            (conn.getInputStream()), "UTF-8"));
+
+                String output;
+
+                while ((output = br.readLine()) != null) {
+                    myString.append(output);
+                }
             }
-
-            byte[]       outputInBytes = obj.toString()
-                                            .getBytes("UTF-8");
-            OutputStream os            = conn.getOutputStream();
-
-            os.write(outputInBytes);
-            os.close();
-
-            if (conn.getResponseCode() != 200) {
-                log.warn("Failed : HTTP error code : "
-                        + conn.getResponseCode());
-
-                return formalParameters;
+            catch (IOException e) {
+                throw new IOException(e);
             }
+            finally {
 
-            BufferedReader br       = new BufferedReader(new InputStreamReader(
-                        (conn.getInputStream()), "UTF-8"));
-            String         output;
-            StringBuilder  myString = new StringBuilder();
+                if (br != null) {
+                    br.close();
+                }
 
-            while ((output = br.readLine()) != null) {
-                myString.append(output);
+                if (conn != null) {
+                    conn.disconnect();
+                }
             }
-
-            br.close();
-            conn.disconnect();
 
             // return myString;
             JSONObject jsonObject = JSONObject.fromObject(myString.toString());
@@ -529,54 +603,68 @@ public class ElectricFlowClient
     private String getPipelineIdByName(String pipelineName)
         throws Exception
     {
+        StringBuilder      myString        = new StringBuilder();
         String             requestEndpoint =
             "/rest/v1.0/objects?request=findObjects";
-        HttpsURLConnection conn            = this.getConnection(
-                requestEndpoint);
+        HttpsURLConnection conn            = null;
+        BufferedReader     br              = null;
 
-        conn.setRequestMethod("PUT");
+        try {
+            conn = this.getConnection(requestEndpoint);
+            conn.setRequestMethod("PUT");
 
-        JSONObject obj    = new JSONObject();
-        JSONObject filter = new JSONObject();
+            JSONObject obj    = new JSONObject();
+            JSONObject filter = new JSONObject();
 
-        filter.put("operator", "equals");
-        filter.put("propertyName", "pipelineName");
-        filter.put("operand1", pipelineName);
-        obj.put("filter", filter);
-        obj.put("objectType", "pipeline");
-        conn.setUseCaches(false);
-        conn.setDoInput(true);
-        conn.setDoOutput(true);
+            filter.put("operator", "equals");
+            filter.put("propertyName", "pipelineName");
+            filter.put("operand1", pipelineName);
+            obj.put("filter", filter);
+            obj.put("objectType", "pipeline");
+            conn.setUseCaches(false);
+            conn.setDoInput(true);
+            conn.setDoOutput(true);
 
-        if (log.isDebugEnabled()) {
-            log.debug("Pipeline id parameters json: " + obj.toString());
+            if (log.isDebugEnabled()) {
+                log.debug("Pipeline id parameters json: " + obj.toString());
+            }
+
+            byte[]       outputInBytes = obj.toString()
+                                            .getBytes("UTF-8");
+            OutputStream os            = conn.getOutputStream();
+
+            os.write(outputInBytes);
+            os.close();
+
+            if (conn.getResponseCode() != 200) {
+                log.warn("Failed : HTTP error code : "
+                        + conn.getResponseCode());
+
+                return "";
+            }
+
+            br = new BufferedReader(new InputStreamReader(
+                        (conn.getInputStream()), "UTF-8"));
+
+            String output;
+
+            while ((output = br.readLine()) != null) {
+                myString.append(output);
+            }
         }
-
-        byte[]       outputInBytes = obj.toString()
-                                        .getBytes("UTF-8");
-        OutputStream os            = conn.getOutputStream();
-
-        os.write(outputInBytes);
-        os.close();
-
-        if (conn.getResponseCode() != 200) {
-            log.warn("Failed : HTTP error code : "
-                    + conn.getResponseCode());
-
-            return "";
+        catch (IOException e) {
+            throw new IOException(e);
         }
+        finally {
 
-        BufferedReader br       = new BufferedReader(new InputStreamReader(
-                    (conn.getInputStream()), "UTF-8"));
-        String         output;
-        StringBuilder  myString = new StringBuilder();
+            if (br != null) {
+                br.close();
+            }
 
-        while ((output = br.readLine()) != null) {
-            myString.append(output);
+            if (conn != null) {
+                conn.disconnect();
+            }
         }
-
-        br.close();
-        conn.disconnect();
 
         // return myString;
         JSONObject jsonObject = JSONObject.fromObject(myString.toString());
@@ -602,69 +690,97 @@ public class ElectricFlowClient
     }
 
     public String getPipelines(String projectName)
-        throws Exception
+        throws IOException
     {
-        String             requestEndpoint = "/rest/v1.0/projects/"
-                + projectName + "/pipelines";
-        HttpsURLConnection conn            = this.getConnection(
-                requestEndpoint);
+        StringBuilder      myString        = new StringBuilder();
+        String             requestEndpoint = encodeURL("/rest/v1.0/projects/"
+                    + projectName + "/pipelines");
+        BufferedReader     br              = null;
+        HttpsURLConnection conn            = null;
 
-        conn.setRequestMethod("GET");
+        try {
+            conn = this.getConnection(requestEndpoint);
+            conn.setRequestMethod("GET");
 
-        if (log.isDebugEnabled()) {
-            log.debug("GetPipelines ResponseCode: "
-                    + conn.getResponseCode());
+            if (log.isDebugEnabled()) {
+                log.debug("GetPipelines ResponseCode: "
+                        + conn.getResponseCode());
+            }
+
+            if (conn.getResponseCode() != 200) {
+                log.warn("Failed : HTTP error code : "
+                        + conn.getResponseCode());
+
+                return "{}";
+            }
+
+            br = new BufferedReader(new InputStreamReader(
+                        (conn.getInputStream()), "UTF-8"));
+
+            String output;
+
+            while ((output = br.readLine()) != null) {
+                myString.append(output);
+            }
         }
-
-        if (conn.getResponseCode() != 200) {
-            log.warn("Failed : HTTP error code : "
-                    + conn.getResponseCode());
-
-            return "";
+        catch (IOException e) {
+            throw new IOException(e);
         }
+        finally {
 
-        BufferedReader br       = new BufferedReader(new InputStreamReader(
-                    (conn.getInputStream()), "UTF-8"));
-        String         output;
-        StringBuilder  myString = new StringBuilder();
+            if (br != null) {
+                br.close();
+            }
 
-        while ((output = br.readLine()) != null) {
-            myString.append(output);
+            if (conn != null) {
+                conn.disconnect();
+            }
         }
-
-        br.close();
-        conn.disconnect();
 
         return myString.toString();
     }
 
     public String getProjects()
-        throws Exception
+        throws IOException
     {
+        StringBuilder      myString        = new StringBuilder();
         String             requestEndpoint = "/rest/v1.0/projects";
-        HttpsURLConnection conn            = this.getConnection(
-                requestEndpoint);
+        BufferedReader     br              = null;
+        HttpsURLConnection conn            = null;
 
-        conn.setRequestMethod("GET");
+        try {
+            conn = this.getConnection(requestEndpoint);
+            conn.setRequestMethod("GET");
 
-        if (conn.getResponseCode() != 200) {
-            log.warn("Failed : HTTP error code : "
-                    + conn.getResponseCode());
+            if (conn.getResponseCode() != 200) {
+                log.warn("Failed : HTTP error code : "
+                        + conn.getResponseCode());
 
-            return "";
+                return "{}";
+            }
+
+            br = new BufferedReader(new InputStreamReader(
+                        (conn.getInputStream()), "UTF-8"));
+
+            String output;
+
+            while ((output = br.readLine()) != null) {
+                myString.append(output);
+            }
         }
-
-        BufferedReader br       = new BufferedReader(new InputStreamReader(
-                    (conn.getInputStream()), "UTF-8"));
-        String         output;
-        StringBuilder  myString = new StringBuilder();
-
-        while ((output = br.readLine()) != null) {
-            myString.append(output);
+        catch (IOException e) {
+            throw new IOException(e);
         }
+        finally {
 
-        br.close();
-        conn.disconnect();
+            if (br != null) {
+                br.close();
+            }
+
+            if (conn != null) {
+                conn.disconnect();
+            }
+        }
 
         return myString.toString();
     }
@@ -673,48 +789,51 @@ public class ElectricFlowClient
     public String getSessionId()
         throws IOException
     {
-
-        // String             requestEndpoint = "/rest/v1.0/sessions?password="
-        // + this.password + "&userName=" + this.userName;
+        StringBuilder      myString        = new StringBuilder();
         String             requestEndpoint = "/rest/v1.0/sessions";
-        HttpsURLConnection conn            = this.getConnection(
-                requestEndpoint);
+        HttpsURLConnection conn            = null;
+        BufferedReader     br              = null;
 
-        conn.setRequestMethod("POST");
+        try {
+            conn = this.getConnection(requestEndpoint);
+            conn.setRequestMethod("POST");
 
-        JSONObject requestObject = new JSONObject();
+            JSONObject requestObject = new JSONObject();
 
-        requestObject.put("userName", this.userName);
-        requestObject.put("password", this.password);
-        conn.setUseCaches(false);
-        conn.setDoInput(true);
-        conn.setDoOutput(true);
+            requestObject.put("userName", this.userName);
+            requestObject.put("password", this.password);
+            conn.setUseCaches(false);
+            conn.setDoInput(true);
+            conn.setDoOutput(true);
 
-        byte[]       outputInBytes = requestObject.toString()
-                                                  .getBytes("UTF-8");
-        OutputStream os            = conn.getOutputStream();
+            byte[]       outputInBytes = requestObject.toString()
+                                                      .getBytes("UTF-8");
+            OutputStream os            = conn.getOutputStream();
 
-        os.write(outputInBytes);
-        os.close();
+            os.write(outputInBytes);
+            os.close();
+            br = new BufferedReader(new InputStreamReader(
+                        (conn.getInputStream()), "UTF-8"));
 
-        // BufferedReader br     = new BufferedReader(new
-        // InputStreamReader((conn.getInputStream())));
-        BufferedReader br     = new BufferedReader(new InputStreamReader(
-                    (conn.getInputStream()), "UTF-8"));
-        String         output;
-        // String myString = "";
+            String output;
 
-        // BufferedReader br       = new BufferedReader(new InputStreamReader(
-        // (conn.getInputStream()), "UTF-8"));
-        // String         output;
-        StringBuilder myString = new StringBuilder();
-
-        while ((output = br.readLine()) != null) {
-            myString.append(output);
+            while ((output = br.readLine()) != null) {
+                myString.append(output);
+            }
         }
+        catch (IOException e) {
+            throw new IOException(e);
+        }
+        finally {
 
-        br.close();
-        conn.disconnect();
+            if (br != null) {
+                br.close();
+            }
+
+            if (conn != null) {
+                conn.disconnect();
+            }
+        }
 
         JSONObject jsonObject = JSONObject.fromObject(myString.toString());
 
@@ -779,7 +898,7 @@ class MultipartUtility
             String requestURL,
             String charset)
         throws NoSuchAlgorithmException, KeyManagementException, IOException
-    {           // throws IOException {
+    {
         this.charset = charset;
 
         TrustManager[] trustAllCerts = new TrustManager[] {
@@ -884,7 +1003,7 @@ class MultipartUtility
             writer.flush();
         }
         catch (IOException e) {
-            log.error(e.getMessage(), e);
+            throw new IOException(e);
         }
     }
 

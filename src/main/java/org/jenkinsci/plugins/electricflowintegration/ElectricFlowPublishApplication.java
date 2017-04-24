@@ -63,7 +63,7 @@ public class ElectricFlowPublishApplication
 
     private final String credential;
     private String       filePath;
-    private final Log    log = LogFactory.getLog(this.getClass());
+    private static final Log    log = LogFactory.getLog(ElectricFlowPublishApplication.class);
 
     //~ Constructors -----------------------------------------------------------
 
@@ -74,11 +74,6 @@ public class ElectricFlowPublishApplication
     {
         this.credential = credential;
         this.filePath   = filePath;
-        // this.artifactName = artifactName;
-        // this.repositoryName = repositoryName;
-        // this.artifactVersion = artifactVersion;
-        // this.applicationPath = applicationPath;
-        // this.manifestPath = manifestPath;
     }
 
     //~ Methods ----------------------------------------------------------------
@@ -197,6 +192,7 @@ public class ElectricFlowPublishApplication
             String manifestPath = initialFileList.get(0).getAbsolutePath() + "/manifest.json";
             try {
                 FileHelper.modifyFile(manifestPath, "$BUILD_NUMBER", buildNumber);
+
             }
             catch (IOException e) {
                 throw new IOException("Unable to compress zip file: " + workspaceDir, e);
