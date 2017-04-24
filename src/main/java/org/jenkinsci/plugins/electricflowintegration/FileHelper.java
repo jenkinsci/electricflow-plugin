@@ -22,6 +22,9 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 
+import org.apache.commons.io.filefilter.WildcardFileFilter;
+import org.apache.maven.shared.utils.io.DirectoryScanner;
+
 public class FileHelper
 {
 
@@ -49,7 +52,7 @@ public class FileHelper
         }
 
         // Replacing oldString with newString in the oldContent
-        String newContent = oldContent.toString().replaceAll(oldString, newString);
+        String newContent = oldContent.toString().replace(oldString, newString);
 
         // Rewriting the input text file with newContent
 
@@ -63,6 +66,23 @@ public class FileHelper
         out.close();
 
     }
+    static List <File> getFilesFromDirectoryWildcard(final String basePath, final String path) {
+        String[] splitResult = splitPath(path);
+
+        List <File> result = new ArrayList<>();
+        // Now let's locate files
+        DirectoryScanner scanner = new DirectoryScanner();
+        scanner.setIncludes(splitResult);
+        scanner.setBasedir(basePath);
+        scanner.setCaseSensitive(false);
+        scanner.scan();
+        String[] files = scanner.getIncludedFiles();
+        for (String str : files) {
+            result.add(new File(basePath + "/" + str));
+        }
+        return result;
+
+    }
     static List <File> getFilesFromDirectory(final File folder) {
         List<File> fileList = new ArrayList<>();
         File[] list = folder.listFiles();
@@ -70,7 +90,6 @@ public class FileHelper
         if (list == null) {
             return fileList;
         }
-        
         //for (final File fileEntry : folder.listFiles()) {
         for (final File fileEntry : list) {
             if (fileEntry.isDirectory()) {
@@ -83,5 +102,16 @@ public class FileHelper
             }
         }
         return fileList;
+    }
+
+    static String[] splitPath(String path) {
+        return splitPath(",", path);
+    }
+    static String[] splitPath(String separator, String path) {
+        String[] list = path.split(separator);
+        for (int i = 0; i < list.length; i++) {
+            list[i] = list[i].trim();
+        }
+        return list;
     }
 }
