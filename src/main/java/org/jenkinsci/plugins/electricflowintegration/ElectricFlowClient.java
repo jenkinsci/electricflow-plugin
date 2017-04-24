@@ -205,10 +205,10 @@ public class ElectricFlowClient
         throws Exception
     {
         StringBuilder      myString        = new StringBuilder();
-        String             requestEndpoint = encodeURL(
+        String             requestEndpoint =
                 "/rest/v1.0/pipelines?pipelineName="
-                    + pipelineName
-                    + "&projectName=" + projectName);
+                    + encodeURL(pipelineName)
+                    + "&projectName=" + encodeURL(projectName);
         HttpsURLConnection conn            = null;
         BufferedReader     br              = null;
 
@@ -693,8 +693,8 @@ public class ElectricFlowClient
         throws IOException
     {
         StringBuilder      myString        = new StringBuilder();
-        String             requestEndpoint = encodeURL("/rest/v1.0/projects/"
-                    + projectName + "/pipelines");
+        String             requestEndpoint = "/rest/v1.0/projects/"
+                    + encodeURL(projectName) + "/pipelines";
         BufferedReader     br              = null;
         HttpsURLConnection conn            = null;
 
