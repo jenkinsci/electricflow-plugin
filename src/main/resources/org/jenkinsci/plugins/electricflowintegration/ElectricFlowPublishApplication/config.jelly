@@ -3,7 +3,7 @@
   <f:entry title="Configuration" field="credential">
       <f:select />
   </f:entry>
-  <f:entry title="Artifact Path" field="filePath">
+  <f:entry title="Deployment Package Path" field="filePath">
       <f:textbox />
   </f:entry>
 </j:jelly>
