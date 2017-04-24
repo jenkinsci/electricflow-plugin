@@ -18,8 +18,10 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
@@ -188,9 +190,10 @@ public class ElectricFlowClient
             String pipelineName)
         throws Exception
     {
-        String             requestEndpoint =
-            "/rest/v1.0/pipelines?pipelineName=" + pipelineName
-                + "&projectName=" + projectName;
+        String             requestEndpoint = encodeURL(
+                "/rest/v1.0/pipelines?pipelineName="
+                    + pipelineName
+                    + "&projectName=" + projectName);
         HttpsURLConnection conn            = this.getConnection(
                 requestEndpoint);
 
@@ -360,6 +363,13 @@ public class ElectricFlowClient
         }
 
         return resultLine;
+    }
+
+    private String encodeURL(String url)
+        throws UnsupportedEncodingException
+    {
+        return URLEncoder.encode(url, "UTF-8")
+                         .replaceAll("\\+", "%20");
     }
 
     public List<String> getArtifactRepositories()
@@ -590,8 +600,8 @@ public class ElectricFlowClient
     public String getPipelines(String projectName)
         throws Exception
     {
-        String             requestEndpoint = "/rest/v1.0/projects/"
-                + projectName + "/pipelines";
+        String             requestEndpoint = encodeURL("/rest/v1.0/projects/"
+                    + projectName + "/pipelines");
         HttpsURLConnection conn            = this.getConnection(
                 requestEndpoint);
 
