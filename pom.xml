@@ -68,4 +68,19 @@
       <url>https://repo.jenkins-ci.org/public/</url>
     </pluginRepository>
   </pluginRepositories>
+
+  <dependencies>
+      <!-- https://mvnrepository.com/artifact/commons-io/commons-io -->
+      <dependency>
+          <groupId>commons-io</groupId>
+          <artifactId>commons-io</artifactId>
+          <version>2.5</version>
+      </dependency>
+      <!-- https://mvnrepository.com/artifact/org.apache.maven.shared/maven-shared-utils -->
+      <dependency>
+          <groupId>org.apache.maven.shared</groupId>
+          <artifactId>maven-shared-utils</artifactId>
+          <version>3.1.0</version>
+      </dependency>
+  </dependencies>
 </project>

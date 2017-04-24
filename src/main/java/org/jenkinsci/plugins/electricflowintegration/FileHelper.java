@@ -21,6 +21,9 @@ import java.io.Writer;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.io.filefilter.WildcardFileFilter;
+import org.apache.maven.shared.utils.io.DirectoryScanner;
+
 public class FileHelper
 {
 
@@ -45,8 +48,7 @@ public class FileHelper
         }
 
         // Replacing oldString with newString in the oldContent
-        String newContent = oldContent.toString()
-                                      .replaceAll(oldString, newString);
+        String newContent = oldContent.toString().replace(oldString, newString);
 
         // Rewriting the input text file with newContent
         Writer out = new BufferedWriter(new OutputStreamWriter(
@@ -59,16 +61,30 @@ public class FileHelper
         reader.close();
         out.close();
     }
+    static List <File> getFilesFromDirectoryWildcard(final String basePath, final String path) {
+        String[] splitResult = splitPath(path);
 
-    static List<File> getFilesFromDirectory(final File folder)
-    {
+        List <File> result = new ArrayList<>();
+        // Now let's locate files
+        DirectoryScanner scanner = new DirectoryScanner();
+        scanner.setIncludes(splitResult);
+        scanner.setBasedir(basePath);
+        scanner.setCaseSensitive(false);
+        scanner.scan();
+        String[] files = scanner.getIncludedFiles();
+        for (String str : files) {
+            result.add(new File(basePath + "/" + str));
+        }
+        return result;
+
+    }
+    static List<File> getFilesFromDirectory(final File folder) {
         List<File> fileList = new ArrayList<>();
         File[]     list     = folder.listFiles();
 
         if (list == null) {
             return fileList;
         }
-
         for (final File fileEntry : list) {
 
             if (!fileEntry.isDirectory()) {
@@ -77,5 +93,16 @@ public class FileHelper
         }
 
         return fileList;
+    }
+
+    static String[] splitPath(String path) {
+        return splitPath(",", path);
+    }
+    static String[] splitPath(String separator, String path) {
+        String[] list = path.split(separator);
+        for (int i = 0; i < list.length; i++) {
+            list[i] = list[i].trim();
+        }
+        return list;
     }
 }

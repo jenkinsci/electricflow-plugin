@@ -126,18 +126,9 @@ public class ElectricFlowUploadArtifactPublisher
             String newArtifactVersion = artifactVersion;
             String newArtifactName    = artifactName;
 
-            newFilePath        = newFilePath.replace("$WORKSPACE_DIR",
-                    workspaceDir);
-            newFilePath        = newFilePath.replace("$BUILD_NUMBER",
-                    buildNumber.toString());
-            newArtifactVersion = newArtifactVersion.replace("$WORKSPACE_DIR",
-                    workspaceDir);
-            newArtifactVersion = newArtifactVersion.replace("$BUILD_NUMBER",
-                    buildNumber.toString());
-            newArtifactName    = newArtifactName.replace("$WORKSPACE_DIR",
-                    workspaceDir);
-            newArtifactName    = newArtifactName.replace("$BUILD_NUMBER",
-                    buildNumber.toString());
+            newFilePath        = newFilePath.replace("$BUILD_NUMBER", buildNumber.toString());
+            newArtifactVersion = newArtifactVersion.replace("$BUILD_NUMBER", buildNumber.toString());
+            newArtifactName    = newArtifactName.replace("$BUILD_NUMBER", buildNumber.toString());
 
             if (log.isDebugEnabled()) {
                 log.debug("Workspace directory: " + newFilePath);
@@ -155,10 +146,9 @@ public class ElectricFlowUploadArtifactPublisher
             String                           userPassword    =
                 cred.getElectricFlowPassword();
             ElectricFlowClient               efClient        =
-                new ElectricFlowClient(electricFlowUrl, userName, userPassword);
+                new ElectricFlowClient(electricFlowUrl, userName, userPassword, workspaceDir);
             String                           result          =
-                efClient.uploadArtifact(repositoryName, newArtifactName,
-                    newArtifactVersion, newFilePath);
+                efClient.uploadArtifact(repositoryName, newArtifactName, newArtifactVersion, newFilePath, false);
 
             listener.getLogger()
                     .println("Upload result: " + result);

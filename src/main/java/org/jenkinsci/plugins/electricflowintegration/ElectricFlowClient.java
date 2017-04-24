@@ -53,20 +53,25 @@ public class ElectricFlowClient
 
     //~ Instance fields --------------------------------------------------------
 
-    private String electricFlowUrl;
-    private String userName;
-    private String password;
+    private String    electricFlowUrl;
+    private String    userName;
+    private String    password;
+    private String    workspaceDir;
 
     //~ Constructors -----------------------------------------------------------
-
+    public ElectricFlowClient(String url, String name, String password) {
+        this(url, name, password, "");
+    }
     public ElectricFlowClient(
             String url,
             String name,
-            String password)
+            String password,
+            String workspaceDir)
     {
         this.electricFlowUrl = url;
         this.userName        = name;
         this.password        = password;
+        this.workspaceDir    = workspaceDir;
 
         if (userName.isEmpty() || password.isEmpty()) {
             log.warn("User name and password should not be empty.");
@@ -339,7 +344,9 @@ public class ElectricFlowClient
             String repo,
             String name,
             String version,
-            String path)
+            String path,
+            boolean uploadDirectory
+        )
         throws IOException, KeyManagementException, NoSuchAlgorithmException
     {
         String sessionId = this.getSessionId();
@@ -350,6 +357,7 @@ public class ElectricFlowClient
                 + "/commander/cgi-bin/publishArtifactAPI.cgi";
         String charset    = "UTF-8";
 
+
         // return sessionId;
         MultipartUtility multipart = new MultipartUtility(requestURL, charset);
 
@@ -359,29 +367,34 @@ public class ElectricFlowClient
         multipart.addFormField("compress", "1");
         multipart.addFormField("commanderSessionId", sessionId);
 
-        File   currentDir   = new File(".");
-        String workspaceDir = currentDir.getCanonicalPath();
+        // File   currentDir   = new File(".");
+        // String workspaceDir = currentDir.getCanonicalPath();
 
+        // here we're getting files from directory using wildcard:
+
+        // String[] fileList = FileHelper.splitPath(path);
+        List<File> fileList = FileHelper.getFilesFromDirectoryWildcard(this.workspaceDir, path);
         if (log.isDebugEnabled()) {
-            log.debug("Workspace directory: " + workspaceDir);
             log.debug("File path: " + path);
         }
 
-        File file = new File(path);
+        for (File file : fileList) {
+            // File file = new File(row);
+            if (file.isDirectory()) {
+                if (!uploadDirectory) {
+                    continue;
+                }
+                // logic for dir here
+                List<File> dirFiles = FileHelper.getFilesFromDirectory(file);
 
-        if (file.isDirectory()) {
-
-            // logic for dir here
-            List<File> dirFiles = FileHelper.getFilesFromDirectory(file);
-
-            for (File f : dirFiles) {
-                multipart.addFilePart("files", f);
+                for (File f : dirFiles) {
+                    multipart.addFilePart("files", f);
+                }
+            }
+            else {
+                multipart.addFilePart("files", file);
             }
         }
-        else {
-            multipart.addFilePart("files", file);
-        }
-
         List<String> response = multipart.finish();
 
         // Debug.e(TAG, "SERVER REPLIED:");

@@ -41,7 +41,8 @@ import hudson.tasks.Builder;
 import hudson.tasks.Publisher;
 
 import hudson.util.ListBoxModel;
-
+import java.util.List;
+import java.util.ArrayList;
 /**
  * Sample {@link Builder}.
  *
@@ -96,32 +97,19 @@ public class ElectricFlowPublishApplication
         // do replace
         String newFilePath = filePath;
 
-        newFilePath = newFilePath.replace("$WORKSPACE_DIR", workspaceDir);
-        newFilePath = newFilePath.replace("$BUILD_NUMBER",
-                buildNumber.toString());
+        newFilePath = newFilePath.replace("$BUILD_NUMBER", buildNumber.toString());
 
         // artifact version
         String artifactVersion = buildNumber.toString();
         String applicationPath;
 
+        File applicationZipFile;
         try {
-            FileHelper.modifyFile(workspaceDir + "/manifest.json",
-                "###version###", artifactVersion);
+            // String workspaceDir, String filePath, String buildNumber
+            makeApplicationArchive(workspaceDir, newFilePath, artifactVersion);
         }
         catch (IOException e) {
-            log.warn("Can't modify manifest.json: " + e.getMessage(), e);
-
-            return false;
-        }
-
-        try {
-            applicationPath = createApplicationArchive(workspaceDir,
-                    newFilePath);
-        }
-        catch (IOException e) {
-            log.warn("Error during application.zip creation"
-                    + e.getMessage(), e);
-
+            log.warn("Can't create archive: " + e.getMessage(), e);
             return false;
         }
 
@@ -144,11 +132,11 @@ public class ElectricFlowPublishApplication
                 efCM.getCredentialByName(credential);
             ElectricFlowClient               efClient = new ElectricFlowClient(
                     cred.getElectricFlowUrl(), cred.getElectricFlowUser(),
-                    cred.getElectricFlowPassword());
+                    cred.getElectricFlowPassword(), workspaceDir);
 
             // efclient has been created
-            efClient.uploadArtifact("default", artifactName, artifactVersion,
-                applicationPath);
+            efClient.uploadArtifact("default", artifactName, artifactVersion, "application.zip", true);
+            // efClient.uploadArtifact("default", artifactName, artifactVersion, applicationPath, true);
             deployResponse = efClient.deployApplicationPackage(artifactGroup,
                     artifactKey, artifactVersion, "application.zip");
 
@@ -196,61 +184,66 @@ public class ElectricFlowPublishApplication
 
     //~ Methods ----------------------------------------------------------------
 
-    public static String createApplicationArchive(
-            String basePath,
-            String filePath)
-        throws IOException
-    {
-        return createApplicationArchive(basePath, filePath,
-            basePath + "/manifest.json");
+    // This methods 
+    public static File makeApplicationArchive(String workspaceDir, String filePath, String buildNumber) throws IOException {
+        List <File> initialFileList= FileHelper.getFilesFromDirectoryWildcard(workspaceDir, filePath);
+        if (initialFileList.size() == 1 && initialFileList.get(0).isDirectory()) {
+            // TODO: try to find manifest file there
+            String manifestPath = initialFileList.get(0).getAbsolutePath() + "/manifest.json";
+            try {
+                FileHelper.modifyFile(manifestPath, "$BUILD_NUMBER", buildNumber);
+
+            }
+            catch (IOException e) {
+                throw new IOException("Unable to compress zip file: " + workspaceDir, e);
+            }
+            List <File> filesFromDirectory = FileHelper.getFilesFromDirectory(initialFileList.get(0));
+            return createZipArchive(workspaceDir, "application.zip", filesFromDirectory);
+        }
+
+        File manifestFile = new File(workspaceDir + "/manifest.json");
+        try {
+            FileHelper.modifyFile(manifestFile.getAbsolutePath(), "$BUILD_NUMBER", buildNumber);
+        }
+        catch (IOException e){
+            throw new IOException("Unable to compress zip file: " + workspaceDir, e);
+        }
+        initialFileList.add(manifestFile);
+        return createZipArchive(workspaceDir, "application.zip", initialFileList);
     }
+    public static File createZipArchive(String basePath, String archiveName, String[] files) throws IOException {
 
-    public static String createApplicationArchive(
-            String basePath,
-            String applicationPath,
-            String manifestPath)
-        throws IOException
-    {
-        File f            = new File(basePath + "/application.zip");
-        File manifestFile = new File(manifestPath);
-
-        try(ZipOutputStream out = new ZipOutputStream(new FileOutputStream(f));
-                FileInputStream in = new FileInputStream(manifestPath)) {
-            File applicationFile = new File(applicationPath);
-
-            out.putNextEntry(new ZipEntry(manifestFile.getName()));
-
-            int    len;
-            byte[] buf = new byte[1024];
-
-            while ((len = in.read(buf)) > 0) {
-                out.write(buf, 0, len);
-            }
-
-            // Complete the entry
-            out.closeEntry();
-            in.close();
-            out.putNextEntry(new ZipEntry(applicationFile.getName()));
-
-            FileInputStream in2  = new FileInputStream(applicationPath);
-            int             len2;
-            byte[]          buf2 = new byte[1024];
-
-            while ((len2 = in2.read(buf2)) != -1) {
-                out.write(buf2, 0, len2);
-            }
-
-            // Complete the entry
-            out.closeEntry();
-            in2.close();
-            out.close();
+        List <File> fileList = new ArrayList<>();
+        for (int i = 0; i < files.length; i++) {
+            File f = new File(files[i]);
+            fileList.add(f);
         }
-        catch (IOException e) {
-            throw new IOException("Unable to compress zip file: "
-                    + basePath, e);
+        return createZipArchive(basePath, archiveName, fileList);
+    }
+    public static File createZipArchive(String basePath, String archiveName, List <File> files) throws IOException {
+        File archive = new File (basePath + "/" + archiveName);
+        ZipOutputStream out = new ZipOutputStream(new FileOutputStream(archive));
+        for (File row : files) {
+            FileInputStream in  = new FileInputStream(row.getAbsolutePath());
+            try {               
+                out.putNextEntry(new ZipEntry(row.getName()));
+                int    len;
+                byte[] buf = new byte[1024];
+                while ((len = in.read(buf)) > 0) {
+                    out.write(buf, 0, len);
+                }
+                // Complete the entry
+                out.closeEntry();
+                in.close();
+                out.closeEntry();
+            }
+            catch (IOException e) {
+                in.close();
+                throw new IOException("Unable to compress zip file: " + basePath, e);
+            }
         }
-
-        return f.getPath();
+        out.close();
+        return archive;
     }
 
     public static String getCurrentTimeStamp()
