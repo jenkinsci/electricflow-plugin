@@ -62,7 +62,7 @@ public class ElectricFlowPublishApplication
 
     private final String credential;
     private String       filePath;
-    private final Log    log = LogFactory.getLog(this.getClass());
+    private static final Log    log = LogFactory.getLog(ElectricFlowPublishApplication.class);
 
     //~ Constructors -----------------------------------------------------------
 
@@ -73,11 +73,6 @@ public class ElectricFlowPublishApplication
     {
         this.credential = credential;
         this.filePath   = filePath;
-        // this.artifactName = artifactName;
-        // this.repositoryName = repositoryName;
-        // this.artifactVersion = artifactVersion;
-        // this.applicationPath = applicationPath;
-        // this.manifestPath = manifestPath;
     }
 
     //~ Methods ----------------------------------------------------------------
@@ -201,18 +196,6 @@ public class ElectricFlowPublishApplication
 
     //~ Methods ----------------------------------------------------------------
 
-    // public String getArtifactVersion() {
-    // return artifactVersion;
-    // }
-    // public String getApplicationPath() {
-    // return applicationPath;
-    // }
-    // public String getManifestPath() {
-    // return manifestPath;
-    // }
-    // public String getRepositoryName() {
-    // return repositoryName;
-    // }
     public static String createApplicationArchive(
             String basePath,
             String filePath)
