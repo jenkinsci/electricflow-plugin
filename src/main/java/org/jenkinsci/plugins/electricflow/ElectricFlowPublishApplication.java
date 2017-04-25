@@ -15,7 +15,9 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -23,6 +25,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.kohsuke.stapler.DataBoundConstructor;
+import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
 
 import net.sf.json.JSONObject;
@@ -40,9 +43,9 @@ import hudson.tasks.BuildStepMonitor;
 import hudson.tasks.Builder;
 import hudson.tasks.Publisher;
 
+import hudson.util.FormValidation;
 import hudson.util.ListBoxModel;
-import java.util.List;
-import java.util.ArrayList;
+
 /**
  * Sample {@link Builder}.
  *
@@ -59,11 +62,15 @@ public class ElectricFlowPublishApplication
     extends Publisher
 {
 
+    //~ Static fields/initializers ---------------------------------------------
+
+    private static final Log log = LogFactory.getLog(
+            ElectricFlowPublishApplication.class);
+
     //~ Instance fields --------------------------------------------------------
 
     private final String credential;
     private String       filePath;
-    private static final Log    log = LogFactory.getLog(ElectricFlowPublishApplication.class);
 
     //~ Constructors -----------------------------------------------------------
 
@@ -97,19 +104,22 @@ public class ElectricFlowPublishApplication
         // do replace
         String newFilePath = filePath;
 
-        newFilePath = newFilePath.replace("$BUILD_NUMBER", buildNumber.toString());
+        newFilePath = newFilePath.replace("$BUILD_NUMBER",
+                buildNumber.toString());
 
         // artifact version
-        String artifactVersion = buildNumber.toString();
+        String artifactVersion    = buildNumber.toString();
         String applicationPath;
+        File   applicationZipFile;
 
-        File applicationZipFile;
         try {
+
             // String workspaceDir, String filePath, String buildNumber
             makeApplicationArchive(workspaceDir, newFilePath, artifactVersion);
         }
         catch (IOException e) {
             log.warn("Can't create archive: " + e.getMessage(), e);
+
             return false;
         }
 
@@ -135,8 +145,9 @@ public class ElectricFlowPublishApplication
                     cred.getElectricFlowPassword(), workspaceDir);
 
             // efclient has been created
-            efClient.uploadArtifact("default", artifactName, artifactVersion, "application.zip", true);
-            // efClient.uploadArtifact("default", artifactName, artifactVersion, applicationPath, true);
+            efClient.uploadArtifact("default", artifactName, artifactVersion,
+                "application.zip", true);
+
             deployResponse = efClient.deployApplicationPackage(artifactGroup,
                     artifactKey, artifactVersion, "application.zip");
 
@@ -213,27 +224,46 @@ public class ElectricFlowPublishApplication
         initialFileList.add(manifestFile);
         return createZipArchive(workspaceDir, "application.zip", initialFileList);
     }
-    public static File createZipArchive(String basePath, String archiveName, String[] files) throws IOException {
+    public static File createZipArchive(
+            String   basePath,
+            String   archiveName,
+            String[] files)
+        throws IOException
+    {
+        List<File> fileList = new ArrayList<>();
 
-        List <File> fileList = new ArrayList<>();
         for (int i = 0; i < files.length; i++) {
             File f = new File(files[i]);
+
             fileList.add(f);
         }
+
         return createZipArchive(basePath, archiveName, fileList);
     }
-    public static File createZipArchive(String basePath, String archiveName, List <File> files) throws IOException {
-        File archive = new File (basePath + "/" + archiveName);
-        ZipOutputStream out = new ZipOutputStream(new FileOutputStream(archive));
+
+    public static File createZipArchive(
+            String     basePath,
+            String     archiveName,
+            List<File> files)
+        throws IOException
+    {
+        File            archive = new File(basePath + "/" + archiveName);
+        ZipOutputStream out     = new ZipOutputStream(new FileOutputStream(
+                    archive));
+
         for (File row : files) {
-            FileInputStream in  = new FileInputStream(row.getAbsolutePath());
-            try {               
+            FileInputStream in = new FileInputStream(row.getAbsolutePath());
+
+            try {
                 out.putNextEntry(new ZipEntry(row.getName()));
+
                 int    len;
                 byte[] buf = new byte[1024];
+
                 while ((len = in.read(buf)) > 0) {
                     out.write(buf, 0, len);
                 }
+
                 // Complete the entry
                 out.closeEntry();
                 in.close();
@@ -241,12 +271,69 @@ public class ElectricFlowPublishApplication
             }
             catch (IOException e) {
                 in.close();
-                throw new IOException("Unable to compress zip file: " + basePath, e);
+                throw new IOException("Unable to compress zip file: "
+                        + basePath, e);
             }
         }
+
         out.close();
+
         return archive;
     }
+
+    // This methods
+    // public static File makeApplicationArchive(
+    //         String workspaceDir,
+    //         String filePath,
+    //         String buildNumber)
+    //     throws IOException
+    // {
+    //     List<File> initialFileList = FileHelper.getFilesFromDirectoryWildcard(
+    //             workspaceDir, filePath);
+
+    //     if (initialFileList.size() == 1
+    //             && initialFileList.get(0)
+    //                               .isDirectory()) {
+
+    //         // TODO: try to find manifest file there
+    //         String manifestPath = initialFileList.get(0)
+    //                                              .getAbsolutePath()
+    //                 + "/manifest.json";
+
+    //         try {
+    //             FileHelper.modifyFile(manifestPath, "$BUILD_NUMBER",
+    //                 buildNumber);
+    //         }
+    //         catch (IOException e) {
+    //             throw new IOException("Unable to compress zip file: "
+    //                     + workspaceDir, e);
+    //         }
+
+    //         // List <File> filesFromDirectory =
+    //         // FileHelper.getFilesFromDirectory(initialFileList.get(0));
+    //         List<File> filesFromDirectory = FileHelper
+    //                 .getFilesFromDirectoryWildcard(workspaceDir, "*.war");
+
+    //         return createZipArchive(workspaceDir, "application.zip",
+    //             filesFromDirectory);
+    //     }
+
+    //     File manifestFile = new File(workspaceDir + "/manifest.json");
+
+    //     try {
+    //         FileHelper.modifyFile(manifestFile.getAbsolutePath(),
+    //             "$BUILD_NUMBER", buildNumber);
+    //     }
+    //     catch (IOException e) {
+    //         throw new IOException("Unable to compress zip file: "
+    //                 + workspaceDir, e);
+    //     }
+
+    //     initialFileList.add(manifestFile);
+
+    //     return createZipArchive(workspaceDir, "application.zip",
+    //         initialFileList);
+    // }
 
     public static String getCurrentTimeStamp()
     {
@@ -314,6 +401,16 @@ public class ElectricFlowPublishApplication
             save();
 
             return super.configure(req, formData);
+        }
+
+        public FormValidation doCheckCredential(@QueryParameter String value)
+        {
+            return Utils.validateValueOnEmpty(value, "Credential");
+        }
+
+        public FormValidation doCheckFilePath(@QueryParameter String value)
+        {
+            return Utils.validateValueOnEmpty(value, "File path");
         }
 
         public ListBoxModel doFillCredentialItems()

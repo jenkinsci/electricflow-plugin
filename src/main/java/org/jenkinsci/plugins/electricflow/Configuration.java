@@ -9,6 +9,8 @@
 
 package org.jenkinsci.plugins.electricflow;
 
+import java.io.IOException;
+
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
 
@@ -20,8 +22,6 @@ import hudson.model.Descriptor;
 import hudson.util.FormValidation;
 import hudson.util.ListBoxModel;
 import hudson.util.Secret;
-
-import java.io.IOException;
 
 /**
  * Configuration to access ElectricFlow server.
@@ -97,10 +97,41 @@ public class Configuration
 
         //~ Methods ------------------------------------------------------------
 
+        public FormValidation doCheckCredentialName(
+                @QueryParameter String value)
+        {
+            return Utils.validateValueOnEmpty(value, "Configuration name");
+        }
+
+        public FormValidation doCheckElectricFlowApiVersion(
+                @QueryParameter String value)
+        {
+            return Utils.validateValueOnEmpty(value,
+                "ElectricFlow api version");
+        }
+
+        public FormValidation doCheckElectricFlowPassword(
+                @QueryParameter String value)
+        {
+            return Utils.validateValueOnEmpty(value, "ElectricFlow password");
+        }
+
+        public FormValidation doCheckElectricFlowUrl(
+                @QueryParameter String value)
+        {
+            return Utils.validateValueOnEmpty(value, "ElectricFlow Url");
+        }
+
+        public FormValidation doCheckElectricFlowUser(
+                @QueryParameter String value)
+        {
+            return Utils.validateValueOnEmpty(value, "ElectricFlow user");
+        }
+
         public ListBoxModel doFillElectricFlowApiVersionItems()
         {
             ListBoxModel m = new ListBoxModel();
-
+            m.add("Select api version", "");
             m.add("v1", "v1");
 
             return m;
@@ -114,9 +145,10 @@ public class Configuration
         {
 
             try {
-                ElectricFlowClient efClient  = new ElectricFlowClient(
+                ElectricFlowClient efClient = new ElectricFlowClient(
                         electricFlowUrl, electricFlowUser,
                         electricFlowPassword);
+
                 efClient.getSessionId();
 
                 return FormValidation.ok("Success");
