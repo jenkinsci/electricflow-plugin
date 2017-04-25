@@ -186,22 +186,23 @@ public class ElectricFlowPublishApplication
 
     // This methods 
     public static File makeApplicationArchive(String workspaceDir, String filePath, String buildNumber) throws IOException {
-        List <File> initialFileList= FileHelper.getFilesFromDirectoryWildcard(workspaceDir, filePath);
-        if (initialFileList.size() == 1 && initialFileList.get(0).isDirectory()) {
+        // check is directory:
+        File checkFile = new File(workspaceDir + "/" + filePath);
+        if (checkFile.exists() && checkFile.isDirectory()) {
             // TODO: try to find manifest file there
-            String manifestPath = initialFileList.get(0).getAbsolutePath() + "/manifest.json";
+            String manifestPath = checkFile.getAbsolutePath() + "/manifest.json";
             try {
                 FileHelper.modifyFile(manifestPath, "$BUILD_NUMBER", buildNumber);
-
             }
             catch (IOException e) {
                 throw new IOException("Unable to compress zip file: " + workspaceDir, e);
             }
             // List <File> filesFromDirectory = FileHelper.getFilesFromDirectory(initialFileList.get(0));
-            List <File> filesFromDirectory = FileHelper.getFilesFromDirectoryWildcard(workspaceDir, "*.war");
+            List <File> filesFromDirectory = FileHelper.getFilesFromDirectoryWildcard(workspaceDir + "/" + filePath, "*.war");
+            filesFromDirectory.add(new File(manifestPath));
             return createZipArchive(workspaceDir, "application.zip", filesFromDirectory);
         }
-
+        List <File> initialFileList = FileHelper.getFilesFromDirectoryWildcard(workspaceDir, filePath);
         File manifestFile = new File(workspaceDir + "/manifest.json");
         try {
             FileHelper.modifyFile(manifestFile.getAbsolutePath(), "$BUILD_NUMBER", buildNumber);
