@@ -12,6 +12,7 @@ package org.jenkinsci.plugins.electricflowintegration;
 import java.util.ArrayList;
 import java.util.List;
 
+import hudson.util.FormValidation;
 import hudson.util.ListBoxModel;
 
 import jenkins.model.GlobalConfiguration;
@@ -32,6 +33,20 @@ public class Utils
         }
 
         return m;
+    }
+
+    public static FormValidation validateValueOnEmpty(
+            String value,
+            String fieldName)
+    {
+
+        if (!value.isEmpty()) {
+            return FormValidation.ok();
+        }
+        else {
+            return FormValidation.warning(fieldName
+                    + " field should not be empty.");
+        }
     }
 
     public static Configuration getCredentialByName(String name)

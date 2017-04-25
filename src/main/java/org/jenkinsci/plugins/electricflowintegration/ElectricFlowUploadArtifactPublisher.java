@@ -278,6 +278,33 @@ public class ElectricFlowUploadArtifactPublisher
             return Utils.fillCredentialItems();
         }
 
+
+        public FormValidation doCheckCredential(@QueryParameter String value)
+        {
+            return Utils.validateValueOnEmpty(value, "Credential");
+        }
+
+        public FormValidation doCheckFilePath(@QueryParameter String value)
+        {
+            return Utils.validateValueOnEmpty(value, "File path");
+        }
+
+        public FormValidation doCheckArtifactName(@QueryParameter String value)
+        {
+            return Utils.validateValueOnEmpty(value, "Artifact name");
+        }
+
+        public FormValidation doCheckArtifactVersion(@QueryParameter String value)
+        {
+            return Utils.validateValueOnEmpty(value, "Artifact version");
+        }
+
+        public FormValidation doCheckRepositoryName(@QueryParameter String value)
+        {
+            return Utils.validateValueOnEmpty(value, "Repository name");
+        }
+
+
         public ListBoxModel doFillRepositoryNameItems(
                 @QueryParameter String credential)
         {

@@ -53,15 +53,21 @@ public class ElectricFlowClient
 
     //~ Instance fields --------------------------------------------------------
 
-    private String    electricFlowUrl;
-    private String    userName;
-    private String    password;
-    private String    workspaceDir;
+    private String electricFlowUrl;
+    private String userName;
+    private String password;
+    private String workspaceDir;
 
     //~ Constructors -----------------------------------------------------------
-    public ElectricFlowClient(String url, String name, String password) {
+
+    public ElectricFlowClient(
+            String url,
+            String name,
+            String password)
+    {
         this(url, name, password, "");
     }
+
     public ElectricFlowClient(
             String url,
             String name,
@@ -206,9 +212,9 @@ public class ElectricFlowClient
     {
         StringBuilder      myString        = new StringBuilder();
         String             requestEndpoint =
-                "/rest/v1.0/pipelines?pipelineName="
-                    + encodeURL(pipelineName)
-                    + "&projectName=" + encodeURL(projectName);
+            "/rest/v1.0/pipelines?pipelineName="
+                + encodeURL(pipelineName)
+                + "&projectName=" + encodeURL(projectName);
         HttpsURLConnection conn            = null;
         BufferedReader     br              = null;
 
@@ -341,12 +347,11 @@ public class ElectricFlowClient
     }
 
     public String uploadArtifact(
-            String repo,
-            String name,
-            String version,
-            String path,
-            boolean uploadDirectory
-        )
+            String  repo,
+            String  name,
+            String  version,
+            String  path,
+            boolean uploadDirectory)
         throws IOException, KeyManagementException, NoSuchAlgorithmException
     {
         String sessionId = this.getSessionId();
@@ -357,7 +362,6 @@ public class ElectricFlowClient
                 + "/commander/cgi-bin/publishArtifactAPI.cgi";
         String charset    = "UTF-8";
 
-
         // return sessionId;
         MultipartUtility multipart = new MultipartUtility(requestURL, charset);
 
@@ -367,23 +371,23 @@ public class ElectricFlowClient
         multipart.addFormField("compress", "1");
         multipart.addFormField("commanderSessionId", sessionId);
 
-        // File   currentDir   = new File(".");
-        // String workspaceDir = currentDir.getCanonicalPath();
-
         // here we're getting files from directory using wildcard:
+        List<File> fileList = FileHelper.getFilesFromDirectoryWildcard(
+                this.workspaceDir, path);
 
-        // String[] fileList = FileHelper.splitPath(path);
-        List<File> fileList = FileHelper.getFilesFromDirectoryWildcard(this.workspaceDir, path);
         if (log.isDebugEnabled()) {
             log.debug("File path: " + path);
         }
 
         for (File file : fileList) {
+
             // File file = new File(row);
             if (file.isDirectory()) {
+
                 if (!uploadDirectory) {
                     continue;
                 }
+
                 // logic for dir here
                 List<File> dirFiles = FileHelper.getFilesFromDirectory(file);
 
@@ -395,6 +399,7 @@ public class ElectricFlowClient
                 multipart.addFilePart("files", file);
             }
         }
+
         List<String> response = multipart.finish();
 
         // Debug.e(TAG, "SERVER REPLIED:");
@@ -478,6 +483,10 @@ public class ElectricFlowClient
         }
 
         return repositories;
+    }
+
+    public String getElectricFlowUrl() {
+        return electricFlowUrl;
     }
 
     // https://wsphere/rest/v1.0/projects/Jenkins/pipelines/SImplePipeline
@@ -694,7 +703,7 @@ public class ElectricFlowClient
     {
         StringBuilder      myString        = new StringBuilder();
         String             requestEndpoint = "/rest/v1.0/projects/"
-                    + encodeURL(projectName) + "/pipelines";
+                + encodeURL(projectName) + "/pipelines";
         BufferedReader     br              = null;
         HttpsURLConnection conn            = null;
 
