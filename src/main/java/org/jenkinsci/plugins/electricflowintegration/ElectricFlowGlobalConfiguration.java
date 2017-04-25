@@ -41,22 +41,8 @@ import jenkins.model.GlobalConfiguration;
             JSONObject     formData)
         throws FormException
     {
-//        System.out.println("Config object: " + formData.toString());
-
         List<Configuration> configurations = req.bindJSONToList(
                 Configuration.class, formData.get("configurations"));
-
-//        System.out.println("Credentials after map: "
-//                + configurations.toString());
-
-//        for (Configuration cred : configurations) {
-//            System.out.println("===");
-//            System.out.println("Cred name: " + cred.getCredentialName());
-//            System.out.println("URL: " + cred.getElectricFlowUrl());
-//            System.out.println("Name: " + cred.getElectricFlowUser());
-//            System.out.println("Password: " + cred.getElectricFlowPassword());
-//            System.out.println("===");
-//        }
 
         this.efConfigurations = configurations;
         save();

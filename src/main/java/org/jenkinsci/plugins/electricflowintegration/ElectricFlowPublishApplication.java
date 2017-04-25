@@ -197,7 +197,8 @@ public class ElectricFlowPublishApplication
             catch (IOException e) {
                 throw new IOException("Unable to compress zip file: " + workspaceDir, e);
             }
-            List <File> filesFromDirectory = FileHelper.getFilesFromDirectory(initialFileList.get(0));
+            // List <File> filesFromDirectory = FileHelper.getFilesFromDirectory(initialFileList.get(0));
+            List <File> filesFromDirectory = FileHelper.getFilesFromDirectoryWildcard(workspaceDir, "*.war");
             return createZipArchive(workspaceDir, "application.zip", filesFromDirectory);
         }
 
