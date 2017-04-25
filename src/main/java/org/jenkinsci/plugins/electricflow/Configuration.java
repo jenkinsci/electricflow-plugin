@@ -7,7 +7,7 @@
 // All rights reserved.
 //
 
-package org.jenkinsci.plugins.electricflowintegration;
+package org.jenkinsci.plugins.electricflow;
 
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;

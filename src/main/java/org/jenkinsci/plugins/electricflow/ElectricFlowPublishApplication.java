@@ -7,7 +7,7 @@
 // All rights reserved.
 //
 
-package org.jenkinsci.plugins.electricflowintegration;
+package org.jenkinsci.plugins.electricflow;
 
 // import for archive
 import java.io.File;

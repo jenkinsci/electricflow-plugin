@@ -7,7 +7,7 @@
 // All rights reserved.
 //
 
-package org.jenkinsci.plugins.electricflowintegration;
+package org.jenkinsci.plugins.electricflow;
 
 import java.io.IOException;
 import java.security.KeyManagementException;

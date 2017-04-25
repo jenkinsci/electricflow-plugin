@@ -7,7 +7,7 @@
 // All rights reserved.
 //
 
-package org.jenkinsci.plugins.electricflowintegration;
+package org.jenkinsci.plugins.electricflow;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
