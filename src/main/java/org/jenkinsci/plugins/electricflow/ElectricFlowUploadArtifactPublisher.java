@@ -102,7 +102,7 @@ public class ElectricFlowUploadArtifactPublisher
             }
 
             String   workspaceDir;
-            FilePath workspace    = build.getWorkspace();
+            FilePath workspace = build.getWorkspace();
 
             if (workspace != null) {
                 workspaceDir = workspace.getRemote();
@@ -126,9 +126,12 @@ public class ElectricFlowUploadArtifactPublisher
             String newArtifactVersion = artifactVersion;
             String newArtifactName    = artifactName;
 
-            newFilePath        = newFilePath.replace("$BUILD_NUMBER", buildNumber.toString());
-            newArtifactVersion = newArtifactVersion.replace("$BUILD_NUMBER", buildNumber.toString());
-            newArtifactName    = newArtifactName.replace("$BUILD_NUMBER", buildNumber.toString());
+            newFilePath        = newFilePath.replace("$BUILD_NUMBER",
+                    buildNumber.toString());
+            newArtifactVersion = newArtifactVersion.replace("$BUILD_NUMBER",
+                    buildNumber.toString());
+            newArtifactName    = newArtifactName.replace("$BUILD_NUMBER",
+                    buildNumber.toString());
 
             if (log.isDebugEnabled()) {
                 log.debug("Workspace directory: " + newFilePath);
@@ -146,10 +149,30 @@ public class ElectricFlowUploadArtifactPublisher
             String                           userPassword    =
                 cred.getElectricFlowPassword();
             ElectricFlowClient               efClient        =
-                new ElectricFlowClient(electricFlowUrl, userName, userPassword, workspaceDir);
+                new ElectricFlowClient(electricFlowUrl, userName, userPassword,
+                    workspaceDir);
             String                           result          =
-                efClient.uploadArtifact(repositoryName, newArtifactName, newArtifactVersion, newFilePath, false);
+                efClient.uploadArtifact(repositoryName, newArtifactName,
+                    newArtifactVersion, newFilePath, false);
 
+            if (!"Artifact-Published-OK".equals(result)) {
+                listener.getLogger()
+                        .println("Upload result: " + result);
+                return false;
+            }
+
+            String            url          = efClient.getElectricFlowUrl()
+                    + "/commander/link/artifactDetails/artifacts/"
+                    + Utils.encodeURL(newArtifactName)
+                    + "?s=Artifacts&ss=Artifacts";
+
+            SummaryTextAction action       = new SummaryTextAction(build,
+                    "<hr><h2>ElectricFlow Artifact</h2> <a href='"
+                        + url
+                        + "'>" + newArtifactName + ":" + newArtifactVersion + "</a>");
+
+            build.addAction(action);
+            build.save();
             listener.getLogger()
                     .println("Upload result: " + result);
         }
@@ -268,11 +291,16 @@ public class ElectricFlowUploadArtifactPublisher
             return super.configure(req, formData);
         }
 
-        public ListBoxModel doFillCredentialItems()
+        public FormValidation doCheckArtifactName(@QueryParameter String value)
         {
-            return Utils.fillCredentialItems();
+            return Utils.validateValueOnEmpty(value, "Artifact name");
         }
 
+        public FormValidation doCheckArtifactVersion(
+                @QueryParameter String value)
+        {
+            return Utils.validateValueOnEmpty(value, "Artifact version");
+        }
 
         public FormValidation doCheckCredential(@QueryParameter String value)
         {
@@ -284,21 +312,16 @@ public class ElectricFlowUploadArtifactPublisher
             return Utils.validateValueOnEmpty(value, "File path");
         }
 
-        public FormValidation doCheckArtifactName(@QueryParameter String value)
-        {
-            return Utils.validateValueOnEmpty(value, "Artifact name");
-        }
-
-        public FormValidation doCheckArtifactVersion(@QueryParameter String value)
-        {
-            return Utils.validateValueOnEmpty(value, "Artifact version");
-        }
-
-        public FormValidation doCheckRepositoryName(@QueryParameter String value)
+        public FormValidation doCheckRepositoryName(
+                @QueryParameter String value)
         {
             return Utils.validateValueOnEmpty(value, "Repository name");
         }
 
+        public ListBoxModel doFillCredentialItems()
+        {
+            return Utils.fillCredentialItems();
+        }
 
         public ListBoxModel doFillRepositoryNameItems(
                 @QueryParameter String credential)

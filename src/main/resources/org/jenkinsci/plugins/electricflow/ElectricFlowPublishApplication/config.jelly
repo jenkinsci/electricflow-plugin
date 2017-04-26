@@ -1,3 +1,12 @@
+<!--
+ElectricFlowPublishApplication.java -
+
+ElectricFlowPublishApplication.java is part of ElectricCommander.
+
+Copyright (c) 2005-2017 Electric Cloud, Inc.
+All rights reserved.
+-->
+
 <?jelly escape-by-default='true'?>
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
   <f:entry title="Configuration" field="credential">

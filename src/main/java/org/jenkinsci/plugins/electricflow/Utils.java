@@ -9,6 +9,8 @@
 
 package org.jenkinsci.plugins.electricflow;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -21,6 +23,13 @@ public class Utils
 {
 
     //~ Methods ----------------------------------------------------------------
+
+    public static String encodeURL(String url)
+        throws UnsupportedEncodingException
+    {
+        return URLEncoder.encode(url, "UTF-8")
+                         .replaceAll("\\+", "%20");
+    }
 
     public static ListBoxModel fillCredentialItems()
     {
