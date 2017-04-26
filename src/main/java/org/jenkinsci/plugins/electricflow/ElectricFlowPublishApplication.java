@@ -397,7 +397,7 @@ public class ElectricFlowPublishApplication
          */
         @Override public String getDisplayName()
         {
-            return "ElectricFlow - Create Application from Deployment Package";
+            return "ElectricFlow - Create/Deploy Application from Deployment Package";
         }
 
         public String getElectricFlowPassword()
