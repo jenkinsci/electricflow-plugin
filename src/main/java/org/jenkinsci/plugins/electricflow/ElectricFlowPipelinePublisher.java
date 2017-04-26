@@ -11,9 +11,7 @@ package org.jenkinsci.plugins.electricflow;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Map;
 
-import javax.annotation.Nonnull;
 import javax.servlet.ServletException;
 
 import org.apache.commons.logging.Log;
@@ -29,14 +27,11 @@ import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 
 import hudson.Extension;
-import hudson.FilePath;
 import hudson.Launcher;
 
 import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
 import hudson.model.BuildListener;
-import hudson.model.Run;
-import hudson.model.TaskListener;
 
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.BuildStepMonitor;
@@ -61,7 +56,6 @@ import hudson.util.ListBoxModel;
  */
 public class ElectricFlowPipelinePublisher
     extends Recorder
-// implements SimpleBuildStep
 {
 
     //~ Static fields/initializers ---------------------------------------------
@@ -151,26 +145,21 @@ public class ElectricFlowPipelinePublisher
                         parameters);
             }
 
-            JSONObject    flowRuntime     = (JSONObject) JSONObject.fromObject(
-                                                                       pipelineResult)
-                                                                   .get(
-                                                                       "flowRuntime");
-            String        pipelineId      = (String) flowRuntime.get(
+            JSONObject        flowRuntime     = (JSONObject) JSONObject
+                    .fromObject(pipelineResult)
+                    .get("flowRuntime");
+            String            pipelineId      = (String) flowRuntime.get(
                     "pipelineId");
-            String        flowRuntimeId   = (String) flowRuntime.get(
+            String            flowRuntimeId   = (String) flowRuntime.get(
                     "flowRuntimeId");
-            String        flowRuntimeName = (String) flowRuntime.get(
+            String            flowRuntimeName = (String) flowRuntime.get(
                     "flowRuntimeName");
-            StringBuilder url             = new StringBuilder(
-                    efClient.getElectricFlowUrl());
-
-            url.append("/flow/#pipeline-run/")
-               .append(pipelineId)
-               .append("/")
-               .append(flowRuntimeId);
-
-            SummaryTextAction action = new SummaryTextAction(build,
-                    "<hr><h2>ElectricFlow Pipeline</h2> <a href='" + url.toString()
+            String            url             = efClient.getElectricFlowUrl()
+                    + "/flow/#pipeline-run/" + pipelineId
+                    + "/" + flowRuntimeId;
+            SummaryTextAction action          = new SummaryTextAction(build,
+                    "<hr><h2>ElectricFlow Pipeline</h2> <a href='"
+                        + url
                         + "'>" + flowRuntimeName + "</a>");
 
             build.addAction(action);
@@ -187,35 +176,6 @@ public class ElectricFlowPipelinePublisher
         }
 
         return true;
-    }
-
-    public void performdf(
-            @Nonnull Run<?, ?>    build,
-            @Nonnull FilePath     filePath,
-            @Nonnull Launcher     launcher,
-            @Nonnull TaskListener taskListener)
-        throws InterruptedException, IOException
-    {
-//        SummaryTextAction action = new SummaryTextAction(build,
-//                "<hr><h2>ElectricFlow</h2> <a href='https://google.com'>EF.com</a>");
-//
-//        build.addAction(action);
-//        build.save();
-    }
-
-    private String replaceVars(
-            String              publishText,
-            Map<String, String> vars)
-    {
-
-        for (Map.Entry<String, String> var : vars.entrySet()) {
-            String key   = String.format("${%s}", var.getKey());
-            String value = var.getValue();
-
-            publishText = publishText.replace(key, value);
-        }
-
-        return publishText;
     }
 
     public JSONArray getAdditionalOption()

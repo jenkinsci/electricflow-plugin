@@ -216,8 +216,8 @@ public class ElectricFlowClient
         StringBuilder      myString        = new StringBuilder();
         String             requestEndpoint =
             "/rest/v1.0/pipelines?pipelineName="
-                + encodeURL(pipelineName)
-                + "&projectName=" + encodeURL(projectName);
+                + Utils.encodeURL(pipelineName)
+                + "&projectName=" + Utils.encodeURL(projectName);
         HttpsURLConnection conn            = null;
         BufferedReader     br              = null;
 
@@ -423,12 +423,6 @@ public class ElectricFlowClient
         return resultLine;
     }
 
-    private String encodeURL(String url)
-        throws UnsupportedEncodingException
-    {
-        return URLEncoder.encode(url, "UTF-8")
-                         .replaceAll("\\+", "%20");
-    }
 
     public List<String> getArtifactRepositories()
         throws Exception
@@ -706,7 +700,7 @@ public class ElectricFlowClient
     {
         StringBuilder      myString        = new StringBuilder();
         String             requestEndpoint = "/rest/v1.0/projects/"
-                + encodeURL(projectName) + "/pipelines";
+                + Utils.encodeURL(projectName) + "/pipelines";
         BufferedReader     br              = null;
         HttpsURLConnection conn            = null;
 
