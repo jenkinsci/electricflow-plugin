@@ -44,6 +44,8 @@ import org.apache.commons.logging.LogFactory;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 
+import hudson.util.Secret;
+
 public class ElectricFlowClient
 {
 
@@ -76,7 +78,8 @@ public class ElectricFlowClient
     {
         this.electricFlowUrl = url;
         this.userName        = name;
-        this.password        = password;
+        this.password        = Secret.fromString(password)
+                                     .getPlainText();
         this.workspaceDir    = workspaceDir;
 
         if (userName.isEmpty() || password.isEmpty()) {
@@ -372,7 +375,8 @@ public class ElectricFlowClient
         multipart.addFormField("commanderSessionId", sessionId);
 
         // here we're getting files from directory using wildcard:
-        List<File> fileList = FileHelper.getFilesFromDirectoryWildcard(this.workspaceDir, path, true);
+        List<File> fileList = FileHelper.getFilesFromDirectoryWildcard(
+                this.workspaceDir, path, true);
 
         if (log.isDebugEnabled()) {
             log.debug("File path: " + path);
@@ -484,11 +488,6 @@ public class ElectricFlowClient
         return repositories;
     }
 
-    public String getElectricFlowUrl() {
-        return electricFlowUrl;
-    }
-
-    // https://wsphere/rest/v1.0/projects/Jenkins/pipelines/SImplePipeline
     private HttpsURLConnection getConnection(String endpoint)
         throws IOException
     {
@@ -512,6 +511,11 @@ public class ElectricFlowClient
         conn.setRequestProperty("Accept", "application/json");
 
         return conn;
+    }
+
+    public String getElectricFlowUrl()
+    {
+        return electricFlowUrl;
     }
 
     public List<String> getPipelineFormalParameters(String pipelineName)
