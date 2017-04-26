@@ -197,11 +197,6 @@ public class ElectricFlowUploadArtifactPublisher
         return filePath;
     }
 
-    @Override public Action getProjectAction(AbstractProject<?, ?> project)
-    {
-        return new ElectricFlowProjectAction(project);
-    }
-
     public String getRepositoryName()
     {
         return repositoryName;

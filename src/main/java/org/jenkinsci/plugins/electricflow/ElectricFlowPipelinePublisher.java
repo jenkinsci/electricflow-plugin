@@ -585,10 +585,10 @@ public class ElectricFlowPipelinePublisher
             return "ElectricFlow - Run Pipeline";
         }
 
-        @Override public String getHelpFile()
-        {
-            return "ASDFASDFASDFASDFASDFASDFASDF";
-        }
+        // @Override public String getHelpFile()
+        // {
+        //     return "ASDFASDFASDFASDFASDFASDFASDF";
+        // }
 
         @Override public String getId()
         {
