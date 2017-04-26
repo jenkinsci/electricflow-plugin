@@ -1,0 +1,5 @@
+
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core">
+    <tr><td colspan="2"><j:out value="${it.summaryText}"/></td></tr>
+</j:jelly>
