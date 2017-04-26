@@ -22,7 +22,7 @@
                   <f:textbox />
               </f:entry>
               
-              <f:entry title="Server URL (for example https://electric-flow-server):" field="electricFlowUrl">
+              <f:entry title="Server URL:" field="electricFlowUrl">
                   <f:textbox />
               </f:entry>
               <f:entry title="REST API Version:" field="electricFlowApiVersion">
