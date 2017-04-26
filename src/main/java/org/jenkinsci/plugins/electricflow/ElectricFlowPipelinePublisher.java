@@ -141,6 +141,9 @@ public class ElectricFlowPipelinePublisher
                         pipelineName);
             }
             else {
+                EnvReplacer env = new EnvReplacer(build, listener);
+
+                expandParameters(parameters, env);
                 pipelineResult = efClient.runPipeline(projectName, pipelineName,
                         parameters);
             }
@@ -176,6 +179,20 @@ public class ElectricFlowPipelinePublisher
         }
 
         return true;
+    }
+
+    private void expandParameters(
+            JSONArray   parameters,
+            EnvReplacer env)
+    {
+
+        for (Object jsonObject : parameters) {
+            JSONObject json           = (JSONObject) jsonObject;
+            String     parameterValue = (String) json.get("parameterValue");
+            String     expandValue    = env.expandEnv(parameterValue);
+
+            json.put("parameterValue", expandValue);
+        }
     }
 
     public JSONArray getAdditionalOption()
@@ -544,11 +561,6 @@ public class ElectricFlowPipelinePublisher
         {
             return "ElectricFlow - Run Pipeline";
         }
-
-        // @Override public String getHelpFile()
-        // {
-        //     return "ASDFASDFASDFASDFASDFASDFASDF";
-        // }
 
         @Override public String getId()
         {
