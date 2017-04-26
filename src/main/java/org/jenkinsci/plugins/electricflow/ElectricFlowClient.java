@@ -372,8 +372,7 @@ public class ElectricFlowClient
         multipart.addFormField("commanderSessionId", sessionId);
 
         // here we're getting files from directory using wildcard:
-        List<File> fileList = FileHelper.getFilesFromDirectoryWildcard(
-                this.workspaceDir, path);
+        List<File> fileList = FileHelper.getFilesFromDirectoryWildcard(this.workspaceDir, path, true);
 
         if (log.isDebugEnabled()) {
             log.debug("File path: " + path);

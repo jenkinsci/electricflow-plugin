@@ -20,6 +20,8 @@ import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.List;
+import java.lang.StringBuilder;
+import java.util.regex.Pattern;
 
 import org.apache.commons.io.filefilter.WildcardFileFilter;
 import org.apache.maven.shared.utils.io.DirectoryScanner;
@@ -62,6 +64,9 @@ public class FileHelper
         out.close();
     }
     static List <File> getFilesFromDirectoryWildcard(final String basePath, final String path) {
+        return getFilesFromDirectoryWildcard(basePath, path, false);
+    }
+    static List <File> getFilesFromDirectoryWildcard(final String basePath, final String path, boolean fullPath) {
         String[] splitResult = splitPath(path);
 
         List <File> result = new ArrayList<>();
@@ -73,7 +78,13 @@ public class FileHelper
         scanner.scan();
         String[] files = scanner.getIncludedFiles();
         for (String str : files) {
-            result.add(new File(basePath + "/" + str));
+            // System.out.println("Added file: " + str);
+            if (fullPath) {
+                result.add(new File(basePath + "/" + str));
+            }
+            else {
+                result.add(new File(str));
+            }
         }
         return result;
 
@@ -104,5 +115,44 @@ public class FileHelper
             list[i] = list[i].trim();
         }
         return list;
+    }
+    
+    static String[] splitFileSystemPath(String path) {
+        String[] subDirs = path.split(Pattern.quote(File.separator));
+        return subDirs;
+    }
+
+    public static boolean isTopLeveDirSame(List<File> files) {
+        String buffer = "";
+        boolean sameRoot = false;
+        for (File f : files) {
+            String[] newFilePathCut = splitFileSystemPath(f.getPath());
+
+            if (buffer.isEmpty()) {
+                sameRoot = true;
+                buffer = newFilePathCut[0];
+            }
+            else {
+                if (!buffer.equals(newFilePathCut[0])) {
+                    sameRoot = false;
+                }
+            }
+        }
+        return sameRoot;
+    }
+
+    public static String cutTopLevelDir(String path) {
+        return cutTopLevelDir(splitFileSystemPath(path));
+    }
+    public static String cutTopLevelDir(String[] path) {
+        
+        StringBuilder result = new StringBuilder("");
+        int len = path.length;
+        len -= 1;
+        for (int i = 1; i < len ; i++) {
+            result.append(path[i] + File.separator);
+        }
+        result.append(path[len]);
+        return result.toString();
     }
 }
