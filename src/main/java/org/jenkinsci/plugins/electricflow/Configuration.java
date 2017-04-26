@@ -50,11 +50,14 @@ public class Configuration
         this.credentialName   = credentialName;
         this.electricFlowUrl  = electricFlowUrl;
         this.electricFlowUser = electricFlowUser;
-
-        // encrypted one
-        Secret secret = Secret.fromString(electricFlowPassword);
-
-        this.electricFlowPassword = secret.getEncryptedValue();
+        if (!electricFlowPassword.equals(this.getElectricFlowPassword())) {
+            // encrypted one
+            Secret secret = Secret.fromString(electricFlowPassword);
+            this.electricFlowPassword = secret.getEncryptedValue();
+        }
+        else {
+            this.electricFlowPassword = electricFlowPassword;
+        }
 
         // end
         this.electricFlowApiVersion = electricFlowApiVersion;
@@ -74,9 +77,10 @@ public class Configuration
 
     public String getElectricFlowPassword()
     {
-        Secret encryptedPassword = Secret.fromString(this.electricFlowPassword);
+        return this.electricFlowPassword;
+        // Secret encryptedPassword = Secret.fromString(this.electricFlowPassword);
 
-        return encryptedPassword.getPlainText();
+        // return encryptedPassword.getPlainText();
     }
 
     public String getElectricFlowUrl()
@@ -145,9 +149,11 @@ public class Configuration
         {
 
             try {
+                Secret encryptedPassword = Secret.fromString(electricFlowPassword);
+                String decryptedPassword = encryptedPassword.getPlainText();
                 ElectricFlowClient efClient = new ElectricFlowClient(
                         electricFlowUrl, electricFlowUser,
-                        electricFlowPassword);
+                        decryptedPassword);
 
                 efClient.getSessionId();
 
