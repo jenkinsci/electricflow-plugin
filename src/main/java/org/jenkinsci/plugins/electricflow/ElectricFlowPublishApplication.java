@@ -215,8 +215,8 @@ public class ElectricFlowPublishApplication
     {
         List<File> fileList = new ArrayList<>();
 
-        for (int i = 0; i < files.length; i++) {
-            File f = new File(files[i]);
+        for (String file : files) {
+            File f = new File(file);
 
             fileList.add(f);
         }
@@ -354,12 +354,6 @@ public class ElectricFlowPublishApplication
                 JSONObject     formData)
             throws FormException
         {
-
-            // To persist global configuration information, set that to
-            // properties and call save(). useFrench =
-            // formData.getBoolean("useFrench"); ^Can also use
-            // req.bindJSON(this, formData); (easier when there are many fields;
-            // need set* methods for this, like setUseFrench)
             electricFlowUrl      = formData.getString("electricFlowUrl");
             electricFlowUser     = formData.getString("electricFlowUser");
             electricFlowPassword = formData.getString("electricFlowPassword");
@@ -402,17 +396,6 @@ public class ElectricFlowPublishApplication
             return electricFlowPassword;
         }
 
-        /**
-         * This method returns true if the global configuration says we should
-         * speak French.
-         *
-         * <p>The method name is bit awkward because global.jelly calls this
-         * method to determine the initial state of the checkbox by the naming
-         * convention.</p>
-         *
-         * @return  this method returns true if the global configuration says we
-         *          should speak French.
-         */
         public String getElectricFlowUrl()
         {
             return electricFlowUrl;
