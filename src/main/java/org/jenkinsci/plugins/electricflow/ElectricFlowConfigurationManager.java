@@ -22,17 +22,17 @@ public class ElectricFlowConfigurationManager
 
     public ElectricFlowConfigurationManager()
     {
-        efConfigurations = Utils.getCredentials();
+        efConfigurations = Utils.getConfigurations();
     }
 
     //~ Methods ----------------------------------------------------------------
 
-    public Configuration getCredentialByName(String name)
+    public Configuration getConfigurationByName(String name)
     {
 
         for (Configuration cred : this.efConfigurations) {
 
-            if (cred.getCredentialName()
+            if (cred.getConfigurationName()
                     .equals(name)) {
                 return cred;
             }

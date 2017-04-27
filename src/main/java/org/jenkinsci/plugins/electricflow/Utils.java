@@ -18,6 +18,8 @@ import hudson.util.FormValidation;
 import hudson.util.ListBoxModel;
 
 import jenkins.model.GlobalConfiguration;
+import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
 
 public class Utils
 {
@@ -31,14 +33,14 @@ public class Utils
                          .replaceAll("\\+", "%20");
     }
 
-    public static ListBoxModel fillCredentialItems()
+    public static ListBoxModel fillConfigurationItems()
     {
         ListBoxModel m = new ListBoxModel();
 
         m.add("Select configuration", "");
 
-        for (Configuration cred : getCredentials()) {
-            m.add(cred.getCredentialName(), cred.getCredentialName());
+        for (Configuration cred : getConfigurations()) {
+            m.add(cred.getConfigurationName(), cred.getConfigurationName());
         }
 
         return m;
@@ -58,12 +60,12 @@ public class Utils
         }
     }
 
-    public static Configuration getCredentialByName(String name)
+    public static Configuration getConfigurationByName(String name)
     {
 
-        for (Configuration cred : getCredentials()) {
+        for (Configuration cred : getConfigurations()) {
 
-            if (cred.getCredentialName()
+            if (cred.getConfigurationName()
                     .equals(name)) {
                 return cred;
             }
@@ -72,7 +74,7 @@ public class Utils
         return null;
     }
 
-    public static List<Configuration> getCredentials()
+    public static List<Configuration> getConfigurations()
     {
         ElectricFlowGlobalConfiguration cred = GlobalConfiguration.all()
                                                                   .get(

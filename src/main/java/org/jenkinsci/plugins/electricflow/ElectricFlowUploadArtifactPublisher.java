@@ -10,6 +10,7 @@
 package org.jenkinsci.plugins.electricflow;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
@@ -29,7 +30,6 @@ import hudson.Launcher;
 
 import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
-import hudson.model.Action;
 import hudson.model.BuildListener;
 
 import hudson.tasks.BuildStepDescriptor;
@@ -63,7 +63,7 @@ public class ElectricFlowUploadArtifactPublisher
 
     //~ Instance fields --------------------------------------------------------
 
-    private final String credential;
+    private final String configuration;
     private final String repositoryName;
     private String       artifactName;
     private String       artifactVersion;
@@ -78,13 +78,13 @@ public class ElectricFlowUploadArtifactPublisher
             String artifactName,
             String artifactVersion,
             String filePath,
-            String credential)
+            String configuration)
     {
         this.repositoryName  = repositoryName;
         this.artifactName    = artifactName;
         this.artifactVersion = artifactVersion;
         this.filePath        = filePath;
-        this.credential      = credential;
+        this.configuration   = configuration;
     }
 
     //~ Methods ----------------------------------------------------------------
@@ -117,21 +117,11 @@ public class ElectricFlowUploadArtifactPublisher
                 log.debug("Workspace directory: " + workspaceDir);
             }
 
-            Integer buildNumber = build.getNumber();
-
-            // let's do a replacements
-            // $WORKSPACE_DIR will be replaced with current workspace path.
-            // $BUILD_NUMBER will be replaced with current build number.
-            String newFilePath        = filePath;
-            String newArtifactVersion = artifactVersion;
-            String newArtifactName    = artifactName;
-
-            newFilePath        = newFilePath.replace("$BUILD_NUMBER",
-                    buildNumber.toString());
-            newArtifactVersion = newArtifactVersion.replace("$BUILD_NUMBER",
-                    buildNumber.toString());
-            newArtifactName    = newArtifactName.replace("$BUILD_NUMBER",
-                    buildNumber.toString());
+            // let's do a expand variables
+            EnvReplacer env                = new EnvReplacer(build, listener);
+            String      newFilePath        = env.expandEnv(filePath);
+            String      newArtifactVersion = env.expandEnv(artifactVersion);
+            String      newArtifactName    = env.expandEnv(artifactName);
 
             if (log.isDebugEnabled()) {
                 log.debug("Workspace directory: " + newFilePath);
@@ -141,7 +131,7 @@ public class ElectricFlowUploadArtifactPublisher
             ElectricFlowConfigurationManager efCM            =
                 new ElectricFlowConfigurationManager();
             Configuration                    cred            =
-                efCM.getCredentialByName(this.credential);
+                efCM.getConfigurationByName(this.configuration);
             String                           electricFlowUrl =
                 cred.getElectricFlowUrl();
             String                           userName        =
@@ -158,25 +148,22 @@ public class ElectricFlowUploadArtifactPublisher
             if (!"Artifact-Published-OK".equals(result)) {
                 listener.getLogger()
                         .println("Upload result: " + result);
+
                 return false;
             }
 
-            String            url          = efClient.getElectricFlowUrl()
-                    + "/commander/link/artifactDetails/artifacts/"
-                    + Utils.encodeURL(newArtifactName)
-                    + "?s=Artifacts&ss=Artifacts";
-
-            SummaryTextAction action       = new SummaryTextAction(build,
-                    "<hr><h2>ElectricFlow Artifact</h2> <a href='"
-                        + url
-                        + "'>" + newArtifactName + ":" + newArtifactVersion + "</a>");
+            String            summaryHtml = getSummaryHtml(newArtifactVersion,
+                    newArtifactName, efClient);
+            SummaryTextAction action      = new SummaryTextAction(build,
+                    summaryHtml);
 
             build.addAction(action);
             build.save();
             listener.getLogger()
                     .println("Upload result: " + result);
         }
-        catch (NoSuchAlgorithmException | KeyManagementException | IOException e) {
+        catch (NoSuchAlgorithmException | KeyManagementException
+                | InterruptedException | IOException e) {
             listener.getLogger()
                     .println(e.getMessage());
             log.error(e.getMessage(), e);
@@ -202,9 +189,9 @@ public class ElectricFlowUploadArtifactPublisher
      *
      * @return  we'll use this from the {@code config.jelly}.
      */
-    public String getCredential()
+    public String getConfiguration()
     {
-        return credential;
+        return configuration;
     }
 
     // Overridden for better type safety.
@@ -228,6 +215,41 @@ public class ElectricFlowUploadArtifactPublisher
     @Override public BuildStepMonitor getRequiredMonitorService()
     {
         return BuildStepMonitor.NONE;
+    }
+
+    private String getSummaryHtml(
+            String             newArtifactVersion,
+            String             newArtifactName,
+            ElectricFlowClient efClient)
+        throws UnsupportedEncodingException
+    {
+        String url = efClient.getElectricFlowUrl()
+                + "/commander/link/artifactVersionDetails/artifactVersions/"
+                + Utils.encodeURL(newArtifactName + ":" + newArtifactVersion)
+                + "?s=Artifacts&ss=Artifacts";
+
+        String repository = repositoryName.isEmpty()
+                ? "default"
+                : repositoryName;
+        return "<h3>ElectricFlow Publish Artifact</h3>"
+            + "<table cellspacing=\"2\" cellpadding=\"4\">\n"
+            + "  <tr>\n"
+            + "    <td>Artifact URL:</td>\n"
+            + "    <td><a href ='" + url + "'>" + url + "</a></td> \n"
+            + "  </tr>\n"
+            + "  <tr>\n"
+            + "    <td>Artifact Name:</td>\n"
+            + "    <td><a href ='" + url + "'>" + artifactName + "</a></td> \n"
+            + "  </tr>\n"
+            + "  <tr>\n"
+            + "    <td>Artifact Version:</td>\n"
+            + "    <td>" + newArtifactVersion + "</td> \n"
+            + "  </tr>\n"
+            + "  <tr>\n"
+            + "    <td>Repository Name:</td>\n"
+            + "    <td>" + repository + "</td> \n"
+            + "  </tr>\n"
+            + "</table>";
     }
 
     //~ Inner Classes ----------------------------------------------------------
@@ -302,9 +324,10 @@ public class ElectricFlowUploadArtifactPublisher
             return Utils.validateValueOnEmpty(value, "Artifact version");
         }
 
-        public FormValidation doCheckCredential(@QueryParameter String value)
+        public FormValidation doCheckConfiguration(
+                @QueryParameter String value)
         {
-            return Utils.validateValueOnEmpty(value, "Credential");
+            return Utils.validateValueOnEmpty(value, "Configuration");
         }
 
         public FormValidation doCheckFilePath(@QueryParameter String value)
@@ -318,19 +341,19 @@ public class ElectricFlowUploadArtifactPublisher
             return Utils.validateValueOnEmpty(value, "Repository name");
         }
 
-        public ListBoxModel doFillCredentialItems()
+        public ListBoxModel doFillConfigurationItems()
         {
-            return Utils.fillCredentialItems();
+            return Utils.fillConfigurationItems();
         }
 
         public ListBoxModel doFillRepositoryNameItems(
-                @QueryParameter String credential)
+                @QueryParameter String configuration)
         {
             ListBoxModel m = new ListBoxModel();
 
             m.add("Select repository", "");
 
-            if (credential.isEmpty()) {
+            if (configuration.isEmpty()) {
                 return m;
             }
 
@@ -338,7 +361,7 @@ public class ElectricFlowUploadArtifactPublisher
                 ElectricFlowConfigurationManager efCM         =
                     new ElectricFlowConfigurationManager();
                 Configuration                    cred         =
-                    efCM.getCredentialByName(credential);
+                    efCM.getConfigurationByName(configuration);
                 ElectricFlowClient               efClient     =
                     new ElectricFlowClient(cred.getElectricFlowUrl(),
                         cred.getElectricFlowUser(),
@@ -361,9 +384,9 @@ public class ElectricFlowUploadArtifactPublisher
             return m;
         }
 
-        public Configuration getCredentialByName(String name)
+        public Configuration getConfigurationByName(String name)
         {
-            return Utils.getCredentialByName(name);
+            return Utils.getConfigurationByName(name);
         }
 
         /**
