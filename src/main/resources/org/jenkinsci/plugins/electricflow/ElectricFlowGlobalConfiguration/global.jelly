@@ -26,7 +26,7 @@ All rights reserved.
       <f:repeatable field="configurations" minimum="${1}">
           <table style="width:100%">
 
-              <f:entry title="Credential name" field="credentialName">
+              <f:entry title="Configuration name" field="configurationName">
                   <f:textbox />
               </f:entry>
               

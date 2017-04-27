@@ -32,7 +32,7 @@ public class Configuration
 
     //~ Instance fields --------------------------------------------------------
 
-    private final String credentialName;
+    private final String configurationName;
     private final String electricFlowUser;
     private final String electricFlowPassword;
     private final String electricFlowUrl;
@@ -41,13 +41,13 @@ public class Configuration
     //~ Constructors -----------------------------------------------------------
 
     @DataBoundConstructor public Configuration(
-            String credentialName,
+            String configurationName,
             String electricFlowUrl,
             String electricFlowUser,
             String electricFlowPassword,
             String electricFlowApiVersion)
     {
-        this.credentialName   = credentialName;
+        this.configurationName   = configurationName;
         this.electricFlowUrl  = electricFlowUrl;
         this.electricFlowUser = electricFlowUser;
         if (!electricFlowPassword.equals(this.getElectricFlowPassword())) {
@@ -65,9 +65,9 @@ public class Configuration
 
     //~ Methods ----------------------------------------------------------------
 
-    public String getCredentialName()
+    public String getConfigurationName()
     {
-        return this.credentialName;
+        return this.configurationName;
     }
 
     public String getElectricFlowApiVersion()
@@ -95,13 +95,13 @@ public class Configuration
 
     //~ Inner Classes ----------------------------------------------------------
 
-    @Extension public static final class CredentialDescriptor
+    @Extension public static final class ConfigurationDescriptor
         extends Descriptor<Configuration>
     {
 
         //~ Methods ------------------------------------------------------------
 
-        public FormValidation doCheckCredentialName(
+        public FormValidation doCheckConfigurationName(
                 @QueryParameter String value)
         {
             return Utils.validateValueOnEmpty(value, "Configuration name");
@@ -141,6 +141,13 @@ public class Configuration
             return m;
         }
 
+        @Override
+        public String getHelpFile() {
+            return super.getHelpFile();
+        }
+
+
+
         public FormValidation doTestConnection(
                 @QueryParameter("electricFlowUrl") final String electricFlowUrl,
                 @QueryParameter("electricFlowUser") final String electricFlowUser,
@@ -160,7 +167,7 @@ public class Configuration
                 return FormValidation.ok("Success");
             }
             catch (Exception e) {
-                return FormValidation.error("Wrong credentials");
+                return FormValidation.error("Wrong configurations");
             }
         }
 

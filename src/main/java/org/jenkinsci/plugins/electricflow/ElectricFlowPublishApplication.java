@@ -68,18 +68,18 @@ public class ElectricFlowPublishApplication
 
     //~ Instance fields --------------------------------------------------------
 
-    private final String credential;
+    private final String configuration;
     private String       filePath;
 
     //~ Constructors -----------------------------------------------------------
 
     @DataBoundConstructor public ElectricFlowPublishApplication(
-            String credential,
+            String configuration,
             String artifactName,
             String filePath)
     {
-        this.credential = credential;
-        this.filePath   = filePath;
+        this.configuration = configuration;
+        this.filePath      = filePath;
     }
 
     //~ Methods ----------------------------------------------------------------
@@ -101,10 +101,17 @@ public class ElectricFlowPublishApplication
         Integer buildNumber  = build.getNumber();
 
         // do replace
-        String newFilePath = filePath;
+        String newFilePath;
 
-        newFilePath = newFilePath.replace("$BUILD_NUMBER",
-                buildNumber.toString());
+        try {
+            EnvReplacer env = new EnvReplacer(build, listener);
+
+            newFilePath = env.expandEnv(filePath);
+        }
+        catch (IOException | InterruptedException e) {
+            log.warn(e);
+            newFilePath = filePath;
+        }
 
         // artifact version
         String artifactVersion = buildNumber.toString();
@@ -136,7 +143,7 @@ public class ElectricFlowPublishApplication
             ElectricFlowConfigurationManager efCM     =
                 new ElectricFlowConfigurationManager();
             Configuration                    cred     =
-                efCM.getCredentialByName(credential);
+                efCM.getConfigurationByName(configuration);
             ElectricFlowClient               efClient = new ElectricFlowClient(
                     cred.getElectricFlowUrl(), cred.getElectricFlowUser(),
                     cred.getElectricFlowPassword(), workspaceDir);
@@ -166,9 +173,9 @@ public class ElectricFlowPublishApplication
      *
      * @return  we'll use this from the {@code config.jelly}.
      */
-    public String getCredential()
+    public String getConfiguration()
     {
-        return credential;
+        return configuration;
     }
 
     // Overridden for better type safety.
@@ -191,21 +198,20 @@ public class ElectricFlowPublishApplication
 
     //~ Methods ----------------------------------------------------------------
 
-    // }
     public static File createZipArchive(
             String basePath,
             String archiveName,
             String path)
         throws IOException
     {
-        File f = new File(basePath + "/" + path);
+        String fullPath = basePath + "/" + path;
+        File   f        = new File(fullPath);
 
         if (f.exists() && f.isDirectory()) {
             List<File> fileList = FileHelper.getFilesFromDirectoryWildcard(
-                    basePath + "/" + path, "**");
+                    fullPath, "**");
 
-            return createZipArchive(basePath + "/" + path, archiveName,
-                fileList);
+            return createZipArchive(fullPath, archiveName, fileList);
         }
 
         List<File> filesToArchive = FileHelper.getFilesFromDirectoryWildcard(
@@ -247,47 +253,47 @@ public class ElectricFlowPublishApplication
             boolean    cutTopLevelDir)
         throws IOException
     {
-        File            archive = new File(archiveName);
-        ZipOutputStream out     = new ZipOutputStream(new FileOutputStream(
-                    archive));
+        File archive = new File(archiveName);
 
-        if (cutTopLevelDir) {
-            cutTopLevelDir = FileHelper.isTopLeveDirSame(files);
-        }
+        try(ZipOutputStream out = new ZipOutputStream(
+                        new FileOutputStream(archive))) {
 
-        for (File row : files) {
-            FileInputStream in = new FileInputStream(basePath + "/"
-                        + row.getPath());
-
-            try {
-                String filePathToAdd = row.getPath();
-
-                if (cutTopLevelDir) {
-                    filePathToAdd = FileHelper.cutTopLevelDir(filePathToAdd);
-                }
-
-                out.putNextEntry(new ZipEntry(filePathToAdd));
-
-                int    len;
-                byte[] buf = new byte[1024];
-
-                while ((len = in.read(buf)) > 0) {
-                    out.write(buf, 0, len);
-                }
-
-                // Complete the entry
-                out.closeEntry();
-                in.close();
-                out.closeEntry();
+            if (cutTopLevelDir) {
+                cutTopLevelDir = FileHelper.isTopLeveDirSame(files);
             }
-            catch (IOException e) {
-                in.close();
-                throw new IOException("Unable to compress zip file: "
-                        + basePath, e);
+
+            for (File row : files) {
+
+                try(FileInputStream in = new FileInputStream(
+                                basePath + "/" + row.getPath())) {
+                    String filePathToAdd = row.getPath();
+
+                    if (cutTopLevelDir) {
+                        filePathToAdd = FileHelper.cutTopLevelDir(
+                                filePathToAdd);
+                    }
+
+                    out.putNextEntry(new ZipEntry(filePathToAdd));
+
+                    int    len;
+                    byte[] buf = new byte[1024];
+
+                    while ((len = in.read(buf)) > 0) {
+                        out.write(buf, 0, len);
+                    }
+
+                    // Complete the entry
+                    out.closeEntry();
+                }
+                catch (IOException e) {
+                    throw new IOException("Unable to compress zip file: "
+                            + basePath, e);
+                }
             }
         }
-
-        out.close();
+        catch (IOException e) {
+            throw new IOException(e);
+        }
 
         return archive;
     }
@@ -374,9 +380,10 @@ public class ElectricFlowPublishApplication
             return super.configure(req, formData);
         }
 
-        public FormValidation doCheckCredential(@QueryParameter String value)
+        public FormValidation doCheckConfiguration(
+                @QueryParameter String value)
         {
-            return Utils.validateValueOnEmpty(value, "Credential");
+            return Utils.validateValueOnEmpty(value, "Configuration");
         }
 
         public FormValidation doCheckFilePath(@QueryParameter String value)
@@ -384,9 +391,9 @@ public class ElectricFlowPublishApplication
             return Utils.validateValueOnEmpty(value, "File path");
         }
 
-        public ListBoxModel doFillCredentialItems()
+        public ListBoxModel doFillConfigurationItems()
         {
-            return Utils.fillCredentialItems();
+            return Utils.fillConfigurationItems();
         }
 
         /**

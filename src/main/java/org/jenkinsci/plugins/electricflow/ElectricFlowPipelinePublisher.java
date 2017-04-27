@@ -67,7 +67,7 @@ public class ElectricFlowPipelinePublisher
 
     private String    projectName;
     private String    pipelineName;
-    private String    credential;
+    private String    configuration;
     private String    addParam;
     private JSONArray additionalOption;
 
@@ -82,8 +82,8 @@ public class ElectricFlowPipelinePublisher
             Launcher      launcher,
             BuildListener listener)
     {
-        Configuration cred            = getDescriptor().getCredentialByName(
-                this.credential);
+        Configuration cred            = getDescriptor().getConfigurationByName(
+                this.configuration);
         String        electricFlowUrl = cred.getElectricFlowUrl();
         String        userName        = cred.getElectricFlowUser();
         String        userPassword    = cred.getElectricFlowPassword();
@@ -148,22 +148,10 @@ public class ElectricFlowPipelinePublisher
                         parameters);
             }
 
-            JSONObject        flowRuntime     = (JSONObject) JSONObject
-                    .fromObject(pipelineResult)
-                    .get("flowRuntime");
-            String            pipelineId      = (String) flowRuntime.get(
-                    "pipelineId");
-            String            flowRuntimeId   = (String) flowRuntime.get(
-                    "flowRuntimeId");
-            String            flowRuntimeName = (String) flowRuntime.get(
-                    "flowRuntimeName");
-            String            url             = efClient.getElectricFlowUrl()
-                    + "/flow/#pipeline-run/" + pipelineId
-                    + "/" + flowRuntimeId;
-            SummaryTextAction action          = new SummaryTextAction(build,
-                    "<hr><h2>ElectricFlow Pipeline</h2> <a href='"
-                        + url
-                        + "'>" + flowRuntimeName + "</a>");
+            String summaryHtml = getSummaryHtml(efClient, pipelineResult, parameters);
+
+            SummaryTextAction action = new SummaryTextAction(build,
+                    summaryHtml);
 
             build.addAction(action);
             build.save();
@@ -179,6 +167,64 @@ public class ElectricFlowPipelinePublisher
         }
 
         return true;
+    }
+
+    private String getSummaryHtml(ElectricFlowClient efClient, String pipelineResult, JSONArray parameters) {
+        JSONObject flowRuntime     = (JSONObject) JSONObject.fromObject(
+                                                                pipelineResult)
+                                                            .get(
+                                                                "flowRuntime");
+        String     pipelineId      = (String) flowRuntime.get("pipelineId");
+        String     flowRuntimeId   = (String) flowRuntime.get(
+                "flowRuntimeId");
+        String     url             = efClient.getElectricFlowUrl()
+                + "/flow/#pipeline-run/" + pipelineId
+                + "/" + flowRuntimeId;
+
+
+        String     summaryText     = "<h3>ElectricFlow Run Pipeline</h3>" +
+                "<table cellspacing=\"2\" cellpadding=\"4\"> \n"
+                + "  <tr>\n"
+                + "    <td>Pipeline URL:</td>\n"
+                + "    <td><a href='" + url + "'>" + url + "</a></td>   \n"
+                + "  </tr>\n"
+                + "  <tr>\n"
+                + "    <td>Pipeline Name:</td>\n"
+                + "    <td><a href='" + url + "'>" + pipelineName
+                + "</a></td>   \n"
+                + "  </tr>\n"
+                + "  <tr>\n"
+                + "    <td>Project Name:</td>\n"
+                + "    <td>" + projectName + "</td>    \n"
+                + "  </tr>";
+
+        if (!parameters.isEmpty()) {
+            StringBuilder strBuilder = new StringBuilder(summaryText);
+            strBuilder.append("  <tr>\n"
+                    + "    <td>&nbsp;<b>Parameters</b></td>\n"
+                    + "    <td></td>    \n"
+                    + "  </tr>\n");
+
+            for (Object jsonObject : parameters) {
+                JSONObject json           = (JSONObject) jsonObject;
+                String     parameterName  = (String) json.get(
+                        "parameterName");
+                String     parameterValue = (String) json.get(
+                        "parameterValue");
+                strBuilder.append("  <tr>\n"
+                                   + "    <td>&nbsp;&nbsp;&nbsp;&nbsp;")
+                           .append(parameterName)
+                           .append(":</td>\n"
+                               + "    <td>")
+                           .append(parameterValue)
+                           .append("</td>    \n"
+                               + "  </tr>\n");
+            }
+            summaryText = strBuilder.toString();
+        }
+
+        summaryText = summaryText + "</table>";
+        return summaryText;
     }
 
     private void expandParameters(
@@ -205,9 +251,9 @@ public class ElectricFlowPipelinePublisher
         return addParam;
     }
 
-    public String getCredential()
+    public String getConfiguration()
     {
-        return credential;
+        return configuration;
     }
 
     // Overridden for better type safety.
@@ -271,9 +317,9 @@ public class ElectricFlowPipelinePublisher
         this.addParam = addParam;
     }
 
-    @DataBoundSetter public void setCredential(String credential)
+    @DataBoundSetter public void setConfiguration(String configuration)
     {
-        this.credential = credential;
+        this.configuration = configuration;
     }
 
     @DataBoundSetter public void setPipelineName(String pipelineName)
@@ -324,9 +370,10 @@ public class ElectricFlowPipelinePublisher
 
         //~ Methods ------------------------------------------------------------
 
-        public FormValidation doCheckCredential(@QueryParameter String value)
+        public FormValidation doCheckConfiguration(
+                @QueryParameter String value)
         {
-            return Utils.validateValueOnEmpty(value, "Credential");
+            return Utils.validateValueOnEmpty(value, "Configuration");
         }
 
         public FormValidation doCheckPipelineName(@QueryParameter String value)
@@ -340,14 +387,14 @@ public class ElectricFlowPipelinePublisher
         }
 
         public ListBoxModel doFillAddParamItems(
-                @QueryParameter String credential,
+                @QueryParameter String configuration,
                 @QueryParameter String pipelineName,
                 @QueryParameter String addParam)
             throws Exception
         {
             ListBoxModel m = new ListBoxModel();
 
-            if (credential.isEmpty() || pipelineName.isEmpty()) {
+            if (configuration.isEmpty() || pipelineName.isEmpty()) {
                 m.add("{}");
 
                 return m;
@@ -368,9 +415,9 @@ public class ElectricFlowPipelinePublisher
                 }
             }
 
-            if (!credential.isEmpty() && !pipelineName.isEmpty()) {
-                Configuration      cred       = this.getCredentialByName(
-                        credential);
+            if (!configuration.isEmpty() && !pipelineName.isEmpty()) {
+                Configuration      cred       = this.getConfigurationByName(
+                        configuration);
                 ElectricFlowClient efClient   = new ElectricFlowClient(
                         cred.getElectricFlowUrl(), cred.getElectricFlowUser(),
                         cred.getElectricFlowPassword());
@@ -401,14 +448,14 @@ public class ElectricFlowPipelinePublisher
             return m;
         }
 
-        public ListBoxModel doFillCredentialItems()
+        public ListBoxModel doFillConfigurationItems()
         {
-            return Utils.fillCredentialItems();
+            return Utils.fillConfigurationItems();
         }
 
         public ListBoxModel doFillPipelineNameItems(
                 @QueryParameter String projectName,
-                @QueryParameter String credential,
+                @QueryParameter String configuration,
                 @QueryParameter String pipelineName)
             throws Exception
         {
@@ -416,9 +463,9 @@ public class ElectricFlowPipelinePublisher
 
             m.add("Select pipeline", "");
 
-            if (!projectName.isEmpty() && !credential.isEmpty()) {
-                Configuration cred            = this.getCredentialByName(
-                        credential);
+            if (!projectName.isEmpty() && !configuration.isEmpty()) {
+                Configuration cred            = this.getConfigurationByName(
+                        configuration);
                 String        userName        = cred.getElectricFlowUser();
                 String        userPassword    = cred.getElectricFlowPassword();
                 String        electricFlowUrl = cred.getElectricFlowUrl();
@@ -483,16 +530,16 @@ public class ElectricFlowPipelinePublisher
         }
 
         public ListBoxModel doFillProjectNameItems(
-                @QueryParameter String credential)
+                @QueryParameter String configuration)
             throws Exception
         {
             ListBoxModel m = new ListBoxModel();
 
             m.add("Select project", "");
 
-            if (!credential.isEmpty()) {
-                Configuration cred            = this.getCredentialByName(
-                        credential);
+            if (!configuration.isEmpty()) {
+                Configuration cred            = this.getConfigurationByName(
+                        configuration);
                 String        userName        = cred.getElectricFlowUser();
                 String        userPassword    = cred.getElectricFlowPassword();
                 String        electricFlowUrl = cred.getElectricFlowUrl();
@@ -541,14 +588,14 @@ public class ElectricFlowPipelinePublisher
             return FormValidation.ok("Success");
         }
 
-        public Configuration getCredentialByName(String name)
+        public Configuration getConfigurationByName(String name)
         {
-            return Utils.getCredentialByName(name);
+            return Utils.getConfigurationByName(name);
         }
 
-        public List<Configuration> getCredentials()
+        public List<Configuration> getConfigurations()
         {
-            return Utils.getCredentials();
+            return Utils.getConfigurations();
         }
 
         /**

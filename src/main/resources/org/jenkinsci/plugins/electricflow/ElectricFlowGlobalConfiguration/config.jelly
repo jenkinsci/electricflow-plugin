@@ -23,11 +23,11 @@ All rights reserved.
   -->
   <f:section title="ElectricFlow">
 
-  <f:entry title="Configurations" field="configurations">
+  <f:entry title="Configurations" field="configurations" help="help">
       <f:repeatable field="configurations" minimum="${0}">
           <table style="width:100%">
 
-              <f:entry title="Configuration Name:" field="credentialName">
+              <f:entry title="Configuration Name:" field="configurationName">
                   <f:textbox />
               </f:entry>
               
