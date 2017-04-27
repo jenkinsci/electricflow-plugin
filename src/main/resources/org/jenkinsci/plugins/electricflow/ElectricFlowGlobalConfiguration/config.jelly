@@ -23,7 +23,7 @@ All rights reserved.
   -->
   <f:section title="ElectricFlow">
 
-  <f:entry title="Configurations" field="configurations" help="help">
+  <f:entry title="Configurations" field="configurations">
       <f:repeatable field="configurations" minimum="${0}">
           <table style="width:100%">
 

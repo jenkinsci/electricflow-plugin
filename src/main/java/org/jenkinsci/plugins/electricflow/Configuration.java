@@ -138,13 +138,6 @@ public class Configuration
             return m;
         }
 
-        @Override
-        public String getHelpFile() {
-            return super.getHelpFile();
-        }
-
-
-
         public FormValidation doTestConnection(
                 @QueryParameter("electricFlowUrl") final String electricFlowUrl,
                 @QueryParameter("electricFlowUser") final String electricFlowUser,
