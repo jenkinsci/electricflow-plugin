@@ -11,6 +11,6 @@ To build plugin use following command:
 # Functionality
 This plugin provides following functionality
 
- * Create Application from Deployment Package.
+ * Create/Deploy Application from Deployment Package.
  * Run Pipeline.
  * Publish Artifact.
