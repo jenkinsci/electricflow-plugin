@@ -35,25 +35,12 @@ import hudson.model.BuildListener;
 
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.BuildStepMonitor;
-import hudson.tasks.Builder;
 import hudson.tasks.Publisher;
 import hudson.tasks.Recorder;
 
 import hudson.util.FormValidation;
 import hudson.util.ListBoxModel;
 
-/**
- * Sample {@link Builder}.
- *
- * <p>When the user configures the project and enables this builder is invoked
- * and a new {@link ElectricFlowPipelinePublisher} is created. The created
- * instance is persisted to the project configuration XML by using XStream, so
- * this allows you to use instance fields (like {@link #projectName}) to
- * remember the configuration.</p>
- *
- * <p>When a build is performed, the {@link #perform} method will be invoked.
- * </p>
- */
 public class ElectricFlowPipelinePublisher
     extends Recorder
 {

@@ -181,7 +181,7 @@ public class FileHelper
         return result;
     }
 
-    public static boolean isTopLeveDirSame(List<File> files)
+    public static boolean isTopLevelDirSame(List<File> files)
     {
         String  buffer   = "";
         boolean sameRoot = false;

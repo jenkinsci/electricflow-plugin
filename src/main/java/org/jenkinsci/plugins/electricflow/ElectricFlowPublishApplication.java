@@ -39,24 +39,11 @@ import hudson.model.BuildListener;
 
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.BuildStepMonitor;
-import hudson.tasks.Builder;
 import hudson.tasks.Publisher;
 
 import hudson.util.FormValidation;
 import hudson.util.ListBoxModel;
 
-/**
- * Sample {@link Builder}.
- *
- * <p>When the user configures the project and enables this builder, {@link
- * DescriptorImpl#newInstance(StaplerRequest)} is invoked and a new {@link
- * ElectricFlowPublishApplication} is created. The created instance is persisted
- * to the project configuration XML by using XStream, so this allows you to use
- * instance fields to remember the configuration.</p>
- *
- * <p>When a build is performed, the {@link #perform} method will be invoked.
- * </p>
- */
 public class ElectricFlowPublishApplication
     extends Publisher
 {
@@ -259,7 +246,7 @@ public class ElectricFlowPublishApplication
                         new FileOutputStream(archive))) {
 
             if (cutTopLevelDir) {
-                cutTopLevelDir = FileHelper.isTopLeveDirSame(files);
+                cutTopLevelDir = FileHelper.isTopLevelDirSame(files);
             }
 
             for (File row : files) {
@@ -406,7 +393,8 @@ public class ElectricFlowPublishApplication
          */
         @Override public String getDisplayName()
         {
-            return "ElectricFlow - Create/Deploy Application from Deployment Package";
+            return
+                "ElectricFlow - Create/Deploy Application from Deployment Package";
         }
 
         public String getElectricFlowPassword()

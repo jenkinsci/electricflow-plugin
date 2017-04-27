@@ -34,24 +34,11 @@ import hudson.model.BuildListener;
 
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.BuildStepMonitor;
-import hudson.tasks.Builder;
 import hudson.tasks.Publisher;
 
 import hudson.util.FormValidation;
 import hudson.util.ListBoxModel;
 
-/**
- * Sample {@link Builder}.
- *
- * <p>When the user configures the project and enables this builder, {@link
- * DescriptorImpl#newInstance(StaplerRequest)} is invoked and a new {@link
- * ElectricFlowUploadArtifactPublisher} is created. The created instance is
- * persisted to the project configuration XML by using XStream, so this allows
- * you to use instance fields to remember the configuration.</p>
- *
- * <p>When a build is performed, the {@link #perform} method will be invoked.
- * </p>
- */
 public class ElectricFlowUploadArtifactPublisher
     extends Publisher
 {
@@ -223,14 +210,14 @@ public class ElectricFlowUploadArtifactPublisher
             ElectricFlowClient efClient)
         throws UnsupportedEncodingException
     {
-        String url = efClient.getElectricFlowUrl()
+        String url        = efClient.getElectricFlowUrl()
                 + "/commander/link/artifactVersionDetails/artifactVersions/"
                 + Utils.encodeURL(newArtifactName + ":" + newArtifactVersion)
                 + "?s=Artifacts&ss=Artifacts";
-
         String repository = repositoryName.isEmpty()
-                ? "default"
-                : repositoryName;
+            ? "default"
+            : repositoryName;
+
         return "<h3>ElectricFlow Publish Artifact</h3>"
             + "<table cellspacing=\"2\" cellpadding=\"4\">\n"
             + "  <tr>\n"
@@ -298,12 +285,6 @@ public class ElectricFlowUploadArtifactPublisher
                 JSONObject     formData)
             throws FormException
         {
-
-            // TODO ask Dmitriy To persist global configuration information, set
-            // that to properties and call save(). useFrench =
-            // formData.getBoolean("useFrench"); ^Can also use
-            // req.bindJSON(this, formData); (easier when there are many fields;
-            // need set* methods for this, like setUseFrench)
             electricFlowUrl      = formData.getString("electricFlowUrl");
             electricFlowUser     = formData.getString("electricFlowUser");
             electricFlowPassword = formData.getString("electricFlowPassword");
@@ -405,17 +386,6 @@ public class ElectricFlowUploadArtifactPublisher
             return electricFlowPassword;
         }
 
-        /**
-         * This method returns true if the global configuration says we should
-         * speak French.
-         *
-         * <p>The method name is bit awkward because global.jelly calls this
-         * method to determine the initial state of the checkbox by the naming
-         * convention.</p>
-         *
-         * @return  this method returns true if the global configuration says we
-         *          should speak French.
-         */
         public String getElectricFlowUrl()
         {
             return electricFlowUrl;
@@ -426,19 +396,6 @@ public class ElectricFlowUploadArtifactPublisher
             return electricFlowUser;
         }
 
-        /**
-         * Performs on-the-fly validation of the form field 'name'.
-         *
-         * @param   aClass  value This parameter receives the value that the
-         *                  user has typed.
-         *
-         * @return  Indicates the outcome of the validation. This is sent to the
-         *          browser.
-         *
-         *          <p>Note that returning {@link FormValidation#error(String)}
-         *          does not prevent the form from being saved. It just means
-         *          that a message will be displayed to the user.</p>
-         */
         @Override public boolean isApplicable(
                 Class<? extends AbstractProject> aClass)
         {
