@@ -29,6 +29,22 @@ public class FileHelper
 
     //~ Methods ----------------------------------------------------------------
 
+    public static String buildPath(String... path)
+    {
+        StringBuilder result = new StringBuilder();
+
+        for (String s : path) {
+
+            if (s.equals("/")) {
+                s = File.separator;
+            }
+
+            result.append(s);
+        }
+
+        return result.toString();
+    }
+
     public static String cutTopLevelDir(String path)
     {
         return cutTopLevelDir(splitFileSystemPath(path));
@@ -36,13 +52,14 @@ public class FileHelper
 
     public static String cutTopLevelDir(String[] path)
     {
-        StringBuilder result = new StringBuilder("");
+        StringBuilder result = new StringBuilder();
         int           len    = path.length;
 
         len -= 1;
 
         for (int i = 1; i < len; i++) {
-            result.append(path[i] + File.separator);
+            result.append(path[i])
+                  .append(File.separator);
         }
 
         result.append(path[len]);
@@ -86,7 +103,6 @@ public class FileHelper
 
     static String[] splitFileSystemPath(String path)
     {
-
         return path.split(Pattern.quote(File.separator));
     }
 
@@ -155,7 +171,7 @@ public class FileHelper
         for (String str : files) {
 
             if (fullPath) {
-                result.add(new File(buildPath(basePath,  "/", str)));
+                result.add(new File(buildPath(basePath, "/", str)));
             }
             else {
                 result.add(new File(str));
@@ -186,18 +202,5 @@ public class FileHelper
         }
 
         return sameRoot;
-    }
-
-    public static String buildPath (String... path)
-    {
-        StringBuilder result = new StringBuilder();
-        for (String s : path) {
-
-            if (s.equals("/")) {
-                s = File.separator;
-            }
-            result.append(s);
-        }
-        return result.toString();
     }
 }

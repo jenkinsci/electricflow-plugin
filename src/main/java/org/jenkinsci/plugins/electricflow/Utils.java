@@ -18,8 +18,6 @@ import hudson.util.FormValidation;
 import hudson.util.ListBoxModel;
 
 import jenkins.model.GlobalConfiguration;
-import net.sf.json.JSONArray;
-import net.sf.json.JSONObject;
 
 public class Utils
 {

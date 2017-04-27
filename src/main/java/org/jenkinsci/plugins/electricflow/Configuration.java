@@ -78,9 +78,6 @@ public class Configuration
     public String getElectricFlowPassword()
     {
         return this.electricFlowPassword;
-        // Secret encryptedPassword = Secret.fromString(this.electricFlowPassword);
-
-        // return encryptedPassword.getPlainText();
     }
 
     public String getElectricFlowUrl()

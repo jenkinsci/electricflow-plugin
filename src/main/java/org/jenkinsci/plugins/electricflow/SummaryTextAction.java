@@ -15,7 +15,6 @@ import java.util.List;
 
 import hudson.model.AbstractBuild;
 import hudson.model.Action;
-import hudson.model.Run;
 
 import jenkins.tasks.SimpleBuildStep;
 
@@ -26,15 +25,15 @@ public class SummaryTextAction
 
     //~ Instance fields --------------------------------------------------------
 
-    private final AbstractBuild<?, ?>         build;
-    private final String            summaryText;
-    private List<SummaryTextAction> projectActions;
+    private final AbstractBuild<?, ?> build;
+    private final String              summaryText;
+    private List<SummaryTextAction>   projectActions;
 
     //~ Constructors -----------------------------------------------------------
 
     public SummaryTextAction(
             AbstractBuild<?, ?> build,
-            String    summaryText)
+            String              summaryText)
     {
         this.build       = build;
         this.summaryText = summaryText;

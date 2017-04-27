@@ -41,10 +41,8 @@ import jenkins.model.GlobalConfiguration;
             JSONObject     formData)
         throws FormException
     {
-        List<Configuration> configurations = req.bindJSONToList(
-                Configuration.class, formData.get("configurations"));
-
-        this.efConfigurations = configurations;
+        this.efConfigurations = req.bindJSONToList(Configuration.class,
+                formData.get("configurations"));
         save();
 
         return true;

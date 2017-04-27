@@ -63,11 +63,11 @@ public class ElectricFlowPublishApplication
 
     //~ Static fields/initializers ---------------------------------------------
 
-    private static final Log log = LogFactory.getLog(
+    private static final Log   log                   = LogFactory.getLog(
             ElectricFlowPublishApplication.class);
+    public static final String deploymentPackageName = "deployment_package.zip";
 
     //~ Instance fields --------------------------------------------------------
-    public static final String deploymentPackageName = "deployment_package.zip";
 
     private final String configuration;
     private String       filePath;
@@ -118,8 +118,6 @@ public class ElectricFlowPublishApplication
         String artifactVersion = buildNumber.toString();
 
         try {
-
-            // String workspaceDir, String filePath, String buildNumber
             makeApplicationArchive(workspaceDir, newFilePath);
         }
         catch (IOException e) {
@@ -153,7 +151,8 @@ public class ElectricFlowPublishApplication
             efClient.uploadArtifact("default", artifactName, artifactVersion,
                 ElectricFlowPublishApplication.deploymentPackageName, true);
             deployResponse = efClient.deployApplicationPackage(artifactGroup,
-                    artifactKey, artifactVersion, ElectricFlowPublishApplication.deploymentPackageName);
+                    artifactKey, artifactVersion,
+                    ElectricFlowPublishApplication.deploymentPackageName);
 
             if (log.isDebugEnabled()) {
                 log.debug("DeployApp response: " + deployResponse);
@@ -266,7 +265,8 @@ public class ElectricFlowPublishApplication
             for (File row : files) {
 
                 try(FileInputStream in = new FileInputStream(
-                                FileHelper.buildPath(basePath, "/", row.getPath()))) {
+                                FileHelper.buildPath(basePath, "/",
+                                    row.getPath()))) {
                     String filePathToAdd = row.getPath();
 
                     if (cutTopLevelDir) {
@@ -308,7 +308,8 @@ public class ElectricFlowPublishApplication
 
         // in this method manifest is already tuned, so all we need is just to
         // package archive.
-        String archivePath = FileHelper.buildPath(workspaceDir, "/", ElectricFlowPublishApplication.deploymentPackageName);
+        String archivePath = FileHelper.buildPath(workspaceDir, "/",
+                ElectricFlowPublishApplication.deploymentPackageName);
 
         return createZipArchive(workspaceDir, archivePath, filePath);
     }

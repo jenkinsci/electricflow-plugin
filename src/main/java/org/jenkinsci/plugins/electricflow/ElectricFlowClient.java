@@ -18,10 +18,8 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
-import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.net.URLConnection;
-import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
@@ -423,7 +421,6 @@ public class ElectricFlowClient
         return resultLine;
     }
 
-
     public List<String> getArtifactRepositories()
         throws Exception
     {
@@ -791,7 +788,6 @@ public class ElectricFlowClient
         return myString.toString();
     }
 
-    // TODO: replace this function with proper logic.
     public String getSessionId()
         throws IOException
     {
@@ -843,7 +839,6 @@ public class ElectricFlowClient
 
         JSONObject jsonObject = JSONObject.fromObject(myString.toString());
 
-        // return "8OI8QO6NDXA4EYO9";
         return jsonObject.getString("sessionId");
     }
 }
