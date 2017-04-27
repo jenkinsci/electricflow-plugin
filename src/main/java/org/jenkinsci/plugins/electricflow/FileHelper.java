@@ -155,7 +155,7 @@ public class FileHelper
         for (String str : files) {
 
             if (fullPath) {
-                result.add(new File(basePath + "/" + str));
+                result.add(new File(buildPath(basePath,  "/", str)));
             }
             else {
                 result.add(new File(str));
@@ -186,5 +186,18 @@ public class FileHelper
         }
 
         return sameRoot;
+    }
+
+    public static String buildPath (String... path)
+    {
+        StringBuilder result = new StringBuilder();
+        for (String s : path) {
+
+            if (s.equals("/")) {
+                s = File.separator;
+            }
+            result.append(s);
+        }
+        return result.toString();
     }
 }
