@@ -13,6 +13,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -53,9 +55,11 @@ public class ElectricFlowPublishApplication
     private static final Log   log                   = LogFactory.getLog(
             ElectricFlowPublishApplication.class);
     public static final String deploymentPackageName = "deployment_package.zip";
+    private static List<File>  zipFiles              = new ArrayList<>();
 
     //~ Instance fields --------------------------------------------------------
 
+    private final String MANIFEST_NAME = "manifest.json";
     private final String configuration;
     private String       filePath;
 
@@ -141,6 +145,14 @@ public class ElectricFlowPublishApplication
                     artifactKey, artifactVersion,
                     ElectricFlowPublishApplication.deploymentPackageName);
 
+            String            summaryHtml = getSummaryHtml(efClient,
+                    workspaceDir);
+            SummaryTextAction action      = new SummaryTextAction(build,
+                    summaryHtml);
+
+            build.addAction(action);
+            build.save();
+
             if (log.isDebugEnabled()) {
                 log.debug("DeployApp response: " + deployResponse);
             }
@@ -183,6 +195,77 @@ public class ElectricFlowPublishApplication
         return BuildStepMonitor.NONE;
     }
 
+    private String getSummaryHtml(
+            ElectricFlowClient efClient,
+            String             workspaceDir)
+    {
+        String url         = efClient.getElectricFlowUrl()
+                + "/flow/#applications";
+        String summaryText = "<h3>ElectricFlow Create/Deploy Application from Deployment Package</h3>"
+                + "<table cellspacing=\"2\" cellpadding=\"4\"> \n"
+                + "  <tr>\n"
+                + "    <td>Application URL:</td>\n"
+                + "    <td><a href='" + url + "'>" + url + "</a></td>   \n"
+                + "  </tr>\n";
+
+        if (!zipFiles.isEmpty()) {
+            StringBuilder strBuilder = new StringBuilder(summaryText);
+
+            strBuilder.append("  <tr>\n"
+                    + "    <td><b>Deployment Package Details:</b></td>\n"
+                    + "    <td></td>    \n"
+                    + "  </tr>\n");
+
+            String jsonContent = "";
+
+            for (File file : zipFiles) {
+                String fileName = file.getName();
+
+                if (MANIFEST_NAME.equals(fileName)) {
+                    String manifestPath = FileHelper.buildPath(workspaceDir,
+                            "/", fileName);
+
+                    try {
+                        byte[] encoded = Files.readAllBytes(Paths.get(
+                                    manifestPath));
+
+                        jsonContent = "<pre>" + new String(encoded, "UTF-8")
+                                + "</pre>";
+                    }
+                    catch (IOException e) {
+                        log.warn(e.getMessage(), e);
+                    }
+                    continue;
+                }
+
+                strBuilder.append("  <tr>\n"
+                                  + "    <td>&nbsp;&nbsp;&nbsp;&nbsp;")
+                          .append(fileName)
+                          .append("</td>\n"
+                              + "    <td>")
+                          .append("</td>    \n"
+                              + "  </tr>\n");
+            }
+
+            if (!jsonContent.isEmpty()) {
+                strBuilder.append("  <tr>\n"
+                                  + "    <td>&nbsp;&nbsp;&nbsp;&nbsp;")
+                          .append(MANIFEST_NAME)
+                          .append("</td>\n"
+                              + "    <td>")
+                          .append(jsonContent)
+                          .append("</td>    \n"
+                              + "  </tr>\n");
+            }
+
+            summaryText = strBuilder.toString();
+        }
+
+        summaryText = summaryText + "</table>";
+
+        return summaryText;
+    }
+
     //~ Methods ----------------------------------------------------------------
 
     public static File createZipArchive(
@@ -198,11 +281,15 @@ public class ElectricFlowPublishApplication
             List<File> fileList = FileHelper.getFilesFromDirectoryWildcard(
                     fullPath, "**");
 
+            setZipFiles(fileList);
+
             return createZipArchive(fullPath, archiveName, fileList);
         }
 
         List<File> filesToArchive = FileHelper.getFilesFromDirectoryWildcard(
                 basePath, path);
+
+        setZipFiles(filesToArchive);
 
         return createZipArchive(basePath, archiveName, filesToArchive, true);
     }
@@ -215,8 +302,8 @@ public class ElectricFlowPublishApplication
     {
         List<File> fileList = new ArrayList<>();
 
-        for (int i = 0; i < files.length; i++) {
-            File f = new File(files[i]);
+        for (String file : files) {
+            File f = new File(file);
 
             fileList.add(f);
         }
@@ -308,6 +395,12 @@ public class ElectricFlowPublishApplication
         return new SimpleDateFormat(dateFormat).format(new Date());
     }
 
+    private static void setZipFiles(List<File> fileList)
+    {
+        zipFiles.clear();
+        zipFiles.addAll(fileList);
+    }
+
     //~ Inner Classes ----------------------------------------------------------
 
     /**
@@ -354,12 +447,6 @@ public class ElectricFlowPublishApplication
                 JSONObject     formData)
             throws FormException
         {
-
-            // To persist global configuration information, set that to
-            // properties and call save(). useFrench =
-            // formData.getBoolean("useFrench"); ^Can also use
-            // req.bindJSON(this, formData); (easier when there are many fields;
-            // need set* methods for this, like setUseFrench)
             electricFlowUrl      = formData.getString("electricFlowUrl");
             electricFlowUser     = formData.getString("electricFlowUser");
             electricFlowPassword = formData.getString("electricFlowPassword");
@@ -402,17 +489,6 @@ public class ElectricFlowPublishApplication
             return electricFlowPassword;
         }
 
-        /**
-         * This method returns true if the global configuration says we should
-         * speak French.
-         *
-         * <p>The method name is bit awkward because global.jelly calls this
-         * method to determine the initial state of the checkbox by the naming
-         * convention.</p>
-         *
-         * @return  this method returns true if the global configuration says we
-         *          should speak French.
-         */
         public String getElectricFlowUrl()
         {
             return electricFlowUrl;

@@ -335,13 +335,7 @@ public class ElectricFlowPipelinePublisher
 
         //~ Static fields/initializers -----------------------------------------
 
-        /**
-         * To persist global configuration information, simply store it in a
-         * field and call save().
-         *
-         * <p>If you don't want fields to be persisted, use {@code transient}.
-         * </p>
-         */
+
         private static final Log log = LogFactory.getLog(DescriptorImpl.class);
 
         //~ Constructors -------------------------------------------------------

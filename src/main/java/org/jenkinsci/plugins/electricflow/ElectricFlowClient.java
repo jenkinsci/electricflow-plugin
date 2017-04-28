@@ -492,9 +492,7 @@ public class ElectricFlowClient
             url.openConnection();
         String             authString = this.userName + ":" + this.password;
 
-        // String encoded =
-        // Base64.getEncoder().encodeToString(authString.getBytes(StandardCharsets.UTF_8));
-        // //Java 8
+        //
         byte[] encodedBytes = Base64.encodeBase64(authString.getBytes("UTF-8"));
         String encoded      = new String(encodedBytes, StandardCharsets.UTF_8);
 
@@ -579,7 +577,6 @@ public class ElectricFlowClient
                 }
             }
 
-            // return myString;
             JSONObject jsonObject = JSONObject.fromObject(myString.toString());
             JSONArray  arr        = jsonObject.getJSONArray("object");
 
@@ -669,7 +666,6 @@ public class ElectricFlowClient
             }
         }
 
-        // return myString;
         JSONObject jsonObject = JSONObject.fromObject(myString.toString());
 
         if (!jsonObject.isEmpty()) {
@@ -791,7 +787,7 @@ public class ElectricFlowClient
     public String getSessionId()
         throws IOException
     {
-        StringBuilder      myString        = new StringBuilder();
+        StringBuilder      result          = new StringBuilder();
         String             requestEndpoint = "/rest/v1.0/sessions";
         HttpsURLConnection conn            = null;
         BufferedReader     br              = null;
@@ -820,7 +816,7 @@ public class ElectricFlowClient
             String output;
 
             while ((output = br.readLine()) != null) {
-                myString.append(output);
+                result.append(output);
             }
         }
         catch (IOException e) {
@@ -837,7 +833,7 @@ public class ElectricFlowClient
             }
         }
 
-        JSONObject jsonObject = JSONObject.fromObject(myString.toString());
+        JSONObject jsonObject = JSONObject.fromObject(result.toString());
 
         return jsonObject.getString("sessionId");
     }
