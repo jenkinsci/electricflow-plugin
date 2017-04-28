@@ -56,6 +56,7 @@ public class ElectricFlowPublishApplication
             ElectricFlowPublishApplication.class);
     public static final String deploymentPackageName = "deployment_package.zip";
     private static List<File>  zipFiles              = new ArrayList<>();
+    private static boolean     isCutTopLevelDir;
 
     //~ Instance fields --------------------------------------------------------
 
@@ -201,7 +202,8 @@ public class ElectricFlowPublishApplication
     {
         String url         = efClient.getElectricFlowUrl()
                 + "/flow/#applications";
-        String summaryText = "<h3>ElectricFlow Create/Deploy Application from Deployment Package</h3>"
+        String summaryText =
+            "<h3>ElectricFlow Create/Deploy Application from Deployment Package</h3>"
                 + "<table cellspacing=\"2\" cellpadding=\"4\"> \n"
                 + "  <tr>\n"
                 + "    <td>Application URL:</td>\n"
@@ -219,9 +221,13 @@ public class ElectricFlowPublishApplication
             String jsonContent = "";
 
             for (File file : zipFiles) {
-                String fileName = file.getName();
+                String fileName = file.getPath();
 
-                if (MANIFEST_NAME.equals(fileName)) {
+                if (isCutTopLevelDir) {
+                    fileName = FileHelper.cutTopLevelDir(file.getPath());
+                }
+
+                if (fileName.endsWith(MANIFEST_NAME)) {
                     String manifestPath = FileHelper.buildPath(workspaceDir,
                             "/", fileName);
 
@@ -327,6 +333,8 @@ public class ElectricFlowPublishApplication
             boolean    cutTopLevelDir)
         throws IOException
     {
+        isCutTopLevelDir = cutTopLevelDir;
+
         File archive = new File(archiveName);
 
         try(ZipOutputStream out = new ZipOutputStream(
