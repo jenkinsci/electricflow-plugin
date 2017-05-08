@@ -225,7 +225,8 @@ public class ElectricFlowClient
 
             if (conn.getResponseCode() != 200) {
                 throw new RuntimeException("Failed : HTTP error code : "
-                        + conn.getResponseCode());
+                        + conn.getResponseCode() + " "
+                        + conn.getResponseMessage());
             }
 
             br = new BufferedReader(new InputStreamReader(

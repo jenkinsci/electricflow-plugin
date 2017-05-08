@@ -13,7 +13,7 @@ import java.io.IOException;
 
 import hudson.EnvVars;
 
-import hudson.model.AbstractBuild;
+import hudson.model.Run;
 import hudson.model.TaskListener;
 
 public class EnvReplacer
@@ -21,20 +21,20 @@ public class EnvReplacer
 
     //~ Instance fields --------------------------------------------------------
 
-    private TaskListener  listener;
-    private AbstractBuild build;
-    private EnvVars       treeMap;
+    private TaskListener listener;
+    private Run          run;
+    private EnvVars      treeMap;
 
     //~ Constructors -----------------------------------------------------------
 
     public EnvReplacer(
-            AbstractBuild build,
-            TaskListener  listener)
+            Run          run,
+            TaskListener listener)
         throws IOException, InterruptedException
     {
         this.listener = listener;
-        this.build    = build;
-        this.treeMap  = this.build.getEnvironment(this.listener);
+        this.run      = run;
+        this.treeMap  = this.run.getEnvironment(this.listener);
     }
 
     //~ Methods ----------------------------------------------------------------

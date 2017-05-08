@@ -13,8 +13,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import hudson.model.AbstractBuild;
 import hudson.model.Action;
+import hudson.model.Run;
 
 import jenkins.tasks.SimpleBuildStep;
 
@@ -25,17 +25,17 @@ public class SummaryTextAction
 
     //~ Instance fields --------------------------------------------------------
 
-    private final AbstractBuild<?, ?> build;
-    private final String              summaryText;
-    private List<SummaryTextAction>   projectActions;
+    private final Run<?, ?>         run;
+    private final String            summaryText;
+    private List<SummaryTextAction> projectActions;
 
     //~ Constructors -----------------------------------------------------------
 
     public SummaryTextAction(
-            AbstractBuild<?, ?> build,
-            String              summaryText)
+            Run<?, ?> run,
+            String    summaryText)
     {
-        this.build       = build;
+        this.run         = run;
         this.summaryText = summaryText;
 
         List<SummaryTextAction> projectActions = new ArrayList<>();
@@ -45,11 +45,6 @@ public class SummaryTextAction
     }
 
     //~ Methods ----------------------------------------------------------------
-
-    public AbstractBuild<?, ?> getBuild()
-    {
-        return this.build;
-    }
 
     @Override public String getDisplayName()
     {
@@ -64,6 +59,11 @@ public class SummaryTextAction
     @Override public Collection<? extends Action> getProjectActions()
     {
         return this.projectActions;
+    }
+
+    public Run<?, ?> getRun()
+    {
+        return this.run;
     }
 
     public String getSummaryText()

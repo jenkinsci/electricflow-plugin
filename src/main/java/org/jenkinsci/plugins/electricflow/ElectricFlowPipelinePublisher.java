@@ -12,6 +12,7 @@ package org.jenkinsci.plugins.electricflow;
 import java.io.IOException;
 import java.util.List;
 
+import javax.annotation.Nonnull;
 import javax.servlet.ServletException;
 
 import org.apache.commons.logging.Log;
@@ -27,11 +28,15 @@ import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 
 import hudson.Extension;
+import hudson.FilePath;
 import hudson.Launcher;
 
 import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
 import hudson.model.BuildListener;
+import hudson.model.Result;
+import hudson.model.Run;
+import hudson.model.TaskListener;
 
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.BuildStepMonitor;
@@ -41,8 +46,11 @@ import hudson.tasks.Recorder;
 import hudson.util.FormValidation;
 import hudson.util.ListBoxModel;
 
+import jenkins.tasks.SimpleBuildStep;
+
 public class ElectricFlowPipelinePublisher
     extends Recorder
+    implements SimpleBuildStep
 {
 
     //~ Static fields/initializers ---------------------------------------------
@@ -69,15 +77,76 @@ public class ElectricFlowPipelinePublisher
             Launcher      launcher,
             BuildListener listener)
     {
-        Configuration cred            = getDescriptor().getConfigurationByName(
-                this.configuration);
-        String        electricFlowUrl = cred.getElectricFlowUrl();
-        String        userName        = cred.getElectricFlowUser();
-        String        userPassword    = cred.getElectricFlowPassword();
+        return runPipeline(build, listener, null);
+    }
 
-        listener.getLogger()
-                .println("Url: " + electricFlowUrl + ", Project name: "
-                    + projectName + ", Pipeline name: " + pipelineName);
+    @Override public void perform(
+            @Nonnull Run<?, ?>    run,
+            @Nonnull FilePath     filePath,
+            @Nonnull Launcher     launcher,
+            @Nonnull TaskListener taskListener)
+        throws InterruptedException, IOException
+    {
+        boolean result = runPipeline(run, null, taskListener);
+
+        if (!result) {
+            run.setResult(Result.FAILURE);
+        }
+    }
+
+    private void expandParameters(
+            JSONArray   parameters,
+            EnvReplacer env)
+    {
+
+        for (Object jsonObject : parameters) {
+            JSONObject json           = (JSONObject) jsonObject;
+            String     parameterValue = (String) json.get("parameterValue");
+            String     expandValue    = env.expandEnv(parameterValue);
+
+            json.put("parameterValue", expandValue);
+        }
+    }
+
+    private void logListener(
+            BuildListener buildListener,
+            TaskListener  taskListener,
+            String        log)
+    {
+
+        if (buildListener != null) {
+            buildListener.getLogger()
+                         .println(log);
+        }
+        else if (taskListener != null) {
+            taskListener.getLogger()
+                        .print(log);
+        }
+    }
+
+    private boolean runPipeline(
+            Run           run,
+            BuildListener buildListener,
+            TaskListener  taskListener)
+    {
+        Configuration cred = getDescriptor().getConfigurationByName(
+                this.configuration);
+
+        if (cred == null) {
+            logListener(buildListener, taskListener,
+                "Configuration name' " + this.configuration
+                    + "' doesn't exist. ");
+
+            return false;
+        }
+
+        String electricFlowUrl = cred.getElectricFlowUrl();
+        String userName        = cred.getElectricFlowUser();
+        String userPassword    = cred.getElectricFlowPassword();
+
+        logListener(buildListener, taskListener,
+            "Url: " + electricFlowUrl + ", Project name: " + projectName
+                + ", Pipeline name: " + pipelineName);
 
         // exp starts here
         JSONObject obj   = new JSONObject();
@@ -115,8 +184,8 @@ public class ElectricFlowPipelinePublisher
         }
 
         try {
-            listener.getLogger()
-                    .println("Preparing to run pipeline...");
+            logListener(buildListener, taskListener,
+                "Preparing to run pipeline...");
 
             ElectricFlowClient efClient       = new ElectricFlowClient(
                     electricFlowUrl, userName, userPassword);
@@ -128,104 +197,31 @@ public class ElectricFlowPipelinePublisher
                         pipelineName);
             }
             else {
-                EnvReplacer env = new EnvReplacer(build, listener);
+                EnvReplacer env = new EnvReplacer(run, taskListener);
 
                 expandParameters(parameters, env);
                 pipelineResult = efClient.runPipeline(projectName, pipelineName,
                         parameters);
             }
 
-            String summaryHtml = getSummaryHtml(efClient, pipelineResult, parameters);
-
-            SummaryTextAction action = new SummaryTextAction(build,
+            String            summaryHtml = getSummaryHtml(efClient,
+                    pipelineResult, parameters);
+            SummaryTextAction action      = new SummaryTextAction(run,
                     summaryHtml);
 
-            build.addAction(action);
-            build.save();
-            listener.getLogger()
-                    .println("Pipeline result: " + pipelineResult);
+            run.addAction(action);
+            run.save();
+            logListener(buildListener, taskListener,
+                "Pipeline result: " + pipelineResult);
         }
         catch (Exception e) {
-            listener.getLogger()
-                    .println(e.getMessage());
+            logListener(buildListener, taskListener, e.getMessage());
             log.error(e.getMessage(), e);
 
             return false;
         }
 
         return true;
-    }
-
-    private String getSummaryHtml(ElectricFlowClient efClient, String pipelineResult, JSONArray parameters) {
-        JSONObject flowRuntime     = (JSONObject) JSONObject.fromObject(
-                                                                pipelineResult)
-                                                            .get(
-                                                                "flowRuntime");
-        String     pipelineId      = (String) flowRuntime.get("pipelineId");
-        String     flowRuntimeId   = (String) flowRuntime.get(
-                "flowRuntimeId");
-        String     url             = efClient.getElectricFlowUrl()
-                + "/flow/#pipeline-run/" + pipelineId
-                + "/" + flowRuntimeId;
-
-
-        String     summaryText     = "<h3>ElectricFlow Run Pipeline</h3>" +
-                "<table cellspacing=\"2\" cellpadding=\"4\"> \n"
-                + "  <tr>\n"
-                + "    <td>Pipeline URL:</td>\n"
-                + "    <td><a href='" + url + "'>" + url + "</a></td>   \n"
-                + "  </tr>\n"
-                + "  <tr>\n"
-                + "    <td>Pipeline Name:</td>\n"
-                + "    <td><a href='" + url + "'>" + pipelineName
-                + "</a></td>   \n"
-                + "  </tr>\n"
-                + "  <tr>\n"
-                + "    <td>Project Name:</td>\n"
-                + "    <td>" + projectName + "</td>    \n"
-                + "  </tr>";
-
-        if (!parameters.isEmpty()) {
-            StringBuilder strBuilder = new StringBuilder(summaryText);
-            strBuilder.append("  <tr>\n"
-                    + "    <td>&nbsp;<b>Parameters</b></td>\n"
-                    + "    <td></td>    \n"
-                    + "  </tr>\n");
-
-            for (Object jsonObject : parameters) {
-                JSONObject json           = (JSONObject) jsonObject;
-                String     parameterName  = (String) json.get(
-                        "parameterName");
-                String     parameterValue = (String) json.get(
-                        "parameterValue");
-                strBuilder.append("  <tr>\n"
-                                   + "    <td>&nbsp;&nbsp;&nbsp;&nbsp;")
-                           .append(parameterName)
-                           .append(":</td>\n"
-                               + "    <td>")
-                           .append(parameterValue)
-                           .append("</td>    \n"
-                               + "  </tr>\n");
-            }
-            summaryText = strBuilder.toString();
-        }
-
-        summaryText = summaryText + "</table>";
-        return summaryText;
-    }
-
-    private void expandParameters(
-            JSONArray   parameters,
-            EnvReplacer env)
-    {
-
-        for (Object jsonObject : parameters) {
-            JSONObject json           = (JSONObject) jsonObject;
-            String     parameterValue = (String) json.get("parameterValue");
-            String     expandValue    = env.expandEnv(parameterValue);
-
-            json.put("parameterValue", expandValue);
-        }
     }
 
     public JSONArray getAdditionalOption()
@@ -278,6 +274,15 @@ public class ElectricFlowPipelinePublisher
                     }
                 }
             }
+
+            JSONArray pipelineJsonParameters = (JSONArray) JSONObject
+                    .fromObject(addParam)
+                    .get("parameters");
+
+            if (pipelineJsonParameters != null
+                    && !pipelineJsonParameters.isEmpty()) {
+                return pipelineJsonParameters;
+            }
         }
 
         return new JSONArray();
@@ -291,6 +296,66 @@ public class ElectricFlowPipelinePublisher
     @Override public BuildStepMonitor getRequiredMonitorService()
     {
         return BuildStepMonitor.NONE;
+    }
+
+    private String getSummaryHtml(
+            ElectricFlowClient efClient,
+            String             pipelineResult,
+            JSONArray          parameters)
+    {
+        JSONObject flowRuntime   = (JSONObject) JSONObject.fromObject(
+                                                              pipelineResult)
+                                                          .get("flowRuntime");
+        String     pipelineId    = (String) flowRuntime.get("pipelineId");
+        String     flowRuntimeId = (String) flowRuntime.get("flowRuntimeId");
+        String     url           = efClient.getElectricFlowUrl()
+                + "/flow/#pipeline-run/" + pipelineId
+                + "/" + flowRuntimeId;
+        String     summaryText   = "<h3>ElectricFlow Run Pipeline</h3>"
+                + "<table cellspacing=\"2\" cellpadding=\"4\"> \n"
+                + "  <tr>\n"
+                + "    <td>Pipeline URL:</td>\n"
+                + "    <td><a href='" + url + "'>" + url + "</a></td>   \n"
+                + "  </tr>\n"
+                + "  <tr>\n"
+                + "    <td>Pipeline Name:</td>\n"
+                + "    <td><a href='" + url + "'>" + pipelineName
+                + "</a></td>   \n"
+                + "  </tr>\n"
+                + "  <tr>\n"
+                + "    <td>Project Name:</td>\n"
+                + "    <td>" + projectName + "</td>    \n"
+                + "  </tr>";
+
+        if (!parameters.isEmpty()) {
+            StringBuilder strBuilder = new StringBuilder(summaryText);
+
+            strBuilder.append("  <tr>\n"
+                    + "    <td>&nbsp;<b>Parameters</b></td>\n"
+                    + "    <td></td>    \n"
+                    + "  </tr>\n");
+
+            for (Object jsonObject : parameters) {
+                JSONObject json           = (JSONObject) jsonObject;
+                String     parameterName  = (String) json.get("parameterName");
+                String     parameterValue = (String) json.get("parameterValue");
+
+                strBuilder.append("  <tr>\n"
+                                  + "    <td>&nbsp;&nbsp;&nbsp;&nbsp;")
+                          .append(parameterName)
+                          .append(":</td>\n"
+                              + "    <td>")
+                          .append(parameterValue)
+                          .append("</td>    \n"
+                              + "  </tr>\n");
+            }
+
+            summaryText = strBuilder.toString();
+        }
+
+        summaryText = summaryText + "</table>";
+
+        return summaryText;
     }
 
     @DataBoundSetter public void setAdditionalOption(
@@ -334,7 +399,6 @@ public class ElectricFlowPipelinePublisher
     {
 
         //~ Static fields/initializers -----------------------------------------
-
 
         private static final Log log = LogFactory.getLog(DescriptorImpl.class);
 
