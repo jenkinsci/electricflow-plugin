@@ -48,6 +48,10 @@ import hudson.util.ListBoxModel;
 
 import jenkins.tasks.SimpleBuildStep;
 
+import static org.jenkinsci.plugins.electricflow.Utils.addParametersToJson;
+import static org.jenkinsci.plugins.electricflow.Utils.expandParameters;
+import static org.jenkinsci.plugins.electricflow.Utils.formatJsonOutput;
+
 public class ElectricFlowPipelinePublisher
     extends Recorder
     implements SimpleBuildStep
@@ -94,20 +98,6 @@ public class ElectricFlowPipelinePublisher
         }
     }
 
-    private void expandParameters(
-            JSONArray   parameters,
-            EnvReplacer env)
-    {
-
-        for (Object jsonObject : parameters) {
-            JSONObject json           = (JSONObject) jsonObject;
-            String     parameterValue = (String) json.get("parameterValue");
-            String     expandValue    = env.expandEnv(parameterValue);
-
-            json.put("parameterValue", expandValue);
-        }
-    }
-
     private void logListener(
             BuildListener buildListener,
             TaskListener  taskListener,
@@ -120,7 +110,7 @@ public class ElectricFlowPipelinePublisher
         }
         else if (taskListener != null) {
             taskListener.getLogger()
-                        .print(log);
+                        .println(log);
         }
     }
 
@@ -129,47 +119,17 @@ public class ElectricFlowPipelinePublisher
             BuildListener buildListener,
             TaskListener  taskListener)
     {
-        Configuration cred = getDescriptor().getConfigurationByName(
-                this.configuration);
-
-        if (cred == null) {
-            logListener(buildListener, taskListener,
-                "Configuration name' " + this.configuration
-                    + "' doesn't exist. ");
-
-            return false;
-        }
-
-        String electricFlowUrl = cred.getElectricFlowUrl();
-        String userName        = cred.getElectricFlowUser();
-        String userPassword    = cred.getElectricFlowPassword();
-
         logListener(buildListener, taskListener,
-            "Url: " + electricFlowUrl + ", Project name: " + projectName
+            "Project name: " + projectName
                 + ", Pipeline name: " + pipelineName);
 
-        // exp starts here
-        JSONObject obj   = new JSONObject();
-        JSONArray  arr   = new JSONArray();
-        JSONObject inner = new JSONObject();
-
-        inner.put("actualParameterName", "test");
-        inner.put("value", "value");
-        arr.add(inner);
-        obj.put("actualParameter", arr);
-        obj.put("pipelineName", pipelineName);
-        obj.put("projectName", projectName);
-
-        if (log.isDebugEnabled()) {
-            log.debug("Json object: " + obj.toString());
-        }
-
         // exp ends here
+        ElectricFlowClient efClient = new ElectricFlowClient(
+                this.configuration);
+
         try {
-            ElectricFlowClient efClient       = new ElectricFlowClient(
-                    electricFlowUrl, userName, userPassword);
-            List<String>       paramsResponse =
-                efClient.getPipelineFormalParameters(pipelineName);
+            List<String> paramsResponse = efClient.getPipelineFormalParameters(
+                    pipelineName);
 
             if (log.isDebugEnabled()) {
                 log.debug("FormalParameters are: "
@@ -187,10 +147,8 @@ public class ElectricFlowPipelinePublisher
             logListener(buildListener, taskListener,
                 "Preparing to run pipeline...");
 
-            ElectricFlowClient efClient       = new ElectricFlowClient(
-                    electricFlowUrl, userName, userPassword);
-            String             pipelineResult;
-            JSONArray          parameters     = getPipelineParameters();
+            String    pipelineResult;
+            JSONArray parameters = getPipelineParameters();
 
             if (parameters.isEmpty()) {
                 pipelineResult = efClient.runPipeline(projectName,
@@ -212,7 +170,7 @@ public class ElectricFlowPipelinePublisher
             run.addAction(action);
             run.save();
             logListener(buildListener, taskListener,
-                "Pipeline result: " + pipelineResult);
+                "Pipeline result: " + formatJsonOutput(pipelineResult));
         }
         catch (Exception e) {
             logListener(buildListener, taskListener, e.getMessage());
@@ -256,28 +214,19 @@ public class ElectricFlowPipelinePublisher
     {
 
         if (addParam != null) {
-            Object pipelineJsonObject = JSONObject.fromObject(addParam)
-                                                  .get("pipeline");
+            JSONObject pipelineJsonObject = JSONObject.fromObject(addParam)
+                                                      .getJSONObject(
+                                                          "pipeline");
+            JSONArray  pipelineParameters = JSONArray.fromObject(
+                    pipelineJsonObject.getString("parameters"));
 
-            if (pipelineJsonObject instanceof String) {
-                String stringParam = (String) pipelineJsonObject;
-
-                if (!stringParam.isEmpty()) {
-                    JSONObject intrinsicObject    = (JSONObject) JSONArray
-                            .fromObject(stringParam)
-                            .get(0);
-                    JSONArray  pipelineParameters = (JSONArray)
-                        intrinsicObject.get("parameters");
-
-                    if (!pipelineParameters.isEmpty()) {
-                        return pipelineParameters;
-                    }
-                }
+            if (!pipelineParameters.isEmpty()) {
+                return pipelineParameters;
             }
 
-            JSONArray pipelineJsonParameters = (JSONArray) JSONObject
-                    .fromObject(addParam)
-                    .get("parameters");
+            JSONArray pipelineJsonParameters = JSONObject.fromObject(addParam)
+                                                         .getJSONArray(
+                                                             "parameters");
 
             if (pipelineJsonParameters != null
                     && !pipelineJsonParameters.isEmpty()) {
@@ -303,9 +252,8 @@ public class ElectricFlowPipelinePublisher
             String             pipelineResult,
             JSONArray          parameters)
     {
-        JSONObject flowRuntime   = (JSONObject) JSONObject.fromObject(
-                                                              pipelineResult)
-                                                          .get("flowRuntime");
+        JSONObject flowRuntime   = JSONObject.fromObject(pipelineResult)
+                                             .getJSONObject("flowRuntime");
         String     pipelineId    = (String) flowRuntime.get("pipelineId");
         String     flowRuntimeId = (String) flowRuntime.get("flowRuntimeId");
         String     url           = efClient.getElectricFlowUrl()
@@ -327,32 +275,8 @@ public class ElectricFlowPipelinePublisher
                 + "    <td>" + projectName + "</td>    \n"
                 + "  </tr>";
 
-        if (!parameters.isEmpty()) {
-            StringBuilder strBuilder = new StringBuilder(summaryText);
-
-            strBuilder.append("  <tr>\n"
-                    + "    <td>&nbsp;<b>Parameters</b></td>\n"
-                    + "    <td></td>    \n"
-                    + "  </tr>\n");
-
-            for (Object jsonObject : parameters) {
-                JSONObject json           = (JSONObject) jsonObject;
-                String     parameterName  = (String) json.get("parameterName");
-                String     parameterValue = (String) json.get("parameterValue");
-
-                strBuilder.append("  <tr>\n"
-                                  + "    <td>&nbsp;&nbsp;&nbsp;&nbsp;")
-                          .append(parameterName)
-                          .append(":</td>\n"
-                              + "    <td>")
-                          .append(parameterValue)
-                          .append("</td>    \n"
-                              + "  </tr>\n");
-            }
-
-            summaryText = strBuilder.toString();
-        }
-
+        summaryText = Utils.getParametersHTML(parameters, summaryText,
+                "parameterName", "parameterValue");
         summaryText = summaryText + "</table>";
 
         return summaryText;
@@ -448,10 +372,7 @@ public class ElectricFlowPipelinePublisher
             // During reload if at least one value filled, return old values
             if (!addParam.isEmpty() && !"{}".equals(addParam)) {
                 JSONObject json      = JSONObject.fromObject(addParam);
-                JSONObject jsonArray = (JSONObject) JSONArray.fromObject(
-                                                                 json.get(
-                                                                     "pipeline"))
-                                                             .get(0);
+                JSONObject jsonArray = json.getJSONObject("pipeline");
 
                 if (pipelineName.equals(jsonArray.get("pipelineName"))) {
                     m.add(addParam);
@@ -461,28 +382,18 @@ public class ElectricFlowPipelinePublisher
             }
 
             if (!configuration.isEmpty() && !pipelineName.isEmpty()) {
-                Configuration      cred       = this.getConfigurationByName(
-                        configuration);
                 ElectricFlowClient efClient   = new ElectricFlowClient(
-                        cred.getElectricFlowUrl(), cred.getElectricFlowUser(),
-                        cred.getElectricFlowPassword());
+                        configuration);
                 List<String>       parameters =
                     efClient.getPipelineFormalParameters(pipelineName);
                 JSONObject         main       = JSONObject.fromObject(
-                        "{'pipeline':[{'pipelineName':'" + pipelineName
-                            + "','parameters':[]}]}");
-                JSONArray          ja         = (JSONArray)
-                    ((JSONObject) ((JSONArray) main.get("pipeline")).get(0))
-                        .get("parameters");
+                        "{'pipeline':{'pipelineName':'" + pipelineName
+                            + "','parameters':[]}}");
+                JSONArray          ja         = main.getJSONObject("pipeline")
+                                                    .getJSONArray("parameters");
 
-                for (String param : parameters) {
-                    JSONObject jo = new JSONObject();
-
-                    jo.put("parameterName", param);
-                    jo.put("parameterValue", "");
-                    ja.add(jo);
-                }
-
+                addParametersToJson(parameters, ja, "parameterName",
+                    "parameterValue");
                 m.add(main.toString());
             }
 
@@ -504,120 +415,15 @@ public class ElectricFlowPipelinePublisher
                 @QueryParameter String pipelineName)
             throws Exception
         {
-            ListBoxModel m = new ListBoxModel();
-
-            m.add("Select pipeline", "");
-
-            if (!projectName.isEmpty() && !configuration.isEmpty()) {
-                Configuration cred            = this.getConfigurationByName(
-                        configuration);
-                String        userName        = cred.getElectricFlowUser();
-                String        userPassword    = cred.getElectricFlowPassword();
-                String        electricFlowUrl = cred.getElectricFlowUrl();
-
-                if (userName.isEmpty() || userPassword.isEmpty()
-                        || projectName.isEmpty()) {
-                    log.warn(
-                        "User name / password / project name should not be empty.");
-
-                    return m;
-                }
-
-                ElectricFlowClient efClient        = new ElectricFlowClient(
-                        electricFlowUrl, userName, userPassword);
-                String             pipelinesString = efClient.getPipelines(
-                        projectName);
-
-                if (log.isDebugEnabled()) {
-                    log.debug("Got pipelines: " + pipelinesString);
-                }
-
-                JSONObject jsonObject;
-
-                try {
-                    jsonObject = JSONObject.fromObject(pipelinesString);
-                }
-                catch (Exception e) {
-
-                    if (log.isDebugEnabled()) {
-                        log.debug("Malformed JSON" + pipelinesString);
-                    }
-
-                    log.error(e.getMessage(), e);
-
-                    return m;
-                }
-
-                JSONArray pipelines = new JSONArray();
-
-                try {
-
-                    if (!jsonObject.isEmpty()) {
-                        pipelines = jsonObject.getJSONArray("pipeline");
-                    }
-                }
-                catch (Exception e) {
-                    log.error(e.getMessage(), e);
-
-                    return m;
-                }
-
-                for (int i = 0; i < pipelines.size(); i++) {
-                    String gotPipelineName = pipelines.getJSONObject(i)
-                                                      .getString(
-                                                          "pipelineName");
-
-                    m.add(gotPipelineName, gotPipelineName);
-                }
-            }
-
-            return m;
+            return Utils.getPipelines(configuration, projectName, pipelineName,
+                log);
         }
 
         public ListBoxModel doFillProjectNameItems(
                 @QueryParameter String configuration)
             throws Exception
         {
-            ListBoxModel m = new ListBoxModel();
-
-            m.add("Select project", "");
-
-            if (!configuration.isEmpty()) {
-                Configuration cred            = this.getConfigurationByName(
-                        configuration);
-                String        userName        = cred.getElectricFlowUser();
-                String        userPassword    = cred.getElectricFlowPassword();
-                String        electricFlowUrl = cred.getElectricFlowUrl();
-
-                if (userName.isEmpty() || userPassword.isEmpty()) {
-                    log.warn("User name / password should not be empty");
-
-                    return m;
-                }
-
-                ElectricFlowClient efClient       = new ElectricFlowClient(
-                        electricFlowUrl, userName, userPassword);
-                String             projectsString = efClient.getProjects();
-                JSONObject         jsonObject     = JSONObject.fromObject(
-                        projectsString);
-                JSONArray          projects       = jsonObject.getJSONArray(
-                        "project");
-
-                for (int i = 0; i < projects.size(); i++) {
-
-                    if (projects.getJSONObject(i)
-                                .has("pluginKey")) {
-                        continue;
-                    }
-
-                    String gotProjectName = projects.getJSONObject(i)
-                                                    .getString("projectName");
-
-                    m.add(gotProjectName, gotProjectName);
-                }
-            }
-
-            return m;
+            return Utils.getProjects(configuration, log);
         }
 
         @Override public void doHelp(

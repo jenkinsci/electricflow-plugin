@@ -115,22 +115,11 @@ public class ElectricFlowUploadArtifactPublisher
             }
 
             // end of replacements
-            ElectricFlowConfigurationManager efCM            =
-                new ElectricFlowConfigurationManager();
-            Configuration                    cred            =
-                efCM.getConfigurationByName(this.configuration);
-            String                           electricFlowUrl =
-                cred.getElectricFlowUrl();
-            String                           userName        =
-                cred.getElectricFlowUser();
-            String                           userPassword    =
-                cred.getElectricFlowPassword();
-            ElectricFlowClient               efClient        =
-                new ElectricFlowClient(electricFlowUrl, userName, userPassword,
+            ElectricFlowClient efClient = new ElectricFlowClient(configuration,
                     workspaceDir);
-            String                           result          =
-                efClient.uploadArtifact(repositoryName, newArtifactName,
-                    newArtifactVersion, newFilePath, false);
+            String             result   = efClient.uploadArtifact(
+                    repositoryName, newArtifactName, newArtifactVersion,
+                    newFilePath, true);
 
             if (!"Artifact-Published-OK".equals(result)) {
                 listener.getLogger()
@@ -339,15 +328,9 @@ public class ElectricFlowUploadArtifactPublisher
             }
 
             try {
-                ElectricFlowConfigurationManager efCM         =
-                    new ElectricFlowConfigurationManager();
-                Configuration                    cred         =
-                    efCM.getConfigurationByName(configuration);
-                ElectricFlowClient               efClient     =
-                    new ElectricFlowClient(cred.getElectricFlowUrl(),
-                        cred.getElectricFlowUser(),
-                        cred.getElectricFlowPassword());
-                List<String>                     repositories;
+                ElectricFlowClient efClient     = new ElectricFlowClient(
+                        configuration);
+                List<String>       repositories;
 
                 repositories = efClient.getArtifactRepositories();
 
