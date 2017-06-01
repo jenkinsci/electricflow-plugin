@@ -11,27 +11,21 @@ package org.jenkinsci.plugins.electricflow;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
 import java.net.URL;
-import java.net.URLConnection;
 import java.nio.charset.StandardCharsets;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
-import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLSession;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 
@@ -44,49 +38,371 @@ import net.sf.json.JSONObject;
 
 import hudson.util.Secret;
 
+import static org.jenkinsci.plugins.electricflow.HttpMethod.GET;
+import static org.jenkinsci.plugins.electricflow.HttpMethod.POST;
+import static org.jenkinsci.plugins.electricflow.HttpMethod.PUT;
+
 public class ElectricFlowClient
 {
 
     //~ Static fields/initializers ---------------------------------------------
 
-    private static final Log log = LogFactory.getLog(ElectricFlowClient.class);
+    private static final Log    log     = LogFactory.getLog(
+            ElectricFlowClient.class);
+    private static final String CHARSET = "UTF-8";
 
     //~ Instance fields --------------------------------------------------------
 
-    private String electricFlowUrl;
-    private String userName;
-    private String password;
-    private String workspaceDir;
+    private String        electricFlowUrl;
+    private String        userName;
+    private String        password;
+    private String        workspaceDir;
+    private String        apiVersion;
+    private List<Release> releasesList = new ArrayList<>();
+    private EnvReplacer   envReplacer;
 
     //~ Constructors -----------------------------------------------------------
 
-    public ElectricFlowClient(
-            String url,
-            String name,
-            String password)
+    public ElectricFlowClient(String configurationName)
     {
-        this(url, name, password, "");
+        this(configurationName, "");
+    }
+
+    public ElectricFlowClient(
+            String      configurationName,
+            EnvReplacer envReplacer)
+    {
+        this(configurationName, "");
+        this.envReplacer = envReplacer;
+    }
+
+    public ElectricFlowClient(
+            String configurationName,
+            String workspaceDir)
+    {
+        Configuration cred = Utils.getConfigurationByName(configurationName);
+
+        if (cred != null) {
+            electricFlowUrl = cred.getElectricFlowUrl();
+            userName        = cred.getElectricFlowUser();
+            password        = Secret.fromString(cred.getElectricFlowPassword())
+                                    .getPlainText();
+
+            String electricFlowApiVersion = cred.getElectricFlowApiVersion();
+
+            apiVersion        = electricFlowApiVersion != null
+                ? electricFlowApiVersion
+                : "";
+            this.workspaceDir = workspaceDir;
+
+            authorize();
+        }
     }
 
     public ElectricFlowClient(
             String url,
             String name,
             String password,
-            String workspaceDir)
+            String apiVersion)
     {
         this.electricFlowUrl = url;
         this.userName        = name;
-        this.password        = Secret.fromString(password)
-                                     .getPlainText();
-        this.workspaceDir    = workspaceDir;
+        this.password        = password;
+        this.apiVersion      = apiVersion;
 
         if (userName.isEmpty() || password.isEmpty()) {
             log.warn("User name and password should not be empty.");
         }
 
+        authorize();
+    }
+
+    //~ Methods ----------------------------------------------------------------
+
+    public String deployApplicationPackage(
+            String group,
+            String key,
+            String version,
+            String file)
+        throws IOException
+    {
+        String     requestEndpoint =
+            "/createApplicationFromDeploymentPackage?request=createApplicationFromDeploymentPackage";
+        JSONObject obj             = new JSONObject();
+
+        obj.put("artifactFileName", file);
+        obj.put("artifactVersion", version);
+        obj.put("artifactKey", key);
+        obj.put("artifactGroup", group);
+
+        return runRestAPI(requestEndpoint, POST, obj.toString());
+    }
+
+    public String runPipeline(
+            String projectName,
+            String pipelineName)
+        throws Exception
+    {
+        String requestEndpoint = "/pipelines?pipelineName="
+                + Utils.encodeURL(pipelineName)
+                + "&projectName=" + Utils.encodeURL(projectName);
+
+        return runRestAPI(requestEndpoint, POST);
+    }
+
+    public String runPipeline(
+            String    projectName,
+            String    pipelineName,
+            JSONArray additionalOptions)
+        throws IOException
+    {
+        JSONObject obj        = new JSONObject();
+        JSONArray  parameters = getParameters(additionalOptions,
+                "actualParameterName", "parameterName", "parameterValue");
+
+        obj.put("actualParameter", parameters);
+        obj.put("pipelineName", pipelineName);
+        obj.put("projectName", projectName);
+
+        if (log.isDebugEnabled()) {
+            log.debug("Constructed JSON is: " + obj.toString());
+        }
+
+        // end of json
+        String requestEndpoint = "/pipelines";
+
+        return runRestAPI(requestEndpoint, HttpMethod.POST, obj.toString());
+    }
+
+    public String runProcess(
+            String    projectName,
+            String    applicationName,
+            String    processName,
+            String    environmentName,
+            JSONArray actualParameters)
+        throws IOException
+    {
+        JSONObject obj = new JSONObject();
+
+        obj.put("projectName", projectName);
+        obj.put("applicationName", applicationName);
+        obj.put("processName", processName);
+        obj.put("environmentName", environmentName);
+        obj.put("actualParameter",
+            getParameters(actualParameters, "actualParameterName",
+                "actualParameterName", "value"));
+
+        String requestEndpoint = "/jobs?request=runProcess";
+
+        return runRestAPI(requestEndpoint, POST, obj.toString());
+    }
+
+    public String runRelease(
+            String    projectName,
+            String    releaseName,
+            List      stagesToRun,
+            String    startingStage,
+            JSONArray pipelineParameters)
+        throws IOException
+    {
+
+        // generating json
+        JSONObject obj = new JSONObject();
+
+        obj.put("releaseName", releaseName);
+        obj.put("projectName", projectName);
+
+        if (!startingStage.isEmpty()) {
+            obj.put("startingStage", startingStage);
+        }
+        else {
+            obj.put("stagesToRun", stagesToRun);
+        }
+
+        obj.put("pipelineParameter",
+            getParameters(pipelineParameters, "pipelineParameterName",
+                "parameterName", "parameterValue"));
+
+        if (log.isDebugEnabled()) {
+            log.debug("Constructed JSON is: " + obj.toString());
+        }
+
+        // end of json
+        String requestEndpoint = "/releases";
+
+        return runRestAPI(requestEndpoint, POST, obj.toString());
+    }
+
+    public String runRestAPI(
+            String     urlPath,
+            HttpMethod httpMethod)
+        throws IOException
+    {
+        return runRestAPI(urlPath, httpMethod, "", new ArrayList<>(0));
+    }
+
+    public String runRestAPI(
+            String     urlPath,
+            HttpMethod httpMethod,
+            String     body)
+        throws IOException
+    {
+        return runRestAPI(urlPath, httpMethod, body, new ArrayList<>(0));
+    }
+
+    public String runRestAPI(
+            String     urlPath,
+            HttpMethod httpMethod,
+            String     body,
+            List<Pair> parameters)
+        throws IOException
+    {
+        StringBuilder result = new StringBuilder();
+        JSONObject    obj    = new JSONObject();
+
+        if (!urlPath.startsWith("/")) {
+            urlPath = "/" + urlPath;
+        }
+
+        HttpsURLConnection conn = this.getConnection(apiVersion + urlPath);
+
+        conn.setRequestMethod(httpMethod.name());
+        conn.setUseCaches(false);
+        conn.setDoInput(true);
+        conn.setDoOutput(true);
+
+        if (!GET.equals(httpMethod)) {
+            byte[] outputInBytes = new byte[0];
+
+            if (!parameters.isEmpty()) {
+
+                for (Pair pair : parameters) {
+                    obj.put(pair.getKey(), expandVariable(pair.getValue()));
+                }
+
+                outputInBytes = obj.toString()
+                                   .getBytes(CHARSET);
+            }
+            else if (!body.isEmpty()) {
+                outputInBytes = body.getBytes(CHARSET);
+            }
+
+            if (outputInBytes.length != 0) {
+
+                try(OutputStream outputStream = conn.getOutputStream()) {
+                    outputStream.write(outputInBytes);
+                    outputStream.close();
+                }
+            }
+        }
+
+        List<Integer> successCodes = new ArrayList<>();
+
+        successCodes.add(200);
+        successCodes.add(201);
+
+        if (!successCodes.contains(conn.getResponseCode())) {
+            throw new RuntimeException("Failed : HTTP error code : "
+                    + conn.getResponseCode() + ", "
+                    + conn.getResponseMessage());
+        }
+
+        try(BufferedReader br = new BufferedReader(
+                        new InputStreamReader((conn.getInputStream()), CHARSET))) {
+            String output;
+
+            while ((output = br.readLine()) != null) {
+                result.append(output);
+            }
+
+            return result.toString();
+        }
+        catch (IOException e) {
+            throw new IOException(e);
+        }
+        finally {
+            conn.disconnect();
+        }
+    }
+
+    public String uploadArtifact(
+            String  repo,
+            String  name,
+            String  version,
+            String  path,
+            boolean uploadDirectory)
+        throws IOException, KeyManagementException, NoSuchAlgorithmException
+    {
+        String sessionId = this.getSessionId();
+
+        // to make it working, this file should be installed:
+        // http://swarm/reviews/137432/
+        String requestURL = this.electricFlowUrl
+                + "/commander/cgi-bin/publishArtifactAPI.cgi";
+
+        // return sessionId;
+        MultipartUtility multipart = new MultipartUtility(requestURL, CHARSET);
+
+        multipart.addFormField("artifactName", name);
+        multipart.addFormField("artifactVersionVersion", version);
+        multipart.addFormField("repositoryName", repo);
+        multipart.addFormField("compress", "1");
+        multipart.addFormField("commanderSessionId", sessionId);
+
+        // here we're getting files from directory using wildcard:
+        List<File> fileList = FileHelper.getFilesFromDirectoryWildcard(
+                this.workspaceDir, path, true);
+
+        if (log.isDebugEnabled()) {
+            log.debug("File path: " + path);
+        }
+
+        for (File file : fileList) {
+
+            // File file = new File(row);
+            if (file.isDirectory()) {
+
+                if (!uploadDirectory) {
+                    continue;
+                }
+
+                // logic for dir here
+                List<File> dirFiles = FileHelper.getFilesFromDirectory(file);
+
+                for (File f : dirFiles) {
+                    multipart.addFilePart("files", f, workspaceDir);
+                }
+            }
+            else {
+                multipart.addFilePart("files", file, workspaceDir);
+            }
+        }
+
+        List<String> response = multipart.finish();
+
+        // Debug.e(TAG, "SERVER REPLIED:");
+        String resultLine = "";
+
+        for (String line : response) {
+
+            // Debug.e(TAG, "Upload Files Response:::" + line);
+            // get your server response here.
+            // responseString = line;
+            resultLine = resultLine + line;
+
+            if (log.isDebugEnabled()) {
+                log.debug("Response: " + line);
+            }
+        }
+
+        return resultLine;
+    }
+
+    private void authorize()
+    {
         TrustManager[] trustAllCerts = new TrustManager[] {
             new X509TrustManager() {
-                @Override public java.security.cert.X509Certificate[] getAcceptedIssuers()
+                @Override public X509Certificate[] getAcceptedIssuers()
                 {
                     return null;
                 }
@@ -116,355 +432,54 @@ public class ElectricFlowClient
         }
 
         // Create all-trusting host name verifier
-        HostnameVerifier allHostsValid = new HostnameVerifier() {
-            @Override public boolean verify(
-                    String     hostname,
-                    SSLSession session)
-            {
-                return true;
-            }
-        };
+        HostnameVerifier allHostsValid = (hostname, session) -> true;
 
         // Install the all-trusting host verifier
         HttpsURLConnection.setDefaultHostnameVerifier(allHostsValid);
     }
 
-    //~ Methods ----------------------------------------------------------------
+    private String expandVariable(String var)
+    {
+        return envReplacer != null
+        ? envReplacer.expandEnv(var)
+        : var;
+    }
 
-    public String deployApplicationPackage(
-            String group,
-            String key,
-            String version,
-            String file)
+    public List<String> getApplications(String projectName)
         throws IOException
     {
-        String             result          = "";
-        String             requestEndpoint =
-            "/rest/v1.0/createApplicationFromDeploymentPackage?request=createApplicationFromDeploymentPackage";
-        HttpsURLConnection conn            = null;
-        BufferedReader     br              = null;
+        String       endpoint   = "/projects/"
+                + Utils.encodeURL(projectName)
+                + "/applications";
+        String       jsonResult = runRestAPI(endpoint, GET);
+        List<String> result     = new ArrayList<>();
+        JSONObject   jsonObject = JSONObject.fromObject(jsonResult);
 
-        try {
-            conn = this.getConnection(requestEndpoint);
-            conn.setRequestMethod("POST");
-
-            JSONObject obj = new JSONObject();
-
-            obj.put("artifactFileName", file);
-            obj.put("artifactVersion", version);
-            obj.put("artifactKey", key);
-            obj.put("artifactGroup", group);
-            conn.setUseCaches(false);
-            conn.setDoInput(true);
-            conn.setDoOutput(true);
-
-            byte[]       outputInBytes = obj.toString()
-                                            .getBytes("UTF-8");
-            OutputStream os            = conn.getOutputStream();
-
-            os.write(outputInBytes);
-            os.close();
-
-            InputStream       inputStream = conn.getInputStream();
-            InputStreamReader in          = new InputStreamReader(inputStream,
-                    "UTF-8");
-
-            br = new BufferedReader(in);
-
-            String        output;
-            StringBuilder buf = new StringBuilder();
-
-            while ((output = br.readLine()) != null) {
-                buf.append(output);
-            }
-
-            result = buf.toString();
-
-            if (log.isDebugEnabled()) {
-                log.debug("DeployApplication response: " + result);
-            }
-
-            if (conn.getResponseCode() != 201) {
-                log.warn("Failed : HTTP error code : "
-                        + conn.getResponseCode());
-            }
+        if (jsonObject.isEmpty()) {
+            return result;
         }
-        catch (IOException e) {
-            throw new IOException(e);
-        }
-        finally {
 
-            if (br != null) {
-                br.close();
-            }
+        JSONArray application = jsonObject.getJSONArray("application");
 
-            if (conn != null) {
-                conn.disconnect();
-            }
+        for (int i = 0; i < application.size(); i++) {
+            JSONObject applicationObject = application.getJSONObject(i);
+            String     applicationName   = applicationObject.getString(
+                    "applicationName");
+
+            result.add(applicationName);
         }
 
         return result;
     }
 
-    public String runPipeline(
-            String projectName,
-            String pipelineName)
-        throws Exception
-    {
-        StringBuilder      myString        = new StringBuilder();
-        String             requestEndpoint =
-            "/rest/v1.0/pipelines?pipelineName="
-                + Utils.encodeURL(pipelineName)
-                + "&projectName=" + Utils.encodeURL(projectName);
-        HttpsURLConnection conn            = null;
-        BufferedReader     br              = null;
-
-        try {
-            conn = this.getConnection(requestEndpoint);
-            conn.setRequestMethod("POST");
-
-            if (conn.getResponseCode() != 200) {
-                throw new RuntimeException("Failed : HTTP error code : "
-                        + conn.getResponseCode() + " "
-                        + conn.getResponseMessage());
-            }
-
-            br = new BufferedReader(new InputStreamReader(
-                        (conn.getInputStream()), "UTF-8"));
-
-            String output;
-
-            while ((output = br.readLine()) != null) {
-                myString.append(output);
-            }
-        }
-        catch (IOException e) {
-            throw new IOException(e);
-        }
-        finally {
-
-            if (br != null) {
-                br.close();
-            }
-
-            if (conn != null) {
-                conn.disconnect();
-            }
-        }
-
-        return myString.toString();
-    }
-
-    public String runPipeline(
-            String    projectName,
-            String    pipelineName,
-            JSONArray additionalOptions)
-        throws IOException
-    {
-        StringBuilder myString = new StringBuilder();
-
-        // generating json
-        JSONObject obj = new JSONObject();
-        JSONArray  arr = new JSONArray();
-
-        for (Object additionalOption : additionalOptions) {
-            String parName  = ((JSONObject) additionalOption).getString(
-                    "parameterName");
-            String parValue = ((JSONObject) additionalOption).getString(
-                    "parameterValue");
-
-            // start
-            JSONObject inner = new JSONObject();
-
-            inner.put("actualParameterName", parName);
-            inner.put("value", parValue);
-            arr.add(inner);
-            // end
-        }
-
-        obj.put("actualParameter", arr);
-        obj.put("pipelineName", pipelineName);
-        obj.put("projectName", projectName);
-
-        if (log.isDebugEnabled()) {
-            log.debug("Constructed JSON is: " + obj.toString());
-        }
-
-        // end of json
-        String             requestEndpoint = "/rest/v1.0/pipelines";
-        HttpsURLConnection conn            = null;
-        BufferedReader     br              = null;
-
-        try {
-            conn = this.getConnection(requestEndpoint);
-            conn.setRequestMethod("POST");
-
-            // adding body
-            conn.setUseCaches(false);
-            conn.setDoInput(true);
-            conn.setDoOutput(true);
-
-            byte[]       outputInBytes = obj.toString()
-                                            .getBytes("UTF-8");
-            OutputStream os            = conn.getOutputStream();
-
-            os.write(outputInBytes);
-            os.close();
-
-            if (log.isDebugEnabled()) {
-
-                // end of adding body
-                log.debug("New pipeline run...");
-            }
-
-            if (conn.getResponseCode() != 200) {
-                throw new RuntimeException("Failed : HTTP error code : "
-                        + conn.getResponseCode());
-            }
-
-            br = new BufferedReader(new InputStreamReader(
-                        (conn.getInputStream()), "UTF-8"));
-
-            String output;
-
-            while ((output = br.readLine()) != null) {
-                myString.append(output);
-            }
-        }
-        catch (IOException e) {
-            throw new IOException(e);
-        }
-        finally {
-
-            if (br != null) {
-                br.close();
-            }
-
-            if (conn != null) {
-                conn.disconnect();
-            }
-        }
-
-        return myString.toString();
-    }
-
-    public String uploadArtifact(
-            String  repo,
-            String  name,
-            String  version,
-            String  path,
-            boolean uploadDirectory)
-        throws IOException, KeyManagementException, NoSuchAlgorithmException
-    {
-        String sessionId = this.getSessionId();
-
-        // to make it working, this file should be installed:
-        // http://swarm/reviews/137432/
-        String requestURL = this.electricFlowUrl
-                + "/commander/cgi-bin/publishArtifactAPI.cgi";
-        String charset    = "UTF-8";
-
-        // return sessionId;
-        MultipartUtility multipart = new MultipartUtility(requestURL, charset);
-
-        multipart.addFormField("artifactName", name);
-        multipart.addFormField("artifactVersionVersion", version);
-        multipart.addFormField("repositoryName", repo);
-        multipart.addFormField("compress", "1");
-        multipart.addFormField("commanderSessionId", sessionId);
-
-        // here we're getting files from directory using wildcard:
-        List<File> fileList = FileHelper.getFilesFromDirectoryWildcard(
-                this.workspaceDir, path, true);
-
-        if (log.isDebugEnabled()) {
-            log.debug("File path: " + path);
-        }
-
-        for (File file : fileList) {
-
-            // File file = new File(row);
-            if (file.isDirectory()) {
-
-                if (!uploadDirectory) {
-                    continue;
-                }
-
-                // logic for dir here
-                List<File> dirFiles = FileHelper.getFilesFromDirectory(file);
-
-                for (File f : dirFiles) {
-                    multipart.addFilePart("files", f);
-                }
-            }
-            else {
-                multipart.addFilePart("files", file);
-            }
-        }
-
-        List<String> response = multipart.finish();
-
-        // Debug.e(TAG, "SERVER REPLIED:");
-        String resultLine = "";
-
-        for (String line : response) {
-
-            // Debug.e(TAG, "Upload Files Response:::" + line);
-            // get your server response here.
-            // responseString = line;
-            resultLine = resultLine + line;
-
-            if (log.isDebugEnabled()) {
-                log.debug("Response: " + line);
-            }
-        }
-
-        return resultLine;
-    }
-
     public List<String> getArtifactRepositories()
         throws Exception
     {
-        StringBuilder      myString        = new StringBuilder();
-        String             requestEndpoint = "/rest/v1.0/repositories";
-        HttpsURLConnection conn            = null;
-        BufferedReader     br              = null;
-
-        try {
-            conn = this.getConnection(requestEndpoint);
-            conn.setRequestMethod("GET");
-
-            if (conn.getResponseCode() != 200) {
-                throw new RuntimeException("Failed : HTTP error code : "
-                        + conn.getResponseCode());
-            }
-
-            br = new BufferedReader(new InputStreamReader(
-                        (conn.getInputStream()), "UTF-8"));
-
-            String output;
-
-            while ((output = br.readLine()) != null) {
-                myString.append(output);
-            }
-        }
-        catch (IOException e) {
-            throw new IOException(e);
-        }
-        finally {
-
-            if (conn != null) {
-                conn.disconnect();
-            }
-
-            if (br != null) {
-                br.close();
-            }
-        }
-
-        JSONObject   jsonObject   = JSONObject.fromObject(myString.toString());
-        JSONArray    arr          = jsonObject.getJSONArray("repository");
-        List<String> repositories = new ArrayList<>();
+        String       requestEndpoint = "/repositories";
+        String       result          = runRestAPI(requestEndpoint, GET);
+        JSONObject   jsonObject      = JSONObject.fromObject(result);
+        JSONArray    arr             = jsonObject.getJSONArray("repository");
+        List<String> repositories    = new ArrayList<>();
 
         for (int i = 0; i < arr.size(); i++) {
             String repositoryName = arr.getJSONObject(i)
@@ -483,7 +498,7 @@ public class ElectricFlowClient
     private HttpsURLConnection getConnection(String endpoint)
         throws IOException
     {
-        URL url = new URL(this.electricFlowUrl + "/" + endpoint);
+        URL url = new URL(this.electricFlowUrl + endpoint);
 
         if (log.isDebugEnabled()) {
             log.debug("Endpoint: " + url.toString());
@@ -494,7 +509,7 @@ public class ElectricFlowClient
         String             authString = this.userName + ":" + this.password;
 
         //
-        byte[] encodedBytes = Base64.encodeBase64(authString.getBytes("UTF-8"));
+        byte[] encodedBytes = Base64.encodeBase64(authString.getBytes(CHARSET));
         String encoded      = new String(encodedBytes, StandardCharsets.UTF_8);
 
         conn.setRequestProperty("Authorization", "Basic " + encoded);
@@ -508,77 +523,111 @@ public class ElectricFlowClient
         return electricFlowUrl;
     }
 
+    public List<String> getEnvironments(String projectName)
+        throws IOException
+    {
+        String       endpoint   = "/projects/"
+                + Utils.encodeURL(projectName)
+                + "/environments";
+        String       jsonResult = runRestAPI(endpoint, GET);
+        List<String> result     = new ArrayList<>();
+        JSONObject   jsonObject = JSONObject.fromObject(jsonResult);
+
+        if (jsonObject.isEmpty()) {
+            return result;
+        }
+
+        JSONArray environments = jsonObject.getJSONArray("environment");
+
+        for (int i = 0; i < environments.size(); i++) {
+            JSONObject environmentObject = environments.getJSONObject(i);
+            String     environment       = environmentObject.getString(
+                    "environmentName");
+
+            result.add(environment);
+        }
+
+        return result;
+    }
+
+    public List<String> getFormalParameters(
+            String projectName,
+            String applicationName,
+            String applicationProcessName)
+        throws IOException
+    {
+        String       endpoint   = "/projects/"
+                + Utils.encodeURL(projectName) + "/applications/"
+                + Utils.encodeURL(applicationName) + "/processes/"
+                + Utils.encodeURL(applicationProcessName) + "/formalParameters";
+        String       jsonResult = runRestAPI(endpoint, GET);
+        List<String> result     = new ArrayList<>();
+        JSONObject   jsonObject = JSONObject.fromObject(jsonResult);
+
+        if (jsonObject.isEmpty()) {
+            return result;
+        }
+
+        JSONArray environments = jsonObject.getJSONArray("formalParameter");
+
+        for (int i = 0; i < environments.size(); i++) {
+            JSONObject environmentObject = environments.getJSONObject(i);
+            String     expansionDeferred = environmentObject.getString(
+                    "expansionDeferred");
+
+            if ("0".equals(expansionDeferred)) {
+                String parameterName = environmentObject.getString(
+                        "formalParameterName");
+
+                result.add(parameterName);
+            }
+        }
+
+        return result;
+    }
+
+    private JSONArray getParameters(
+            JSONArray parameters,
+            String    argumentName,
+            String    parameterName,
+            String    parameterValue)
+    {
+        JSONArray jsonArray = new JSONArray();
+
+        for (int i = 0; i < parameters.size(); i++) {
+            JSONObject param    = parameters.getJSONObject(i);
+            String     parName  = param.getString(parameterName);
+            String     parValue = param.getString(parameterValue);
+            JSONObject inner    = new JSONObject();
+
+            inner.put(argumentName, parName);
+            inner.put("value", expandVariable(parValue));
+            jsonArray.add(inner);
+        }
+
+        return jsonArray;
+    }
+
     public List<String> getPipelineFormalParameters(String pipelineName)
         throws Exception
     {
-        StringBuilder myString         = new StringBuilder();
-        List<String>  formalParameters = new ArrayList<>();
-        String        pipelineId       = this.getPipelineIdByName(pipelineName);
+        List<String> formalParameters = new ArrayList<>();
+        String       pipelineId       = this.getPipelineIdByName(pipelineName);
 
         if (!pipelineId.isEmpty()) {
-            String             requestEndpoint =
-                "/rest/v1.0/objects?request=findObjects";
-            HttpsURLConnection conn            = null;
-            BufferedReader     br              = null;
+            String     requestEndpoint = "/objects?request=findObjects";
+            JSONObject obj             = new JSONObject();
+            JSONObject filter          = new JSONObject();
 
-            try {
-                conn = this.getConnection(requestEndpoint);
-                conn.setRequestMethod("PUT");
+            filter.put("operator", "equals");
+            filter.put("propertyName", "container");
+            filter.put("operand1", "pipeline-" + pipelineId);
+            obj.put("filter", filter);
+            obj.put("objectType", "formalParameter");
 
-                JSONObject obj    = new JSONObject();
-                JSONObject filter = new JSONObject();
-
-                filter.put("operator", "equals");
-                filter.put("propertyName", "container");
-                filter.put("operand1", "pipeline-" + pipelineId);
-                obj.put("filter", filter);
-                obj.put("objectType", "formalParameter");
-                conn.setUseCaches(false);
-                conn.setDoInput(true);
-                conn.setDoOutput(true);
-
-                if (log.isDebugEnabled()) {
-                    log.debug("Formal params json: " + obj.toString());
-                }
-
-                byte[]       outputInBytes = obj.toString()
-                                                .getBytes("UTF-8");
-                OutputStream os            = conn.getOutputStream();
-
-                os.write(outputInBytes);
-                os.close();
-
-                if (conn.getResponseCode() != 200) {
-                    log.warn("Failed : HTTP error code : "
-                            + conn.getResponseCode());
-
-                    return formalParameters;
-                }
-
-                br = new BufferedReader(new InputStreamReader(
-                            (conn.getInputStream()), "UTF-8"));
-
-                String output;
-
-                while ((output = br.readLine()) != null) {
-                    myString.append(output);
-                }
-            }
-            catch (IOException e) {
-                throw new IOException(e);
-            }
-            finally {
-
-                if (br != null) {
-                    br.close();
-                }
-
-                if (conn != null) {
-                    conn.disconnect();
-                }
-            }
-
-            JSONObject jsonObject = JSONObject.fromObject(myString.toString());
+            String     result     = runRestAPI(requestEndpoint, PUT,
+                    obj.toString());
+            JSONObject jsonObject = JSONObject.fromObject(result);
             JSONArray  arr        = jsonObject.getJSONArray("object");
 
             for (int i = 0; i < arr.size(); i++) {
@@ -604,70 +653,19 @@ public class ElectricFlowClient
     private String getPipelineIdByName(String pipelineName)
         throws Exception
     {
-        StringBuilder      myString        = new StringBuilder();
-        String             requestEndpoint =
-            "/rest/v1.0/objects?request=findObjects";
-        HttpsURLConnection conn            = null;
-        BufferedReader     br              = null;
+        String     requestEndpoint = "/objects?request=findObjects";
+        JSONObject obj             = new JSONObject();
+        JSONObject filter          = new JSONObject();
 
-        try {
-            conn = this.getConnection(requestEndpoint);
-            conn.setRequestMethod("PUT");
+        filter.put("operator", "equals");
+        filter.put("propertyName", "pipelineName");
+        filter.put("operand1", pipelineName);
+        obj.put("filter", filter);
+        obj.put("objectType", "pipeline");
 
-            JSONObject obj    = new JSONObject();
-            JSONObject filter = new JSONObject();
-
-            filter.put("operator", "equals");
-            filter.put("propertyName", "pipelineName");
-            filter.put("operand1", pipelineName);
-            obj.put("filter", filter);
-            obj.put("objectType", "pipeline");
-            conn.setUseCaches(false);
-            conn.setDoInput(true);
-            conn.setDoOutput(true);
-
-            if (log.isDebugEnabled()) {
-                log.debug("Pipeline id parameters json: " + obj.toString());
-            }
-
-            byte[]       outputInBytes = obj.toString()
-                                            .getBytes("UTF-8");
-            OutputStream os            = conn.getOutputStream();
-
-            os.write(outputInBytes);
-            os.close();
-
-            if (conn.getResponseCode() != 200) {
-                log.warn("Failed : HTTP error code : "
-                        + conn.getResponseCode());
-
-                return "";
-            }
-
-            br = new BufferedReader(new InputStreamReader(
-                        (conn.getInputStream()), "UTF-8"));
-
-            String output;
-
-            while ((output = br.readLine()) != null) {
-                myString.append(output);
-            }
-        }
-        catch (IOException e) {
-            throw new IOException(e);
-        }
-        finally {
-
-            if (br != null) {
-                br.close();
-            }
-
-            if (conn != null) {
-                conn.disconnect();
-            }
-        }
-
-        JSONObject jsonObject = JSONObject.fromObject(myString.toString());
+        String     result     = runRestAPI(requestEndpoint, PUT,
+                obj.toString());
+        JSONObject jsonObject = JSONObject.fromObject(result);
 
         if (!jsonObject.isEmpty()) {
             JSONArray arr = jsonObject.getJSONArray("object");
@@ -692,402 +690,174 @@ public class ElectricFlowClient
     public String getPipelines(String projectName)
         throws IOException
     {
-        StringBuilder      myString        = new StringBuilder();
-        String             requestEndpoint = "/rest/v1.0/projects/"
-                + Utils.encodeURL(projectName) + "/pipelines";
-        BufferedReader     br              = null;
-        HttpsURLConnection conn            = null;
+        String requestEndpoint = "/projects/" + Utils.encodeURL(projectName)
+                + "/pipelines";
 
-        try {
-            conn = this.getConnection(requestEndpoint);
-            conn.setRequestMethod("GET");
+        return runRestAPI(requestEndpoint, GET);
+    }
 
-            if (log.isDebugEnabled()) {
-                log.debug("GetPipelines ResponseCode: "
-                        + conn.getResponseCode());
-            }
+    public JSONObject getProcess(
+            String projectName,
+            String applicationName,
+            String processName)
+        throws IOException
+    {
+        String endpoint   = "/projects/"
+                + Utils.encodeURL(projectName)
+                + "/applications/" + Utils.encodeURL(applicationName)
+                + "/processes/" + Utils.encodeURL(processName);
+        String jsonResult = runRestAPI(endpoint, GET);
 
-            if (conn.getResponseCode() != 200) {
-                log.warn("Failed : HTTP error code : "
-                        + conn.getResponseCode());
+        return JSONObject.fromObject(jsonResult);
+    }
 
-                return "{}";
-            }
+    public List<String> getProcesses(
+            String projectName,
+            String applicationName)
+        throws IOException
+    {
+        String       endpoint   = "/projects/"
+                + Utils.encodeURL(projectName)
+                + "/applications/" + Utils.encodeURL(applicationName)
+                + "/processes";
+        String       jsonResult = runRestAPI(endpoint, GET);
+        List<String> result     = new ArrayList<>();
+        JSONObject   jsonObject = JSONObject.fromObject(jsonResult);
 
-            br = new BufferedReader(new InputStreamReader(
-                        (conn.getInputStream()), "UTF-8"));
-
-            String output;
-
-            while ((output = br.readLine()) != null) {
-                myString.append(output);
-            }
-        }
-        catch (IOException e) {
-            throw new IOException(e);
-        }
-        finally {
-
-            if (br != null) {
-                br.close();
-            }
-
-            if (conn != null) {
-                conn.disconnect();
-            }
+        if (jsonObject.isEmpty()) {
+            return result;
         }
 
-        return myString.toString();
+        JSONArray processes = jsonObject.getJSONArray("process");
+
+        for (int i = 0; i < processes.size(); i++) {
+            JSONObject applicationObject = processes.getJSONObject(i);
+            String     process           = applicationObject.getString(
+                    "processName");
+
+            result.add(process);
+        }
+
+        return result;
     }
 
     public String getProjects()
         throws IOException
     {
-        StringBuilder      myString        = new StringBuilder();
-        String             requestEndpoint = "/rest/v1.0/projects";
-        BufferedReader     br              = null;
-        HttpsURLConnection conn            = null;
+        String requestEndpoint = "/projects";
 
-        try {
-            conn = this.getConnection(requestEndpoint);
-            conn.setRequestMethod("GET");
+        return runRestAPI(requestEndpoint, GET);
+    }
 
-            if (conn.getResponseCode() != 200) {
-                log.warn("Failed : HTTP error code : "
-                        + conn.getResponseCode());
+    public Release getRelease(
+            String configuration,
+            String projectName,
+            String releaseName)
+        throws Exception
+    {
 
-                return "{}";
-            }
+        for (Release release : releasesList) {
 
-            br = new BufferedReader(new InputStreamReader(
-                        (conn.getInputStream()), "UTF-8"));
-
-            String output;
-
-            while ((output = br.readLine()) != null) {
-                myString.append(output);
-            }
-        }
-        catch (IOException e) {
-            throw new IOException(e);
-        }
-        finally {
-
-            if (br != null) {
-                br.close();
-            }
-
-            if (conn != null) {
-                conn.disconnect();
+            if (release.getConfiguration()
+                       .equals(configuration)
+                    && release.getProjectName()
+                              .equals(projectName)
+                    && release.getReleaseName()
+                              .equals(releaseName)) {
+                return release;
             }
         }
 
-        return myString.toString();
+        getReleases(configuration, projectName);
+
+        if (!releaseName.isEmpty()) {
+            return getRelease(configuration, projectName, releaseName);
+        }
+
+        return null;
+    }
+
+    public List<String> getReleaseNames(
+            String configuration,
+            String projectName)
+    {
+        return releasesList.stream()
+                           .filter(release ->
+                                   release.getConfiguration()
+                                      .equals(configuration)
+                                   && release.getProjectName()
+                                             .equals(projectName))
+                           .map(Release::getReleaseName)
+                           .collect(Collectors.toList());
+    }
+
+    public List<String> getReleases(
+            String conf,
+            String projectName)
+        throws Exception
+    {
+        releasesList.clear();
+
+        String     requestEndpoint = "/projects/" + Utils.encodeURL(projectName)
+                + "/releases";
+        String     result          = runRestAPI(requestEndpoint, GET);
+        JSONObject jsonObject      = JSONObject.fromObject(result);
+
+        if (jsonObject.isEmpty()) {
+            return new ArrayList<>(0);
+        }
+
+        JSONArray releases = jsonObject.getJSONArray("release");
+
+        for (int i = 0; i < releases.size(); i++) {
+            JSONObject releaseObject   = releases.getJSONObject(i);
+            String     gotReleaseName  = releaseObject.getString("releaseName");
+            String     gotPipelineName = releaseObject.getString(
+                    "pipelineName");
+            JSONObject stages          = releaseObject.getJSONObject("stages");
+            Release    release         = new Release(conf, projectName,
+                    gotReleaseName);
+
+            release.setPipelineName(gotPipelineName);
+            release.setPipelineParameters(getPipelineFormalParameters(
+                    gotPipelineName));
+
+            if (!stages.isEmpty()) {
+                JSONArray stagesArray = stages.getJSONArray("stage");
+
+                if (stagesArray != null && !stagesArray.isEmpty()) {
+                    List<String> stagesList = new ArrayList<>();
+
+                    for (int j = 0; j < stagesArray.size(); j++) {
+                        String stageName = stagesArray.getJSONObject(j)
+                                                      .getString("name");
+
+                        stagesList.add(stageName);
+                    }
+
+                    release.setStartStages(stagesList);
+                }
+            }
+
+            releasesList.add(release);
+        }
+
+        return getReleaseNames(conf, projectName);
     }
 
     public String getSessionId()
         throws IOException
     {
-        StringBuilder      result          = new StringBuilder();
-        String             requestEndpoint = "/rest/v1.0/sessions";
-        HttpsURLConnection conn            = null;
-        BufferedReader     br              = null;
+        String     requestEndpoint = "/sessions";
+        JSONObject requestObject   = new JSONObject();
 
-        try {
-            conn = this.getConnection(requestEndpoint);
-            conn.setRequestMethod("POST");
+        requestObject.put("userName", this.userName);
+        requestObject.put("password", this.password);
 
-            JSONObject requestObject = new JSONObject();
-
-            requestObject.put("userName", this.userName);
-            requestObject.put("password", this.password);
-            conn.setUseCaches(false);
-            conn.setDoInput(true);
-            conn.setDoOutput(true);
-
-            byte[]       outputInBytes = requestObject.toString()
-                                                      .getBytes("UTF-8");
-            OutputStream os            = conn.getOutputStream();
-
-            os.write(outputInBytes);
-            os.close();
-            br = new BufferedReader(new InputStreamReader(
-                        (conn.getInputStream()), "UTF-8"));
-
-            String output;
-
-            while ((output = br.readLine()) != null) {
-                result.append(output);
-            }
-        }
-        catch (IOException e) {
-            throw new IOException(e);
-        }
-        finally {
-
-            if (br != null) {
-                br.close();
-            }
-
-            if (conn != null) {
-                conn.disconnect();
-            }
-        }
-
-        JSONObject jsonObject = JSONObject.fromObject(result.toString());
+        String     result     = runRestAPI(requestEndpoint, POST,
+                requestObject.toString());
+        JSONObject jsonObject = JSONObject.fromObject(result);
 
         return jsonObject.getString("sessionId");
-    }
-}
-
-class DummyX509TrustManager
-    implements X509TrustManager
-{
-
-    //~ Methods ----------------------------------------------------------------
-
-    @Override public void checkClientTrusted(
-            X509Certificate[] paramArrayOfX509Certificate,
-            String            paramString)
-        throws CertificateException { }
-
-    @Override public void checkServerTrusted(
-            X509Certificate[] paramArrayOfX509Certificate,
-            String            paramString)
-        throws CertificateException { }
-
-    @Override public X509Certificate[] getAcceptedIssuers()
-    {
-        return null;
-    }
-}
-
-class MultipartUtility
-{
-
-    //~ Static fields/initializers ---------------------------------------------
-
-    private static final String LINE_FEED = "\r\n";
-
-    //~ Instance fields --------------------------------------------------------
-
-    private final Log          log          = LogFactory.getLog(this
-                .getClass());
-    private final String       boundary;
-    private HttpsURLConnection httpConn;
-    private final String       charset;
-    private OutputStream       outputStream;
-    private PrintWriter        writer;
-
-    //~ Constructors -----------------------------------------------------------
-
-    /**
-     * This constructor initializes a new HTTP POST request with content type is
-     * set to multipart/form-data.
-     *
-     * @param   requestURL
-     * @param   charset
-     *
-     * @throws  NoSuchAlgorithmException  Exception
-     * @throws  KeyManagementException
-     * @throws  IOException
-     */
-    public MultipartUtility(
-            String requestURL,
-            String charset)
-        throws NoSuchAlgorithmException, KeyManagementException, IOException
-    {
-        this.charset = charset;
-
-        TrustManager[] trustAllCerts = new TrustManager[] {
-            new X509TrustManager() {
-                @Override public java.security.cert.X509Certificate[] getAcceptedIssuers()
-                {
-                    return null;
-                }
-
-                @Override public void checkClientTrusted(
-                        X509Certificate[] certs,
-                        String            authType) { }
-
-                @Override public void checkServerTrusted(
-                        X509Certificate[] certs,
-                        String            authType) { }
-            }
-        };
-
-        // Install the all-trusting trust manager
-        SSLContext sc = SSLContext.getInstance("SSL");
-
-        sc.init(null, trustAllCerts, new java.security.SecureRandom());
-        HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
-
-        // Create all-trusting host name verifier
-        HostnameVerifier allHostsValid = new HostnameVerifier() {
-            @Override public boolean verify(
-                    String     hostname,
-                    SSLSession session)
-            {
-                return true;
-            }
-        };
-
-        // Install the all-trusting host verifier
-        HttpsURLConnection.setDefaultHostnameVerifier(allHostsValid);
-
-        // creates a unique boundary based on time stamp
-        boundary = "===" + System.currentTimeMillis() + "===";
-
-        URL url = new URL(requestURL);
-
-        httpConn = (HttpsURLConnection) url.openConnection();
-
-        httpConn.setUseCaches(false);
-        httpConn.setDoOutput(true); // indicates POST method
-        httpConn.setDoInput(true);
-        httpConn.setRequestProperty("Content-Type",
-            "multipart/form-data; boundary=" + boundary);
-        outputStream = httpConn.getOutputStream();
-        writer       = new PrintWriter(new OutputStreamWriter(outputStream,
-                    charset), true);
-        // Create a trust manager that does not validate certificate chains
-    }
-
-    //~ Methods ----------------------------------------------------------------
-
-    /**
-     * Adds a upload file section to the request.
-     *
-     * @param   fieldName   name attribute in <input type="file" name="..." />
-     * @param   uploadFile  a File to be uploaded
-     *
-     * @throws  IOException
-     */
-    public void addFilePart(
-            String fieldName,
-            File   uploadFile)
-        throws IOException
-    {
-        String fileName = uploadFile.getName();
-
-        writer.append("--")
-              .append(boundary)
-              .append(LINE_FEED);
-        writer.append("Content-Disposition: form-data; name=\"")
-              .append(fieldName)
-              .append("\"; filename=\"")
-              .append(fileName)
-              .append("\"")
-              .append(LINE_FEED);
-        writer.append("Content-Type: ")
-              .append(URLConnection.guessContentTypeFromName(fileName))
-              .append(LINE_FEED);
-        writer.append("Content-Transfer-Encoding: binary")
-              .append(LINE_FEED);
-        writer.append(LINE_FEED);
-        writer.flush();
-
-        try(FileInputStream inputStream = new FileInputStream(uploadFile)) {
-            byte[] buffer    = new byte[4096];
-            int    bytesRead;
-
-            while ((bytesRead = inputStream.read(buffer)) != -1) {
-                outputStream.write(buffer, 0, bytesRead);
-            }
-
-            outputStream.flush();
-            inputStream.close();
-            writer.append(LINE_FEED);
-            writer.flush();
-        }
-        catch (IOException e) {
-            throw new IOException(e);
-        }
-    }
-
-    /**
-     * Adds a form field to the request.
-     *
-     * @param  name   field name
-     * @param  value  field value
-     */
-    public void addFormField(
-            String name,
-            String value)
-    {
-        writer.append("--")
-              .append(boundary)
-              .append(LINE_FEED);
-        writer.append("Content-Disposition: form-data; name=\"")
-              .append(name)
-              .append("\"")
-              .append(LINE_FEED);
-        writer.append("Content-Type: text/plain; charset=")
-              .append(charset)
-              .append(LINE_FEED);
-        writer.append(LINE_FEED);
-        writer.append(value)
-              .append(LINE_FEED);
-        writer.flush();
-    }
-
-    /**
-     * Adds a header field to the request.
-     *
-     * @param  name   - name of the header field
-     * @param  value  - value of the header field
-     */
-    public void addHeaderField(
-            String name,
-            String value)
-    {
-        writer.append(name)
-              .append(": ")
-              .append(value)
-              .append(LINE_FEED);
-        writer.flush();
-    }
-
-    /**
-     * Completes the request and receives response from the server.
-     *
-     * @return  a list of Strings as response in case the server returned status
-     *          OK, otherwise an exception is thrown.
-     *
-     * @throws  IOException
-     */
-    public List<String> finish()
-        throws IOException
-    {
-        List<String> response = new ArrayList<>();
-
-        writer.append(LINE_FEED)
-              .flush();
-        writer.append("--")
-              .append(boundary)
-              .append("--")
-              .append(LINE_FEED);
-        writer.close();
-
-        // checks server's status code first
-        int status = httpConn.getResponseCode();
-
-        if (status == HttpsURLConnection.HTTP_OK) {
-            BufferedReader reader = new BufferedReader(new InputStreamReader(
-                        httpConn.getInputStream(), "UTF-8"));
-            String         line;
-
-            while ((line = reader.readLine()) != null) {
-                response.add(line);
-            }
-
-            reader.close();
-            httpConn.disconnect();
-        }
-        else {
-            throw new IOException("Server returned non-OK status: " + status);
-        }
-
-        return response;
     }
 }

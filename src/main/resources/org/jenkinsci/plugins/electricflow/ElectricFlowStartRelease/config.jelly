@@ -1,0 +1,167 @@
+<!--
+config.jelly -
+
+config.jelly is part of ElectricCommander.
+
+Copyright (c) 2005-2017 Electric Cloud, Inc.
+All rights reserved.
+-->
+
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core" xmlns:f="/lib/form">
+    <f:entry title="Configuration" field="configuration" >
+        <f:select onchange="deleteReleaseParameterRows()"/>
+    </f:entry>
+    <f:entry title="Project Name" field="projectName" >
+        <f:select onchange="deleteReleaseParameterRows()"/>
+    </f:entry>
+    <f:entry title="Release Name" field="releaseName" >
+        <f:select onchange="fillReleasesParameters()" id="ef_sr_releaseName"/>
+    </f:entry>
+    <f:entry  title="Starting Stage" field="startingStage">
+        <f:select id="ef_sr_startingStage"/>
+    </f:entry>
+    <f:entry title="" field="parameters" >
+        <f:select id="ef_sr_parameters" onchange="fillReleasesParameters()" style="display:none;"/>
+    </f:entry>
+
+    <script>
+        fillReleasesParameters();
+
+        function deleteReleaseParameterRows() {
+            var paramRows = document.querySelectorAll("._ef_st_row");
+            [].forEach.call(paramRows, function (row) {
+                row.parentNode.removeChild(row);
+            });
+        }
+
+        function fillReleasesParameters() {
+            deleteReleaseParameterRows();
+
+            if (!document.getElementById('ef_sr_parameters')) {
+                return;
+            }
+
+            var option = document.getElementById('ef_sr_parameters').options[0];
+            var param = '{}';
+            if (option) {
+                param = option.value;
+            }
+            var json = JSON.parse(param);
+
+            var table = document.querySelector("[descriptorid='electricFlowRunRelease'] table");
+
+            if (json) {
+
+                if (json.release) {
+                    var stages;
+                    try {
+                        stages = JSON.parse(json.release.stages);
+                    }
+                    catch (error) {
+                        stages = json.release.stages;
+                    }
+
+
+                    var row1 = table.insertRow(table.rows.length - 2);
+                    row1.className = "_ef_st_row";
+                    if (stages.length) {
+                        row1.appendChild(createTitle("Stages to run"));
+                        stages.forEach(function (elem) {
+                            var row = table.insertRow(table.rows.length - 2);
+                            row.className = "_ef_sr_stages _ef_st_row";
+                            addParameterRow(row, elem.stageName, elem.stageValue, true);
+                        });
+                    }
+
+
+                    var parameters;
+                    try {
+                        parameters = JSON.parse(json.release.parameters);
+                    }
+                    catch (error) {
+                        parameters = json.release.parameters;
+                    }
+
+
+                    var row1 = table.insertRow(table.rows.length - 2);
+                    row1.className = "_ef_st_row";
+                    if (parameters.length) {
+                        row1.appendChild(createTitle("Pipeline parameters"));
+                        parameters.forEach(function (elem) {
+                            var row = table.insertRow(table.rows.length - 2);
+                            row.className = "_ef_sr_parameters _ef_st_row";
+                            addParameterRow(row, elem.parameterName, elem.parameterValue, false);
+                        });
+                    }
+                }
+            }
+        }
+
+        function updateReleaseJson() {
+            var releaseName = document.getElementById("ef_sr_releaseName").value;
+            var json = JSON.parse('{"release":{"releaseName":"' + releaseName + '","stages":[], "parameters":[]}}');
+            var stages = document.querySelectorAll("._ef_sr_stages");
+
+            [].forEach.call(stages, function (elem) {
+                json.release.stages.push({
+                    'stageName': elem.querySelector(".setting-name").textContent,
+                    'stageValue': elem.querySelector(".setting-input").checked
+                })
+            });
+
+            var stages = document.querySelectorAll("._ef_sr_parameters");
+
+            [].forEach.call(stages, function (elem) {
+                json.release.parameters.push({
+                    'parameterName': elem.querySelector(".setting-name").textContent,
+                    'parameterValue': elem.querySelector(".setting-input").value
+                })
+            });
+            document.getElementById('ef_sr_parameters').options[0].value = JSON.stringify(json);
+            document.getElementById('ef_sr_parameters').options[0].textContent = JSON.stringify(json);
+        }
+
+        function createTitle(title) {
+            var td = document.createElement('td');
+            td.colSpan = 4;
+            var div = document.createElement('div');
+            div.className = "section-header";
+            div.textContent = title;
+            td.appendChild(div);
+            return td;
+        }
+
+        function addParameterRow(row, label, value, isCheckbox) {
+            var td1 = document.createElement('td');
+            td1.className = 'setting-leftspace';
+            td1.innerHTML = '';
+            row.appendChild(td1);
+
+            var td2 = document.createElement('td');
+            td2.className = 'setting-name';
+            td2.innerHTML = label;
+            row.appendChild(td2);
+
+            var td3 = document.createElement('td');
+            td3.className = 'setting-main';
+            var input1 = document.createElement('input');
+            input1.name = 'parameterName';
+            if (isCheckbox) {
+                input1.type = "checkbox";
+                input1.checked = value;
+                input1.style="width: auto;";
+            }
+            input1.value = value;
+            input1.onchange = updateReleaseJson;
+            input1.className = 'setting-input';
+            td3.appendChild(input1);
+            row.appendChild(td3);
+
+            var td4 = document.createElement('td');
+            td4.className = 'setting-no-help';
+            row.appendChild(td4);
+        }
+    </script>
+
+</j:jelly>

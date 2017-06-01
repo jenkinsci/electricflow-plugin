@@ -129,17 +129,9 @@ public class ElectricFlowPublishApplication
         String deployResponse;
 
         try {
+            ElectricFlowClient efClient = new ElectricFlowClient(configuration,
+                    workspaceDir);
 
-            // String group, String key, String version, String file
-            ElectricFlowConfigurationManager efCM     =
-                new ElectricFlowConfigurationManager();
-            Configuration                    cred     =
-                efCM.getConfigurationByName(configuration);
-            ElectricFlowClient               efClient = new ElectricFlowClient(
-                    cred.getElectricFlowUrl(), cred.getElectricFlowUser(),
-                    cred.getElectricFlowPassword(), workspaceDir);
-
-            // efclient has been created
             efClient.uploadArtifact("default", artifactName, artifactVersion,
                 ElectricFlowPublishApplication.deploymentPackageName, true);
             deployResponse = efClient.deployApplicationPackage(artifactGroup,
@@ -241,6 +233,7 @@ public class ElectricFlowPublishApplication
                     catch (IOException e) {
                         log.warn(e.getMessage(), e);
                     }
+
                     continue;
                 }
 

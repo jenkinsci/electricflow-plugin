@@ -47,12 +47,15 @@ public class Configuration
             String electricFlowPassword,
             String electricFlowApiVersion)
     {
-        this.configurationName   = configurationName;
-        this.electricFlowUrl  = electricFlowUrl;
-        this.electricFlowUser = electricFlowUser;
+        this.configurationName = configurationName;
+        this.electricFlowUrl   = electricFlowUrl;
+        this.electricFlowUser  = electricFlowUser;
+
         if (!electricFlowPassword.equals(this.getElectricFlowPassword())) {
+
             // encrypted one
             Secret secret = Secret.fromString(electricFlowPassword);
+
             this.electricFlowPassword = secret.getEncryptedValue();
         }
         else {
@@ -132,8 +135,9 @@ public class Configuration
         public ListBoxModel doFillElectricFlowApiVersionItems()
         {
             ListBoxModel m = new ListBoxModel();
+
             m.add("Select api version", "");
-            m.add("v1", "v1");
+            m.add("v1.0", "/rest/v1.0");
 
             return m;
         }
@@ -141,16 +145,23 @@ public class Configuration
         public FormValidation doTestConnection(
                 @QueryParameter("electricFlowUrl") final String electricFlowUrl,
                 @QueryParameter("electricFlowUser") final String electricFlowUser,
-                @QueryParameter("electricFlowPassword") final String electricFlowPassword)
+                @QueryParameter("electricFlowPassword") final String electricFlowPassword,
+                @QueryParameter("electricFlowApiVersion") final String electricFlowApiVersion)
             throws IOException
         {
 
+            if (electricFlowUrl.isEmpty() || electricFlowUser.isEmpty()
+                    || electricFlowPassword.isEmpty() || electricFlowApiVersion.isEmpty()) {
+                return FormValidation.error("Please fill required fields");
+            }
+
             try {
-                Secret encryptedPassword = Secret.fromString(electricFlowPassword);
-                String decryptedPassword = encryptedPassword.getPlainText();
-                ElectricFlowClient efClient = new ElectricFlowClient(
-                        electricFlowUrl, electricFlowUser,
-                        decryptedPassword);
+                String             decryptedPassword = Secret.fromString(
+                                                                 electricFlowPassword)
+                                                             .getPlainText();
+                ElectricFlowClient efClient          = new ElectricFlowClient(
+                        electricFlowUrl, electricFlowUser, decryptedPassword,
+                        electricFlowApiVersion);
 
                 efClient.getSessionId();
 
