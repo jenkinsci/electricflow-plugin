@@ -117,9 +117,9 @@ public class ElectricFlowUploadArtifactPublisher
             // end of replacements
             ElectricFlowClient efClient = new ElectricFlowClient(configuration,
                     workspaceDir);
-            String             result   = efClient.uploadArtifact(
-                    repositoryName, newArtifactName, newArtifactVersion,
-                    newFilePath, true);
+            String             result   = efClient.uploadArtifact(build,
+                    listener, repositoryName, newArtifactName,
+                    newArtifactVersion, newFilePath, true);
 
             if (!"Artifact-Published-OK".equals(result)) {
                 listener.getLogger()

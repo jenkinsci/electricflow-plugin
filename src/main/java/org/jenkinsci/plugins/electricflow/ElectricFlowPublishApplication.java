@@ -110,9 +110,9 @@ public class ElectricFlowPublishApplication
         String artifactVersion = buildNumber.toString();
 
         try {
-            makeApplicationArchive(workspaceDir, newFilePath);
+            makeApplicationArchive(build, listener, workspaceDir, newFilePath);
         }
-        catch (IOException e) {
+        catch (IOException | InterruptedException e) {
             log.warn("Can't create archive: " + e.getMessage(), e);
 
             return false;
@@ -132,7 +132,8 @@ public class ElectricFlowPublishApplication
             ElectricFlowClient efClient = new ElectricFlowClient(configuration,
                     workspaceDir);
 
-            efClient.uploadArtifact("default", artifactName, artifactVersion,
+            efClient.uploadArtifact(build, listener, "default", artifactName,
+                artifactVersion,
                 ElectricFlowPublishApplication.deploymentPackageName, true);
             deployResponse = efClient.deployApplicationPackage(artifactGroup,
                     artifactKey, artifactVersion,
@@ -268,32 +269,6 @@ public class ElectricFlowPublishApplication
     //~ Methods ----------------------------------------------------------------
 
     public static File createZipArchive(
-            String basePath,
-            String archiveName,
-            String path)
-        throws IOException
-    {
-        String fullPath = FileHelper.buildPath(basePath, "/", path);
-        File   f        = new File(fullPath);
-
-        if (f.exists() && f.isDirectory()) {
-            List<File> fileList = FileHelper.getFilesFromDirectoryWildcard(
-                    fullPath, "**");
-
-            setZipFiles(fileList);
-
-            return createZipArchive(fullPath, archiveName, fileList);
-        }
-
-        List<File> filesToArchive = FileHelper.getFilesFromDirectoryWildcard(
-                basePath, path);
-
-        setZipFiles(filesToArchive);
-
-        return createZipArchive(basePath, archiveName, filesToArchive, true);
-    }
-
-    public static File createZipArchive(
             String   basePath,
             String   archiveName,
             String[] files)
@@ -374,11 +349,41 @@ public class ElectricFlowPublishApplication
         return archive;
     }
 
+    public static File createZipArchive(
+            AbstractBuild build,
+            BuildListener listener,
+            String        basePath,
+            String        archiveName,
+            String        path)
+        throws IOException, InterruptedException
+    {
+        String fullPath = FileHelper.buildPath(basePath, "/", path);
+        File   f        = new File(fullPath);
+
+        if (f.exists() && f.isDirectory()) {
+            List<File> fileList = FileHelper.getFilesFromDirectoryWildcard(
+                    build, listener, fullPath, "**");
+
+            setZipFiles(fileList);
+
+            return createZipArchive(fullPath, archiveName, fileList);
+        }
+
+        List<File> filesToArchive = FileHelper.getFilesFromDirectoryWildcard(
+                build, listener, basePath, path);
+
+        setZipFiles(filesToArchive);
+
+        return createZipArchive(basePath, archiveName, filesToArchive, true);
+    }
+
     // This methods
     public static File makeApplicationArchive(
-            String workspaceDir,
-            String filePath)
-        throws IOException
+            AbstractBuild build,
+            BuildListener listener,
+            String        workspaceDir,
+            String        filePath)
+        throws IOException, InterruptedException
     {
 
         // in this method manifest is already tuned, so all we need is just to
@@ -386,7 +391,8 @@ public class ElectricFlowPublishApplication
         String archivePath = FileHelper.buildPath(workspaceDir, "/",
                 ElectricFlowPublishApplication.deploymentPackageName);
 
-        return createZipArchive(workspaceDir, archivePath, filePath);
+        return createZipArchive(build, listener, workspaceDir, archivePath,
+            filePath);
     }
 
     public static String getCurrentTimeStamp()

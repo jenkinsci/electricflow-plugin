@@ -188,7 +188,6 @@ public class ElectricFlowDeployApplication
     {
         String result          = args.get("result");
         String applicationName = args.get("applicationName");
-        String processName     = args.get("processName");
         String processId       = args.get("processId");
         String jobId           = JSONObject.fromObject(result)
                                            .getString("jobId");
