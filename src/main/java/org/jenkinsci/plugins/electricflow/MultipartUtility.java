@@ -235,23 +235,38 @@ public class MultipartUtility
               .append(LINE_FEED);
         writer.close();
 
-        // checks server's status code first
-        int status = httpConn.getResponseCode();
+        try {
 
-        if (status == HttpsURLConnection.HTTP_OK) {
-            BufferedReader reader = new BufferedReader(new InputStreamReader(
-                        httpConn.getInputStream(), "UTF-8"));
-            String         line;
+            // checks server's status code first
+            int status = httpConn.getResponseCode();
 
-            while ((line = reader.readLine()) != null) {
-                response.add(line);
+            if (status == HttpsURLConnection.HTTP_OK) {
+                BufferedReader reader = new BufferedReader(
+                        new InputStreamReader(httpConn.getInputStream(),
+                            "UTF-8"));
+                String         line;
+
+                while ((line = reader.readLine()) != null) {
+                    response.add(line);
+                }
+
+                reader.close();
+                httpConn.disconnect();
+            }
+            else {
+                throw new IOException("Server returned non-OK status: "
+                        + status);
+            }
+        }
+        finally {
+
+            if (writer != null) {
+                writer.close();
             }
 
-            reader.close();
-            httpConn.disconnect();
-        }
-        else {
-            throw new IOException("Server returned non-OK status: " + status);
+            if (outputStream != null) {
+                outputStream.close();
+            }
         }
 
         return response;
