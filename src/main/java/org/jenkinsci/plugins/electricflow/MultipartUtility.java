@@ -259,10 +259,7 @@ public class MultipartUtility
             }
         }
         finally {
-
-            if (writer != null) {
-                writer.close();
-            }
+            writer.close();
 
             if (outputStream != null) {
                 outputStream.close();
