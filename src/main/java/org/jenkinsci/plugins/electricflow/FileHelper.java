@@ -17,6 +17,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
+import java.io.PrintStream;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.List;
@@ -170,6 +171,7 @@ public class FileHelper
             boolean       fullPath)
         throws IOException, InterruptedException
     {
+        PrintStream      logger      = listener.getLogger();
         String[]         splitResult = splitPath(path);
         List<File>       result      = new ArrayList<>();
         DirectoryScanner scanner     = new DirectoryScanner();
@@ -178,8 +180,7 @@ public class FileHelper
             File targetBuildDirectory = new File(build.getRootDir(),
                     "cucumber-html-reports");
 
-            listener.getLogger()
-                    .println("Detected this build is running on a slave ");
+            logger.println("Detected this build is running on a slave ");
 
             FilePath projectWorkspaceOnSlave = build.getProject()
                                                     .getSomeWorkspace();
@@ -188,11 +189,10 @@ public class FileHelper
                 FilePath masterJsonReportDirectory = new FilePath(
                         targetBuildDirectory);
 
-                listener.getLogger()
-                        .println("Copying files from: "
-                            + projectWorkspaceOnSlave.toURI()
-                            + "to reports directory: "
-                            + masterJsonReportDirectory.toURI());
+                logger.println("Copying files from: "
+                        + projectWorkspaceOnSlave.toURI()
+                        + "to reports directory: "
+                        + masterJsonReportDirectory.toURI());
                 projectWorkspaceOnSlave.copyRecursiveTo("**", "",
                     masterJsonReportDirectory);
                 scanner.setBasedir(masterJsonReportDirectory.getRemote());
@@ -218,6 +218,13 @@ public class FileHelper
             else {
                 result.add(new File(str));
             }
+        }
+
+        if (result.isEmpty()) {
+            throw new InterruptedException(
+                "Upload result:  No files were found in path \"" + basePath
+                    + File.separator + path
+                    + "\".");
         }
 
         return result;
