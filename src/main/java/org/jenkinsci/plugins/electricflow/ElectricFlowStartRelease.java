@@ -10,6 +10,7 @@
 package org.jenkinsci.plugins.electricflow;
 
 import java.io.IOException;
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -98,9 +99,10 @@ public class ElectricFlowStartRelease
             }
         }
 
+        PrintStream logger = taskListener.getLogger();
+
         try {
-            taskListener.getLogger()
-                        .println("Preparing to startRelease...");
+            logger.println("Preparing to startRelease...");
 
             EnvReplacer        env      = new EnvReplacer(run, taskListener);
             ElectricFlowClient efClient = new ElectricFlowClient(configuration,
@@ -118,13 +120,11 @@ public class ElectricFlowStartRelease
 
             run.addAction(action);
             run.save();
-            taskListener.getLogger()
-                        .println("StartRelease  result: "
-                            + formatJsonOutput(releaseResult));
+            logger.println("StartRelease  result: "
+                    + formatJsonOutput(releaseResult));
         }
         catch (Exception e) {
-            taskListener.getLogger()
-                        .println(e.getMessage());
+            logger.println(e.getMessage());
             log.error(e.getMessage(), e);
         }
     }
@@ -245,19 +245,11 @@ public class ElectricFlowStartRelease
         this.startingStage = startingStage;
     }
 
-    //~ Methods ----------------------------------------------------------------
-
-
-
     //~ Inner Classes ----------------------------------------------------------
 
     @Extension public static final class DescriptorImpl
         extends BuildStepDescriptor<Publisher>
     {
-
-        //~ Static fields/initializers -----------------------------------------
-
-        private static final Log log = LogFactory.getLog(DescriptorImpl.class);
 
         //~ Instance fields ----------------------------------------------------
 
@@ -341,7 +333,6 @@ public class ElectricFlowStartRelease
                 JSONArray parametersArray = main.getJSONObject("release")
                                                 .getJSONArray("parameters");
 
-
                 addParametersToJson(pipelineParameters, parametersArray,
                     "parameterName", "parameterValue");
                 m.add(main.toString());
@@ -358,7 +349,7 @@ public class ElectricFlowStartRelease
                 @QueryParameter String configuration)
             throws IOException
         {
-            return Utils.getProjects(configuration, log);
+            return Utils.getProjects(configuration);
         }
 
         public ListBoxModel doFillReleaseNameItems(

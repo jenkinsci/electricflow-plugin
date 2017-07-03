@@ -137,6 +137,10 @@ public class ElectricFlowPipelinePublisher
             }
         }
         catch (Exception e) {
+            taskListener.getLogger()
+                        .println(
+                            "Error occurred during formal parameters fetch: "
+                            + e.getMessage());
             log.error("Error occurred during formal parameters fetch: "
                     + e.getMessage(), e);
 
@@ -222,15 +226,6 @@ public class ElectricFlowPipelinePublisher
 
             if (!pipelineParameters.isEmpty()) {
                 return pipelineParameters;
-            }
-
-            JSONArray pipelineJsonParameters = JSONObject.fromObject(addParam)
-                                                         .getJSONArray(
-                                                             "parameters");
-
-            if (pipelineJsonParameters != null
-                    && !pipelineJsonParameters.isEmpty()) {
-                return pipelineJsonParameters;
             }
         }
 
@@ -321,10 +316,6 @@ public class ElectricFlowPipelinePublisher
     public static final class DescriptorImpl
         extends BuildStepDescriptor<Publisher>
     {
-
-        //~ Static fields/initializers -----------------------------------------
-
-        private static final Log log = LogFactory.getLog(DescriptorImpl.class);
 
         //~ Constructors -------------------------------------------------------
 
@@ -423,7 +414,7 @@ public class ElectricFlowPipelinePublisher
                 @QueryParameter String configuration)
             throws Exception
         {
-            return Utils.getProjects(configuration, log);
+            return Utils.getProjects(configuration);
         }
 
         @Override public void doHelp(

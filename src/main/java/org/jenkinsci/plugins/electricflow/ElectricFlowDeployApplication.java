@@ -10,6 +10,7 @@
 package org.jenkinsci.plugins.electricflow;
 
 import java.io.IOException;
+import java.io.PrintStream;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -87,14 +88,13 @@ public class ElectricFlowDeployApplication
             @Nonnull TaskListener taskListener)
     {
         ElectricFlowClient efClient = new ElectricFlowClient(configuration);
+        PrintStream        logger   = taskListener.getLogger();
 
-        taskListener.getLogger()
-                    .println("Project name: "
-                        + projectName
-                        + ", Application name: " + applicationName
-                        + ", Application process name: "
-                        + applicationProcessName + ", Environment name: "
-                        + environmentName);
+        logger.println("Project name: "
+                + projectName
+                + ", Application name: " + applicationName
+                + ", Application process name: " + applicationProcessName
+                + ", Environment name: " + environmentName);
 
         JSONObject runProcess = JSONObject.fromObject(deployParameters)
                                           .getJSONObject("runProcess");
@@ -102,8 +102,7 @@ public class ElectricFlowDeployApplication
                     "parameter"));
 
         try {
-            taskListener.getLogger()
-                        .println("Preparing to run process...");
+            logger.println("Preparing to run process...");
 
             String     result  = efClient.runProcess(projectName,
                     applicationName, applicationProcessName, environmentName,
@@ -131,13 +130,11 @@ public class ElectricFlowDeployApplication
 
             run.addAction(action);
             run.save();
-            taskListener.getLogger()
-                        .println("Deploy application result: "
-                            + formatJsonOutput(result));
+            logger.println("Deploy application result: "
+                    + formatJsonOutput(result));
         }
         catch (Exception e) {
-            taskListener.getLogger()
-                        .println(e.getMessage());
+            logger.println(e.getMessage());
             log.error(e.getMessage(), e);
 
             return false;
@@ -252,10 +249,6 @@ public class ElectricFlowDeployApplication
     @Extension public static final class DescriptorImpl
         extends BuildStepDescriptor<Publisher>
     {
-
-        //~ Static fields/initializers -----------------------------------------
-
-        private static final Log log = LogFactory.getLog(DescriptorImpl.class);
 
         //~ Instance fields ----------------------------------------------------
 
@@ -409,7 +402,7 @@ public class ElectricFlowDeployApplication
                 @QueryParameter String configuration)
             throws IOException
         {
-            return Utils.getProjects(configuration, log);
+            return Utils.getProjects(configuration);
         }
 
         @Override public String getDisplayName()
