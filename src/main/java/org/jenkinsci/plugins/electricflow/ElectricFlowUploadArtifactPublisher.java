@@ -10,6 +10,7 @@
 package org.jenkinsci.plugins.electricflow;
 
 import java.io.IOException;
+import java.io.PrintStream;
 import java.io.UnsupportedEncodingException;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
@@ -81,6 +82,7 @@ public class ElectricFlowUploadArtifactPublisher
             Launcher      launcher,
             BuildListener listener)
     {
+        PrintStream logger = listener.getLogger();
 
         try {
 
@@ -95,6 +97,7 @@ public class ElectricFlowUploadArtifactPublisher
                 workspaceDir = workspace.getRemote();
             }
             else {
+                logger.println("WARNING: Workspace should not be null.");
                 log.warn("Workspace should not be null");
 
                 return false;
@@ -117,13 +120,12 @@ public class ElectricFlowUploadArtifactPublisher
             // end of replacements
             ElectricFlowClient efClient = new ElectricFlowClient(configuration,
                     workspaceDir);
-            String             result   = efClient.uploadArtifact(
-                    repositoryName, newArtifactName, newArtifactVersion,
-                    newFilePath, true);
+            String             result   = efClient.uploadArtifact(build,
+                    listener, repositoryName, newArtifactName,
+                    newArtifactVersion, newFilePath, true);
 
             if (!"Artifact-Published-OK".equals(result)) {
-                listener.getLogger()
-                        .println("Upload result: " + result);
+                logger.println("Upload result: " + result);
 
                 return false;
             }
@@ -135,13 +137,11 @@ public class ElectricFlowUploadArtifactPublisher
 
             build.addAction(action);
             build.save();
-            listener.getLogger()
-                    .println("Upload result: " + result);
+            logger.println("Upload result: " + result);
         }
         catch (NoSuchAlgorithmException | KeyManagementException
                 | InterruptedException | IOException e) {
-            listener.getLogger()
-                    .println(e.getMessage());
+            logger.println(e.getMessage());
             log.error(e.getMessage(), e);
 
             return false;

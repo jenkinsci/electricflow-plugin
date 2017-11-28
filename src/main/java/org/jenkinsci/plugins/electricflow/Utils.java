@@ -32,6 +32,22 @@ public class Utils
 
     //~ Methods ----------------------------------------------------------------
 
+    public static void addParametersToJson(
+            List<String> pipelineParameters,
+            JSONArray    parametersArray,
+            String       parameterName,
+            String       parameterValue)
+    {
+
+        for (String param : pipelineParameters) {
+            JSONObject mainJson = new JSONObject();
+
+            mainJson.put(parameterName, param);
+            mainJson.put(parameterValue, "");
+            parametersArray.add(mainJson);
+        }
+    }
+
     public static String encodeURL(String url)
         throws UnsupportedEncodingException
     {
@@ -180,22 +196,6 @@ public class Utils
         return summaryText;
     }
 
-    public static void addParametersToJson(
-            List<String> pipelineParameters,
-            JSONArray    parametersArray,
-            String       parameterName,
-            String       parameterValue)
-    {
-
-        for (String param : pipelineParameters) {
-            JSONObject mainJson = new JSONObject();
-
-            mainJson.put(parameterName, param);
-            mainJson.put(parameterValue, "");
-            parametersArray.add(mainJson);
-        }
-    }
-
     public static ListBoxModel getPipelines(
             String configuration,
             String projectName,
@@ -208,20 +208,6 @@ public class Utils
         m.add("Select pipeline", "");
 
         if (!projectName.isEmpty() && !configuration.isEmpty()) {
-
-//            Configuration cred            = getConfigurationByName(
-//                    configuration);
-//            String        userName        = cred.getElectricFlowUser();
-//            String        userPassword    = cred.getElectricFlowPassword();
-//            String        electricFlowUrl = cred.getElectricFlowUrl();
-//
-//            if (userName.isEmpty() || userPassword.isEmpty()
-//                    || projectName.isEmpty()) {
-//                log.warn(
-//                        "User name / password / project name should not be empty.");
-//
-//                return m;
-//            }
             ElectricFlowClient efClient        = new ElectricFlowClient(
                     configuration);
             String             pipelinesString = efClient.getPipelines(
@@ -272,9 +258,7 @@ public class Utils
         return m;
     }
 
-    public static ListBoxModel getProjects(
-            String configuration,
-            Log    log)
+    public static ListBoxModel getProjects(String configuration)
         throws IOException
     {
         ListBoxModel m = new ListBoxModel();

@@ -52,12 +52,12 @@ public class MultipartUtility
      * This constructor initializes a new HTTP POST request with content type is
      * set to multipart/form-data.
      *
-     * @param   requestURL
-     * @param   charset
+     * @param   requestURL  URL for request
+     * @param   charset     name of encodings
      *
      * @throws  NoSuchAlgorithmException  Exception
-     * @throws  KeyManagementException
-     * @throws  IOException
+     * @throws  KeyManagementException    Exception
+     * @throws  IOException               Exception
      */
     public MultipartUtility(
             String requestURL,
@@ -118,11 +118,11 @@ public class MultipartUtility
     /**
      * Adds a upload file section to the request.
      *
-     * @param   fieldName     name attribute in <input type="file" name="..." />
+     * @param   fieldName     name attribute in input type="file" name="..."
      * @param   uploadFile    a File to be uploaded
-     * @param   workspaceDir
+     * @param   workspaceDir  workspace dir
      *
-     * @throws  IOException
+     * @throws  IOException  exception
      */
     public void addFilePart(
             String fieldName,
@@ -220,7 +220,7 @@ public class MultipartUtility
      * @return  a list of Strings as response in case the server returned status
      *          OK, otherwise an exception is thrown.
      *
-     * @throws  IOException
+     * @throws  IOException  exception
      */
     public List<String> finish()
         throws IOException
@@ -235,23 +235,35 @@ public class MultipartUtility
               .append(LINE_FEED);
         writer.close();
 
-        // checks server's status code first
-        int status = httpConn.getResponseCode();
+        try {
 
-        if (status == HttpsURLConnection.HTTP_OK) {
-            BufferedReader reader = new BufferedReader(new InputStreamReader(
-                        httpConn.getInputStream(), "UTF-8"));
-            String         line;
+            // checks server's status code first
+            int status = httpConn.getResponseCode();
 
-            while ((line = reader.readLine()) != null) {
-                response.add(line);
+            if (status == HttpsURLConnection.HTTP_OK) {
+                BufferedReader reader = new BufferedReader(
+                        new InputStreamReader(httpConn.getInputStream(),
+                            "UTF-8"));
+                String         line;
+
+                while ((line = reader.readLine()) != null) {
+                    response.add(line);
+                }
+
+                reader.close();
+                httpConn.disconnect();
             }
-
-            reader.close();
-            httpConn.disconnect();
+            else {
+                throw new IOException("Server returned non-OK status: "
+                        + status);
+            }
         }
-        else {
-            throw new IOException("Server returned non-OK status: " + status);
+        finally {
+            writer.close();
+
+            if (outputStream != null) {
+                outputStream.close();
+            }
         }
 
         return response;

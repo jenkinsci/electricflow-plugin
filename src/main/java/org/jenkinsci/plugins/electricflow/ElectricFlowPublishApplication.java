@@ -13,6 +13,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
@@ -82,9 +83,11 @@ public class ElectricFlowPublishApplication
             Launcher      launcher,
             BuildListener listener)
     {
-        FilePath workspace = build.getWorkspace();
+        PrintStream logger    = listener.getLogger();
+        FilePath    workspace = build.getWorkspace();
 
         if (workspace == null) {
+            logger.println("WARNING: Workspace should not be null.");
             log.warn("Workspace should not be null");
 
             return false;
@@ -102,6 +105,7 @@ public class ElectricFlowPublishApplication
             newFilePath = env.expandEnv(filePath);
         }
         catch (IOException | InterruptedException e) {
+            logger.println("Unexpected error during expand \"%s\"" + e);
             log.warn(e);
             newFilePath = filePath;
         }
@@ -110,9 +114,10 @@ public class ElectricFlowPublishApplication
         String artifactVersion = buildNumber.toString();
 
         try {
-            makeApplicationArchive(workspaceDir, newFilePath);
+            makeApplicationArchive(build, listener, workspaceDir, newFilePath);
         }
-        catch (IOException e) {
+        catch (IOException | InterruptedException e) {
+            logger.println("Warning: Cannot create archive: " + e.getMessage());
             log.warn("Can't create archive: " + e.getMessage(), e);
 
             return false;
@@ -132,14 +137,15 @@ public class ElectricFlowPublishApplication
             ElectricFlowClient efClient = new ElectricFlowClient(configuration,
                     workspaceDir);
 
-            efClient.uploadArtifact("default", artifactName, artifactVersion,
+            efClient.uploadArtifact(build, listener, "default", artifactName,
+                artifactVersion,
                 ElectricFlowPublishApplication.deploymentPackageName, true);
             deployResponse = efClient.deployApplicationPackage(artifactGroup,
                     artifactKey, artifactVersion,
                     ElectricFlowPublishApplication.deploymentPackageName);
 
             String            summaryHtml = getSummaryHtml(efClient,
-                    workspaceDir);
+                    workspaceDir, logger);
             SummaryTextAction action      = new SummaryTextAction(build,
                     summaryHtml);
 
@@ -151,6 +157,9 @@ public class ElectricFlowPublishApplication
             }
         }
         catch (Exception e) {
+            logger.println(
+                "Warning: Error occurred during application creation: "
+                    + e.getMessage());
             log.warn("Error occurred during application creation: "
                     + e.getMessage(), e);
 
@@ -190,7 +199,8 @@ public class ElectricFlowPublishApplication
 
     private String getSummaryHtml(
             ElectricFlowClient efClient,
-            String             workspaceDir)
+            String             workspaceDir,
+            PrintStream        logger)
     {
         String url         = efClient.getElectricFlowUrl()
                 + "/flow/#applications";
@@ -231,6 +241,9 @@ public class ElectricFlowPublishApplication
                                 + "</pre>";
                     }
                     catch (IOException e) {
+                        logger.println(
+                            "Warning: Error occurred during read manifest file. "
+                                + e.getMessage());
                         log.warn(e.getMessage(), e);
                     }
 
@@ -266,32 +279,6 @@ public class ElectricFlowPublishApplication
     }
 
     //~ Methods ----------------------------------------------------------------
-
-    public static File createZipArchive(
-            String basePath,
-            String archiveName,
-            String path)
-        throws IOException
-    {
-        String fullPath = FileHelper.buildPath(basePath, "/", path);
-        File   f        = new File(fullPath);
-
-        if (f.exists() && f.isDirectory()) {
-            List<File> fileList = FileHelper.getFilesFromDirectoryWildcard(
-                    fullPath, "**");
-
-            setZipFiles(fileList);
-
-            return createZipArchive(fullPath, archiveName, fileList);
-        }
-
-        List<File> filesToArchive = FileHelper.getFilesFromDirectoryWildcard(
-                basePath, path);
-
-        setZipFiles(filesToArchive);
-
-        return createZipArchive(basePath, archiveName, filesToArchive, true);
-    }
 
     public static File createZipArchive(
             String   basePath,
@@ -374,11 +361,41 @@ public class ElectricFlowPublishApplication
         return archive;
     }
 
+    public static File createZipArchive(
+            AbstractBuild build,
+            BuildListener listener,
+            String        basePath,
+            String        archiveName,
+            String        path)
+        throws IOException, InterruptedException
+    {
+        String fullPath = FileHelper.buildPath(basePath, "/", path);
+        File   f        = new File(fullPath);
+
+        if (f.exists() && f.isDirectory()) {
+            List<File> fileList = FileHelper.getFilesFromDirectoryWildcard(
+                    build, listener, fullPath, "**");
+
+            setZipFiles(fileList);
+
+            return createZipArchive(fullPath, archiveName, fileList);
+        }
+
+        List<File> filesToArchive = FileHelper.getFilesFromDirectoryWildcard(
+                build, listener, basePath, path);
+
+        setZipFiles(filesToArchive);
+
+        return createZipArchive(basePath, archiveName, filesToArchive, true);
+    }
+
     // This methods
     public static File makeApplicationArchive(
-            String workspaceDir,
-            String filePath)
-        throws IOException
+            AbstractBuild build,
+            BuildListener listener,
+            String        workspaceDir,
+            String        filePath)
+        throws IOException, InterruptedException
     {
 
         // in this method manifest is already tuned, so all we need is just to
@@ -386,7 +403,8 @@ public class ElectricFlowPublishApplication
         String archivePath = FileHelper.buildPath(workspaceDir, "/",
                 ElectricFlowPublishApplication.deploymentPackageName);
 
-        return createZipArchive(workspaceDir, archivePath, filePath);
+        return createZipArchive(build, listener, workspaceDir, archivePath,
+            filePath);
     }
 
     public static String getCurrentTimeStamp()

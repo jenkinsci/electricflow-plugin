@@ -36,6 +36,9 @@ import org.apache.commons.logging.LogFactory;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 
+import hudson.model.AbstractBuild;
+import hudson.model.BuildListener;
+
 import hudson.util.Secret;
 
 import static org.jenkinsci.plugins.electricflow.HttpMethod.GET;
@@ -326,12 +329,15 @@ public class ElectricFlowClient
     }
 
     public String uploadArtifact(
-            String  repo,
-            String  name,
-            String  version,
-            String  path,
-            boolean uploadDirectory)
-        throws IOException, KeyManagementException, NoSuchAlgorithmException
+            AbstractBuild build,
+            BuildListener listener,
+            String        repo,
+            String        name,
+            String        version,
+            String        path,
+            boolean       uploadDirectory)
+        throws IOException, KeyManagementException, NoSuchAlgorithmException,
+            InterruptedException
     {
         String sessionId = this.getSessionId();
 
@@ -350,8 +356,8 @@ public class ElectricFlowClient
         multipart.addFormField("commanderSessionId", sessionId);
 
         // here we're getting files from directory using wildcard:
-        List<File> fileList = FileHelper.getFilesFromDirectoryWildcard(
-                this.workspaceDir, path, true);
+        List<File> fileList = FileHelper.getFilesFromDirectoryWildcard(build,
+                listener, this.workspaceDir, path, true);
 
         if (log.isDebugEnabled()) {
             log.debug("File path: " + path);

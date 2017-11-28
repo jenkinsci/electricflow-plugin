@@ -15,9 +15,6 @@ import java.util.List;
 
 import javax.annotation.Nonnull;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 
@@ -45,11 +42,6 @@ public class ElectricFlowGenericRestApi
     extends Recorder
     implements SimpleBuildStep
 {
-
-    //~ Static fields/initializers ---------------------------------------------
-
-    private static final Log log = LogFactory.getLog(
-            ElectricFlowStartRelease.class);
 
     //~ Instance fields --------------------------------------------------------
 
@@ -86,8 +78,8 @@ public class ElectricFlowGenericRestApi
         try {
             ElectricFlowClient efClient    = new ElectricFlowClient(
                     configuration);
-            String             result      = efClient.runRestAPI(
-                    urlPath, HttpMethod.valueOf(httpMethod), body, parameters);
+            String             result      = efClient.runRestAPI(urlPath,
+                    HttpMethod.valueOf(httpMethod), body, parameters);
             String             summaryHtml = getSummaryHtml(efClient, result);
             SummaryTextAction  action      = new SummaryTextAction(run,
                     summaryHtml);
