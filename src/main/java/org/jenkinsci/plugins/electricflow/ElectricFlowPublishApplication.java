@@ -13,6 +13,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
@@ -83,9 +84,11 @@ public class ElectricFlowPublishApplication
             BuildListener listener)
         throws InterruptedException
     {
-        FilePath workspace = build.getWorkspace();
+        PrintStream logger    = listener.getLogger();
+        FilePath    workspace = build.getWorkspace();
 
         if (workspace == null) {
+            logger.println("WARNING: Workspace should not be null.");
             log.warn("Workspace should not be null");
 
             return false;
@@ -103,6 +106,7 @@ public class ElectricFlowPublishApplication
             newFilePath = env.expandEnv(filePath);
         }
         catch (IOException | InterruptedException e) {
+            logger.println("Unexpected error during expand \"%s\"" + e);
             log.warn(e);
             newFilePath = filePath;
         }
@@ -113,7 +117,8 @@ public class ElectricFlowPublishApplication
         try {
             makeApplicationArchive(build, listener, workspaceDir, newFilePath);
         }
-        catch (IOException e) {
+        catch (IOException | InterruptedException e) {
+            logger.println("Warning: Cannot create archive: " + e.getMessage());
             log.warn("Can't create archive: " + e.getMessage(), e);
 
             return false;
@@ -130,17 +135,9 @@ public class ElectricFlowPublishApplication
         String deployResponse;
 
         try {
+            ElectricFlowClient efClient = new ElectricFlowClient(configuration,
+                    workspaceDir);
 
-            // String group, String key, String version, String file
-            ElectricFlowConfigurationManager efCM     =
-                new ElectricFlowConfigurationManager();
-            Configuration                    cred     =
-                efCM.getConfigurationByName(configuration);
-            ElectricFlowClient               efClient = new ElectricFlowClient(
-                    cred.getElectricFlowUrl(), cred.getElectricFlowUser(),
-                    cred.getElectricFlowPassword(), workspaceDir);
-
-            // efclient has been created
             efClient.uploadArtifact(build, listener, "default", artifactName,
                 artifactVersion,
                 ElectricFlowPublishApplication.deploymentPackageName, true);
@@ -149,7 +146,7 @@ public class ElectricFlowPublishApplication
                     ElectricFlowPublishApplication.deploymentPackageName);
 
             String            summaryHtml = getSummaryHtml(efClient,
-                    workspaceDir);
+                    workspaceDir, logger);
             SummaryTextAction action      = new SummaryTextAction(build,
                     summaryHtml);
 
@@ -161,6 +158,9 @@ public class ElectricFlowPublishApplication
             }
         }
         catch (Exception e) {
+            logger.println(
+                "Warning: Error occurred during application creation: "
+                    + e.getMessage());
             log.warn("Error occurred during application creation: "
                     + e.getMessage(), e);
 
@@ -200,7 +200,8 @@ public class ElectricFlowPublishApplication
 
     private String getSummaryHtml(
             ElectricFlowClient efClient,
-            String             workspaceDir)
+            String             workspaceDir,
+            PrintStream        logger)
     {
         String url         = efClient.getElectricFlowUrl()
                 + "/flow/#applications";
@@ -241,6 +242,9 @@ public class ElectricFlowPublishApplication
                                 + "</pre>";
                     }
                     catch (IOException e) {
+                        logger.println(
+                            "Warning: Error occurred during read manifest file. "
+                                + e.getMessage());
                         log.warn(e.getMessage(), e);
                     }
 

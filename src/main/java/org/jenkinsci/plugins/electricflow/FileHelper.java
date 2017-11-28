@@ -205,7 +205,6 @@ public class FileHelper
         // Now let's locate files
 
         scanner.setIncludes(splitResult);
-        scanner.setBasedir(basePath);
         scanner.setCaseSensitive(false);
         scanner.scan();
 
@@ -219,6 +218,13 @@ public class FileHelper
             else {
                 result.add(new File(str));
             }
+        }
+
+        if (result.isEmpty()) {
+            throw new InterruptedException(
+                "Upload result:  No files were found in path \"" + basePath
+                    + File.separator + path
+                    + "\".");
         }
 
         return result;

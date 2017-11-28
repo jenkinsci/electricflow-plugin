@@ -10,6 +10,7 @@
 package org.jenkinsci.plugins.electricflow;
 
 import java.io.IOException;
+import java.io.PrintStream;
 import java.io.UnsupportedEncodingException;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
@@ -81,6 +82,7 @@ public class ElectricFlowUploadArtifactPublisher
             Launcher      launcher,
             BuildListener listener)
     {
+        PrintStream logger = listener.getLogger();
 
         try {
 
@@ -95,6 +97,7 @@ public class ElectricFlowUploadArtifactPublisher
                 workspaceDir = workspace.getRemote();
             }
             else {
+                logger.println("WARNING: Workspace should not be null.");
                 log.warn("Workspace should not be null");
 
                 return false;
@@ -115,26 +118,14 @@ public class ElectricFlowUploadArtifactPublisher
             }
 
             // end of replacements
-            ElectricFlowConfigurationManager efCM            =
-                new ElectricFlowConfigurationManager();
-            Configuration                    cred            =
-                efCM.getConfigurationByName(this.configuration);
-            String                           electricFlowUrl =
-                cred.getElectricFlowUrl();
-            String                           userName        =
-                cred.getElectricFlowUser();
-            String                           userPassword    =
-                cred.getElectricFlowPassword();
-            ElectricFlowClient               efClient        =
-                new ElectricFlowClient(electricFlowUrl, userName, userPassword,
+            ElectricFlowClient efClient = new ElectricFlowClient(configuration,
                     workspaceDir);
-            String                           result          =
-                efClient.uploadArtifact(build, listener, repositoryName,
-                    newArtifactName, newArtifactVersion, newFilePath, false);
+            String             result   = efClient.uploadArtifact(build,
+                    listener, repositoryName, newArtifactName,
+                    newArtifactVersion, newFilePath, true);
 
             if (!"Artifact-Published-OK".equals(result)) {
-                listener.getLogger()
-                        .println("Upload result: " + result);
+                logger.println("Upload result: " + result);
 
                 return false;
             }
@@ -146,13 +137,11 @@ public class ElectricFlowUploadArtifactPublisher
 
             build.addAction(action);
             build.save();
-            listener.getLogger()
-                    .println("Upload result: " + result);
+            logger.println("Upload result: " + result);
         }
         catch (NoSuchAlgorithmException | KeyManagementException
                 | InterruptedException | IOException e) {
-            listener.getLogger()
-                    .println(e.getMessage());
+            logger.println(e.getMessage());
             log.error(e.getMessage(), e);
 
             return false;
@@ -339,15 +328,9 @@ public class ElectricFlowUploadArtifactPublisher
             }
 
             try {
-                ElectricFlowConfigurationManager efCM         =
-                    new ElectricFlowConfigurationManager();
-                Configuration                    cred         =
-                    efCM.getConfigurationByName(configuration);
-                ElectricFlowClient               efClient     =
-                    new ElectricFlowClient(cred.getElectricFlowUrl(),
-                        cred.getElectricFlowUser(),
-                        cred.getElectricFlowPassword());
-                List<String>                     repositories;
+                ElectricFlowClient efClient     = new ElectricFlowClient(
+                        configuration);
+                List<String>       repositories;
 
                 repositories = efClient.getArtifactRepositories();
 
