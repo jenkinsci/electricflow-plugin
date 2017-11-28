@@ -155,7 +155,7 @@ public class FileHelper
     static List<File> getFilesFromDirectoryWildcard(
             AbstractBuild build,
             BuildListener listener,
-            String        basePath,
+            final String  basePath,
             final String  path)
         throws IOException, InterruptedException
     {

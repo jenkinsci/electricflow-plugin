@@ -82,6 +82,7 @@ public class ElectricFlowPublishApplication
             AbstractBuild build,
             Launcher      launcher,
             BuildListener listener)
+        throws InterruptedException
     {
         PrintStream logger    = listener.getLogger();
         FilePath    workspace = build.getWorkspace();
