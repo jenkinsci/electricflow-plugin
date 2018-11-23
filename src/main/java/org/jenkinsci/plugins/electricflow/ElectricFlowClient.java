@@ -9,11 +9,7 @@
 
 package org.jenkinsci.plugins.electricflow;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
+import java.io.*;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.security.KeyManagementException;
@@ -305,9 +301,32 @@ public class ElectricFlowClient
         successCodes.add(201);
 
         if (!successCodes.contains(conn.getResponseCode())) {
-            throw new RuntimeException("Failed : HTTP error code : "
+            try(InputStream stream = conn.getResponseCode() >= 200 && conn.getResponseCode() <= 299
+                    ? conn.getInputStream()
+                    : conn.getErrorStream();
+                BufferedReader br = stream == null
+                        ? null
+                        : new BufferedReader(new InputStreamReader(stream, CHARSET))) {
+                if (br != null) {
+                    String output;
+                    while ((output = br.readLine()) != null) {
+                        result.append(output);
+                    }
+                }
+            } catch (IOException e) {
+                log.error("Error on reading response body. Error: " + e.getMessage());
+            } finally {
+                conn.disconnect();
+            }
+
+            String errorMessage = "Failed : HTTP error code : "
                     + conn.getResponseCode() + ", "
-                    + conn.getResponseMessage());
+                    + conn.getResponseMessage();
+            if (!result.toString().isEmpty()) {
+                errorMessage += ", " + result.toString();
+            }
+
+            throw new RuntimeException(errorMessage);
         }
 
         try(BufferedReader br = new BufferedReader(
