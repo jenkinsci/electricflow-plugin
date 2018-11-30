@@ -53,10 +53,10 @@ All rights reserved.
                 if (json.procedure) {
                     var parameters;
                     try {
-                        parameters = JSON.parse(json.procedure.parameter);
+                        parameters = JSON.parse(json.procedure.parameters);
                     }
                     catch (error) {
-                        parameters = json.procedure.parameter;
+                        parameters = json.procedure.parameters;
                     }
 
 
@@ -76,12 +76,12 @@ All rights reserved.
 
         function updateProcedureJson() {
             var procedureName = document.getElementById("ef_rp_procedureName").value;
-            var json = JSON.parse('{"procedure":{"procedureName":"' + procedureName + '", "parameter":[]}}');
+            var json = JSON.parse('{"procedure":{"procedureName":"' + procedureName + '", "parameters":[]}}');
 
             var parameters = document.querySelectorAll("._ef_rp_parameters");
 
             [].forEach.call(parameters, function (elem) {
-                json.procedure.parameter.push({
+                json.procedure.parameters.push({
                     'actualParameterName': elem.querySelector(".setting-name").textContent,
                     'value': elem.querySelector(".setting-input").value
                 })

@@ -79,7 +79,7 @@ public class ElectricFlowRunProcedure
         logger.println("Project name: " + projectName + ", Procedure name: " + procedureName);
 
         JSONObject procedure = JSONObject.fromObject(procedureParameters).getJSONObject("procedure");
-        JSONArray parameter = JSONArray.fromObject(procedure.getString("parameter"));
+        JSONArray parameter = JSONArray.fromObject(procedure.getString("parameters"));
 
         try {
             logger.println("Preparing to run procedure...");
@@ -252,9 +252,9 @@ public class ElectricFlowRunProcedure
             List<String> parameters = client.getProcedureFormalParameters(projectName, procedureName);
             JSONObject main = JSONObject.fromObject(
                     "{'procedure':{'procedureName':'" + procedureName
-                            + "',   'parameter':[]}}");
+                            + "',   'parameters':[]}}");
             JSONArray ja = main.getJSONObject("procedure")
-                    .getJSONArray("parameter");
+                    .getJSONArray("parameters");
 
             addParametersToJson(parameters, ja, "actualParameterName", "value");
             m.add(main.toString());
