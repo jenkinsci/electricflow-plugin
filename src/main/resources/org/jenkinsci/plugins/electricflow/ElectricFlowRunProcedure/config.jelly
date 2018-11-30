@@ -1,0 +1,137 @@
+<!--
+config.jelly -
+
+config.jelly is part of ElectricCommander.
+
+Copyright (c) 2005-2017 Electric Cloud, Inc.
+All rights reserved.
+-->
+
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core" xmlns:f="/lib/form">
+    <f:entry title="Configuration" field="configuration" >
+        <f:select onchange="deleteProcedureParameterRows()"/>
+    </f:entry>
+    <f:entry title="Project Name" field="projectName" >
+        <f:select onchange="deleteProcedureParameterRows()"/>
+    </f:entry>
+    <f:entry title="Procedure Name" field="procedureName" >
+        <f:select id="ef_rp_procedureName" onchange="deleteProcedureParameterRows()"/>
+    </f:entry>
+    <f:entry title="" field="procedureParameters" >
+        <f:select id="ef_rp_parameters" onchange="fillProcedureParameters()" style="display:none;"/>
+    </f:entry>
+
+    <script>
+        fillProcedureParameters();
+
+        function deleteProcedureParameterRows() {
+            var paramRows = document.querySelectorAll("._ef_rp_row");
+            [].forEach.call(paramRows, function (row) {
+                row.parentNode.removeChild(row);
+            });
+        }
+
+        function fillProcedureParameters() {
+            deleteProcedureParameterRows();
+
+            if (!document.getElementById('ef_rp_parameters')) {
+                return;
+            }
+
+            var option = document.getElementById('ef_rp_parameters').options[0];
+            var param = '{}';
+            if (option) {
+                param = option.value;
+            }
+            var json = JSON.parse(param);
+
+            var table = document.querySelector("[descriptorid='electricFlowRunProcedure'] table");
+
+            if (json) {
+
+                if (json.procedure) {
+                    var parameters;
+                    try {
+                        parameters = JSON.parse(json.procedure.parameters);
+                    }
+                    catch (error) {
+                        parameters = json.procedure.parameters;
+                    }
+
+
+                    var row1 = table.insertRow(table.rows.length - 2);
+                    row1.className = "_ef_rp_row";
+                    if (parameters.length) {
+                        row1.appendChild(createTitle("Procedure Parameters"));
+                        parameters.forEach(function (elem) {
+                            var row = table.insertRow(table.rows.length - 2);
+                            row.className = "_ef_rp_parameters _ef_rp_row";
+                            addParameterRow(row, elem.actualParameterName, elem.value, false);
+                        });
+                    }
+                }
+            }
+        }
+
+        function updateProcedureJson() {
+            var procedureName = document.getElementById("ef_rp_procedureName").value;
+            var json = JSON.parse('{"procedure":{"procedureName":"' + procedureName + '", "parameters":[]}}');
+
+            var parameters = document.querySelectorAll("._ef_rp_parameters");
+
+            [].forEach.call(parameters, function (elem) {
+                json.procedure.parameters.push({
+                    'actualParameterName': elem.querySelector(".setting-name").textContent,
+                    'value': elem.querySelector(".setting-input").value
+                })
+            });
+
+
+            document.getElementById('ef_rp_parameters').options[0].value = JSON.stringify(json);
+            document.getElementById('ef_rp_parameters').options[0].textContent = JSON.stringify(json);
+        }
+
+        function createTitle(title) {
+            var td = document.createElement('td');
+            td.colSpan = 4;
+            var div = document.createElement('div');
+            div.className = "section-header";
+            div.textContent = title;
+            td.appendChild(div);
+            return td;
+        }
+
+        function addParameterRow(row, label, value, isCheckbox) {
+            var td1 = document.createElement('td');
+            td1.className = 'setting-leftspace';
+            td1.innerHTML = '';
+            row.appendChild(td1);
+
+            var td2 = document.createElement('td');
+            td2.className = 'setting-name';
+            td2.innerHTML = label;
+            row.appendChild(td2);
+
+            var td3 = document.createElement('td');
+            td3.className = 'setting-main';
+            var input1 = document.createElement('input');
+            input1.name = 'parameterName';
+            if (isCheckbox) {
+                input1.type = "checkbox";
+                input1.checked = value;
+                input1.style = "width: auto;";
+            }
+            input1.value = value;
+            input1.onchange = updateProcedureJson;
+            input1.className = 'setting-input';
+            td3.appendChild(input1);
+            row.appendChild(td3);
+
+            var td4 = document.createElement('td');
+            td4.className = 'setting-no-help';
+            row.appendChild(td4);
+        }
+    </script>
+
+</j:jelly>
