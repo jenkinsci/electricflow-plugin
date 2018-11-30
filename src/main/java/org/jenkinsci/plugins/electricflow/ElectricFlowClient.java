@@ -191,6 +191,23 @@ public class ElectricFlowClient
         return runRestAPI(requestEndpoint, POST, obj.toString());
     }
 
+    public String runProcedure(
+            String projectName,
+            String procedureName,
+            JSONArray actualParameters) throws IOException {
+        JSONObject obj = new JSONObject();
+
+        obj.put("projectName", projectName);
+        obj.put("procedureName", procedureName);
+        obj.put("actualParameter",
+                getParameters(actualParameters, "actualParameterName",
+                        "actualParameterName", "value"));
+
+        String requestEndpoint = "/jobs?request=runProcedure";
+
+        return runRestAPI(requestEndpoint, POST, obj.toString());
+    }
+
     public String runRelease(
             String    projectName,
             String    releaseName,
@@ -465,6 +482,31 @@ public class ElectricFlowClient
         return result;
     }
 
+    public List<String> getProcedures(String projectName) throws IOException {
+        String endpoint = "/projects/" + Utils.encodeURL(projectName) + "/procedures";
+        String jsonResult = runRestAPI(endpoint, GET);
+        List<String> result = new ArrayList<>();
+        JSONObject jsonObject = JSONObject.fromObject(jsonResult);
+
+        if (jsonObject.isEmpty()
+                || !jsonObject.containsKey("procedure")
+                || !(jsonObject.get("procedure") instanceof JSONArray)) {
+            return result;
+        }
+
+        JSONArray procedure = jsonObject.getJSONArray("procedure");
+
+        for (int i = 0; i < procedure.size(); i++) {
+            JSONObject procedureObject = procedure.getJSONObject(i);
+            String procedureName = procedureObject.getString(
+                    "procedureName");
+
+            result.add(procedureName);
+        }
+
+        return result;
+    }
+
     public List<String> getArtifactRepositories()
         throws Exception
     {
@@ -572,6 +614,40 @@ public class ElectricFlowClient
         for (int i = 0; i < environments.size(); i++) {
             JSONObject environmentObject = environments.getJSONObject(i);
             String     expansionDeferred = environmentObject.getString(
+                    "expansionDeferred");
+
+            if ("0".equals(expansionDeferred)) {
+                String parameterName = environmentObject.getString(
+                        "formalParameterName");
+
+                result.add(parameterName);
+            }
+        }
+
+        return result;
+    }
+
+    public List<String> getProcedureFormalParameters(
+            String projectName,
+            String procedureName) throws IOException {
+        String endpoint = "/projects/"
+                + Utils.encodeURL(projectName) + "/procedures/"
+                + Utils.encodeURL(procedureName) + "/formalParameters";
+        String jsonResult = runRestAPI(endpoint, GET);
+        List<String> result = new ArrayList<>();
+        JSONObject jsonObject = JSONObject.fromObject(jsonResult);
+
+        if (jsonObject.isEmpty()
+                || !jsonObject.containsKey("formalParameter")
+                || !(jsonObject.get("formalParameter") instanceof JSONArray)) {
+            return result;
+        }
+
+        JSONArray environments = jsonObject.getJSONArray("formalParameter");
+
+        for (int i = 0; i < environments.size(); i++) {
+            JSONObject environmentObject = environments.getJSONObject(i);
+            String expansionDeferred = environmentObject.getString(
                     "expansionDeferred");
 
             if ("0".equals(expansionDeferred)) {
