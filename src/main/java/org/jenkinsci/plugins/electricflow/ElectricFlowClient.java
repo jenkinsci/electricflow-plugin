@@ -18,16 +18,11 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
-import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.HttpsURLConnection;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509TrustManager;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.logging.Log;
@@ -61,6 +56,7 @@ public class ElectricFlowClient
     private String        password;
     private String        workspaceDir;
     private String        apiVersion;
+    private boolean       ignoreSslConnectionErrors;
     private List<Release> releasesList = new ArrayList<>();
     private EnvReplacer   envReplacer;
 
@@ -90,6 +86,7 @@ public class ElectricFlowClient
             userName        = cred.getElectricFlowUser();
             password        = Secret.fromString(cred.getElectricFlowPassword())
                                     .getPlainText();
+            ignoreSslConnectionErrors = cred.getIgnoreSslConnectionErrors();
 
             String electricFlowApiVersion = cred.getElectricFlowApiVersion();
 
@@ -97,8 +94,6 @@ public class ElectricFlowClient
                 ? electricFlowApiVersion
                 : "";
             this.workspaceDir = workspaceDir;
-
-            authorize();
         }
     }
 
@@ -106,18 +101,18 @@ public class ElectricFlowClient
             String url,
             String name,
             String password,
-            String apiVersion)
+            String apiVersion,
+            boolean ignoreSslConnectionErrors)
     {
         this.electricFlowUrl = url;
         this.userName        = name;
         this.password        = password;
         this.apiVersion      = apiVersion;
+        this.ignoreSslConnectionErrors = ignoreSslConnectionErrors;
 
         if (userName.isEmpty() || password.isEmpty()) {
             log.warn("User name and password should not be empty.");
         }
-
-        authorize();
     }
 
     //~ Methods ----------------------------------------------------------------
@@ -274,6 +269,17 @@ public class ElectricFlowClient
         conn.setDoInput(true);
         conn.setDoOutput(true);
 
+        if (this.getIgnoreSslConnectionErrors()) {
+            try {
+                conn.setSSLSocketFactory(RelaxedSSLContext.getInstance().getSocketFactory());
+            } catch (KeyManagementException | NoSuchAlgorithmException e) {
+                if (log.isDebugEnabled()) {
+                    log.debug(e.getMessage(), e);
+                }
+            }
+            conn.setHostnameVerifier(RelaxedSSLContext.allHostsValid);
+        }
+
         if (!GET.equals(httpMethod)) {
             byte[] outputInBytes = new byte[0];
 
@@ -404,46 +410,6 @@ public class ElectricFlowClient
         return resultLine;
     }
 
-    private void authorize()
-    {
-        TrustManager[] trustAllCerts = new TrustManager[] {
-            new X509TrustManager() {
-                @Override public X509Certificate[] getAcceptedIssuers()
-                {
-                    return null;
-                }
-
-                @Override public void checkClientTrusted(
-                        X509Certificate[] certs,
-                        String            authType) { }
-
-                @Override public void checkServerTrusted(
-                        X509Certificate[] certs,
-                        String            authType) { }
-            }
-        };
-        SSLContext     sc;
-
-        try {
-            sc = SSLContext.getInstance("SSL");
-            sc.init(null, trustAllCerts, new java.security.SecureRandom());
-            HttpsURLConnection.setDefaultSSLSocketFactory(
-                sc.getSocketFactory());
-        }
-        catch (NoSuchAlgorithmException | KeyManagementException e) {
-
-            if (log.isDebugEnabled()) {
-                log.debug(e.getMessage(), e);
-            }
-        }
-
-        // Create all-trusting host name verifier
-        HostnameVerifier allHostsValid = (hostname, session) -> true;
-
-        // Install the all-trusting host verifier
-        HttpsURLConnection.setDefaultHostnameVerifier(allHostsValid);
-    }
-
     private String expandVariable(String var)
     {
         return envReplacer != null
@@ -461,7 +427,9 @@ public class ElectricFlowClient
         List<String> result     = new ArrayList<>();
         JSONObject   jsonObject = JSONObject.fromObject(jsonResult);
 
-        if (jsonObject.isEmpty()) {
+        if (jsonObject.isEmpty()
+                || !jsonObject.containsKey("application")
+                || !(jsonObject.get("application") instanceof JSONArray)) {
             return result;
         }
 
@@ -529,6 +497,10 @@ public class ElectricFlowClient
         return electricFlowUrl;
     }
 
+    private boolean getIgnoreSslConnectionErrors() {
+        return ignoreSslConnectionErrors;
+    }
+
     public List<String> getEnvironments(String projectName)
         throws IOException
     {
@@ -539,7 +511,9 @@ public class ElectricFlowClient
         List<String> result     = new ArrayList<>();
         JSONObject   jsonObject = JSONObject.fromObject(jsonResult);
 
-        if (jsonObject.isEmpty()) {
+        if (jsonObject.isEmpty()
+                || !jsonObject.containsKey("environment")
+                || !(jsonObject.get("environment") instanceof JSONArray)) {
             return result;
         }
 
@@ -730,7 +704,9 @@ public class ElectricFlowClient
         List<String> result     = new ArrayList<>();
         JSONObject   jsonObject = JSONObject.fromObject(jsonResult);
 
-        if (jsonObject.isEmpty()) {
+        if (jsonObject.isEmpty()
+                || !jsonObject.containsKey("process")
+                || !(jsonObject.get("process") instanceof JSONArray)) {
             return result;
         }
 
@@ -809,7 +785,9 @@ public class ElectricFlowClient
         String     result          = runRestAPI(requestEndpoint, GET);
         JSONObject jsonObject      = JSONObject.fromObject(result);
 
-        if (jsonObject.isEmpty()) {
+        if (jsonObject.isEmpty()
+                || !jsonObject.containsKey("release")
+                || !(jsonObject.get("release") instanceof JSONArray)) {
             return new ArrayList<>(0);
         }
 
@@ -849,6 +827,10 @@ public class ElectricFlowClient
         }
 
         return getReleaseNames(conf, projectName);
+    }
+
+    public void testConnection() throws IOException {
+        getSessionId();
     }
 
     public String getSessionId()

@@ -33,7 +33,12 @@ All rights reserved.
               <f:entry title="User Password:" field="electricFlowPassword">
                   <f:password />
               </f:entry>
-              <f:validateButton title="Test Connection" progress="Testing..." method="testConnection" with="electricFlowUrl,electricFlowUser,electricFlowPassword,electricFlowApiVersion" />
+
+              <f:entry title="Ignore SSL Connection Errors" field="ignoreSslConnectionErrors">
+              <f:checkbox />
+              </f:entry>
+
+              <f:validateButton title="Test Connection" progress="Testing..." method="testConnection" with="electricFlowUrl,electricFlowUser,electricFlowPassword,electricFlowApiVersion,ignoreSslConnectionErrors" />
               <f:entry>
                   <div align="right">
                       <f:repeatableDeleteButton/>

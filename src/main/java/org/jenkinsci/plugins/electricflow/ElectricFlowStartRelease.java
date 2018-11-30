@@ -267,7 +267,7 @@ public class ElectricFlowStartRelease
         public FormValidation doCheckConfiguration(
                 @QueryParameter String value)
         {
-            return Utils.validateValueOnEmpty(value, "Configuration");
+            return Utils.validateConfiguration(value);
         }
 
         public FormValidation doCheckProjectName(@QueryParameter String value)
