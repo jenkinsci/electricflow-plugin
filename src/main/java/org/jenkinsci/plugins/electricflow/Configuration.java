@@ -37,6 +37,7 @@ public class Configuration
     private final String electricFlowPassword;
     private final String electricFlowUrl;
     private final String electricFlowApiVersion;
+    private final boolean ignoreSslConnectionErrors;
 
     //~ Constructors -----------------------------------------------------------
 
@@ -45,7 +46,8 @@ public class Configuration
             String electricFlowUrl,
             String electricFlowUser,
             String electricFlowPassword,
-            String electricFlowApiVersion)
+            String electricFlowApiVersion,
+            boolean ignoreSslConnectionErrors)
     {
         this.configurationName = configurationName;
         this.electricFlowUrl   = electricFlowUrl;
@@ -64,6 +66,8 @@ public class Configuration
 
         // end
         this.electricFlowApiVersion = electricFlowApiVersion;
+
+        this.ignoreSslConnectionErrors = ignoreSslConnectionErrors;
     }
 
     //~ Methods ----------------------------------------------------------------
@@ -76,6 +80,11 @@ public class Configuration
     public String getElectricFlowApiVersion()
     {
         return this.electricFlowApiVersion;
+    }
+
+    public boolean getIgnoreSslConnectionErrors()
+    {
+        return this.ignoreSslConnectionErrors;
     }
 
     public String getElectricFlowPassword()
@@ -146,7 +155,8 @@ public class Configuration
                 @QueryParameter("electricFlowUrl") final String electricFlowUrl,
                 @QueryParameter("electricFlowUser") final String electricFlowUser,
                 @QueryParameter("electricFlowPassword") final String electricFlowPassword,
-                @QueryParameter("electricFlowApiVersion") final String electricFlowApiVersion)
+                @QueryParameter("electricFlowApiVersion") final String electricFlowApiVersion,
+                @QueryParameter("ignoreSslConnectionErrors") final boolean ignoreSslConnectionErrors)
             throws IOException
         {
 
@@ -161,9 +171,9 @@ public class Configuration
                                                              .getPlainText();
                 ElectricFlowClient efClient          = new ElectricFlowClient(
                         electricFlowUrl, electricFlowUser, decryptedPassword,
-                        electricFlowApiVersion);
+                        electricFlowApiVersion, ignoreSslConnectionErrors);
 
-                efClient.getSessionId();
+                efClient.testConnection();
 
                 return FormValidation.ok("Success");
             }

@@ -9,41 +9,34 @@
 
 package org.jenkinsci.plugins.electricflow;
 
+import hudson.Extension;
+import hudson.FilePath;
+import hudson.Launcher;
+import hudson.model.AbstractProject;
+import hudson.model.Result;
+import hudson.model.Run;
+import hudson.model.TaskListener;
+import hudson.tasks.BuildStepDescriptor;
+import hudson.tasks.BuildStepMonitor;
+import hudson.tasks.Publisher;
+import hudson.tasks.Recorder;
+import hudson.util.FormValidation;
+import hudson.util.ListBoxModel;
+import jenkins.tasks.SimpleBuildStep;
+import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.kohsuke.stapler.DataBoundConstructor;
+import org.kohsuke.stapler.DataBoundSetter;
+import org.kohsuke.stapler.QueryParameter;
+
+import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import javax.annotation.Nonnull;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
-import org.kohsuke.stapler.DataBoundConstructor;
-import org.kohsuke.stapler.DataBoundSetter;
-import org.kohsuke.stapler.QueryParameter;
-
-import net.sf.json.JSONArray;
-import net.sf.json.JSONObject;
-
-import hudson.Extension;
-import hudson.FilePath;
-import hudson.Launcher;
-
-import hudson.model.AbstractProject;
-import hudson.model.Run;
-import hudson.model.TaskListener;
-
-import hudson.tasks.BuildStepDescriptor;
-import hudson.tasks.BuildStepMonitor;
-import hudson.tasks.Publisher;
-import hudson.tasks.Recorder;
-
-import hudson.util.FormValidation;
-import hudson.util.ListBoxModel;
-
-import jenkins.tasks.SimpleBuildStep;
 
 import static org.jenkinsci.plugins.electricflow.Utils.addParametersToJson;
 import static org.jenkinsci.plugins.electricflow.Utils.formatJsonOutput;
@@ -80,7 +73,10 @@ public class ElectricFlowDeployApplication
             @Nonnull TaskListener taskListener)
         throws InterruptedException, IOException
     {
-        runProcess(run, taskListener);
+        boolean isSuccess = runProcess(run, taskListener);
+        if (!isSuccess) {
+            run.setResult(Result.FAILURE);
+        }
     }
 
     private boolean runProcess(
@@ -252,8 +248,6 @@ public class ElectricFlowDeployApplication
 
         //~ Instance fields ----------------------------------------------------
 
-        private ElectricFlowClient client;
-
         //~ Constructors -------------------------------------------------------
 
         public DescriptorImpl()
@@ -266,7 +260,7 @@ public class ElectricFlowDeployApplication
         public FormValidation doCheckConfiguration(
                 @QueryParameter String value)
         {
-            return Utils.validateValueOnEmpty(value, "Configuration");
+            return Utils.validateConfiguration(value);
         }
 
         public FormValidation doCheckProjectName(@QueryParameter String value)
@@ -284,10 +278,7 @@ public class ElectricFlowDeployApplication
             m.add("Select application", "");
 
             if (!configuration.isEmpty() && !projectName.isEmpty()) {
-
-                if (client == null) {
-                    client = new ElectricFlowClient(configuration);
-                }
+                ElectricFlowClient client = new ElectricFlowClient(configuration);
 
                 List<String> applications = client.getApplications(projectName);
 
@@ -309,7 +300,8 @@ public class ElectricFlowDeployApplication
 
             m.add("Select Application process name", "");
 
-            if (!projectName.isEmpty() && !applicationName.isEmpty()) {
+            if (!configuration.isEmpty() && !projectName.isEmpty() && !applicationName.isEmpty()) {
+                ElectricFlowClient client = new ElectricFlowClient(configuration);
                 List<String> processes = client.getProcesses(projectName,
                         applicationName);
 
@@ -343,6 +335,8 @@ public class ElectricFlowDeployApplication
 
                 return m;
             }
+
+            ElectricFlowClient client = new ElectricFlowClient(configuration);
 
             // During reload if at least one value filled, return old values
             if (!deployParameters.isEmpty() && !"{}".equals(deployParameters)) {
@@ -388,6 +382,7 @@ public class ElectricFlowDeployApplication
             m.add("Select Environment name", "");
 
             if (!configuration.isEmpty() && !projectName.isEmpty()) {
+                ElectricFlowClient client = new ElectricFlowClient(configuration);
                 List<String> environments = client.getEnvironments(projectName);
 
                 for (String environment : environments) {

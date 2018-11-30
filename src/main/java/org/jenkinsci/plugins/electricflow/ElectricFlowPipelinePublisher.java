@@ -333,7 +333,7 @@ public class ElectricFlowPipelinePublisher
         public FormValidation doCheckConfiguration(
                 @QueryParameter String value)
         {
-            return Utils.validateValueOnEmpty(value, "Configuration");
+            return Utils.validateConfiguration(value);
         }
 
         public FormValidation doCheckPipelineName(@QueryParameter String value)

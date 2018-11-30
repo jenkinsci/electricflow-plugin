@@ -106,6 +106,20 @@ public class Utils
         }
     }
 
+    public static FormValidation validateConfiguration(String configuration) {
+        if (configuration == null || configuration.isEmpty()) {
+            return FormValidation.warning("Configuration field should not be empty.");
+        }
+
+        try {
+            new ElectricFlowClient(configuration).testConnection();
+        } catch (IOException e) {
+            return FormValidation.error("Wrong configuration - test connection failed.");
+        }
+
+        return FormValidation.ok();
+    }
+
     public static Configuration getConfigurationByName(String name)
     {
 
