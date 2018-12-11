@@ -396,11 +396,11 @@ public class Utils
             rows.append(getValidationComparisonRowOldParam(oldKey, oldParamsMap.get(oldKey)));
         }
 
-        for (String key : newParamsMap.keySet()) {
-            if (matchingKeysSet.contains(key)) {
-                rows.append(getValidationComparisonRow(key, oldParamsMap.get(key), newParamsMap.get(key)));
+        for (Map.Entry<String, String> entry : newParamsMap.entrySet()) {
+            if (matchingKeysSet.contains(entry.getKey())) {
+                rows.append(getValidationComparisonRow(entry.getKey(), oldParamsMap.get(entry.getKey()), entry.getValue()));
             } else {
-                rows.append(getValidationComparisonRowNewParam(key, newParamsMap.get(key)));
+                rows.append(getValidationComparisonRowNewParam(entry.getKey(), entry.getValue()));
             }
         }
 
