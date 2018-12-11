@@ -22,10 +22,47 @@ All rights reserved.
         <f:select id="ef_da_applicationProcessName" onchange="fillDeployApplicationParameters()"/>
     </f:entry>
     <f:entry title="Environment Name" field="environmentName" >
-        <f:select onchange="fillDeployApplicationParameters()"/>
+        <f:select/>
     </f:entry>
     <f:entry title="" field="deployParameters" >
         <f:select id="ef_da_parameters" onchange="fillDeployApplicationParameters()" style="display:none;"/>
+    </f:entry>
+
+    <f:invisibleEntry>
+        <f:checkbox field="validationTrigger" id="ef_da_validationTrigger"/>
+    </f:invisibleEntry>
+
+    <f:invisibleEntry>
+        <f:readOnlyTextbox field="storedConfiguration"/>
+    </f:invisibleEntry>
+    <f:invisibleEntry>
+        <f:readOnlyTextbox field="storedProjectName"/>
+    </f:invisibleEntry>
+    <f:invisibleEntry>
+        <f:readOnlyTextbox field="storedApplicationName"/>
+    </f:invisibleEntry>
+    <f:invisibleEntry>
+        <f:readOnlyTextbox field="storedApplicationProcessName"/>
+    </f:invisibleEntry>
+    <f:invisibleEntry>
+        <f:readOnlyTextbox field="storedEnvironmentName"/>
+    </f:invisibleEntry>
+    <f:invisibleEntry>
+        <f:readOnlyTextbox field="storedDeployParameters"/>
+    </f:invisibleEntry>
+
+    <f:entry>
+        <div style="float:right">
+            <span class="yui-button yui-push-button yui-button validate-button">
+                    <button type="button" onclick="triggerExtraValidation();">Revalidate form</button>
+            </span>
+        </div>
+        <j:if test="${instance != null}">
+            <f:validateButton title="Compare new values with old ones which are stored before dynamic configuration loaded"
+                              progress="Comparing values..."
+                              method="showOldValues"
+                              with="configuration,projectName,applicationName,applicationProcessName,environmentName,deployParameters,storedConfiguration,storedProjectName,storedApplicationName,storedApplicationProcessName,storedEnvironmentName,storedDeployParameters" />
+        </j:if>
     </f:entry>
 
     <script>
@@ -138,6 +175,10 @@ All rights reserved.
             var td4 = document.createElement('td');
             td4.className = 'setting-no-help';
             row.appendChild(td4);
+        }
+
+        function triggerExtraValidation() {
+            document.getElementById("ef_da_validationTrigger").click();
         }
     </script>
 

@@ -12,11 +12,11 @@ package org.jenkinsci.plugins.electricflow;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 import org.apache.commons.logging.Log;
 
+import org.apache.commons.logging.LogFactory;
 import org.codehaus.jackson.map.ObjectMapper;
 
 import net.sf.json.JSONArray;
@@ -26,11 +26,14 @@ import hudson.util.FormValidation;
 import hudson.util.ListBoxModel;
 
 import jenkins.model.GlobalConfiguration;
+import org.jenkinsci.plugins.electricflow.ui.FieldValidationStatus;
+import org.jenkinsci.plugins.electricflow.ui.SelectFieldUtils;
+import org.jenkinsci.plugins.electricflow.ui.SelectItemValidationWrapper;
 
 public class Utils
 {
 
-    //~ Methods ----------------------------------------------------------------
+    private static final Log log = LogFactory.getLog(Utils.class);
 
     public static void addParametersToJson(
             List<String> pipelineParameters,
@@ -44,6 +47,35 @@ public class Utils
 
             mainJson.put(parameterName, param);
             mainJson.put(parameterValue, "");
+            parametersArray.add(mainJson);
+        }
+    }
+
+    public static LinkedHashMap<String, String> getParamsMap(JSONArray paramsJsonArray,
+                                                             String parameterName,
+                                                             String parameterValue) {
+        LinkedHashMap<String, String> paramsMap = new LinkedHashMap<>();
+
+        for (int i = 0; i < paramsJsonArray.size(); i++) {
+            JSONObject param = paramsJsonArray.getJSONObject(i);
+            paramsMap.put(param.getString(parameterName), param.getString(parameterValue));
+        }
+
+        return paramsMap;
+    }
+
+    public static void addParametersToJsonAndPreserveStored(
+            List<String> pipelineParameters,
+            JSONArray parametersArray,
+            String parameterName,
+            String parameterValue,
+            Map<String, String> storedParamsMap) {
+
+        for (String param : pipelineParameters) {
+            JSONObject mainJson = new JSONObject();
+
+            mainJson.put(parameterName, param);
+            mainJson.put(parameterValue, storedParamsMap.getOrDefault(param, ""));
             parametersArray.add(mainJson);
         }
     }
@@ -114,7 +146,8 @@ public class Utils
         try {
             new ElectricFlowClient(configuration).testConnection();
         } catch (IOException e) {
-            return FormValidation.error("Wrong configuration - test connection failed.");
+            log.error("Connection to Electric Flow Server Failed. Please check the connection information. Error message: " + e.getMessage(), e);
+            return FormValidation.error("Connection to Electric Flow Server Failed. Please check the connection information. Error message: " + e.getMessage());
         }
 
         return FormValidation.ok();
@@ -272,36 +305,105 @@ public class Utils
         return m;
     }
 
-    public static ListBoxModel getProjects(String configuration)
-        throws IOException
-    {
-        ListBoxModel m = new ListBoxModel();
+    public static boolean isEflowAvailable(String configuration) {
+        try {
+            new ElectricFlowClient(configuration).testConnection();
+            return true;
+        } catch (IOException e) {
+            return false;
+        }
+    }
 
-        m.add("Select project", "");
+    public static ListBoxModel getProjects(String configuration) {
+        try {
+            ListBoxModel m = new ListBoxModel();
 
-        if (!configuration.isEmpty()) {
-            ElectricFlowClient efClient       = new ElectricFlowClient(
-                    configuration);
-            String             projectsString = efClient.getProjects();
-            JSONObject         jsonObject     = JSONObject.fromObject(
-                    projectsString);
-            JSONArray          projects       = jsonObject.getJSONArray(
-                    "project");
+            m.add("Select project", new SelectItemValidationWrapper(
+                    FieldValidationStatus.WARN,
+                    "Project name field should not be empty.",
+                    ""
+            ).getJsonStr());
 
-            for (int i = 0; i < projects.size(); i++) {
+            if (!configuration.isEmpty()) {
+                ElectricFlowClient efClient = new ElectricFlowClient(configuration);
+                String projectsString = efClient.getProjects();
+                JSONObject jsonObject = JSONObject.fromObject(projectsString);
+                JSONArray projects = jsonObject.getJSONArray("project");
 
-                if (projects.getJSONObject(i)
+                for (int i = 0; i < projects.size(); i++) {
+
+                    if (projects.getJSONObject(i)
                             .has("pluginKey")) {
-                    continue;
+                        continue;
+                    }
+
+                    String gotProjectName = projects.getJSONObject(i)
+                            .getString("projectName");
+
+                    m.add(gotProjectName, gotProjectName);
                 }
+            }
 
-                String gotProjectName = projects.getJSONObject(i)
-                                                .getString("projectName");
+            return m;
+        } catch (Exception e) {
+            if (Utils.isEflowAvailable(configuration)) {
+                log.error("Error when fetching values for this parameter - project. Error message: " + e.getMessage(), e);
+                return SelectFieldUtils.getListBoxModelOnException("Select project");
+            } else {
+                return SelectFieldUtils.getListBoxModelOnWrongConf("Select project");
+            }
+        }
+    }
 
-                m.add(gotProjectName, gotProjectName);
+    public static String getValidationComparisonHeaderRow() {
+        return "<thead style=\"background-color: #e0e0e0;\"><td>Parameter Name</td><td>Old Value</td><td>New Value</td></thead>";
+    }
+
+    public static String getValidationComparisonRow(String parameterName, Object oldValue, Object newValue) {
+        String rowStyleAttr = "";
+        if (!newValue.equals(oldValue)) {
+            rowStyleAttr = "style=\"background-color: #e2db0c;\"";
+        }
+        return "<tr " + rowStyleAttr + "><td>" + parameterName + "</td><td>" + oldValue + "</td><td>" + newValue + "</td></tr>";
+    }
+
+    public static String getValidationComparisonRowOldParam(String parameterName, Object oldValue) {
+        String rowStyleAttr = "style=\"background-color: #fa9a76;\"";
+        return "<tr " + rowStyleAttr + "><td>" + parameterName + "</td><td>" + oldValue + "</td><td></td></tr>";
+    }
+
+    public static String getValidationComparisonRowNewParam(String parameterName, Object newValue) {
+        String rowStyleAttr = "style=\"background-color: #82dc84;\"";
+        return "<tr " + rowStyleAttr + "><td>" + parameterName + "</td><td></td><td>" + newValue + "</td></tr>";
+    }
+
+    public static String getValidationComparisonRowsForExtraParameters(String sectionName, Map<String, String> oldParamsMap, Map<String, String> newParamsMap) {
+        if (oldParamsMap.isEmpty() && newParamsMap.isEmpty()) {
+            return "";
+        }
+
+        StringBuilder rows = new StringBuilder();
+        rows.append("<tr><td></td><td></td><td></td></tr>");
+        rows.append("<tr><td>" + sectionName + "</td><td></td><td></td></tr>");
+
+        Set<String> oldKeysSet = new HashSet<String>(oldParamsMap.keySet());
+        oldKeysSet.removeAll(newParamsMap.keySet());
+
+        Set<String> matchingKeysSet = new HashSet<String>(oldParamsMap.keySet());
+        matchingKeysSet.retainAll(newParamsMap.keySet());
+
+        for (String oldKey : oldKeysSet) {
+            rows.append(getValidationComparisonRowOldParam(oldKey, oldParamsMap.get(oldKey)));
+        }
+
+        for (String key : newParamsMap.keySet()) {
+            if (matchingKeysSet.contains(key)) {
+                rows.append(getValidationComparisonRow(key, oldParamsMap.get(key), newParamsMap.get(key)));
+            } else {
+                rows.append(getValidationComparisonRowNewParam(key, newParamsMap.get(key)));
             }
         }
 
-        return m;
+        return rows.toString();
     }
 }
