@@ -145,7 +145,7 @@ public class Utils
 
         try {
             new ElectricFlowClient(configuration).testConnection();
-        } catch (IOException e) {
+        } catch (Exception e) {
             log.error("Connection to Electric Flow Server Failed. Please check the connection information. Error message: " + e.getMessage(), e);
             return FormValidation.error("Connection to Electric Flow Server Failed. Please check the connection information. Error message: " + e.getMessage());
         }
@@ -309,7 +309,7 @@ public class Utils
         try {
             new ElectricFlowClient(configuration).testConnection();
             return true;
-        } catch (IOException e) {
+        } catch (Exception e) {
             return false;
         }
     }
