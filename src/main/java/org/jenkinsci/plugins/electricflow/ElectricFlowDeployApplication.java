@@ -478,7 +478,7 @@ public class ElectricFlowDeployApplication
                 } else {
                     selectItemValidationWrapper = new SelectItemValidationWrapper(
                             FieldValidationStatus.ERROR,
-                            "Error when fetching set of deploy parameters. Connection to Electric Flow Server Failed. Please check the connection information.",
+                            "Error when fetching set of deploy parameters. Connection to Electric Flow Server Failed. Please fix connection information and reload this page.",
                             "{}"
                     );
                 }
@@ -552,7 +552,7 @@ public class ElectricFlowDeployApplication
                 @QueryParameter("storedApplicationProcessName") final String storedApplicationProcessName,
                 @QueryParameter("storedEnvironmentName") final String storedEnvironmentName,
                 @QueryParameter("storedDeployParameters") final String storedDeployParameters
-                ) throws IOException {
+        ) {
             String configurationValue = configuration;
             String projectNameValue = getSelectItemValue(projectName);
             String applicationNameValue = getSelectItemValue(applicationName);

@@ -51,14 +51,23 @@ All rights reserved.
         <f:readOnlyTextbox field="storedDeployParameters"/>
     </f:invisibleEntry>
 
+    <j:if test="${instance != null}">
+        <f:entry field="validateAndCompareBeforeApply">
+        </f:entry>
+    </j:if>
+    <j:if test="${instance == null}">
+        <f:entry field="validateBeforeApply">
+        </f:entry>
+    </j:if>
+
     <f:entry>
         <div style="float:right">
             <span class="yui-button yui-push-button yui-button validate-button">
-                    <button type="button" onclick="triggerExtraValidation();">Revalidate form</button>
+                <button type="button" onclick="triggerExtraValidation();">Validate Before Apply</button>
             </span>
         </div>
         <j:if test="${instance != null}">
-            <f:validateButton title="Compare new values with old ones which are stored before dynamic configuration loaded"
+            <f:validateButton title="Compare Before Apply"
                               progress="Comparing values..."
                               method="showOldValues"
                               with="configuration,projectName,applicationName,applicationProcessName,environmentName,deployParameters,storedConfiguration,storedProjectName,storedApplicationName,storedApplicationProcessName,storedEnvironmentName,storedDeployParameters" />
