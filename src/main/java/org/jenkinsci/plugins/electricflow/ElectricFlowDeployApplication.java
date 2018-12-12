@@ -348,7 +348,7 @@ public class ElectricFlowDeployApplication
 
                 if (!configuration.isEmpty()
                         && !projectName.isEmpty()
-                        && SelectFieldUtils.isAnySelectItemValidationWrapper(projectName)) {
+                        && SelectFieldUtils.checkAllSelectItemsAreNotValidationWrappers(projectName)) {
                     ElectricFlowClient client = new ElectricFlowClient(configuration);
 
                     List<String> applications = client.getApplications(projectName);
@@ -382,7 +382,7 @@ public class ElectricFlowDeployApplication
                 if (!configuration.isEmpty()
                         && !projectName.isEmpty()
                         && !applicationName.isEmpty()
-                        && SelectFieldUtils.isAnySelectItemValidationWrapper(projectName, applicationName)) {
+                        && SelectFieldUtils.checkAllSelectItemsAreNotValidationWrappers(projectName, applicationName)) {
                     ElectricFlowClient client = new ElectricFlowClient(configuration);
                     List<String> processes = client.getProcesses(projectName,
                             applicationName);
@@ -422,7 +422,7 @@ public class ElectricFlowDeployApplication
                         || projectName.isEmpty()
                         || applicationName.isEmpty()
                         || applicationProcessName.isEmpty()
-                        || !SelectFieldUtils.isAnySelectItemValidationWrapper(projectName, applicationName, applicationProcessName)) {
+                        || !SelectFieldUtils.checkAllSelectItemsAreNotValidationWrappers(projectName, applicationName, applicationProcessName)) {
                     m.add("{}");
 
                     return m;
@@ -497,7 +497,7 @@ public class ElectricFlowDeployApplication
 
                 if (!configuration.isEmpty()
                         && !projectName.isEmpty()
-                        && SelectFieldUtils.isAnySelectItemValidationWrapper(projectName)) {
+                        && SelectFieldUtils.checkAllSelectItemsAreNotValidationWrappers(projectName)) {
                     ElectricFlowClient client = new ElectricFlowClient(configuration);
                     List<String> environments = client.getEnvironments(projectName);
 

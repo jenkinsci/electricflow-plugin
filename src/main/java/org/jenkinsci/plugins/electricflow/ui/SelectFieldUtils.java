@@ -3,6 +3,8 @@ package org.jenkinsci.plugins.electricflow.ui;
 import hudson.util.FormValidation;
 import hudson.util.ListBoxModel;
 
+import java.util.Arrays;
+
 public class SelectFieldUtils {
 
     public static ListBoxModel getListBoxModelOnException(String displayValue) {
@@ -57,13 +59,19 @@ public class SelectFieldUtils {
                 : item;
     }
 
-    public static boolean isAnySelectItemValidationWrapper(String... items) {
+    public static boolean checkAllSelectItemsAreNotValidationWrappers(String... items) {
         for (String item: items) {
             if (isSelectItemValidationWrapper(item)) {
                 return false;
             }
         }
         return true;
+    }
+
+    public static boolean checkAnySelectItemsIsValidationWrappers(String... items) {
+        return Arrays
+                .stream(items)
+                .anyMatch(SelectFieldUtils::isSelectItemValidationWrapper);
     }
 
 }
