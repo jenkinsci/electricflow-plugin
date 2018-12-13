@@ -1,7 +1,7 @@
 
-// ElectricFlowStartRelease.java --
+// ElectricFlowTriggerRelease.java --
 //
-// ElectricFlowStartRelease.java is part of ElectricCommander.
+// ElectricFlowTriggerRelease.java is part of ElectricCommander.
 //
 // Copyright (c) 2005-2017 Electric Cloud, Inc.
 // All rights reserved.
@@ -46,7 +46,7 @@ import static org.jenkinsci.plugins.electricflow.ui.SelectFieldUtils.checkAnySel
 import static org.jenkinsci.plugins.electricflow.ui.SelectFieldUtils.getSelectItemValue;
 import static org.jenkinsci.plugins.electricflow.ui.SelectFieldUtils.isSelectItemValidationWrapper;
 
-public class ElectricFlowStartRelease
+public class ElectricFlowTriggerRelease
     extends Recorder
     implements SimpleBuildStep
 {
@@ -54,7 +54,7 @@ public class ElectricFlowStartRelease
     //~ Static fields/initializers ---------------------------------------------
 
     private static final Log log = LogFactory.getLog(
-            ElectricFlowStartRelease.class);
+            ElectricFlowTriggerRelease.class);
 
     //~ Instance fields --------------------------------------------------------
 
@@ -66,7 +66,7 @@ public class ElectricFlowStartRelease
 
     //~ Constructors -----------------------------------------------------------
 
-    @DataBoundConstructor public ElectricFlowStartRelease() { }
+    @DataBoundConstructor public ElectricFlowTriggerRelease() { }
 
     //~ Methods ----------------------------------------------------------------
 
@@ -99,7 +99,7 @@ public class ElectricFlowStartRelease
         PrintStream logger = taskListener.getLogger();
 
         try {
-            logger.println("Preparing to startRelease...");
+            logger.println("Preparing to triggerRelease...");
 
             EnvReplacer        env      = new EnvReplacer(run, taskListener);
             ElectricFlowClient efClient = new ElectricFlowClient(configuration,
@@ -117,7 +117,7 @@ public class ElectricFlowStartRelease
 
             run.addAction(action);
             run.save();
-            logger.println("StartRelease  result: "
+            logger.println("TriggerRelease  result: "
                     + formatJsonOutput(releaseResult));
         }
         catch (Exception e) {
@@ -206,7 +206,7 @@ public class ElectricFlowStartRelease
                 + "/" + flowRuntimeId;
         String     urlRelease    = efClient.getElectricFlowUrl()
                 + "/flow/#releases";
-        String     summaryText   = "<h3>ElectricFlow Start Release</h3>"
+        String     summaryText   = "<h3>ElectricFlow Trigger Release</h3>"
                 + "<table cellspacing=\"2\" cellpadding=\"4\"> \n"
                 + "  <tr>\n"
                 + "    <td>Release Name:</td>\n"
@@ -503,12 +503,12 @@ public class ElectricFlowStartRelease
 
         @Override public String getDisplayName()
         {
-            return "ElectricFlow - Start Release";
+            return "ElectricFlow - Trigger Release";
         }
 
         @Override public String getId()
         {
-            return "electricFlowRunRelease";
+            return "electricFlowTriggerRelease";
         }
 
         @Override public boolean isApplicable(

@@ -92,7 +92,7 @@ All rights reserved.
             }
             var json = JSON.parse(param);
 
-            var table = document.querySelector("[descriptorid='electricFlowRunRelease'] table");
+            var table = document.querySelector("[descriptorid='electricFlowTriggerRelease'] table");
 
             if (json) {
 
@@ -192,7 +192,9 @@ All rights reserved.
             input1.name = 'parameterName';
             if (isCheckbox) {
                 input1.type = "checkbox";
-                input1.checked = value;
+                if (value === "true") {
+                    input1.checked = value;
+                }
                 input1.style="width: auto;";
             }
             input1.value = value;
