@@ -92,7 +92,7 @@ All rights reserved.
             }
             var json = JSON.parse(param);
 
-            var table = document.querySelector("[descriptorid='electricFlowRunRelease'] table");
+            var table = document.querySelector("[descriptorid='electricFlowTriggerRelease'] table");
 
             if (json) {
 
