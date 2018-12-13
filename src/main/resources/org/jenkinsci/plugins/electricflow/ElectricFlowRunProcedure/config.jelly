@@ -22,6 +22,46 @@ All rights reserved.
         <f:select id="ef_rp_parameters" onchange="fillProcedureParameters()" style="display:none;"/>
     </f:entry>
 
+    <f:invisibleEntry>
+        <f:checkbox field="validationTrigger" id="ef_da_validationTrigger"/>
+    </f:invisibleEntry>
+
+    <f:invisibleEntry>
+        <f:readOnlyTextbox field="storedConfiguration"/>
+    </f:invisibleEntry>
+    <f:invisibleEntry>
+        <f:readOnlyTextbox field="storedProjectName"/>
+    </f:invisibleEntry>
+    <f:invisibleEntry>
+        <f:readOnlyTextbox field="storedProcedureName"/>
+    </f:invisibleEntry>
+    <f:invisibleEntry>
+        <f:readOnlyTextbox field="storedProcedureParameters"/>
+    </f:invisibleEntry>
+
+    <j:if test="${instance != null}">
+        <f:entry field="validateAndCompareBeforeApply">
+        </f:entry>
+    </j:if>
+    <j:if test="${instance == null}">
+        <f:entry field="validateBeforeApply">
+        </f:entry>
+    </j:if>
+
+    <f:entry>
+        <div style="float:right">
+            <span class="yui-button yui-push-button yui-button validate-button">
+                <button type="button" onclick="triggerExtraValidation();">Validate Before Apply</button>
+            </span>
+        </div>
+        <j:if test="${instance != null}">
+            <f:validateButton title="Compare Before Apply"
+                              progress="Comparing values..."
+                              method="showOldValues"
+                              with="configuration,projectName,procedureName,procedureParameters,storedConfiguration,storedProjectName,storedProcedureName,storedProcedureParameters" />
+        </j:if>
+    </f:entry>
+
     <script>
         fillProcedureParameters();
 
@@ -119,7 +159,9 @@ All rights reserved.
             input1.name = 'parameterName';
             if (isCheckbox) {
                 input1.type = "checkbox";
-                input1.checked = value;
+                if (value === "true") {
+                    input1.checked = value;
+                }
                 input1.style = "width: auto;";
             }
             input1.value = value;
@@ -131,6 +173,10 @@ All rights reserved.
             var td4 = document.createElement('td');
             td4.className = 'setting-no-help';
             row.appendChild(td4);
+        }
+
+        function triggerExtraValidation() {
+            document.getElementById("ef_da_validationTrigger").click();
         }
     </script>
 

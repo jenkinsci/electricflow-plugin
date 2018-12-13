@@ -27,6 +27,9 @@ import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jenkinsci.plugins.electricflow.ui.FieldValidationStatus;
+import org.jenkinsci.plugins.electricflow.ui.SelectFieldUtils;
+import org.jenkinsci.plugins.electricflow.ui.SelectItemValidationWrapper;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.QueryParameter;
@@ -38,8 +41,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static org.jenkinsci.plugins.electricflow.Utils.addParametersToJson;
-import static org.jenkinsci.plugins.electricflow.Utils.formatJsonOutput;
+import static org.jenkinsci.plugins.electricflow.Utils.*;
+import static org.jenkinsci.plugins.electricflow.ui.SelectFieldUtils.checkAnySelectItemsIsValidationWrappers;
+import static org.jenkinsci.plugins.electricflow.ui.SelectFieldUtils.getSelectItemValue;
+import static org.jenkinsci.plugins.electricflow.ui.SelectFieldUtils.isSelectItemValidationWrapper;
 
 public class ElectricFlowRunProcedure
         extends Recorder
@@ -114,7 +119,15 @@ public class ElectricFlowRunProcedure
         return configuration;
     }
 
+    public String getStoredConfiguration() {
+        return configuration;
+    }
+
     public String getProjectName() {
+        return projectName;
+    }
+
+    public String getStoredProjectName() {
         return projectName;
     }
 
@@ -122,7 +135,15 @@ public class ElectricFlowRunProcedure
         return procedureName;
     }
 
+    public String getStoredProcedureName() {
+        return procedureName;
+    }
+
     public String getProcedureParameters() {
+        return procedureParameters;
+    }
+
+    public String getStoredProcedureParameters() {
         return procedureParameters;
     }
 
@@ -162,18 +183,18 @@ public class ElectricFlowRunProcedure
 
     @DataBoundSetter
     public void setProjectName(String projectName) {
-        this.projectName = projectName;
+        this.projectName = getSelectItemValue(projectName);
     }
 
     @DataBoundSetter
     public void setProcedureName(String procedureName) {
-        this.procedureName = procedureName;
+        this.procedureName = getSelectItemValue(procedureName);
     }
 
 
     @DataBoundSetter
     public void setProcedureParameters(String procedureParameters) {
-        this.procedureParameters = procedureParameters;
+        this.procedureParameters = getSelectItemValue(procedureParameters);
     }
 
     @Extension
@@ -183,93 +204,145 @@ public class ElectricFlowRunProcedure
             load();
         }
 
-        public FormValidation doCheckConfiguration(
-                @QueryParameter String value) {
+        public FormValidation doCheckConfiguration(@QueryParameter String value,
+                                                   @QueryParameter boolean validationTrigger) {
             return Utils.validateConfiguration(value);
         }
 
-        public FormValidation doCheckProjectName(@QueryParameter String value) {
+        public FormValidation doCheckProjectName(@QueryParameter String value,
+                                                 @QueryParameter boolean validationTrigger) {
+            if (isSelectItemValidationWrapper(value)) {
+                return SelectFieldUtils.getFormValidationBasedOnSelectItemValidationWrapper(value);
+            }
             return Utils.validateValueOnEmpty(value, "Project name");
         }
 
-        public FormValidation doCheckProcedureName(@QueryParameter String value) {
+        public FormValidation doCheckProcedureName(@QueryParameter String value,
+                                                   @QueryParameter boolean validationTrigger) {
+            if (isSelectItemValidationWrapper(value)) {
+                return SelectFieldUtils.getFormValidationBasedOnSelectItemValidationWrapper(value);
+            }
             return Utils.validateValueOnEmpty(value, "Procedure name");
         }
 
-        public ListBoxModel doFillProcedureNameItems(
-                @QueryParameter String projectName,
-                @QueryParameter String configuration)
-                throws IOException {
-            ListBoxModel m = new ListBoxModel();
-
-            m.add("Select procedure", "");
-
-            if (!configuration.isEmpty() && !projectName.isEmpty()) {
-
-                ElectricFlowClient client = new ElectricFlowClient(configuration);
-
-                List<String> procedures = client.getProcedures(projectName);
-
-                for (String procedure : procedures) {
-                    m.add(procedure);
-                }
+        public FormValidation doCheckProcedureParameters(@QueryParameter String value,
+                                                         @QueryParameter boolean validationTrigger) {
+            if (isSelectItemValidationWrapper(value)) {
+                return SelectFieldUtils.getFormValidationBasedOnSelectItemValidationWrapper(value);
             }
-
-            return m;
+            return FormValidation.ok();
         }
 
         public ListBoxModel doFillConfigurationItems() {
             return Utils.fillConfigurationItems();
         }
 
+        public ListBoxModel doFillProjectNameItems(@QueryParameter String configuration) {
+            return Utils.getProjects(configuration);
+        }
+
+        public ListBoxModel doFillProcedureNameItems(
+                @QueryParameter String projectName,
+                @QueryParameter String configuration) {
+            try {
+                ListBoxModel m = new ListBoxModel();
+
+                m.add("Select procedure", "");
+
+                if (!configuration.isEmpty()
+                        && !projectName.isEmpty()
+                        && SelectFieldUtils.checkAllSelectItemsAreNotValidationWrappers(projectName)) {
+
+                    ElectricFlowClient client = new ElectricFlowClient(configuration);
+
+                    List<String> procedures = client.getProcedures(projectName);
+
+                    for (String procedure : procedures) {
+                        m.add(procedure);
+                    }
+                }
+
+                return m;
+            } catch (Exception e) {
+                if (Utils.isEflowAvailable(configuration)) {
+                    log.error("Error when fetching values for this parameter - procedure. Error message: " + e.getMessage(), e);
+                    return SelectFieldUtils.getListBoxModelOnException("Select procedure");
+                } else {
+                    return SelectFieldUtils.getListBoxModelOnWrongConf("Select procedure");
+
+                }
+            }
+        }
+
         public ListBoxModel doFillProcedureParametersItems(
                 @QueryParameter String configuration,
                 @QueryParameter String projectName,
                 @QueryParameter String procedureName,
-                @QueryParameter String procedureParameters)
-                throws IOException {
-            ListBoxModel m = new ListBoxModel();
+                @QueryParameter String procedureParameters) {
+            try {
+                ListBoxModel m = new ListBoxModel();
 
-            if (configuration.isEmpty() || projectName.isEmpty() || procedureName.isEmpty()) {
-                m.add("{}");
+                if (configuration.isEmpty()
+                        || projectName.isEmpty()
+                        || procedureName.isEmpty()
+                        || checkAnySelectItemsIsValidationWrappers(projectName, procedureName)) {
+                    m.add("{}");
 
-                return m;
-            }
-
-            ElectricFlowClient client = new ElectricFlowClient(configuration);
-
-            // During reload if at least one value filled, return old values
-            if (!procedureParameters.isEmpty() && !"{}".equals(procedureParameters)) {
-                JSONObject json = JSONObject.fromObject(procedureParameters);
-                JSONObject jsonArray = json.getJSONObject("procedure");
-
-                if (procedureName.equals(jsonArray.get("procedureName"))) {
-                    m.add(procedureParameters);
                     return m;
                 }
+
+                ElectricFlowClient client = new ElectricFlowClient(configuration);
+
+                Map<String, String> storedParams = new HashMap<>();
+
+                String deployParametersValue = getSelectItemValue(procedureParameters);
+
+                // During reload if at least one value filled, return old values
+                if (!deployParametersValue.isEmpty() && !"{}".equals(deployParametersValue)) {
+                    JSONObject json = JSONObject.fromObject(deployParametersValue);
+                    JSONObject jsonArray = json.getJSONObject("procedure");
+
+                    if (procedureName.equals(jsonArray.get("procedureName"))) {
+                        storedParams = getParamsMapFromProcedureParams(deployParametersValue);
+                    }
+                }
+
+                List<String> parameters = client.getProcedureFormalParameters(projectName, procedureName);
+                JSONObject main = JSONObject.fromObject(
+                        "{'procedure':{'procedureName':'" + procedureName
+                                + "',   'parameters':[]}}");
+                JSONArray ja = main.getJSONObject("procedure")
+                        .getJSONArray("parameters");
+
+                addParametersToJsonAndPreserveStored(parameters, ja, "actualParameterName", "value", storedParams);
+                m.add(main.toString());
+
+                if (m.isEmpty()) {
+                    m.add("{}");
+                }
+
+                return m;
+            } catch (Exception e) {
+                ListBoxModel m = new ListBoxModel();
+                SelectItemValidationWrapper selectItemValidationWrapper;
+
+                if (Utils.isEflowAvailable(configuration)) {
+                    log.error("Error when fetching set of procedure parameters. Error message: " + e.getMessage(), e);
+                    selectItemValidationWrapper = new SelectItemValidationWrapper(
+                            FieldValidationStatus.ERROR,
+                            "Error when fetching set of procedure parameters. Check the Jenkins logs for more details.",
+                            "{}"
+                    );
+                } else {
+                    selectItemValidationWrapper = new SelectItemValidationWrapper(
+                            FieldValidationStatus.ERROR,
+                            "Error when fetching set of procedure parameters. Connection to Electric Flow Server Failed. Please fix connection information and reload this page.",
+                            "{}"
+                    );
+                }
+                m.add(selectItemValidationWrapper.getJsonStr());
+                return m;
             }
-
-            List<String> parameters = client.getProcedureFormalParameters(projectName, procedureName);
-            JSONObject main = JSONObject.fromObject(
-                    "{'procedure':{'procedureName':'" + procedureName
-                            + "',   'parameters':[]}}");
-            JSONArray ja = main.getJSONObject("procedure")
-                    .getJSONArray("parameters");
-
-            addParametersToJson(parameters, ja, "actualParameterName", "value");
-            m.add(main.toString());
-
-            if (m.isEmpty()) {
-                m.add("{}");
-            }
-
-            return m;
-        }
-
-        public ListBoxModel doFillProjectNameItems(
-                @QueryParameter String configuration)
-                throws IOException {
-            return Utils.getProjects(configuration);
         }
 
         @Override
@@ -286,6 +359,63 @@ public class ElectricFlowRunProcedure
         public boolean isApplicable(
                 Class<? extends AbstractProject> aClass) {
             return true;
+        }
+
+        public FormValidation doShowOldValues(
+                @QueryParameter("configuration") final String configuration,
+                @QueryParameter("projectName") final String projectName,
+                @QueryParameter("procedureName") final String procedureName,
+                @QueryParameter("procedureParameters") final String procedureParameters,
+                @QueryParameter("storedConfiguration") final String storedConfiguration,
+                @QueryParameter("storedProjectName") final String storedProjectName,
+                @QueryParameter("storedProcedureName") final String storedProcedureName,
+                @QueryParameter("storedProcedureParameters") final String storedProcedureParameters
+        ) {
+            String configurationValue = configuration;
+            String projectNameValue = getSelectItemValue(projectName);
+            String procedureNameValue = getSelectItemValue(procedureName);
+            String procedureParametersValue = getSelectItemValue(procedureParameters);
+
+            Map<String, String> procedureParamsMap = getParamsMapFromProcedureParams(procedureParametersValue);
+            Map<String, String> storedProcedureParamsMap = getParamsMapFromProcedureParams(storedProcedureParameters);
+
+            String comparisonTable = "<table>"
+                    + getValidationComparisonHeaderRow()
+                    + getValidationComparisonRow("Configuration", storedConfiguration, configurationValue)
+                    + getValidationComparisonRow("Project Name", storedProjectName, projectNameValue)
+                    + getValidationComparisonRow("Procedure Name", storedProcedureName, procedureNameValue)
+                    + getValidationComparisonRowsForExtraParameters("Procedure Parameters", storedProcedureParamsMap, procedureParamsMap)
+                    + "</table>";
+
+            if (configurationValue.equals(storedConfiguration)
+                    && projectNameValue.equals(storedProjectName)
+                    && procedureNameValue.equals(storedProcedureName)
+                    && procedureParamsMap.equals(storedProcedureParamsMap)) {
+                return FormValidation.okWithMarkup("No changes detected:<br>" + comparisonTable);
+            } else {
+                return FormValidation.warningWithMarkup("Changes detected:<br>" + comparisonTable);
+            }
+        }
+
+        static Map<String, String> getParamsMapFromProcedureParams(String procedureParameters) {
+            Map<String, String> paramsMap = new HashMap<>();
+
+            if (procedureParameters == null
+                    || procedureParameters.isEmpty()
+                    || procedureParameters.equals("{}")) {
+                return paramsMap;
+            }
+
+            JSONObject json = JSONObject.fromObject(procedureParameters);
+
+            if (!json.containsKey("procedure")
+                    || !json.getJSONObject("procedure").containsKey("parameters")) {
+                return paramsMap;
+            }
+
+            return getParamsMap(JSONArray.fromObject(json.getJSONObject("procedure").getString("parameters")),
+                    "actualParameterName",
+                    "value");
         }
     }
 }
