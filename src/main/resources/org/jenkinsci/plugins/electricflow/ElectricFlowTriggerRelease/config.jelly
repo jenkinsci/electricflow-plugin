@@ -26,7 +26,7 @@ All rights reserved.
     </f:entry>
 
     <f:invisibleEntry>
-        <f:checkbox field="validationTrigger" id="ef_da_validationTrigger"/>
+        <f:checkbox field="validationTrigger" id="ef_sr_validationTrigger"/>
     </f:invisibleEntry>
 
     <f:invisibleEntry>
@@ -209,7 +209,7 @@ All rights reserved.
         }
 
         function triggerExtraValidation() {
-            document.getElementById("ef_da_validationTrigger").click();
+            document.getElementById("ef_sr_validationTrigger").click();
         }
     </script>
 

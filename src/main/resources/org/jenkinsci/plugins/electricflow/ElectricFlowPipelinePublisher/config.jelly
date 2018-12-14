@@ -27,6 +27,46 @@ All rights reserved.
         <f:select id="addP" onchange="fillParameters()" style="display:none;"/>
     </f:entry>
 
+    <f:invisibleEntry>
+        <f:checkbox field="validationTrigger" id="ef_runPipeline_validationTrigger"/>
+    </f:invisibleEntry>
+
+    <f:invisibleEntry>
+        <f:readOnlyTextbox field="storedConfiguration"/>
+    </f:invisibleEntry>
+    <f:invisibleEntry>
+        <f:readOnlyTextbox field="storedProjectName"/>
+    </f:invisibleEntry>
+    <f:invisibleEntry>
+        <f:readOnlyTextbox field="storedPipelineName"/>
+    </f:invisibleEntry>
+    <f:invisibleEntry>
+        <f:readOnlyTextbox field="storedAddParam"/>
+    </f:invisibleEntry>
+
+    <j:if test="${instance != null}">
+        <f:entry field="validateAndCompareBeforeApply">
+        </f:entry>
+    </j:if>
+    <j:if test="${instance == null}">
+        <f:entry field="validateBeforeApply">
+        </f:entry>
+    </j:if>
+
+    <f:entry>
+        <div style="float:right">
+            <span class="yui-button yui-push-button yui-button validate-button">
+                <button type="button" onclick="triggerExtraValidation();">Validate Before Apply</button>
+            </span>
+        </div>
+        <j:if test="${instance != null}">
+            <f:validateButton title="Compare Before Apply"
+                              progress="Comparing values..."
+                              method="showOldValues"
+                              with="configuration,projectName,pipelineName,addParam,storedConfiguration,storedProjectName,storedPipelineName,storedAddParam" />
+        </j:if>
+    </f:entry>
+
     <script>
         fillParameters();
 
@@ -124,6 +164,10 @@ All rights reserved.
             var td4 = document.createElement('td');
             td4.className = 'setting-no-help';
             row.appendChild(td4);
+        }
+
+        function triggerExtraValidation() {
+            document.getElementById("ef_runPipeline_validationTrigger").click();
         }
     </script>
 
