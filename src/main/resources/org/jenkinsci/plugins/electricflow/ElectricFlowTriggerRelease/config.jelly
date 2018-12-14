@@ -109,11 +109,11 @@ All rights reserved.
                     var row1 = table.insertRow(table.rows.length - 2);
                     row1.className = "_ef_st_row";
                     if (stages.length) {
-                        row1.appendChild(createTitle("Stages to run"));
+                        row1.appendChild(createTitleForTriggerRelease("Stages to run"));
                         stages.forEach(function (elem) {
                             var row = table.insertRow(table.rows.length - 2);
                             row.className = "_ef_sr_stages _ef_st_row";
-                            addParameterRow(row, elem.stageName, elem.stageValue, true);
+                            addParameterRowForTriggerRelease(row, elem.stageName, elem.stageValue, true);
                         });
                     }
 
@@ -130,11 +130,11 @@ All rights reserved.
                     var row1 = table.insertRow(table.rows.length - 2);
                     row1.className = "_ef_st_row";
                     if (parameters.length) {
-                        row1.appendChild(createTitle("Pipeline parameters"));
+                        row1.appendChild(createTitleForTriggerRelease("Pipeline parameters"));
                         parameters.forEach(function (elem) {
                             var row = table.insertRow(table.rows.length - 2);
                             row.className = "_ef_sr_parameters _ef_st_row";
-                            addParameterRow(row, elem.parameterName, elem.parameterValue, false);
+                            addParameterRowForTriggerRelease(row, elem.parameterName, elem.parameterValue, false);
                         });
                     }
                 }
@@ -165,7 +165,7 @@ All rights reserved.
             document.getElementById('ef_sr_parameters').options[0].textContent = JSON.stringify(json);
         }
 
-        function createTitle(title) {
+        function createTitleForTriggerRelease(title) {
             var td = document.createElement('td');
             td.colSpan = 4;
             var div = document.createElement('div');
@@ -175,7 +175,7 @@ All rights reserved.
             return td;
         }
 
-        function addParameterRow(row, label, value, isCheckbox) {
+        function addParameterRowForTriggerRelease(row, label, value, isCheckbox) {
             var td1 = document.createElement('td');
             td1.className = 'setting-leftspace';
             td1.innerHTML = '';
