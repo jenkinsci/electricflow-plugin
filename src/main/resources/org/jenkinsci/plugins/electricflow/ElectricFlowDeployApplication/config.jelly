@@ -63,7 +63,7 @@ All rights reserved.
     <f:entry>
         <div style="float:right">
             <span class="yui-button yui-push-button yui-button validate-button">
-                <button type="button" onclick="triggerExtraValidation();">Validate Before Apply</button>
+                <button type="button" onclick="triggerExtraValidationForDeployApplication();">Validate Before Apply</button>
             </span>
         </div>
         <j:if test="${instance != null}">
@@ -126,7 +126,7 @@ All rights reserved.
             }
         }
 
-        function updateReleaseJson() {
+        function updateDeployJson() {
             var applicationName = document.getElementById("ef_da_applicationName").value;
             var applicationProcessName = document.getElementById("ef_da_applicationProcessName").value;
             var json = JSON.parse('{"runProcess":{"applicationName":"' + applicationName + '", "applicationProcessName":"' + applicationProcessName + '", "parameter":[]}}');
@@ -176,7 +176,7 @@ All rights reserved.
                 input1.style = "width: auto;";
             }
             input1.value = value;
-            input1.onchange = updateReleaseJson;
+            input1.onchange = updateDeployJson;
             input1.className = 'setting-input';
             td3.appendChild(input1);
             row.appendChild(td3);
@@ -186,7 +186,7 @@ All rights reserved.
             row.appendChild(td4);
         }
 
-        function triggerExtraValidation() {
+        function triggerExtraValidationForDeployApplication() {
             document.getElementById("ef_da_validationTrigger").click();
         }
     </script>

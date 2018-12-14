@@ -51,7 +51,7 @@ All rights reserved.
     <f:entry>
         <div style="float:right">
             <span class="yui-button yui-push-button yui-button validate-button">
-                <button type="button" onclick="triggerExtraValidation();">Validate Before Apply</button>
+                <button type="button" onclick="triggerExtraValidationForRunProcedure();">Validate Before Apply</button>
             </span>
         </div>
         <j:if test="${instance != null}">
@@ -175,7 +175,7 @@ All rights reserved.
             row.appendChild(td4);
         }
 
-        function triggerExtraValidation() {
+        function triggerExtraValidationForRunProcedure() {
             document.getElementById("ef_rp_validationTrigger").click();
         }
     </script>

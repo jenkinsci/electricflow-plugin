@@ -56,7 +56,7 @@ All rights reserved.
     <f:entry>
         <div style="float:right">
             <span class="yui-button yui-push-button yui-button validate-button">
-                <button type="button" onclick="triggerExtraValidation();">Validate Before Apply</button>
+                <button type="button" onclick="triggerExtraValidationForRunPipeline();">Validate Before Apply</button>
             </span>
         </div>
         <j:if test="${instance != null}">
@@ -166,7 +166,7 @@ All rights reserved.
             row.appendChild(td4);
         }
 
-        function triggerExtraValidation() {
+        function triggerExtraValidationForRunPipeline() {
             document.getElementById("ef_runPipeline_validationTrigger").click();
         }
     </script>
