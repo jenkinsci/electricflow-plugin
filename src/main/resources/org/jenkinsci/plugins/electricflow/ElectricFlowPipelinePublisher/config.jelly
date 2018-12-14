@@ -105,11 +105,11 @@ All rights reserved.
                     var row1 = table.insertRow(table.rows.length - 2);
                     row1.className = "_ef_row";
                     if (json.length) {
-                        row1.appendChild(createTitle());
+                        row1.appendChild(createTitleForRunPipeline());
                         json.forEach(function (elem) {
                             var row = table.insertRow(table.rows.length - 2);
                             row.className = "_ef_parameters _ef_row";
-                            addParameterRow(row, elem.parameterName, elem.parameterValue);
+                            addParameterRowForRunPipeline(row, elem.parameterName, elem.parameterValue);
                         });
                     }
                 }
@@ -130,7 +130,7 @@ All rights reserved.
             document.getElementById('addP').options[0].textContent = JSON.stringify(json);
         }
 
-        function createTitle() {
+        function createTitleForRunPipeline() {
             var td = document.createElement('td');
             td.colSpan = 4;
             var div = document.createElement('div');
@@ -140,7 +140,7 @@ All rights reserved.
             return td;
         }
 
-        function addParameterRow(row, label, value) {
+        function addParameterRowForRunPipeline(row, label, value) {
             var td1 = document.createElement('td');
             td1.className = 'setting-leftspace';
             td1.innerHTML = '';

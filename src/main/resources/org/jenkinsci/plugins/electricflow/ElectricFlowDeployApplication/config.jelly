@@ -115,11 +115,11 @@ All rights reserved.
                     var row1 = table.insertRow(table.rows.length - 2);
                     row1.className = "_ef_da_row";
                     if (parameters.length) {
-                        row1.appendChild(createTitle("Deploy Parameters"));
+                        row1.appendChild(createTitleForDeployApplication("Deploy Parameters"));
                         parameters.forEach(function (elem) {
                             var row = table.insertRow(table.rows.length - 2);
                             row.className = "_ef_da_parameters _ef_da_row";
-                            addParameterRow(row, elem.actualParameterName, elem.value, false);
+                            addParameterRowForDeployApplication(row, elem.actualParameterName, elem.value, false);
                         });
                     }
                 }
@@ -145,7 +145,7 @@ All rights reserved.
             document.getElementById('ef_da_parameters').options[0].textContent = JSON.stringify(json);
         }
 
-        function createTitle(title) {
+        function createTitleForDeployApplication(title) {
             var td = document.createElement('td');
             td.colSpan = 4;
             var div = document.createElement('div');
@@ -155,7 +155,7 @@ All rights reserved.
             return td;
         }
 
-        function addParameterRow(row, label, value, isCheckbox) {
+        function addParameterRowForDeployApplication(row, label, value, isCheckbox) {
             var td1 = document.createElement('td');
             td1.className = 'setting-leftspace';
             td1.innerHTML = '';
