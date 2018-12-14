@@ -10,7 +10,9 @@
 package org.jenkinsci.plugins.electricflow;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.annotation.Nonnull;
 import javax.servlet.ServletException;
@@ -18,6 +20,9 @@ import javax.servlet.ServletException;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.jenkinsci.plugins.electricflow.ui.FieldValidationStatus;
+import org.jenkinsci.plugins.electricflow.ui.SelectFieldUtils;
+import org.jenkinsci.plugins.electricflow.ui.SelectItemValidationWrapper;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.QueryParameter;
@@ -48,9 +53,10 @@ import hudson.util.ListBoxModel;
 
 import jenkins.tasks.SimpleBuildStep;
 
-import static org.jenkinsci.plugins.electricflow.Utils.addParametersToJson;
-import static org.jenkinsci.plugins.electricflow.Utils.expandParameters;
-import static org.jenkinsci.plugins.electricflow.Utils.formatJsonOutput;
+import static org.jenkinsci.plugins.electricflow.Utils.*;
+import static org.jenkinsci.plugins.electricflow.ui.SelectFieldUtils.checkAnySelectItemsIsValidationWrappers;
+import static org.jenkinsci.plugins.electricflow.ui.SelectFieldUtils.getSelectItemValue;
+import static org.jenkinsci.plugins.electricflow.ui.SelectFieldUtils.isSelectItemValidationWrapper;
 
 public class ElectricFlowPipelinePublisher
     extends Recorder
@@ -196,7 +202,17 @@ public class ElectricFlowPipelinePublisher
         return addParam;
     }
 
+    public String getStoredAddParam()
+    {
+        return addParam;
+    }
+
     public String getConfiguration()
+    {
+        return configuration;
+    }
+
+    public String getStoredConfiguration()
     {
         return configuration;
     }
@@ -210,6 +226,11 @@ public class ElectricFlowPipelinePublisher
     }
 
     public String getPipelineName()
+    {
+        return pipelineName;
+    }
+
+    public String getStoredPipelineName()
     {
         return pipelineName;
     }
@@ -233,6 +254,11 @@ public class ElectricFlowPipelinePublisher
     }
 
     public String getProjectName()
+    {
+        return projectName;
+    }
+
+    public String getStoredProjectName()
     {
         return projectName;
     }
@@ -285,7 +311,7 @@ public class ElectricFlowPipelinePublisher
 
     @DataBoundSetter public void setAddParam(String addParam)
     {
-        this.addParam = addParam;
+        this.addParam = getSelectItemValue(addParam);
     }
 
     @DataBoundSetter public void setConfiguration(String configuration)
@@ -295,12 +321,12 @@ public class ElectricFlowPipelinePublisher
 
     @DataBoundSetter public void setPipelineName(String pipelineName)
     {
-        this.pipelineName = pipelineName;
+        this.pipelineName = getSelectItemValue(pipelineName);
     }
 
     @DataBoundSetter public void setProjectName(String projectName)
     {
-        this.projectName = projectName;
+        this.projectName = getSelectItemValue(projectName);
     }
 
     //~ Inner Classes ----------------------------------------------------------
@@ -330,90 +356,115 @@ public class ElectricFlowPipelinePublisher
 
         //~ Methods ------------------------------------------------------------
 
-        public FormValidation doCheckConfiguration(
-                @QueryParameter String value)
-        {
+        public FormValidation doCheckConfiguration(@QueryParameter String value,
+                                                   @QueryParameter boolean validationTrigger) {
             return Utils.validateConfiguration(value);
         }
 
-        public FormValidation doCheckPipelineName(@QueryParameter String value)
-        {
+        public FormValidation doCheckPipelineName(@QueryParameter String value,
+                                                  @QueryParameter boolean validationTrigger) {
+            if (isSelectItemValidationWrapper(value)) {
+                return SelectFieldUtils.getFormValidationBasedOnSelectItemValidationWrapper(value);
+            }
             return Utils.validateValueOnEmpty(value, "Pipeline name");
         }
 
-        public FormValidation doCheckProjectName(@QueryParameter String value)
-        {
+        public FormValidation doCheckProjectName(@QueryParameter String value,
+                                                 @QueryParameter boolean validationTrigger) {
+            if (isSelectItemValidationWrapper(value)) {
+                return SelectFieldUtils.getFormValidationBasedOnSelectItemValidationWrapper(value);
+            }
             return Utils.validateValueOnEmpty(value, "Project name");
+        }
+
+        public FormValidation doCheckAddParam(@QueryParameter String value,
+                                              @QueryParameter boolean validationTrigger) {
+            if (isSelectItemValidationWrapper(value)) {
+                return SelectFieldUtils.getFormValidationBasedOnSelectItemValidationWrapper(value);
+            }
+            return FormValidation.ok();
         }
 
         public ListBoxModel doFillAddParamItems(
                 @QueryParameter String configuration,
                 @QueryParameter String pipelineName,
-                @QueryParameter String addParam)
-            throws Exception
-        {
-            ListBoxModel m = new ListBoxModel();
+                @QueryParameter String addParam) {
+            try {
+                ListBoxModel m = new ListBoxModel();
 
-            if (configuration.isEmpty() || pipelineName.isEmpty()) {
-                m.add("{}");
-
-                return m;
-            }
-
-            // During reload if at least one value filled, return old values
-            if (!addParam.isEmpty() && !"{}".equals(addParam)) {
-                JSONObject json      = JSONObject.fromObject(addParam);
-                JSONObject jsonArray = json.getJSONObject("pipeline");
-
-                if (pipelineName.equals(jsonArray.get("pipelineName"))) {
-                    m.add(addParam);
+                if (configuration.isEmpty()
+                        || pipelineName.isEmpty()
+                        || checkAnySelectItemsIsValidationWrappers(pipelineName)) {
+                    m.add("{}");
 
                     return m;
                 }
-            }
 
-            if (!configuration.isEmpty() && !pipelineName.isEmpty()) {
+                Map<String, String> storedParams = new HashMap<>();
+
+                String addParamValue = getSelectItemValue(addParam);
+
+                if (!addParamValue.isEmpty() && !"{}".equals(addParamValue)) {
+                    JSONObject json      = JSONObject.fromObject(addParamValue);
+                    JSONObject jsonArray = json.getJSONObject("pipeline");
+
+                    if (pipelineName.equals(jsonArray.get("pipelineName"))) {
+                        storedParams = getParamsMapFromAddParam(addParamValue);
+                    }
+                }
+
                 ElectricFlowClient efClient   = new ElectricFlowClient(
                         configuration);
                 List<String>       parameters =
-                    efClient.getPipelineFormalParameters(pipelineName);
+                        efClient.getPipelineFormalParameters(pipelineName);
                 JSONObject         main       = JSONObject.fromObject(
                         "{'pipeline':{'pipelineName':'" + pipelineName
-                            + "','parameters':[]}}");
+                                + "','parameters':[]}}");
                 JSONArray          ja         = main.getJSONObject("pipeline")
-                                                    .getJSONArray("parameters");
+                        .getJSONArray("parameters");
 
-                addParametersToJson(parameters, ja, "parameterName",
-                    "parameterValue");
+                addParametersToJsonAndPreserveStored(parameters, ja, "parameterName", "parameterValue", storedParams);
                 m.add(main.toString());
-            }
 
-            if (m.isEmpty()) {
-                m.add("{}");
-            }
+                if (m.isEmpty()) {
+                    m.add("{}");
+                }
 
-            return m;
+                return m;
+            } catch (Exception e) {
+                ListBoxModel m = new ListBoxModel();
+                SelectItemValidationWrapper selectItemValidationWrapper;
+
+                if (Utils.isEflowAvailable(configuration)) {
+                    log.error("Error when fetching set of pipeline parameters. Error message: " + e.getMessage(), e);
+                    selectItemValidationWrapper = new SelectItemValidationWrapper(
+                            FieldValidationStatus.ERROR,
+                            "Error when fetching set of pipeline parameters. Check the Jenkins logs for more details.",
+                            "{}"
+                    );
+                } else {
+                    selectItemValidationWrapper = new SelectItemValidationWrapper(
+                            FieldValidationStatus.ERROR,
+                            "Error when fetching set of pipeline parameters. Connection to Electric Flow Server Failed. Please fix connection information and reload this page.",
+                            "{}"
+                    );
+                }
+                m.add(selectItemValidationWrapper.getJsonStr());
+                return m;
+            }
         }
 
-        public ListBoxModel doFillConfigurationItems()
-        {
+        public ListBoxModel doFillConfigurationItems() {
             return Utils.fillConfigurationItems();
         }
 
         public ListBoxModel doFillPipelineNameItems(
                 @QueryParameter String projectName,
-                @QueryParameter String configuration,
-                @QueryParameter String pipelineName)
-            throws Exception
-        {
-            return Utils.getPipelines(configuration, projectName, pipelineName,
-                log);
+                @QueryParameter String configuration) {
+            return Utils.getPipelines(configuration, projectName);
         }
 
-        public ListBoxModel doFillProjectNameItems(
-                @QueryParameter String configuration)
-            throws Exception
-        {
+        public ListBoxModel doFillProjectNameItems(@QueryParameter String configuration) {
             return Utils.getProjects(configuration);
         }
 
@@ -463,6 +514,63 @@ public class ElectricFlowPipelinePublisher
             // Indicates that this builder can be used with all kinds of
             // project types
             return true;
+        }
+
+        public FormValidation doShowOldValues(
+                @QueryParameter("configuration") final String configuration,
+                @QueryParameter("projectName") final String projectName,
+                @QueryParameter("pipelineName") final String pipelineName,
+                @QueryParameter("addParam") final String addParam,
+                @QueryParameter("storedConfiguration") final String storedConfiguration,
+                @QueryParameter("storedProjectName") final String storedProjectName,
+                @QueryParameter("storedPipelineName") final String storedPipelineName,
+                @QueryParameter("storedAddParam") final String storedAddParam
+        ) {
+            String configurationValue = configuration;
+            String projectNameValue = getSelectItemValue(projectName);
+            String pipelineNameValue = getSelectItemValue(pipelineName);
+            String addParamValue = getSelectItemValue(addParam);
+
+            Map<String, String> pipelineParamsMap = getParamsMapFromAddParam(addParamValue);
+            Map<String, String> storedPipelineParamsMap = getParamsMapFromAddParam(storedAddParam);
+
+            String comparisonTable = "<table>"
+                    + getValidationComparisonHeaderRow()
+                    + getValidationComparisonRow("Configuration", storedConfiguration, configurationValue)
+                    + getValidationComparisonRow("Project Name", storedProjectName, projectNameValue)
+                    + getValidationComparisonRow("Pipeline Name", storedPipelineName, pipelineNameValue)
+                    + getValidationComparisonRowsForExtraParameters("Pipeline Parameters", storedPipelineParamsMap, pipelineParamsMap)
+                    + "</table>";
+
+            if (configurationValue.equals(storedConfiguration)
+                    && projectNameValue.equals(storedProjectName)
+                    && pipelineNameValue.equals(storedPipelineName)
+                    && pipelineParamsMap.equals(storedPipelineParamsMap)) {
+                return FormValidation.okWithMarkup("No changes detected:<br>" + comparisonTable);
+            } else {
+                return FormValidation.warningWithMarkup("Changes detected:<br>" + comparisonTable);
+            }
+        }
+
+        static Map<String, String> getParamsMapFromAddParam(String addParam) {
+            Map<String, String> paramsMap = new HashMap<>();
+
+            if (addParam == null
+                    || addParam.isEmpty()
+                    || addParam.equals("{}")) {
+                return paramsMap;
+            }
+
+            JSONObject json = JSONObject.fromObject(addParam);
+
+            if (!json.containsKey("pipeline")
+                    || !json.getJSONObject("pipeline").containsKey("parameters")) {
+                return paramsMap;
+            }
+
+            return getParamsMap(JSONArray.fromObject(json.getJSONObject("pipeline").getString("parameters")),
+                    "parameterName",
+                    "parameterValue");
         }
     }
 }

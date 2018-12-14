@@ -243,66 +243,49 @@ public class Utils
         return summaryText;
     }
 
-    public static ListBoxModel getPipelines(
-            String configuration,
-            String projectName,
-            String pipelineName,
-            Log    log)
-        throws IOException
-    {
-        ListBoxModel m = new ListBoxModel();
+    public static ListBoxModel getPipelines(String configuration, String projectName) {
+        try {
+            ListBoxModel m = new ListBoxModel();
 
-        m.add("Select pipeline", "");
+            m.add("Select pipeline", "");
 
-        if (!projectName.isEmpty() && !configuration.isEmpty()) {
-            ElectricFlowClient efClient        = new ElectricFlowClient(
-                    configuration);
-            String             pipelinesString = efClient.getPipelines(
-                    projectName);
-
-            if (log.isDebugEnabled()) {
-                log.debug("Got pipelines: " + pipelinesString);
-            }
-
-            JSONObject jsonObject;
-
-            try {
-                jsonObject = JSONObject.fromObject(pipelinesString);
-            }
-            catch (Exception e) {
+            if (!projectName.isEmpty()
+                    && !configuration.isEmpty()
+                    && SelectFieldUtils.checkAllSelectItemsAreNotValidationWrappers(projectName)) {
+                ElectricFlowClient efClient = new ElectricFlowClient(configuration);
+                String pipelinesString = efClient.getPipelines(projectName);
 
                 if (log.isDebugEnabled()) {
-                    log.debug("Malformed JSON" + pipelinesString);
+                    log.debug("Got pipelines: " + pipelinesString);
                 }
 
-                log.error(e.getMessage(), e);
+                JSONObject jsonObject;
 
-                return m;
-            }
+                jsonObject = JSONObject.fromObject(pipelinesString);
 
-            JSONArray pipelines = new JSONArray();
-
-            try {
+                JSONArray pipelines = new JSONArray();
 
                 if (!jsonObject.isEmpty()) {
                     pipelines = jsonObject.getJSONArray("pipeline");
                 }
+
+                for (int i = 0; i < pipelines.size(); i++) {
+                    String gotPipelineName = pipelines.getJSONObject(i)
+                            .getString("pipelineName");
+
+                    m.add(gotPipelineName, gotPipelineName);
+                }
             }
-            catch (Exception e) {
-                log.error(e.getMessage(), e);
 
-                return m;
-            }
-
-            for (int i = 0; i < pipelines.size(); i++) {
-                String gotPipelineName = pipelines.getJSONObject(i)
-                                                  .getString("pipelineName");
-
-                m.add(gotPipelineName, gotPipelineName);
+            return m;
+        } catch (Exception e) {
+            if (Utils.isEflowAvailable(configuration)) {
+                log.error("Error when fetching values for this parameter - pipeline. Error message: " + e.getMessage(), e);
+                return SelectFieldUtils.getListBoxModelOnException("Select pipeline");
+            } else {
+                return SelectFieldUtils.getListBoxModelOnWrongConf("Select pipeline");
             }
         }
-
-        return m;
     }
 
     public static boolean isEflowAvailable(String configuration) {

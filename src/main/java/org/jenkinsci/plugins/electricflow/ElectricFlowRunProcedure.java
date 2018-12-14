@@ -297,7 +297,6 @@ public class ElectricFlowRunProcedure
 
                 String deployParametersValue = getSelectItemValue(procedureParameters);
 
-                // During reload if at least one value filled, return old values
                 if (!deployParametersValue.isEmpty() && !"{}".equals(deployParametersValue)) {
                     JSONObject json = JSONObject.fromObject(deployParametersValue);
                     JSONObject jsonArray = json.getJSONObject("procedure");
