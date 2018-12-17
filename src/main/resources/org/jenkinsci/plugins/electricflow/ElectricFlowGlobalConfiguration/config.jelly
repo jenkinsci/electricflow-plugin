@@ -34,7 +34,7 @@ All rights reserved.
                   <f:password />
               </f:entry>
 
-              <f:entry title="Ignore SSL Connection Errors" field="ignoreSslConnectionErrors">
+              <f:entry title="Override Electric Flow SSL Validation Check" field="ignoreSslConnectionErrors">
               <f:checkbox />
               </f:entry>
 

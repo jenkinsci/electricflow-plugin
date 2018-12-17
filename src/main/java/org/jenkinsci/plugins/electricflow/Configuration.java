@@ -11,6 +11,8 @@ package org.jenkinsci.plugins.electricflow;
 
 import java.io.IOException;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
 
@@ -30,7 +32,7 @@ public class Configuration
     extends AbstractDescribableImpl<Configuration>
 {
 
-    //~ Instance fields --------------------------------------------------------
+    private static final Log log = LogFactory.getLog(Configuration.class);
 
     private final String configurationName;
     private final String electricFlowUser;
@@ -178,7 +180,8 @@ public class Configuration
                 return FormValidation.ok("Success");
             }
             catch (Exception e) {
-                return FormValidation.error("Wrong configurations");
+                log.warn("Wrong configuration - connection to Electric Flow server failed", e);
+                return FormValidation.error("Wrong configuration - connection to Electric Flow server failed. Error message: " + e.getMessage());
             }
         }
 
