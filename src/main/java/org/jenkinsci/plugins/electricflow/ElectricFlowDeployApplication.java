@@ -9,44 +9,39 @@
 
 package org.jenkinsci.plugins.electricflow;
 
-import java.io.IOException;
-import java.io.PrintStream;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import javax.annotation.Nonnull;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
-import org.kohsuke.stapler.DataBoundConstructor;
-import org.kohsuke.stapler.DataBoundSetter;
-import org.kohsuke.stapler.QueryParameter;
-
-import net.sf.json.JSONArray;
-import net.sf.json.JSONObject;
-
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
-
 import hudson.model.AbstractProject;
+import hudson.model.Result;
 import hudson.model.Run;
 import hudson.model.TaskListener;
-
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.BuildStepMonitor;
 import hudson.tasks.Publisher;
 import hudson.tasks.Recorder;
-
 import hudson.util.FormValidation;
 import hudson.util.ListBoxModel;
-
 import jenkins.tasks.SimpleBuildStep;
+import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.jenkinsci.plugins.electricflow.ui.FieldValidationStatus;
+import org.jenkinsci.plugins.electricflow.ui.SelectFieldUtils;
+import org.jenkinsci.plugins.electricflow.ui.SelectItemValidationWrapper;
+import org.kohsuke.stapler.DataBoundConstructor;
+import org.kohsuke.stapler.DataBoundSetter;
+import org.kohsuke.stapler.QueryParameter;
 
-import static org.jenkinsci.plugins.electricflow.Utils.addParametersToJson;
-import static org.jenkinsci.plugins.electricflow.Utils.formatJsonOutput;
+import javax.annotation.Nonnull;
+import java.io.IOException;
+import java.io.PrintStream;
+import java.util.*;
+
+import static org.jenkinsci.plugins.electricflow.Utils.*;
+import static org.jenkinsci.plugins.electricflow.ui.SelectFieldUtils.getSelectItemValue;
+import static org.jenkinsci.plugins.electricflow.ui.SelectFieldUtils.isSelectItemValidationWrapper;
 
 public class ElectricFlowDeployApplication
     extends Recorder
@@ -55,8 +50,7 @@ public class ElectricFlowDeployApplication
 
     //~ Static fields/initializers ---------------------------------------------
 
-    private static final Log log = LogFactory.getLog(
-            ElectricFlowStartRelease.class);
+    private static final Log log = LogFactory.getLog(ElectricFlowDeployApplication.class);
 
     //~ Instance fields --------------------------------------------------------
 
@@ -80,7 +74,10 @@ public class ElectricFlowDeployApplication
             @Nonnull TaskListener taskListener)
         throws InterruptedException, IOException
     {
-        runProcess(run, taskListener);
+        boolean isSuccess = runProcess(run, taskListener);
+        if (!isSuccess) {
+            run.setResult(Result.FAILURE);
+        }
     }
 
     private boolean runProcess(
@@ -148,12 +145,25 @@ public class ElectricFlowDeployApplication
         return applicationName;
     }
 
+    public String getStoredApplicationName() {
+        return applicationName;
+    }
+
     public String getApplicationProcessName()
     {
         return applicationProcessName;
     }
 
+    public String getStoredApplicationProcessName() {
+        return applicationProcessName;
+    }
+
     public String getConfiguration()
+    {
+        return configuration;
+    }
+
+    public String getStoredConfiguration()
     {
         return configuration;
     }
@@ -163,14 +173,31 @@ public class ElectricFlowDeployApplication
         return deployParameters;
     }
 
+    public String getStoredDeployParameters()
+    {
+        return deployParameters;
+    }
+
     public String getEnvironmentName()
     {
+        return environmentName;
+    }
+
+    public String getStoredEnvironmentName() {
         return environmentName;
     }
 
     public String getProjectName()
     {
         return projectName;
+    }
+
+    public String getStoredProjectName() {
+        return projectName;
+    }
+
+    public boolean getValidationTrigger() {
+        return true;
     }
 
     @Override public BuildStepMonitor getRequiredMonitorService()
@@ -215,13 +242,13 @@ public class ElectricFlowDeployApplication
 
     @DataBoundSetter public void setApplicationName(String applicationName)
     {
-        this.applicationName = applicationName;
+        this.applicationName = getSelectItemValue(applicationName);
     }
 
     @DataBoundSetter public void setApplicationProcessName(
             String applicationProcessName)
     {
-        this.applicationProcessName = applicationProcessName;
+        this.applicationProcessName = getSelectItemValue(applicationProcessName);
     }
 
     @DataBoundSetter public void setConfiguration(String configuration)
@@ -231,17 +258,21 @@ public class ElectricFlowDeployApplication
 
     @DataBoundSetter public void setDeployParameters(String deployParameters)
     {
-        this.deployParameters = deployParameters;
+        this.deployParameters = getSelectItemValue(deployParameters);
     }
 
     @DataBoundSetter public void setEnvironmentName(String environmentName)
     {
-        this.environmentName = environmentName;
+        this.environmentName = getSelectItemValue(environmentName);
     }
 
     @DataBoundSetter public void setProjectName(String projectName)
     {
-        this.projectName = projectName;
+        this.projectName = getSelectItemValue(projectName);
+    }
+
+    @DataBoundSetter public void setValidationTrigger(String validationTrigger) {
+
     }
 
     //~ Inner Classes ----------------------------------------------------------
@@ -252,8 +283,6 @@ public class ElectricFlowDeployApplication
 
         //~ Instance fields ----------------------------------------------------
 
-        private ElectricFlowClient client;
-
         //~ Constructors -------------------------------------------------------
 
         public DescriptorImpl()
@@ -263,62 +292,116 @@ public class ElectricFlowDeployApplication
 
         //~ Methods ------------------------------------------------------------
 
-        public FormValidation doCheckConfiguration(
-                @QueryParameter String value)
-        {
-            return Utils.validateValueOnEmpty(value, "Configuration");
+        public FormValidation doCheckConfiguration(@QueryParameter String value,
+                                                   @QueryParameter boolean validationTrigger) {
+            return Utils.validateConfiguration(value);
         }
 
-        public FormValidation doCheckProjectName(@QueryParameter String value)
-        {
+        public FormValidation doCheckDeployParameters(@QueryParameter String value,
+                                                      @QueryParameter boolean validationTrigger
+                                                      ) {
+            if (isSelectItemValidationWrapper(value)) {
+                return SelectFieldUtils.getFormValidationBasedOnSelectItemValidationWrapper(value);
+            }
+            return FormValidation.ok();
+        }
+
+        public FormValidation doCheckProjectName(@QueryParameter String value,
+                                                 @QueryParameter boolean validationTrigger) {
+            if (isSelectItemValidationWrapper(value)) {
+                return SelectFieldUtils.getFormValidationBasedOnSelectItemValidationWrapper(value);
+            }
             return Utils.validateValueOnEmpty(value, "Project name");
+        }
+
+        public FormValidation doCheckApplicationName(@QueryParameter String value,
+                                                     @QueryParameter boolean validationTrigger) {
+            if (isSelectItemValidationWrapper(value)) {
+                return SelectFieldUtils.getFormValidationBasedOnSelectItemValidationWrapper(value);
+            }
+            return Utils.validateValueOnEmpty(value, "Application name");
+        }
+
+        public FormValidation doCheckApplicationProcessName(@QueryParameter String value,
+                                                            @QueryParameter boolean validationTrigger) {
+            if (isSelectItemValidationWrapper(value)) {
+                return SelectFieldUtils.getFormValidationBasedOnSelectItemValidationWrapper(value);
+            }
+            return Utils.validateValueOnEmpty(value, "Application process name");
+        }
+
+        public FormValidation doCheckEnvironmentName(@QueryParameter String value,
+                                                     @QueryParameter boolean validationTrigger) {
+            if (isSelectItemValidationWrapper(value)) {
+                return SelectFieldUtils.getFormValidationBasedOnSelectItemValidationWrapper(value);
+            }
+            return Utils.validateValueOnEmpty(value, "Environment name");
         }
 
         public ListBoxModel doFillApplicationNameItems(
                 @QueryParameter String projectName,
-                @QueryParameter String configuration)
-            throws IOException
-        {
-            ListBoxModel m = new ListBoxModel();
+                @QueryParameter String configuration) {
+            try {
+                ListBoxModel m = new ListBoxModel();
 
-            m.add("Select application", "");
+                m.add("Select application", "");
 
-            if (!configuration.isEmpty() && !projectName.isEmpty()) {
+                if (!configuration.isEmpty()
+                        && !projectName.isEmpty()
+                        && SelectFieldUtils.checkAllSelectItemsAreNotValidationWrappers(projectName)) {
+                    ElectricFlowClient client = new ElectricFlowClient(configuration);
 
-                if (client == null) {
-                    client = new ElectricFlowClient(configuration);
+                    List<String> applications = client.getApplications(projectName);
+
+                    for (String application : applications) {
+                        m.add(application);
+                    }
                 }
 
-                List<String> applications = client.getApplications(projectName);
+                return m;
+            } catch (Exception e) {
+                if (Utils.isEflowAvailable(configuration)) {
+                    log.error("Error when fetching values for this parameter - application. Error message: " + e.getMessage(), e);
+                    return SelectFieldUtils.getListBoxModelOnException("Select application");
+                } else {
+                    return SelectFieldUtils.getListBoxModelOnWrongConf("Select application");
 
-                for (String application : applications) {
-                    m.add(application);
                 }
             }
-
-            return m;
         }
 
         public ListBoxModel doFillApplicationProcessNameItems(
                 @QueryParameter String configuration,
                 @QueryParameter String projectName,
-                @QueryParameter String applicationName)
-            throws IOException
-        {
-            ListBoxModel m = new ListBoxModel();
+                @QueryParameter String applicationName) {
+            try {
+                ListBoxModel m = new ListBoxModel();
 
-            m.add("Select Application process name", "");
+                m.add("Select application process", "");
 
-            if (!projectName.isEmpty() && !applicationName.isEmpty()) {
-                List<String> processes = client.getProcesses(projectName,
-                        applicationName);
+                if (!configuration.isEmpty()
+                        && !projectName.isEmpty()
+                        && !applicationName.isEmpty()
+                        && SelectFieldUtils.checkAllSelectItemsAreNotValidationWrappers(projectName, applicationName)) {
+                    ElectricFlowClient client = new ElectricFlowClient(configuration);
+                    List<String> processes = client.getProcesses(projectName,
+                            applicationName);
 
-                for (String process : processes) {
-                    m.add(process);
+                    for (String process : processes) {
+                        m.add(process);
+                    }
+                }
+
+                return m;
+            } catch (Exception e) {
+                if (Utils.isEflowAvailable(configuration)) {
+                    log.error("Error when fetching values for this parameter - application process. Error message: " + e.getMessage(), e);
+                    return SelectFieldUtils.getListBoxModelOnException("Select application process");
+                } else {
+                    return SelectFieldUtils.getListBoxModelOnWrongConf("Select application process");
+
                 }
             }
-
-            return m;
         }
 
         public ListBoxModel doFillConfigurationItems()
@@ -331,77 +414,112 @@ public class ElectricFlowDeployApplication
                 @QueryParameter String projectName,
                 @QueryParameter String applicationName,
                 @QueryParameter String applicationProcessName,
-                @QueryParameter String deployParameters)
-            throws IOException
-        {
-            ListBoxModel m = new ListBoxModel();
+                @QueryParameter String deployParameters) {
+            try {
+                ListBoxModel m = new ListBoxModel();
 
-            if (configuration.isEmpty() || projectName.isEmpty()
-                    || applicationName.isEmpty()
-                    || applicationProcessName.isEmpty()) {
-                m.add("{}");
-
-                return m;
-            }
-
-            // During reload if at least one value filled, return old values
-            if (!deployParameters.isEmpty() && !"{}".equals(deployParameters)) {
-                JSONObject json      = JSONObject.fromObject(deployParameters);
-                JSONObject jsonArray = json.getJSONObject("runProcess");
-
-                if (applicationName.equals(jsonArray.get("applicationName"))
-                        && applicationProcessName.equals(
-                            jsonArray.get("applicationProcessName"))) {
-                    m.add(deployParameters);
+                if (configuration.isEmpty()
+                        || projectName.isEmpty()
+                        || applicationName.isEmpty()
+                        || applicationProcessName.isEmpty()
+                        || !SelectFieldUtils.checkAllSelectItemsAreNotValidationWrappers(projectName, applicationName, applicationProcessName)) {
+                    m.add("{}");
 
                     return m;
                 }
+
+                ElectricFlowClient client = new ElectricFlowClient(configuration);
+
+                Map<String, String> storedParams = new HashMap<>();
+
+                String deployParametersValue = getSelectItemValue(deployParameters);
+
+                // During reload if at least one value filled, return old values
+                if (!deployParametersValue.isEmpty() && !"{}".equals(deployParametersValue)) {
+                    JSONObject json      = JSONObject.fromObject(deployParametersValue);
+                    JSONObject jsonArray = json.getJSONObject("runProcess");
+
+                    if (applicationName.equals(jsonArray.get("applicationName"))
+                            && applicationProcessName.equals(
+                            jsonArray.get("applicationProcessName"))) {
+                        storedParams = getParamsMapFromDeployParams(deployParametersValue);
+                    }
+                }
+
+                List<String> parameters = client.getFormalParameters(projectName,
+                        applicationName, applicationProcessName);
+                JSONObject   main       = JSONObject.fromObject(
+                        "{'runProcess':{'applicationName':'" + applicationName
+                                + "', 'applicationProcessName':'"
+                                + applicationProcessName
+                                + "',   'parameter':[]}}");
+                JSONArray    ja         = main.getJSONObject("runProcess")
+                        .getJSONArray("parameter");
+
+                addParametersToJsonAndPreserveStored(parameters, ja, "actualParameterName", "value", storedParams);
+                m.add(main.toString());
+
+                if (m.isEmpty()) {
+                    m.add("{}");
+                }
+
+                return m;
+            } catch (Exception e) {
+                ListBoxModel m = new ListBoxModel();
+                SelectItemValidationWrapper selectItemValidationWrapper;
+
+                if (Utils.isEflowAvailable(configuration)) {
+                    log.error("Error when fetching set of deploy parameters. Error message: " + e.getMessage(), e);
+                    selectItemValidationWrapper = new SelectItemValidationWrapper(
+                            FieldValidationStatus.ERROR,
+                            "Error when fetching set of deploy parameters. Check the Jenkins logs for more details.",
+                            "{}"
+                    );
+                } else {
+                    selectItemValidationWrapper = new SelectItemValidationWrapper(
+                            FieldValidationStatus.ERROR,
+                            "Error when fetching set of deploy parameters. Connection to Electric Flow Server Failed. Please fix connection information and reload this page.",
+                            "{}"
+                    );
+                }
+                m.add(selectItemValidationWrapper.getJsonStr());
+                return m;
             }
-
-            List<String> parameters = client.getFormalParameters(projectName,
-                    applicationName, applicationProcessName);
-            JSONObject   main       = JSONObject.fromObject(
-                    "{'runProcess':{'applicationName':'" + applicationName
-                        + "', 'applicationProcessName':'"
-                        + applicationProcessName
-                        + "',   'parameter':[]}}");
-            JSONArray    ja         = main.getJSONObject("runProcess")
-                                          .getJSONArray("parameter");
-
-            addParametersToJson(parameters, ja, "actualParameterName", "value");
-            m.add(main.toString());
-
-            if (m.isEmpty()) {
-                m.add("{}");
-            }
-
-            return m;
         }
 
         public ListBoxModel doFillEnvironmentNameItems(
                 @QueryParameter String configuration,
-                @QueryParameter String projectName)
-            throws IOException
-        {
-            ListBoxModel m = new ListBoxModel();
+                @QueryParameter String projectName) {
+            try {
+                ListBoxModel m = new ListBoxModel();
 
-            m.add("Select Environment name", "");
+                m.add("Select environment", "");
 
-            if (!configuration.isEmpty() && !projectName.isEmpty()) {
-                List<String> environments = client.getEnvironments(projectName);
+                if (!configuration.isEmpty()
+                        && !projectName.isEmpty()
+                        && SelectFieldUtils.checkAllSelectItemsAreNotValidationWrappers(projectName)) {
+                    ElectricFlowClient client = new ElectricFlowClient(configuration);
+                    List<String> environments = client.getEnvironments(projectName);
 
-                for (String environment : environments) {
-                    m.add(environment);
+                    for (String environment : environments) {
+                        m.add(environment);
+                    }
+                }
+
+                return m;
+            } catch (Exception e) {
+                if (Utils.isEflowAvailable(configuration)) {
+                    log.error("Error when fetching values for this parameter - environment. Error message: " + e.getMessage(), e);
+                    return SelectFieldUtils.getListBoxModelOnException("Select environment");
+                } else {
+                    return SelectFieldUtils.getListBoxModelOnWrongConf("Select environment");
+
                 }
             }
-
-            return m;
         }
 
         public ListBoxModel doFillProjectNameItems(
-                @QueryParameter String configuration)
-            throws IOException
-        {
+                @QueryParameter String configuration) {
             return Utils.getProjects(configuration);
         }
 
@@ -419,6 +537,73 @@ public class ElectricFlowDeployApplication
                 Class<? extends AbstractProject> aClass)
         {
             return true;
+        }
+
+        public FormValidation doShowOldValues(
+                @QueryParameter("configuration") final String configuration,
+                @QueryParameter("projectName") final String projectName,
+                @QueryParameter("applicationName") final String applicationName,
+                @QueryParameter("applicationProcessName") final String applicationProcessName,
+                @QueryParameter("environmentName") final String environmentName,
+                @QueryParameter("deployParameters") final String deployParameters,
+                @QueryParameter("storedConfiguration") final String storedConfiguration,
+                @QueryParameter("storedProjectName") final String storedProjectName,
+                @QueryParameter("storedApplicationName") final String storedApplicationName,
+                @QueryParameter("storedApplicationProcessName") final String storedApplicationProcessName,
+                @QueryParameter("storedEnvironmentName") final String storedEnvironmentName,
+                @QueryParameter("storedDeployParameters") final String storedDeployParameters
+        ) {
+            String configurationValue = configuration;
+            String projectNameValue = getSelectItemValue(projectName);
+            String applicationNameValue = getSelectItemValue(applicationName);
+            String applicationProcessNameValue = getSelectItemValue(applicationProcessName);
+            String environmentNameValue = getSelectItemValue(environmentName);
+            String deployParametersValue = getSelectItemValue(deployParameters);
+
+            Map<String, String> deployParamsMap = getParamsMapFromDeployParams(deployParametersValue);
+            Map<String, String> storedDeployParamsMap = getParamsMapFromDeployParams(storedDeployParameters);
+
+            String comparisonTable = "<table>"
+                    + getValidationComparisonHeaderRow()
+                    + getValidationComparisonRow("Configuration", storedConfiguration, configurationValue)
+                    + getValidationComparisonRow("Project Name", storedProjectName, projectNameValue)
+                    + getValidationComparisonRow("Application Name", storedApplicationName, applicationNameValue)
+                    + getValidationComparisonRow("Application Process Name", storedApplicationProcessName, applicationProcessNameValue)
+                    + getValidationComparisonRow("Environment Name", storedEnvironmentName, environmentNameValue)
+                    + getValidationComparisonRowsForExtraParameters("Deploy Parameters", storedDeployParamsMap, deployParamsMap)
+                    + "</table>";
+
+            if (configurationValue.equals(storedConfiguration)
+                    && projectNameValue.equals(storedProjectName)
+                    && applicationNameValue.equals(storedApplicationName)
+                    && applicationProcessNameValue.equals(storedApplicationProcessName)
+                    && environmentNameValue.equals(storedEnvironmentName)
+                    && deployParamsMap.equals(storedDeployParamsMap)) {
+                return FormValidation.okWithMarkup("No changes detected:<br>" + comparisonTable);
+            } else {
+                return FormValidation.warningWithMarkup("Changes detected:<br>" + comparisonTable);
+            }
+        }
+
+        static Map<String, String> getParamsMapFromDeployParams(String deployParameters) {
+            Map<String, String> paramsMap = new HashMap<>();
+
+            if (deployParameters == null
+                    || deployParameters.isEmpty()
+                    || deployParameters.equals("{}")) {
+                return paramsMap;
+            }
+
+            JSONObject json = JSONObject.fromObject(deployParameters);
+
+            if (!json.containsKey("runProcess")
+                    || !json.getJSONObject("runProcess").containsKey("parameter")) {
+                return paramsMap;
+            }
+
+            return getParamsMap(JSONArray.fromObject(json.getJSONObject("runProcess").getString("parameter")),
+                    "actualParameterName",
+                    "value");
         }
     }
 }

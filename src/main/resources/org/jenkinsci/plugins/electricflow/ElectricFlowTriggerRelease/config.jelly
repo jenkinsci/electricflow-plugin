@@ -25,6 +25,49 @@ All rights reserved.
         <f:select id="ef_sr_parameters" onchange="fillReleasesParameters()" style="display:none;"/>
     </f:entry>
 
+    <f:invisibleEntry>
+        <f:checkbox field="validationTrigger" id="ef_sr_validationTrigger"/>
+    </f:invisibleEntry>
+
+    <f:invisibleEntry>
+        <f:readOnlyTextbox field="storedConfiguration"/>
+    </f:invisibleEntry>
+    <f:invisibleEntry>
+        <f:readOnlyTextbox field="storedProjectName"/>
+    </f:invisibleEntry>
+    <f:invisibleEntry>
+        <f:readOnlyTextbox field="storedReleaseName"/>
+    </f:invisibleEntry>
+    <f:invisibleEntry>
+        <f:readOnlyTextbox field="storedStartingStage"/>
+    </f:invisibleEntry>
+    <f:invisibleEntry>
+        <f:readOnlyTextbox field="storedParameters"/>
+    </f:invisibleEntry>
+
+    <j:if test="${instance != null}">
+        <f:entry field="validateAndCompareBeforeApply">
+        </f:entry>
+    </j:if>
+    <j:if test="${instance == null}">
+        <f:entry field="validateBeforeApply">
+        </f:entry>
+    </j:if>
+
+    <f:entry>
+        <div style="float:right">
+            <span class="yui-button yui-push-button yui-button validate-button">
+                <button type="button" onclick="triggerExtraValidationForTriggerRelease();">Validate Before Apply</button>
+            </span>
+        </div>
+        <j:if test="${instance != null}">
+            <f:validateButton title="Compare Before Apply"
+                              progress="Comparing values..."
+                              method="showOldValues"
+                              with="configuration,projectName,releaseName,startingStage,parameters,storedConfiguration,storedProjectName,storedReleaseName,storedStartingStage,storedParameters" />
+        </j:if>
+    </f:entry>
+
     <script>
         fillReleasesParameters();
 
@@ -49,7 +92,7 @@ All rights reserved.
             }
             var json = JSON.parse(param);
 
-            var table = document.querySelector("[descriptorid='electricFlowRunRelease'] table");
+            var table = document.querySelector("[descriptorid='electricFlowTriggerRelease'] table");
 
             if (json) {
 
@@ -66,11 +109,11 @@ All rights reserved.
                     var row1 = table.insertRow(table.rows.length - 2);
                     row1.className = "_ef_st_row";
                     if (stages.length) {
-                        row1.appendChild(createTitle("Stages to run"));
+                        row1.appendChild(createTitleForTriggerRelease("Stages to run"));
                         stages.forEach(function (elem) {
                             var row = table.insertRow(table.rows.length - 2);
                             row.className = "_ef_sr_stages _ef_st_row";
-                            addParameterRow(row, elem.stageName, elem.stageValue, true);
+                            addParameterRowForTriggerRelease(row, elem.stageName, elem.stageValue, true);
                         });
                     }
 
@@ -87,11 +130,11 @@ All rights reserved.
                     var row1 = table.insertRow(table.rows.length - 2);
                     row1.className = "_ef_st_row";
                     if (parameters.length) {
-                        row1.appendChild(createTitle("Pipeline parameters"));
+                        row1.appendChild(createTitleForTriggerRelease("Pipeline parameters"));
                         parameters.forEach(function (elem) {
                             var row = table.insertRow(table.rows.length - 2);
                             row.className = "_ef_sr_parameters _ef_st_row";
-                            addParameterRow(row, elem.parameterName, elem.parameterValue, false);
+                            addParameterRowForTriggerRelease(row, elem.parameterName, elem.parameterValue, false);
                         });
                     }
                 }
@@ -122,7 +165,7 @@ All rights reserved.
             document.getElementById('ef_sr_parameters').options[0].textContent = JSON.stringify(json);
         }
 
-        function createTitle(title) {
+        function createTitleForTriggerRelease(title) {
             var td = document.createElement('td');
             td.colSpan = 4;
             var div = document.createElement('div');
@@ -132,7 +175,7 @@ All rights reserved.
             return td;
         }
 
-        function addParameterRow(row, label, value, isCheckbox) {
+        function addParameterRowForTriggerRelease(row, label, value, isCheckbox) {
             var td1 = document.createElement('td');
             td1.className = 'setting-leftspace';
             td1.innerHTML = '';
@@ -149,7 +192,9 @@ All rights reserved.
             input1.name = 'parameterName';
             if (isCheckbox) {
                 input1.type = "checkbox";
-                input1.checked = value;
+                if (value === "true") {
+                    input1.checked = value;
+                }
                 input1.style="width: auto;";
             }
             input1.value = value;
@@ -161,6 +206,10 @@ All rights reserved.
             var td4 = document.createElement('td');
             td4.className = 'setting-no-help';
             row.appendChild(td4);
+        }
+
+        function triggerExtraValidationForTriggerRelease() {
+            document.getElementById("ef_sr_validationTrigger").click();
         }
     </script>
 

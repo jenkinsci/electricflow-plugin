@@ -10,26 +10,20 @@ All rights reserved.
 <?jelly escape-by-default='true'?>
 <j:jelly xmlns:j="jelly:core" xmlns:f="/lib/form">
     <f:entry title="Configuration" field="configuration" >
-        <f:select onchange="deleteDeployApplicationParameterRows()"/>
+        <f:select onchange="deleteProcedureParameterRows()"/>
     </f:entry>
     <f:entry title="Project Name" field="projectName" >
-        <f:select onchange="deleteDeployApplicationParameterRows()"/>
+        <f:select onchange="deleteProcedureParameterRows()"/>
     </f:entry>
-    <f:entry title="Application Name" field="applicationName" >
-        <f:select id="ef_da_applicationName" onchange="deleteDeployApplicationParameterRows()"/>
+    <f:entry title="Procedure Name" field="procedureName" >
+        <f:select id="ef_rp_procedureName" onchange="deleteProcedureParameterRows()"/>
     </f:entry>
-    <f:entry  title="Application Process Name" field="applicationProcessName">
-        <f:select id="ef_da_applicationProcessName" onchange="fillDeployApplicationParameters()"/>
-    </f:entry>
-    <f:entry title="Environment Name" field="environmentName" >
-        <f:select/>
-    </f:entry>
-    <f:entry title="" field="deployParameters" >
-        <f:select id="ef_da_parameters" onchange="fillDeployApplicationParameters()" style="display:none;"/>
+    <f:entry title="" field="procedureParameters" >
+        <f:select id="ef_rp_parameters" onchange="fillProcedureParameters()" style="display:none;"/>
     </f:entry>
 
     <f:invisibleEntry>
-        <f:checkbox field="validationTrigger" id="ef_da_validationTrigger"/>
+        <f:checkbox field="validationTrigger" id="ef_rp_validationTrigger"/>
     </f:invisibleEntry>
 
     <f:invisibleEntry>
@@ -39,16 +33,10 @@ All rights reserved.
         <f:readOnlyTextbox field="storedProjectName"/>
     </f:invisibleEntry>
     <f:invisibleEntry>
-        <f:readOnlyTextbox field="storedApplicationName"/>
+        <f:readOnlyTextbox field="storedProcedureName"/>
     </f:invisibleEntry>
     <f:invisibleEntry>
-        <f:readOnlyTextbox field="storedApplicationProcessName"/>
-    </f:invisibleEntry>
-    <f:invisibleEntry>
-        <f:readOnlyTextbox field="storedEnvironmentName"/>
-    </f:invisibleEntry>
-    <f:invisibleEntry>
-        <f:readOnlyTextbox field="storedDeployParameters"/>
+        <f:readOnlyTextbox field="storedProcedureParameters"/>
     </f:invisibleEntry>
 
     <j:if test="${instance != null}">
@@ -63,89 +51,88 @@ All rights reserved.
     <f:entry>
         <div style="float:right">
             <span class="yui-button yui-push-button yui-button validate-button">
-                <button type="button" onclick="triggerExtraValidationForDeployApplication();">Validate Before Apply</button>
+                <button type="button" onclick="triggerExtraValidationForRunProcedure();">Validate Before Apply</button>
             </span>
         </div>
         <j:if test="${instance != null}">
             <f:validateButton title="Compare Before Apply"
                               progress="Comparing values..."
                               method="showOldValues"
-                              with="configuration,projectName,applicationName,applicationProcessName,environmentName,deployParameters,storedConfiguration,storedProjectName,storedApplicationName,storedApplicationProcessName,storedEnvironmentName,storedDeployParameters" />
+                              with="configuration,projectName,procedureName,procedureParameters,storedConfiguration,storedProjectName,storedProcedureName,storedProcedureParameters" />
         </j:if>
     </f:entry>
 
     <script>
-        fillDeployApplicationParameters();
+        fillProcedureParameters();
 
-        function deleteDeployApplicationParameterRows() {
-            var paramRows = document.querySelectorAll("._ef_da_row");
+        function deleteProcedureParameterRows() {
+            var paramRows = document.querySelectorAll("._ef_rp_row");
             [].forEach.call(paramRows, function (row) {
                 row.parentNode.removeChild(row);
             });
         }
 
-        function fillDeployApplicationParameters() {
-            deleteDeployApplicationParameterRows();
+        function fillProcedureParameters() {
+            deleteProcedureParameterRows();
 
-            if (!document.getElementById('ef_da_parameters')) {
+            if (!document.getElementById('ef_rp_parameters')) {
                 return;
             }
 
-            var option = document.getElementById('ef_da_parameters').options[0];
+            var option = document.getElementById('ef_rp_parameters').options[0];
             var param = '{}';
             if (option) {
                 param = option.value;
             }
             var json = JSON.parse(param);
 
-            var table = document.querySelector("[descriptorid='electricFlowDeployApplication'] table");
+            var table = document.querySelector("[descriptorid='electricFlowRunProcedure'] table");
 
             if (json) {
 
-                if (json.runProcess) {
+                if (json.procedure) {
                     var parameters;
                     try {
-                        parameters = JSON.parse(json.runProcess.parameter);
+                        parameters = JSON.parse(json.procedure.parameters);
                     }
                     catch (error) {
-                        parameters = json.runProcess.parameter;
+                        parameters = json.procedure.parameters;
                     }
 
 
                     var row1 = table.insertRow(table.rows.length - 2);
-                    row1.className = "_ef_da_row";
+                    row1.className = "_ef_rp_row";
                     if (parameters.length) {
-                        row1.appendChild(createTitleForDeployApplication("Deploy Parameters"));
+                        row1.appendChild(createTitleForRunProcedure("Procedure Parameters"));
                         parameters.forEach(function (elem) {
                             var row = table.insertRow(table.rows.length - 2);
-                            row.className = "_ef_da_parameters _ef_da_row";
-                            addParameterRowForDeployApplication(row, elem.actualParameterName, elem.value, false);
+                            row.className = "_ef_rp_parameters _ef_rp_row";
+                            addParameterRowForRunProcedure(row, elem.actualParameterName, elem.value, false);
                         });
                     }
                 }
             }
         }
 
-        function updateDeployJson() {
-            var applicationName = document.getElementById("ef_da_applicationName").value;
-            var applicationProcessName = document.getElementById("ef_da_applicationProcessName").value;
-            var json = JSON.parse('{"runProcess":{"applicationName":"' + applicationName + '", "applicationProcessName":"' + applicationProcessName + '", "parameter":[]}}');
+        function updateProcedureJson() {
+            var procedureName = document.getElementById("ef_rp_procedureName").value;
+            var json = JSON.parse('{"procedure":{"procedureName":"' + procedureName + '", "parameters":[]}}');
 
-            var parameters = document.querySelectorAll("._ef_da_parameters");
+            var parameters = document.querySelectorAll("._ef_rp_parameters");
 
             [].forEach.call(parameters, function (elem) {
-                json.runProcess.parameter.push({
+                json.procedure.parameters.push({
                     'actualParameterName': elem.querySelector(".setting-name").textContent,
                     'value': elem.querySelector(".setting-input").value
                 })
             });
 
 
-            document.getElementById('ef_da_parameters').options[0].value = JSON.stringify(json);
-            document.getElementById('ef_da_parameters').options[0].textContent = JSON.stringify(json);
+            document.getElementById('ef_rp_parameters').options[0].value = JSON.stringify(json);
+            document.getElementById('ef_rp_parameters').options[0].textContent = JSON.stringify(json);
         }
 
-        function createTitleForDeployApplication(title) {
+        function createTitleForRunProcedure(title) {
             var td = document.createElement('td');
             td.colSpan = 4;
             var div = document.createElement('div');
@@ -155,7 +142,7 @@ All rights reserved.
             return td;
         }
 
-        function addParameterRowForDeployApplication(row, label, value, isCheckbox) {
+        function addParameterRowForRunProcedure(row, label, value, isCheckbox) {
             var td1 = document.createElement('td');
             td1.className = 'setting-leftspace';
             td1.innerHTML = '';
@@ -172,11 +159,13 @@ All rights reserved.
             input1.name = 'parameterName';
             if (isCheckbox) {
                 input1.type = "checkbox";
-                input1.checked = value;
+                if (value === "true") {
+                    input1.checked = value;
+                }
                 input1.style = "width: auto;";
             }
             input1.value = value;
-            input1.onchange = updateDeployJson;
+            input1.onchange = updateProcedureJson;
             input1.className = 'setting-input';
             td3.appendChild(input1);
             row.appendChild(td3);
@@ -186,8 +175,8 @@ All rights reserved.
             row.appendChild(td4);
         }
 
-        function triggerExtraValidationForDeployApplication() {
-            document.getElementById("ef_da_validationTrigger").click();
+        function triggerExtraValidationForRunProcedure() {
+            document.getElementById("ef_rp_validationTrigger").click();
         }
     </script>
 
