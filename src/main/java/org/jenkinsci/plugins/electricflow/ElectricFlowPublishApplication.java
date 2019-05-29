@@ -26,6 +26,7 @@ import java.util.zip.ZipOutputStream;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.jenkinsci.plugins.electricflow.ui.HtmlUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
@@ -210,7 +211,7 @@ public class ElectricFlowPublishApplication
                 + "<table cellspacing=\"2\" cellpadding=\"4\"> \n"
                 + "  <tr>\n"
                 + "    <td>Application URL:</td>\n"
-                + "    <td><a href='" + url + "'>" + url + "</a></td>   \n"
+                + "    <td><a href='" + HtmlUtils.encodeForHtml(url) + "'>" + HtmlUtils.encodeForHtml(url) + "</a></td>   \n"
                 + "  </tr>\n";
 
         if (!zipFiles.isEmpty()) {
@@ -238,8 +239,7 @@ public class ElectricFlowPublishApplication
                         byte[] encoded = Files.readAllBytes(Paths.get(
                                     manifestPath));
 
-                        jsonContent = "<pre>" + new String(encoded, "UTF-8")
-                                + "</pre>";
+                        jsonContent = new String(encoded, "UTF-8");
                     }
                     catch (IOException e) {
                         logger.println(
@@ -253,7 +253,7 @@ public class ElectricFlowPublishApplication
 
                 strBuilder.append("  <tr>\n"
                                   + "    <td>&nbsp;&nbsp;&nbsp;&nbsp;")
-                          .append(fileName)
+                          .append(HtmlUtils.encodeForHtml(fileName))
                           .append("</td>\n"
                               + "    <td>")
                           .append("</td>    \n"
@@ -263,10 +263,10 @@ public class ElectricFlowPublishApplication
             if (!jsonContent.isEmpty()) {
                 strBuilder.append("  <tr>\n"
                                   + "    <td>&nbsp;&nbsp;&nbsp;&nbsp;")
-                          .append(MANIFEST_NAME)
+                          .append(HtmlUtils.encodeForHtml(MANIFEST_NAME))
                           .append("</td>\n"
                               + "    <td>")
-                          .append(jsonContent)
+                          .append("<pre>").append(HtmlUtils.encodeForHtml(jsonContent)).append("</pre>")
                           .append("</td>    \n"
                               + "  </tr>\n");
             }

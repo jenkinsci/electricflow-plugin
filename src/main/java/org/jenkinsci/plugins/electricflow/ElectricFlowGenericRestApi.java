@@ -15,6 +15,7 @@ import java.util.List;
 
 import javax.annotation.Nonnull;
 
+import org.jenkinsci.plugins.electricflow.ui.HtmlUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 
@@ -130,12 +131,12 @@ public class ElectricFlowGenericRestApi
                 + "<table cellspacing=\"2\" cellpadding=\"4\"> \n"
                 + "  <tr>\n"
                 + "    <td style='width:20%;'>URL Path:</td>\n"
-                + "    <td><a href='" + url + "'>" + url
+                + "    <td><a href='" + HtmlUtils.encodeForHtml(url) + "'>" + HtmlUtils.encodeForHtml(url)
                 + "</a></td>   \n"
                 + "  </tr>\n"
                 + "  <tr>\n"
                 + "    <td>HTTP Method:</td>\n"
-                + "    <td>" + httpMethod + "</td>   \n"
+                + "    <td>" + HtmlUtils.encodeForHtml(httpMethod) + "</td>   \n"
                 + "  </tr>\n";
 
         if (!HttpMethod.GET.equals(HttpMethod.valueOf(httpMethod))) {
@@ -151,10 +152,10 @@ public class ElectricFlowGenericRestApi
                 for (Pair pair : parameters) {
                     strBuilder.append("  <tr>\n"
                                       + "    <td>&nbsp;&nbsp;&nbsp;&nbsp;")
-                              .append(pair.getKey())
+                              .append(HtmlUtils.encodeForHtml(pair.getKey()))
                               .append(":</td>\n"
                                   + "    <td>")
-                              .append(pair.getValue())
+                              .append(HtmlUtils.encodeForHtml(pair.getValue()))
                               .append("</td>    \n"
                                   + "  </tr>\n");
                 }
@@ -164,14 +165,14 @@ public class ElectricFlowGenericRestApi
             else if (!body.isEmpty()) {
                 summaryText = summaryText + "  <tr>\n"
                         + "    <td>Body:</td>\n"
-                        + "    <td>" + formatJsonOutput(body) + "</td>    \n"
+                        + "    <td>" + HtmlUtils.encodeForHtml(formatJsonOutput(body)) + "</td>    \n"
                         + "  </tr>\n";
             }
         }
 
         summaryText = summaryText + "  <tr>\n"
                 + "    <td>Result:</td>\n"
-                + "    <td><pre>" + formatJsonOutput(result)
+                + "    <td><pre>" + HtmlUtils.encodeForHtml(formatJsonOutput(result))
                 + "</pre></td>    \n"
                 + "  </tr>\n";
         summaryText = summaryText + "</table>";

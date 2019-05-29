@@ -19,6 +19,7 @@ import java.util.List;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.jenkinsci.plugins.electricflow.ui.HtmlUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
@@ -211,19 +212,19 @@ public class ElectricFlowUploadArtifactPublisher
             + "<table cellspacing=\"2\" cellpadding=\"4\">\n"
             + "  <tr>\n"
             + "    <td>Artifact URL:</td>\n"
-            + "    <td><a href ='" + url + "'>" + url + "</a></td> \n"
+            + "    <td><a href ='" + HtmlUtils.encodeForHtml(url) + "'>" + HtmlUtils.encodeForHtml(url) + "</a></td> \n"
             + "  </tr>\n"
             + "  <tr>\n"
             + "    <td>Artifact Name:</td>\n"
-            + "    <td><a href ='" + url + "'>" + artifactName + "</a></td> \n"
+            + "    <td><a href ='" + HtmlUtils.encodeForHtml(url) + "'>" + HtmlUtils.encodeForHtml(artifactName) + "</a></td> \n"
             + "  </tr>\n"
             + "  <tr>\n"
             + "    <td>Artifact Version:</td>\n"
-            + "    <td>" + newArtifactVersion + "</td> \n"
+            + "    <td>" + HtmlUtils.encodeForHtml(newArtifactVersion) + "</td> \n"
             + "  </tr>\n"
             + "  <tr>\n"
             + "    <td>Repository Name:</td>\n"
-            + "    <td>" + repository + "</td> \n"
+            + "    <td>" + HtmlUtils.encodeForHtml(repository) + "</td> \n"
             + "  </tr>\n"
             + "</table>";
     }

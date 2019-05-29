@@ -28,6 +28,7 @@ import net.sf.json.JSONObject;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jenkinsci.plugins.electricflow.ui.FieldValidationStatus;
+import org.jenkinsci.plugins.electricflow.ui.HtmlUtils;
 import org.jenkinsci.plugins.electricflow.ui.SelectFieldUtils;
 import org.jenkinsci.plugins.electricflow.ui.SelectItemValidationWrapper;
 import org.kohsuke.stapler.DataBoundConstructor;
@@ -224,12 +225,12 @@ public class ElectricFlowDeployApplication
                 + "<table cellspacing=\"2\" cellpadding=\"4\"> \n"
                 + "  <tr>\n"
                 + "    <td>Application Name:</td>\n"
-                + "    <td><a href='" + applicationUrl + "'>" + applicationName
+                + "    <td><a href='" + HtmlUtils.encodeForHtml(applicationUrl) + "'>" + HtmlUtils.encodeForHtml(applicationName)
                 + "</a></td>   \n"
                 + "  </tr>\n"
                 + "  <tr>\n"
                 + "    <td>Deploy run URL:</td>\n"
-                + "    <td><a href='" + deployRunUrl + "'>" + deployRunUrl
+                + "    <td><a href='" + HtmlUtils.encodeForHtml(deployRunUrl) + "'>" + HtmlUtils.encodeForHtml(deployRunUrl)
                 + "</a></td>   \n"
                 + "  </tr>";
 

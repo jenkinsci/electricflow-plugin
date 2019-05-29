@@ -18,6 +18,8 @@ import hudson.model.Run;
 
 import jenkins.tasks.SimpleBuildStep;
 
+import static org.jenkinsci.plugins.electricflow.ui.HtmlUtils.getHtmlPolicy;
+
 public class SummaryTextAction
     implements Action,
         SimpleBuildStep.LastBuildAction
@@ -66,9 +68,8 @@ public class SummaryTextAction
         return this.run;
     }
 
-    public String getSummaryText()
-    {
-        return this.summaryText;
+    public String getSummaryText() {
+        return getHtmlPolicy().sanitize(this.summaryText);
     }
 
     @Override public String getUrlName()

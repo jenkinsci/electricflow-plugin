@@ -21,6 +21,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.jenkinsci.plugins.electricflow.ui.FieldValidationStatus;
+import org.jenkinsci.plugins.electricflow.ui.HtmlUtils;
 import org.jenkinsci.plugins.electricflow.ui.SelectFieldUtils;
 import org.jenkinsci.plugins.electricflow.ui.SelectItemValidationWrapper;
 import org.kohsuke.stapler.DataBoundConstructor;
@@ -284,16 +285,16 @@ public class ElectricFlowPipelinePublisher
                 + "<table cellspacing=\"2\" cellpadding=\"4\"> \n"
                 + "  <tr>\n"
                 + "    <td>Pipeline URL:</td>\n"
-                + "    <td><a href='" + url + "'>" + url + "</a></td>   \n"
+                + "    <td><a href='" + HtmlUtils.encodeForHtml(url) + "'>" + HtmlUtils.encodeForHtml(url) + "</a></td>   \n"
                 + "  </tr>\n"
                 + "  <tr>\n"
                 + "    <td>Pipeline Name:</td>\n"
-                + "    <td><a href='" + url + "'>" + pipelineName
+                + "    <td><a href='" + HtmlUtils.encodeForHtml(url) + "'>" + HtmlUtils.encodeForHtml(pipelineName)
                 + "</a></td>   \n"
                 + "  </tr>\n"
                 + "  <tr>\n"
                 + "    <td>Project Name:</td>\n"
-                + "    <td>" + projectName + "</td>    \n"
+                + "    <td>" + HtmlUtils.encodeForHtml(projectName) + "</td>    \n"
                 + "  </tr>";
 
         summaryText = Utils.getParametersHTML(parameters, summaryText,

@@ -27,6 +27,7 @@ import net.sf.json.JSONObject;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jenkinsci.plugins.electricflow.ui.FieldValidationStatus;
+import org.jenkinsci.plugins.electricflow.ui.HtmlUtils;
 import org.jenkinsci.plugins.electricflow.ui.SelectFieldUtils;
 import org.jenkinsci.plugins.electricflow.ui.SelectItemValidationWrapper;
 import org.kohsuke.stapler.DataBoundConstructor;
@@ -210,28 +211,28 @@ public class ElectricFlowTriggerRelease
                 + "<table cellspacing=\"2\" cellpadding=\"4\"> \n"
                 + "  <tr>\n"
                 + "    <td>Release Name:</td>\n"
-                + "    <td><a href='" + urlRelease + "'>" + releaseName
+                + "    <td><a href='" + HtmlUtils.encodeForHtml(urlRelease) + "'>" + HtmlUtils.encodeForHtml(releaseName)
                 + "</a></td>   \n"
                 + "  </tr>\n"
                 + "  <tr>\n"
                 + "    <td>Pipeline URL:</td>\n"
-                + "    <td><a href='" + urlPipeline + "'>" + urlPipeline
+                + "    <td><a href='" + HtmlUtils.encodeForHtml(urlPipeline) + "'>" + HtmlUtils.encodeForHtml(urlPipeline)
                 + "</a></td>   \n"
                 + "  </tr>\n"
                 + "  <tr>\n"
                 + "    <td>Pipeline Name:</td>\n"
-                + "    <td><a href='" + urlPipeline + "'>" + pipelineName
+                + "    <td><a href='" + HtmlUtils.encodeForHtml(urlPipeline) + "'>" + HtmlUtils.encodeForHtml(pipelineName)
                 + "</a></td>   \n"
                 + "  </tr>\n"
                 + "  <tr>\n"
                 + "    <td>Project Name:</td>\n"
-                + "    <td>" + projectName + "</td>    \n"
+                + "    <td>" + HtmlUtils.encodeForHtml(projectName) + "</td>    \n"
                 + "  </tr>";
 
         if (!startingStage.isEmpty()) {
             summaryText = summaryText + "  <tr>\n"
                     + "    <td>Starting stage:</td>\n"
-                    + "    <td>" + startingStage + "</td>    \n"
+                    + "    <td>" + HtmlUtils.encodeForHtml(startingStage) + "</td>    \n"
                     + "  </tr>";
         }
 

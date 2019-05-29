@@ -28,6 +28,7 @@ import net.sf.json.JSONObject;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jenkinsci.plugins.electricflow.ui.FieldValidationStatus;
+import org.jenkinsci.plugins.electricflow.ui.HtmlUtils;
 import org.jenkinsci.plugins.electricflow.ui.SelectFieldUtils;
 import org.jenkinsci.plugins.electricflow.ui.SelectItemValidationWrapper;
 import org.kohsuke.stapler.DataBoundConstructor;
@@ -166,7 +167,7 @@ public class ElectricFlowRunProcedure
                 + "<table cellspacing=\"2\" cellpadding=\"4\"> \n"
                 + "  <tr>\n"
                 + "    <td>Procedure Name:</td>\n"
-                + "    <td><a href='" + jobUrl + "'>" + procedureName + "</a></td>   \n"
+                + "    <td><a href='" + HtmlUtils.encodeForHtml(jobUrl) + "'>" + HtmlUtils.encodeForHtml(procedureName) + "</a></td>   \n"
                 + "  </tr>";
 
         summaryText = Utils.getParametersHTML(parameters, summaryText,

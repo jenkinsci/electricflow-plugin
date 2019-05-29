@@ -27,6 +27,7 @@ import hudson.util.ListBoxModel;
 
 import jenkins.model.GlobalConfiguration;
 import org.jenkinsci.plugins.electricflow.ui.FieldValidationStatus;
+import org.jenkinsci.plugins.electricflow.ui.HtmlUtils;
 import org.jenkinsci.plugins.electricflow.ui.SelectFieldUtils;
 import org.jenkinsci.plugins.electricflow.ui.SelectItemValidationWrapper;
 
@@ -196,7 +197,7 @@ public class Utils
             for (String param : parameters) {
                 strBuilder.append("  <tr>\n"
                                   + "    <td>&nbsp;&nbsp;&nbsp;&nbsp;")
-                          .append(param)
+                          .append(HtmlUtils.encodeForHtml(param))
                           .append("</td>\n")
                           .append("  </tr>\n");
             }
@@ -229,10 +230,10 @@ public class Utils
 
                 strBuilder.append("  <tr>\n"
                                   + "    <td>&nbsp;&nbsp;&nbsp;&nbsp;")
-                          .append(name)
+                          .append(HtmlUtils.encodeForHtml(name))
                           .append(":</td>\n"
                               + "    <td>")
-                          .append(value)
+                          .append(HtmlUtils.encodeForHtml(value))
                           .append("</td>    \n"
                               + "  </tr>\n");
             }
@@ -347,17 +348,17 @@ public class Utils
         if (!newValue.equals(oldValue)) {
             rowStyleAttr = "style=\"background-color: #e2db0c;\"";
         }
-        return "<tr " + rowStyleAttr + "><td>" + parameterName + "</td><td>" + oldValue + "</td><td>" + newValue + "</td></tr>";
+        return "<tr " + rowStyleAttr + "><td>" + HtmlUtils.encodeForHtml(parameterName) + "</td><td>" + HtmlUtils.encodeForHtml(String.valueOf(oldValue)) + "</td><td>" + HtmlUtils.encodeForHtml(String.valueOf(newValue)) + "</td></tr>";
     }
 
     public static String getValidationComparisonRowOldParam(String parameterName, Object oldValue) {
         String rowStyleAttr = "style=\"background-color: #fa9a76;\"";
-        return "<tr " + rowStyleAttr + "><td>" + parameterName + "</td><td>" + oldValue + "</td><td></td></tr>";
+        return "<tr " + rowStyleAttr + "><td>" + HtmlUtils.encodeForHtml(parameterName) + "</td><td>" + HtmlUtils.encodeForHtml(String.valueOf(oldValue)) + "</td><td></td></tr>";
     }
 
     public static String getValidationComparisonRowNewParam(String parameterName, Object newValue) {
         String rowStyleAttr = "style=\"background-color: #82dc84;\"";
-        return "<tr " + rowStyleAttr + "><td>" + parameterName + "</td><td></td><td>" + newValue + "</td></tr>";
+        return "<tr " + rowStyleAttr + "><td>" + HtmlUtils.encodeForHtml(parameterName) + "</td><td></td><td>" + HtmlUtils.encodeForHtml(String.valueOf(newValue)) + "</td></tr>";
     }
 
     public static String getValidationComparisonRowsForExtraParameters(String sectionName, Map<String, String> oldParamsMap, Map<String, String> newParamsMap) {
@@ -367,7 +368,7 @@ public class Utils
 
         StringBuilder rows = new StringBuilder();
         rows.append("<tr><td></td><td></td><td></td></tr>");
-        rows.append("<tr><td>" + sectionName + "</td><td></td><td></td></tr>");
+        rows.append("<tr><td>" + HtmlUtils.encodeForHtml(sectionName) + "</td><td></td><td></td></tr>");
 
         Set<String> oldKeysSet = new HashSet<String>(oldParamsMap.keySet());
         oldKeysSet.removeAll(newParamsMap.keySet());
