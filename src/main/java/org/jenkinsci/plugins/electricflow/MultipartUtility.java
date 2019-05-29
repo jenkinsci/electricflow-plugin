@@ -9,6 +9,9 @@
 
 package org.jenkinsci.plugins.electricflow;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -37,6 +40,7 @@ public class MultipartUtility
     //~ Static fields/initializers ---------------------------------------------
 
     private static final String LINE_FEED = "\r\n";
+    private static final Log log = LogFactory.getLog(MultipartUtility.class);
 
     //~ Instance fields --------------------------------------------------------
 
@@ -54,46 +58,17 @@ public class MultipartUtility
      *
      * @param   requestURL  URL for request
      * @param   charset     name of encodings
+     * @param   ignoreSslConnectionErrors Override Electric Flow SSL Validation Check
      *
-     * @throws  NoSuchAlgorithmException  Exception
-     * @throws  KeyManagementException    Exception
      * @throws  IOException               Exception
      */
     public MultipartUtility(
             String requestURL,
-            String charset)
-        throws NoSuchAlgorithmException, KeyManagementException, IOException
+            String charset,
+            boolean ignoreSslConnectionErrors)
+        throws IOException
     {
         this.charset = charset;
-
-        TrustManager[] trustAllCerts = new TrustManager[] {
-            new X509TrustManager() {
-                @Override public java.security.cert.X509Certificate[] getAcceptedIssuers()
-                {
-                    return null;
-                }
-
-                @Override public void checkClientTrusted(
-                        X509Certificate[] certs,
-                        String            authType) { }
-
-                @Override public void checkServerTrusted(
-                        X509Certificate[] certs,
-                        String            authType) { }
-            }
-        };
-
-        // Install the all-trusting trust manager
-        SSLContext sc = SSLContext.getInstance("SSL");
-
-        sc.init(null, trustAllCerts, new java.security.SecureRandom());
-        HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
-
-        // Create all-trusting host name verifier
-        HostnameVerifier allHostsValid = (hostname, session) -> true;
-
-        // Install the all-trusting host verifier
-        HttpsURLConnection.setDefaultHostnameVerifier(allHostsValid);
 
         // creates a unique boundary based on time stamp
         boundary = "===" + System.currentTimeMillis() + "===";
@@ -107,10 +82,21 @@ public class MultipartUtility
         httpConn.setDoInput(true);
         httpConn.setRequestProperty("Content-Type",
             "multipart/form-data; boundary=" + boundary);
+
+        if (ignoreSslConnectionErrors) {
+            try {
+                httpConn.setSSLSocketFactory(RelaxedSSLContext.getInstance().getSocketFactory());
+            } catch (KeyManagementException | NoSuchAlgorithmException e) {
+                if (log.isDebugEnabled()) {
+                    log.debug(e.getMessage(), e);
+                }
+            }
+            httpConn.setHostnameVerifier(RelaxedSSLContext.allHostsValid);
+        }
+
         outputStream = httpConn.getOutputStream();
         writer       = new PrintWriter(new OutputStreamWriter(outputStream,
                     charset), true);
-        // Create a trust manager that does not validate certificate chains
     }
 
     //~ Methods ----------------------------------------------------------------

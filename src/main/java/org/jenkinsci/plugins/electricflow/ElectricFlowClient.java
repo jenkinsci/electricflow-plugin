@@ -389,7 +389,7 @@ public class ElectricFlowClient
                 + "/commander/cgi-bin/publishArtifactAPI.cgi";
 
         // return sessionId;
-        MultipartUtility multipart = new MultipartUtility(requestURL, CHARSET);
+        MultipartUtility multipart = new MultipartUtility(requestURL, CHARSET, this.getIgnoreSslConnectionErrors());
 
         multipart.addFormField("artifactName", name);
         multipart.addFormField("artifactVersionVersion", version);
