@@ -11,6 +11,7 @@ package org.jenkinsci.plugins.electricflow;
 
 import java.io.IOException;
 
+import jenkins.model.Jenkins;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.kohsuke.stapler.DataBoundConstructor;
@@ -24,6 +25,7 @@ import hudson.model.Descriptor;
 import hudson.util.FormValidation;
 import hudson.util.ListBoxModel;
 import hudson.util.Secret;
+import org.kohsuke.stapler.interceptor.RequirePOST;
 
 /**
  * Configuration to access ElectricFlow server.
@@ -115,12 +117,20 @@ public class Configuration
         public FormValidation doCheckConfigurationName(
                 @QueryParameter String value)
         {
+            if (!Jenkins.getActiveInstance().hasPermission(Jenkins.ADMINISTER)) {
+                return FormValidation.ok();
+            }
+
             return Utils.validateValueOnEmpty(value, "Configuration name");
         }
 
         public FormValidation doCheckElectricFlowApiVersion(
                 @QueryParameter String value)
         {
+            if (!Jenkins.getActiveInstance().hasPermission(Jenkins.ADMINISTER)) {
+                return FormValidation.ok();
+            }
+
             return Utils.validateValueOnEmpty(value,
                 "ElectricFlow api version");
         }
@@ -128,23 +138,39 @@ public class Configuration
         public FormValidation doCheckElectricFlowPassword(
                 @QueryParameter String value)
         {
+            if (!Jenkins.getActiveInstance().hasPermission(Jenkins.ADMINISTER)) {
+                return FormValidation.ok();
+            }
+
             return Utils.validateValueOnEmpty(value, "ElectricFlow password");
         }
 
         public FormValidation doCheckElectricFlowUrl(
                 @QueryParameter String value)
         {
+            if (!Jenkins.getActiveInstance().hasPermission(Jenkins.ADMINISTER)) {
+                return FormValidation.ok();
+            }
+
             return Utils.validateValueOnEmpty(value, "ElectricFlow Url");
         }
 
         public FormValidation doCheckElectricFlowUser(
                 @QueryParameter String value)
         {
+            if (!Jenkins.getActiveInstance().hasPermission(Jenkins.ADMINISTER)) {
+                return FormValidation.ok();
+            }
+
             return Utils.validateValueOnEmpty(value, "ElectricFlow user");
         }
 
         public ListBoxModel doFillElectricFlowApiVersionItems()
         {
+            if (!Jenkins.getActiveInstance().hasPermission(Jenkins.ADMINISTER)) {
+                return new ListBoxModel();
+            }
+
             ListBoxModel m = new ListBoxModel();
 
             m.add("Select api version", "");
@@ -153,6 +179,7 @@ public class Configuration
             return m;
         }
 
+        @RequirePOST
         public FormValidation doTestConnection(
                 @QueryParameter("electricFlowUrl") final String electricFlowUrl,
                 @QueryParameter("electricFlowUser") final String electricFlowUser,
@@ -161,6 +188,9 @@ public class Configuration
                 @QueryParameter("ignoreSslConnectionErrors") final boolean ignoreSslConnectionErrors)
             throws IOException
         {
+            if (!Jenkins.getActiveInstance().hasPermission(Jenkins.ADMINISTER)) {
+                return FormValidation.ok();
+            }
 
             if (electricFlowUrl.isEmpty() || electricFlowUser.isEmpty()
                     || electricFlowPassword.isEmpty() || electricFlowApiVersion.isEmpty()) {

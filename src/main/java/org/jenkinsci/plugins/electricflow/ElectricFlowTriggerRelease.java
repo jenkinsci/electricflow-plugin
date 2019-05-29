@@ -13,6 +13,7 @@ import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
 import hudson.model.AbstractProject;
+import hudson.model.Item;
 import hudson.model.Run;
 import hudson.model.TaskListener;
 import hudson.tasks.BuildStepDescriptor;
@@ -30,6 +31,7 @@ import org.jenkinsci.plugins.electricflow.ui.FieldValidationStatus;
 import org.jenkinsci.plugins.electricflow.ui.HtmlUtils;
 import org.jenkinsci.plugins.electricflow.ui.SelectFieldUtils;
 import org.jenkinsci.plugins.electricflow.ui.SelectItemValidationWrapper;
+import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.QueryParameter;
@@ -290,12 +292,20 @@ public class ElectricFlowTriggerRelease
         //~ Methods ------------------------------------------------------------
 
         public FormValidation doCheckConfiguration(@QueryParameter String value,
-                                                   @QueryParameter boolean validationTrigger) {
+                                                   @QueryParameter boolean validationTrigger,
+                                                   @AncestorInPath Item item) {
+            if (item == null || !item.hasPermission(Item.CONFIGURE)) {
+                return FormValidation.ok();
+            }
             return Utils.validateConfiguration(value);
         }
 
         public FormValidation doCheckProjectName(@QueryParameter String value,
-                                                 @QueryParameter boolean validationTrigger) {
+                                                 @QueryParameter boolean validationTrigger,
+                                                 @AncestorInPath Item item) {
+            if (item == null || !item.hasPermission(Item.CONFIGURE)) {
+                return FormValidation.ok();
+            }
             if (isSelectItemValidationWrapper(value)) {
                 return SelectFieldUtils.getFormValidationBasedOnSelectItemValidationWrapper(value);
             }
@@ -303,7 +313,11 @@ public class ElectricFlowTriggerRelease
         }
 
         public FormValidation doCheckReleaseName(@QueryParameter String value,
-                                                 @QueryParameter boolean validationTrigger) {
+                                                 @QueryParameter boolean validationTrigger,
+                                                 @AncestorInPath Item item) {
+            if (item == null || !item.hasPermission(Item.CONFIGURE)) {
+                return FormValidation.ok();
+            }
             if (isSelectItemValidationWrapper(value)) {
                 return SelectFieldUtils.getFormValidationBasedOnSelectItemValidationWrapper(value);
             }
@@ -311,8 +325,11 @@ public class ElectricFlowTriggerRelease
         }
 
         public FormValidation doCheckStartingStage(@QueryParameter String value,
-                                                   @QueryParameter boolean validationTrigger
-        ) {
+                                                   @QueryParameter boolean validationTrigger,
+                                                   @AncestorInPath Item item) {
+            if (item == null || !item.hasPermission(Item.CONFIGURE)) {
+                return FormValidation.ok();
+            }
             if (isSelectItemValidationWrapper(value)) {
                 return SelectFieldUtils.getFormValidationBasedOnSelectItemValidationWrapper(value);
             }
@@ -320,16 +337,22 @@ public class ElectricFlowTriggerRelease
         }
 
         public FormValidation doCheckParameters(@QueryParameter String value,
-                                                @QueryParameter boolean validationTrigger
-        ) {
+                                                @QueryParameter boolean validationTrigger,
+                                                @AncestorInPath Item item) {
+            if (item == null || !item.hasPermission(Item.CONFIGURE)) {
+                return FormValidation.ok();
+            }
             if (isSelectItemValidationWrapper(value)) {
                 return SelectFieldUtils.getFormValidationBasedOnSelectItemValidationWrapper(value);
             }
             return FormValidation.ok();
         }
 
-        public ListBoxModel doFillConfigurationItems()
+        public ListBoxModel doFillConfigurationItems(@AncestorInPath Item item)
         {
+            if (item == null || !item.hasPermission(Item.CONFIGURE)) {
+                return new ListBoxModel();
+            }
             return Utils.fillConfigurationItems();
         }
 
@@ -337,7 +360,11 @@ public class ElectricFlowTriggerRelease
                 @QueryParameter String configuration,
                 @QueryParameter String projectName,
                 @QueryParameter String releaseName,
-                @QueryParameter String parameters) {
+                @QueryParameter String parameters,
+                @AncestorInPath Item item) {
+            if (item == null || !item.hasPermission(Item.CONFIGURE)) {
+                return new ListBoxModel();
+            }
             try {
                 ListBoxModel m = new ListBoxModel();
 
@@ -419,13 +446,21 @@ public class ElectricFlowTriggerRelease
         }
 
         public ListBoxModel doFillProjectNameItems(
-                @QueryParameter String configuration) {
+                @QueryParameter String configuration,
+                @AncestorInPath Item item) {
+            if (item == null || !item.hasPermission(Item.CONFIGURE)) {
+                return new ListBoxModel();
+            }
             return Utils.getProjects(configuration);
         }
 
         public ListBoxModel doFillReleaseNameItems(
                 @QueryParameter String projectName,
-                @QueryParameter String configuration) {
+                @QueryParameter String configuration,
+                @AncestorInPath Item item) {
+            if (item == null || !item.hasPermission(Item.CONFIGURE)) {
+                return new ListBoxModel();
+            }
             try {
                 ListBoxModel m = new ListBoxModel();
 
@@ -459,9 +494,13 @@ public class ElectricFlowTriggerRelease
         public ListBoxModel doFillStartingStageItems(
                 @QueryParameter String configuration,
                 @QueryParameter String projectName,
-                @QueryParameter String releaseName)
+                @QueryParameter String releaseName,
+                @AncestorInPath Item item)
             throws Exception
         {
+            if (item == null || !item.hasPermission(Item.CONFIGURE)) {
+                return new ListBoxModel();
+            }
             try {
                 ListBoxModel m = new ListBoxModel();
 
@@ -528,8 +567,12 @@ public class ElectricFlowTriggerRelease
                 @QueryParameter("storedProjectName") final String storedProjectName,
                 @QueryParameter("storedReleaseName") final String storedReleaseName,
                 @QueryParameter("storedStartingStage") final String storedStartingStage,
-                @QueryParameter("storedParameters") final String storedParameters
+                @QueryParameter("storedParameters") final String storedParameters,
+                @AncestorInPath Item item
         ) {
+            if (item == null || !item.hasPermission(Item.CONFIGURE)) {
+                return FormValidation.ok();
+            }
             String configurationValue = configuration;
             String projectNameValue = getSelectItemValue(projectName);
             String releaseNameValue = getSelectItemValue(releaseName);

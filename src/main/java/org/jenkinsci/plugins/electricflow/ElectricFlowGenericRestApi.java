@@ -16,17 +16,14 @@ import java.util.List;
 import javax.annotation.Nonnull;
 
 import org.jenkinsci.plugins.electricflow.ui.HtmlUtils;
+import hudson.model.*;
+import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
-
-import hudson.model.AbstractProject;
-import hudson.model.Result;
-import hudson.model.Run;
-import hudson.model.TaskListener;
 
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.BuildStepMonitor;
@@ -218,13 +215,19 @@ public class ElectricFlowGenericRestApi
 
         //~ Methods ------------------------------------------------------------
 
-        public ListBoxModel doFillConfigurationItems()
+        public ListBoxModel doFillConfigurationItems(@AncestorInPath Item item)
         {
+            if (item == null || !item.hasPermission(Item.CONFIGURE)) {
+                return new ListBoxModel();
+            }
             return Utils.fillConfigurationItems();
         }
 
-        public ListBoxModel doFillHttpMethodItems()
+        public ListBoxModel doFillHttpMethodItems(@AncestorInPath Item item)
         {
+            if (item == null || !item.hasPermission(Item.CONFIGURE)) {
+                return new ListBoxModel();
+            }
             ListBoxModel m = new ListBoxModel();
 
             m.add("Select HTTP method", "");

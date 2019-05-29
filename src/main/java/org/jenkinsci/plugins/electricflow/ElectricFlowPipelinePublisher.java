@@ -17,6 +17,7 @@ import java.util.Map;
 import javax.annotation.Nonnull;
 import javax.servlet.ServletException;
 
+import hudson.model.*;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -24,11 +25,7 @@ import org.jenkinsci.plugins.electricflow.ui.FieldValidationStatus;
 import org.jenkinsci.plugins.electricflow.ui.HtmlUtils;
 import org.jenkinsci.plugins.electricflow.ui.SelectFieldUtils;
 import org.jenkinsci.plugins.electricflow.ui.SelectItemValidationWrapper;
-import org.kohsuke.stapler.DataBoundConstructor;
-import org.kohsuke.stapler.DataBoundSetter;
-import org.kohsuke.stapler.QueryParameter;
-import org.kohsuke.stapler.StaplerRequest;
-import org.kohsuke.stapler.StaplerResponse;
+import org.kohsuke.stapler.*;
 
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
@@ -36,13 +33,6 @@ import net.sf.json.JSONObject;
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
-
-import hudson.model.AbstractBuild;
-import hudson.model.AbstractProject;
-import hudson.model.BuildListener;
-import hudson.model.Result;
-import hudson.model.Run;
-import hudson.model.TaskListener;
 
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.BuildStepMonitor;
@@ -358,12 +348,20 @@ public class ElectricFlowPipelinePublisher
         //~ Methods ------------------------------------------------------------
 
         public FormValidation doCheckConfiguration(@QueryParameter String value,
-                                                   @QueryParameter boolean validationTrigger) {
+                                                   @QueryParameter boolean validationTrigger,
+                                                   @AncestorInPath Item item) {
+            if (item == null || !item.hasPermission(Item.CONFIGURE)) {
+                return FormValidation.ok();
+            }
             return Utils.validateConfiguration(value);
         }
 
         public FormValidation doCheckPipelineName(@QueryParameter String value,
-                                                  @QueryParameter boolean validationTrigger) {
+                                                  @QueryParameter boolean validationTrigger,
+                                                  @AncestorInPath Item item) {
+            if (item == null || !item.hasPermission(Item.CONFIGURE)) {
+                return FormValidation.ok();
+            }
             if (isSelectItemValidationWrapper(value)) {
                 return SelectFieldUtils.getFormValidationBasedOnSelectItemValidationWrapper(value);
             }
@@ -371,7 +369,11 @@ public class ElectricFlowPipelinePublisher
         }
 
         public FormValidation doCheckProjectName(@QueryParameter String value,
-                                                 @QueryParameter boolean validationTrigger) {
+                                                 @QueryParameter boolean validationTrigger,
+                                                 @AncestorInPath Item item) {
+            if (item == null || !item.hasPermission(Item.CONFIGURE)) {
+                return FormValidation.ok();
+            }
             if (isSelectItemValidationWrapper(value)) {
                 return SelectFieldUtils.getFormValidationBasedOnSelectItemValidationWrapper(value);
             }
@@ -379,7 +381,11 @@ public class ElectricFlowPipelinePublisher
         }
 
         public FormValidation doCheckAddParam(@QueryParameter String value,
-                                              @QueryParameter boolean validationTrigger) {
+                                              @QueryParameter boolean validationTrigger,
+                                              @AncestorInPath Item item) {
+            if (item == null || !item.hasPermission(Item.CONFIGURE)) {
+                return FormValidation.ok();
+            }
             if (isSelectItemValidationWrapper(value)) {
                 return SelectFieldUtils.getFormValidationBasedOnSelectItemValidationWrapper(value);
             }
@@ -389,7 +395,11 @@ public class ElectricFlowPipelinePublisher
         public ListBoxModel doFillAddParamItems(
                 @QueryParameter String configuration,
                 @QueryParameter String pipelineName,
-                @QueryParameter String addParam) {
+                @QueryParameter String addParam,
+                @AncestorInPath Item item) {
+            if (item == null || !item.hasPermission(Item.CONFIGURE)) {
+                return new ListBoxModel();
+            }
             try {
                 ListBoxModel m = new ListBoxModel();
 
@@ -455,17 +465,29 @@ public class ElectricFlowPipelinePublisher
             }
         }
 
-        public ListBoxModel doFillConfigurationItems() {
+        public ListBoxModel doFillConfigurationItems(@AncestorInPath Item item) {
+            if (item == null || !item.hasPermission(Item.CONFIGURE)) {
+                return new ListBoxModel();
+            }
             return Utils.fillConfigurationItems();
         }
 
         public ListBoxModel doFillPipelineNameItems(
                 @QueryParameter String projectName,
-                @QueryParameter String configuration) {
+                @QueryParameter String configuration,
+                @AncestorInPath Item item) {
+            if (item == null || !item.hasPermission(Item.CONFIGURE)) {
+                return new ListBoxModel();
+            }
             return Utils.getPipelines(configuration, projectName);
         }
 
-        public ListBoxModel doFillProjectNameItems(@QueryParameter String configuration) {
+        public ListBoxModel doFillProjectNameItems(
+                @QueryParameter String configuration,
+                @AncestorInPath Item item) {
+            if (item == null || !item.hasPermission(Item.CONFIGURE)) {
+                return new ListBoxModel();
+            }
             return Utils.getProjects(configuration);
         }
 
@@ -525,8 +547,12 @@ public class ElectricFlowPipelinePublisher
                 @QueryParameter("storedConfiguration") final String storedConfiguration,
                 @QueryParameter("storedProjectName") final String storedProjectName,
                 @QueryParameter("storedPipelineName") final String storedPipelineName,
-                @QueryParameter("storedAddParam") final String storedAddParam
+                @QueryParameter("storedAddParam") final String storedAddParam,
+                @AncestorInPath Item item
         ) {
+            if (item == null || !item.hasPermission(Item.CONFIGURE)) {
+                return FormValidation.ok();
+            }
             String configurationValue = configuration;
             String projectNameValue = getSelectItemValue(projectName);
             String pipelineNameValue = getSelectItemValue(pipelineName);

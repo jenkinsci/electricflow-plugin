@@ -12,10 +12,7 @@ package org.jenkinsci.plugins.electricflow;
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
-import hudson.model.AbstractProject;
-import hudson.model.Result;
-import hudson.model.Run;
-import hudson.model.TaskListener;
+import hudson.model.*;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.BuildStepMonitor;
 import hudson.tasks.Publisher;
@@ -31,6 +28,7 @@ import org.jenkinsci.plugins.electricflow.ui.FieldValidationStatus;
 import org.jenkinsci.plugins.electricflow.ui.HtmlUtils;
 import org.jenkinsci.plugins.electricflow.ui.SelectFieldUtils;
 import org.jenkinsci.plugins.electricflow.ui.SelectItemValidationWrapper;
+import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.QueryParameter;
@@ -206,12 +204,20 @@ public class ElectricFlowRunProcedure
         }
 
         public FormValidation doCheckConfiguration(@QueryParameter String value,
-                                                   @QueryParameter boolean validationTrigger) {
+                                                   @QueryParameter boolean validationTrigger,
+                                                   @AncestorInPath Item item) {
+            if (item == null || !item.hasPermission(Item.CONFIGURE)) {
+                return FormValidation.ok();
+            }
             return Utils.validateConfiguration(value);
         }
 
         public FormValidation doCheckProjectName(@QueryParameter String value,
-                                                 @QueryParameter boolean validationTrigger) {
+                                                 @QueryParameter boolean validationTrigger,
+                                                 @AncestorInPath Item item) {
+            if (item == null || !item.hasPermission(Item.CONFIGURE)) {
+                return FormValidation.ok();
+            }
             if (isSelectItemValidationWrapper(value)) {
                 return SelectFieldUtils.getFormValidationBasedOnSelectItemValidationWrapper(value);
             }
@@ -219,7 +225,11 @@ public class ElectricFlowRunProcedure
         }
 
         public FormValidation doCheckProcedureName(@QueryParameter String value,
-                                                   @QueryParameter boolean validationTrigger) {
+                                                   @QueryParameter boolean validationTrigger,
+                                                   @AncestorInPath Item item) {
+            if (item == null || !item.hasPermission(Item.CONFIGURE)) {
+                return FormValidation.ok();
+            }
             if (isSelectItemValidationWrapper(value)) {
                 return SelectFieldUtils.getFormValidationBasedOnSelectItemValidationWrapper(value);
             }
@@ -227,24 +237,40 @@ public class ElectricFlowRunProcedure
         }
 
         public FormValidation doCheckProcedureParameters(@QueryParameter String value,
-                                                         @QueryParameter boolean validationTrigger) {
+                                                         @QueryParameter boolean validationTrigger,
+                                                         @AncestorInPath Item item) {
+            if (item == null || !item.hasPermission(Item.CONFIGURE)) {
+                return FormValidation.ok();
+            }
             if (isSelectItemValidationWrapper(value)) {
                 return SelectFieldUtils.getFormValidationBasedOnSelectItemValidationWrapper(value);
             }
             return FormValidation.ok();
         }
 
-        public ListBoxModel doFillConfigurationItems() {
+        public ListBoxModel doFillConfigurationItems(@AncestorInPath Item item) {
+            if (item == null || !item.hasPermission(Item.CONFIGURE)) {
+                return new ListBoxModel();
+            }
             return Utils.fillConfigurationItems();
         }
 
-        public ListBoxModel doFillProjectNameItems(@QueryParameter String configuration) {
+        public ListBoxModel doFillProjectNameItems(
+                @QueryParameter String configuration,
+                @AncestorInPath Item item) {
+            if (item == null || !item.hasPermission(Item.CONFIGURE)) {
+                return new ListBoxModel();
+            }
             return Utils.getProjects(configuration);
         }
 
         public ListBoxModel doFillProcedureNameItems(
                 @QueryParameter String projectName,
-                @QueryParameter String configuration) {
+                @QueryParameter String configuration,
+                @AncestorInPath Item item) {
+            if (item == null || !item.hasPermission(Item.CONFIGURE)) {
+                return new ListBoxModel();
+            }
             try {
                 ListBoxModel m = new ListBoxModel();
 
@@ -279,7 +305,11 @@ public class ElectricFlowRunProcedure
                 @QueryParameter String configuration,
                 @QueryParameter String projectName,
                 @QueryParameter String procedureName,
-                @QueryParameter String procedureParameters) {
+                @QueryParameter String procedureParameters,
+                @AncestorInPath Item item) {
+            if (item == null || !item.hasPermission(Item.CONFIGURE)) {
+                return new ListBoxModel();
+            }
             try {
                 ListBoxModel m = new ListBoxModel();
 
@@ -369,8 +399,12 @@ public class ElectricFlowRunProcedure
                 @QueryParameter("storedConfiguration") final String storedConfiguration,
                 @QueryParameter("storedProjectName") final String storedProjectName,
                 @QueryParameter("storedProcedureName") final String storedProcedureName,
-                @QueryParameter("storedProcedureParameters") final String storedProcedureParameters
+                @QueryParameter("storedProcedureParameters") final String storedProcedureParameters,
+                @AncestorInPath Item item
         ) {
+            if (item == null || !item.hasPermission(Item.CONFIGURE)) {
+                return FormValidation.ok();
+            }
             String configurationValue = configuration;
             String projectNameValue = getSelectItemValue(projectName);
             String procedureNameValue = getSelectItemValue(procedureName);

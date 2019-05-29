@@ -12,10 +12,7 @@ package org.jenkinsci.plugins.electricflow;
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
-import hudson.model.AbstractProject;
-import hudson.model.Result;
-import hudson.model.Run;
-import hudson.model.TaskListener;
+import hudson.model.*;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.BuildStepMonitor;
 import hudson.tasks.Publisher;
@@ -31,6 +28,7 @@ import org.jenkinsci.plugins.electricflow.ui.FieldValidationStatus;
 import org.jenkinsci.plugins.electricflow.ui.HtmlUtils;
 import org.jenkinsci.plugins.electricflow.ui.SelectFieldUtils;
 import org.jenkinsci.plugins.electricflow.ui.SelectItemValidationWrapper;
+import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.QueryParameter;
@@ -294,13 +292,21 @@ public class ElectricFlowDeployApplication
         //~ Methods ------------------------------------------------------------
 
         public FormValidation doCheckConfiguration(@QueryParameter String value,
-                                                   @QueryParameter boolean validationTrigger) {
+                                                   @QueryParameter boolean validationTrigger,
+                                                   @AncestorInPath Item item) {
+            if (item == null || !item.hasPermission(Item.CONFIGURE)) {
+                return FormValidation.ok();
+            }
             return Utils.validateConfiguration(value);
         }
 
         public FormValidation doCheckDeployParameters(@QueryParameter String value,
-                                                      @QueryParameter boolean validationTrigger
+                                                      @QueryParameter boolean validationTrigger,
+                                                      @AncestorInPath Item item
                                                       ) {
+            if (item == null || !item.hasPermission(Item.CONFIGURE)) {
+                return FormValidation.ok();
+            }
             if (isSelectItemValidationWrapper(value)) {
                 return SelectFieldUtils.getFormValidationBasedOnSelectItemValidationWrapper(value);
             }
@@ -308,7 +314,11 @@ public class ElectricFlowDeployApplication
         }
 
         public FormValidation doCheckProjectName(@QueryParameter String value,
-                                                 @QueryParameter boolean validationTrigger) {
+                                                 @QueryParameter boolean validationTrigger,
+                                                 @AncestorInPath Item item) {
+            if (item == null || !item.hasPermission(Item.CONFIGURE)) {
+                return FormValidation.ok();
+            }
             if (isSelectItemValidationWrapper(value)) {
                 return SelectFieldUtils.getFormValidationBasedOnSelectItemValidationWrapper(value);
             }
@@ -316,7 +326,11 @@ public class ElectricFlowDeployApplication
         }
 
         public FormValidation doCheckApplicationName(@QueryParameter String value,
-                                                     @QueryParameter boolean validationTrigger) {
+                                                     @QueryParameter boolean validationTrigger,
+                                                     @AncestorInPath Item item) {
+            if (item == null || !item.hasPermission(Item.CONFIGURE)) {
+                return FormValidation.ok();
+            }
             if (isSelectItemValidationWrapper(value)) {
                 return SelectFieldUtils.getFormValidationBasedOnSelectItemValidationWrapper(value);
             }
@@ -324,7 +338,11 @@ public class ElectricFlowDeployApplication
         }
 
         public FormValidation doCheckApplicationProcessName(@QueryParameter String value,
-                                                            @QueryParameter boolean validationTrigger) {
+                                                            @QueryParameter boolean validationTrigger,
+                                                            @AncestorInPath Item item) {
+            if (item == null || !item.hasPermission(Item.CONFIGURE)) {
+                return FormValidation.ok();
+            }
             if (isSelectItemValidationWrapper(value)) {
                 return SelectFieldUtils.getFormValidationBasedOnSelectItemValidationWrapper(value);
             }
@@ -332,7 +350,11 @@ public class ElectricFlowDeployApplication
         }
 
         public FormValidation doCheckEnvironmentName(@QueryParameter String value,
-                                                     @QueryParameter boolean validationTrigger) {
+                                                     @QueryParameter boolean validationTrigger,
+                                                     @AncestorInPath Item item) {
+            if (item == null || !item.hasPermission(Item.CONFIGURE)) {
+                return FormValidation.ok();
+            }
             if (isSelectItemValidationWrapper(value)) {
                 return SelectFieldUtils.getFormValidationBasedOnSelectItemValidationWrapper(value);
             }
@@ -341,7 +363,11 @@ public class ElectricFlowDeployApplication
 
         public ListBoxModel doFillApplicationNameItems(
                 @QueryParameter String projectName,
-                @QueryParameter String configuration) {
+                @QueryParameter String configuration,
+                @AncestorInPath Item item) {
+            if (item == null || !item.hasPermission(Item.CONFIGURE)) {
+                return new ListBoxModel();
+            }
             try {
                 ListBoxModel m = new ListBoxModel();
 
@@ -374,7 +400,11 @@ public class ElectricFlowDeployApplication
         public ListBoxModel doFillApplicationProcessNameItems(
                 @QueryParameter String configuration,
                 @QueryParameter String projectName,
-                @QueryParameter String applicationName) {
+                @QueryParameter String applicationName,
+                @AncestorInPath Item item) {
+            if (item == null || !item.hasPermission(Item.CONFIGURE)) {
+                return new ListBoxModel();
+            }
             try {
                 ListBoxModel m = new ListBoxModel();
 
@@ -405,8 +435,11 @@ public class ElectricFlowDeployApplication
             }
         }
 
-        public ListBoxModel doFillConfigurationItems()
+        public ListBoxModel doFillConfigurationItems(@AncestorInPath Item item)
         {
+            if (item == null || !item.hasPermission(Item.CONFIGURE)) {
+                return new ListBoxModel();
+            }
             return Utils.fillConfigurationItems();
         }
 
@@ -415,7 +448,11 @@ public class ElectricFlowDeployApplication
                 @QueryParameter String projectName,
                 @QueryParameter String applicationName,
                 @QueryParameter String applicationProcessName,
-                @QueryParameter String deployParameters) {
+                @QueryParameter String deployParameters,
+                @AncestorInPath Item item) {
+            if (item == null || !item.hasPermission(Item.CONFIGURE)) {
+                return new ListBoxModel();
+            }
             try {
                 ListBoxModel m = new ListBoxModel();
 
@@ -490,7 +527,11 @@ public class ElectricFlowDeployApplication
 
         public ListBoxModel doFillEnvironmentNameItems(
                 @QueryParameter String configuration,
-                @QueryParameter String projectName) {
+                @QueryParameter String projectName,
+                @AncestorInPath Item item) {
+            if (item == null || !item.hasPermission(Item.CONFIGURE)) {
+                return new ListBoxModel();
+            }
             try {
                 ListBoxModel m = new ListBoxModel();
 
@@ -520,7 +561,11 @@ public class ElectricFlowDeployApplication
         }
 
         public ListBoxModel doFillProjectNameItems(
-                @QueryParameter String configuration) {
+                @QueryParameter String configuration,
+                @AncestorInPath Item item) {
+            if (item == null || !item.hasPermission(Item.CONFIGURE)) {
+                return new ListBoxModel();
+            }
             return Utils.getProjects(configuration);
         }
 
@@ -552,8 +597,12 @@ public class ElectricFlowDeployApplication
                 @QueryParameter("storedApplicationName") final String storedApplicationName,
                 @QueryParameter("storedApplicationProcessName") final String storedApplicationProcessName,
                 @QueryParameter("storedEnvironmentName") final String storedEnvironmentName,
-                @QueryParameter("storedDeployParameters") final String storedDeployParameters
+                @QueryParameter("storedDeployParameters") final String storedDeployParameters,
+                @AncestorInPath Item item
         ) {
+            if (item == null || !item.hasPermission(Item.CONFIGURE)) {
+                return FormValidation.ok();
+            }
             String configurationValue = configuration;
             String projectNameValue = getSelectItemValue(projectName);
             String applicationNameValue = getSelectItemValue(applicationName);

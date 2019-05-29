@@ -23,10 +23,12 @@ import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
+import hudson.model.Item;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.jenkinsci.plugins.electricflow.ui.HtmlUtils;
+import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
@@ -477,18 +479,27 @@ public class ElectricFlowPublishApplication
         }
 
         public FormValidation doCheckConfiguration(
-                @QueryParameter String value)
-        {
+                @QueryParameter String value,
+                @AncestorInPath Item item) {
+            if (item == null || !item.hasPermission(Item.CONFIGURE)) {
+                return FormValidation.ok();
+            }
             return Utils.validateValueOnEmpty(value, "Configuration");
         }
 
-        public FormValidation doCheckFilePath(@QueryParameter String value)
-        {
+        public FormValidation doCheckFilePath(
+                @QueryParameter String value,
+                @AncestorInPath Item item) {
+            if (item == null || !item.hasPermission(Item.CONFIGURE)) {
+                return FormValidation.ok();
+            }
             return Utils.validateValueOnEmpty(value, "File path");
         }
 
-        public ListBoxModel doFillConfigurationItems()
-        {
+        public ListBoxModel doFillConfigurationItems(@AncestorInPath Item item) {
+            if (item == null || !item.hasPermission(Item.CONFIGURE)) {
+                return new ListBoxModel();
+            }
             return Utils.fillConfigurationItems();
         }
 

@@ -16,10 +16,12 @@ import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
 
+import hudson.model.Item;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.jenkinsci.plugins.electricflow.ui.HtmlUtils;
+import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
@@ -284,42 +286,64 @@ public class ElectricFlowUploadArtifactPublisher
             return super.configure(req, formData);
         }
 
-        public FormValidation doCheckArtifactName(@QueryParameter String value)
-        {
+        public FormValidation doCheckArtifactName(
+                @QueryParameter String value,
+                @AncestorInPath Item item) {
+            if (item == null || !item.hasPermission(Item.CONFIGURE)) {
+                return FormValidation.ok();
+            }
             return Utils.validateValueOnEmpty(value, "Artifact name");
         }
 
         public FormValidation doCheckArtifactVersion(
-                @QueryParameter String value)
-        {
+                @QueryParameter String value,
+                @AncestorInPath Item item) {
+            if (item == null || !item.hasPermission(Item.CONFIGURE)) {
+                return FormValidation.ok();
+            }
             return Utils.validateValueOnEmpty(value, "Artifact version");
         }
 
         public FormValidation doCheckConfiguration(
-                @QueryParameter String value)
-        {
+                @QueryParameter String value,
+                @AncestorInPath Item item) {
+            if (item == null || !item.hasPermission(Item.CONFIGURE)) {
+                return FormValidation.ok();
+            }
             return Utils.validateValueOnEmpty(value, "Configuration");
         }
 
-        public FormValidation doCheckFilePath(@QueryParameter String value)
-        {
+        public FormValidation doCheckFilePath(
+                @QueryParameter String value,
+                @AncestorInPath Item item) {
+            if (item == null || !item.hasPermission(Item.CONFIGURE)) {
+                return FormValidation.ok();
+            }
             return Utils.validateValueOnEmpty(value, "File path");
         }
 
         public FormValidation doCheckRepositoryName(
-                @QueryParameter String value)
-        {
+                @QueryParameter String value,
+                @AncestorInPath Item item) {
+            if (item == null || !item.hasPermission(Item.CONFIGURE)) {
+                return FormValidation.ok();
+            }
             return Utils.validateValueOnEmpty(value, "Repository name");
         }
 
-        public ListBoxModel doFillConfigurationItems()
-        {
+        public ListBoxModel doFillConfigurationItems(@AncestorInPath Item item) {
+            if (item == null || !item.hasPermission(Item.CONFIGURE)) {
+                return new ListBoxModel();
+            }
             return Utils.fillConfigurationItems();
         }
 
         public ListBoxModel doFillRepositoryNameItems(
-                @QueryParameter String configuration)
-        {
+                @QueryParameter String configuration,
+                @AncestorInPath Item item) {
+            if (item == null || !item.hasPermission(Item.CONFIGURE)) {
+                return new ListBoxModel();
+            }
             ListBoxModel m = new ListBoxModel();
 
             m.add("Select repository", "");
