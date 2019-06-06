@@ -10,7 +10,7 @@
   </parent>
 
   <artifactId>electricflow</artifactId>
-  <version>1.1.6-SNAPSHOT</version>
+  <version>1.1.8-SNAPSHOT</version>
   <packaging>hpi</packaging>
 
   <properties>
@@ -152,6 +152,17 @@
       <groupId>commons-codec</groupId>
       <artifactId>commons-codec</artifactId>
       <version>1.10</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.owasp.encoder</groupId>
+      <artifactId>encoder</artifactId>
+      <version>1.2.2</version>
+    </dependency>
+    <dependency>
+      <groupId>com.googlecode.owasp-java-html-sanitizer</groupId>
+      <artifactId>owasp-java-html-sanitizer</artifactId>
+      <version>20190503.1</version>
     </dependency>
 
   </dependencies>
