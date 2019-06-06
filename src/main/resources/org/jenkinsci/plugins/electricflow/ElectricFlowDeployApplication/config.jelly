@@ -158,12 +158,12 @@ All rights reserved.
         function addParameterRowForDeployApplication(row, label, value, isCheckbox) {
             var td1 = document.createElement('td');
             td1.className = 'setting-leftspace';
-            td1.innerHTML = '';
+            td1.textContent = '';
             row.appendChild(td1);
 
             var td2 = document.createElement('td');
             td2.className = 'setting-name';
-            td2.innerHTML = label;
+            td2.textContent = label;
             row.appendChild(td2);
 
             var td3 = document.createElement('td');
