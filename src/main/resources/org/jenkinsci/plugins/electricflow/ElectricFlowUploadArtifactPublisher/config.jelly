@@ -21,7 +21,7 @@ All rights reserved.
   <f:entry title="Artifact Version" field="artifactVersion">
       <f:textbox />
   </f:entry>
-  <f:entry title="ElectricFlow Repository Name" field="repositoryName">
+  <f:entry title="CloudBees Flow Repository Name" field="repositoryName">
       <f:select />
   </f:entry>
 </j:jelly>

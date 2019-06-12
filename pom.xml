@@ -25,10 +25,9 @@
     -->
   </properties>
 
-  <name>ElectricFlow</name>
-  <description>ElectricFlow DevOps Release Automation.</description>
-  <!-- Wiki page that should be created for ElectricFlow integration jenkins plugin.  -->
-  <url>https://wiki.jenkins-ci.org/display/JENKINS/ElectricFlow+Plugin</url>
+  <name>CloudBees Flow</name>
+  <description>CloudBees Flow Application Release Orchestration</description>
+  <url>https://wiki.jenkins-ci.org/display/JENKINS/CloudBees+Flow+Plugin</url>
 
   <!-- The default licence for Jenkins OSS Plugins is MIT. Substitute for the applicable one if needed. -->
 
@@ -42,8 +41,8 @@
   <developers>
     <developer>
       <id>efpluginsdev</id>
-      <name>ElectricFlow Plugin Developer</name>
-      <email>pluginsdev@electric-cloud.com</email>
+      <name>CloudBees Flow Plugin Team</name>
+      <email>flowpluginteam@cloudbees.com</email>
     </developer>
   </developers>
 

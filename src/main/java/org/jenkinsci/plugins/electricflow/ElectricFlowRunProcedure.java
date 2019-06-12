@@ -366,7 +366,7 @@ public class ElectricFlowRunProcedure
                 } else {
                     selectItemValidationWrapper = new SelectItemValidationWrapper(
                             FieldValidationStatus.ERROR,
-                            "Error when fetching set of procedure parameters. Connection to Electric Flow Server Failed. Please fix connection information and reload this page.",
+                            "Error when fetching set of procedure parameters. Connection to CloudBees Flow Server Failed. Please fix connection information and reload this page.",
                             "{}"
                     );
                 }
@@ -377,7 +377,7 @@ public class ElectricFlowRunProcedure
 
         @Override
         public String getDisplayName() {
-            return "ElectricFlow - Run Procedure";
+            return "CloudBees Flow - Run Procedure";
         }
 
         @Override

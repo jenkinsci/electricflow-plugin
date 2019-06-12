@@ -241,7 +241,7 @@ public class ElectricFlowGenericRestApi
 
         @Override public String getDisplayName()
         {
-            return "ElectricFlow - Call REST API";
+            return "CloudBees Flow - Call REST API";
         }
 
         @Override public boolean isApplicable(

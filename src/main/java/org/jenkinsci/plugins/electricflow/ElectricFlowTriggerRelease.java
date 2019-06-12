@@ -436,7 +436,7 @@ public class ElectricFlowTriggerRelease
                 } else {
                     selectItemValidationWrapper = new SelectItemValidationWrapper(
                             FieldValidationStatus.ERROR,
-                            "Error when fetching set of deploy parameters. Connection to Electric Flow Server Failed. Please fix connection information and reload this page.",
+                            "Error when fetching set of deploy parameters. Connection to CloudBees Flow Server Failed. Please fix connection information and reload this page.",
                             "{}"
                     );
                 }
@@ -543,7 +543,7 @@ public class ElectricFlowTriggerRelease
 
         @Override public String getDisplayName()
         {
-            return "ElectricFlow - Trigger Release";
+            return "CloudBees Flow - Trigger Release";
         }
 
         @Override public String getId()

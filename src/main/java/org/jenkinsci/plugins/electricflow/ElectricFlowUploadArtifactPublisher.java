@@ -386,7 +386,7 @@ public class ElectricFlowUploadArtifactPublisher
          */
         @Override public String getDisplayName()
         {
-            return "ElectricFlow - Publish Artifact";
+            return "CloudBees Flow - Publish Artifact";
         }
 
         public String getElectricFlowPassword()
