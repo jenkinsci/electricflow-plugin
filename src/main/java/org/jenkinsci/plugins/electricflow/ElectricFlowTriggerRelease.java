@@ -209,7 +209,7 @@ public class ElectricFlowTriggerRelease
                 + "/" + flowRuntimeId;
         String     urlRelease    = efClient.getElectricFlowUrl()
                 + "/flow/#releases";
-        String     summaryText   = "<h3>ElectricFlow Trigger Release</h3>"
+        String     summaryText   = "<h3>CloudBees Flow Trigger Release</h3>"
                 + "<table cellspacing=\"2\" cellpadding=\"4\"> \n"
                 + "  <tr>\n"
                 + "    <td>Release Name:</td>\n"

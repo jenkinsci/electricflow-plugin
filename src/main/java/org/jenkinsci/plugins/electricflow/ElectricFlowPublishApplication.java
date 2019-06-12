@@ -209,7 +209,7 @@ public class ElectricFlowPublishApplication
         String url         = efClient.getElectricFlowUrl()
                 + "/flow/#applications";
         String summaryText =
-            "<h3>ElectricFlow Create/Deploy Application from Deployment Package</h3>"
+            "<h3>CloudBees Flow Create/Deploy Application from Deployment Package</h3>"
                 + "<table cellspacing=\"2\" cellpadding=\"4\"> \n"
                 + "  <tr>\n"
                 + "    <td>Application URL:</td>\n"

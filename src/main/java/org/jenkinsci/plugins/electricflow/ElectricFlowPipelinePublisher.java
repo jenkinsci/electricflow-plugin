@@ -271,7 +271,7 @@ public class ElectricFlowPipelinePublisher
         String     url           = efClient.getElectricFlowUrl()
                 + "/flow/#pipeline-run/" + pipelineId
                 + "/" + flowRuntimeId;
-        String     summaryText   = "<h3>ElectricFlow Run Pipeline</h3>"
+        String     summaryText   = "<h3>CloudBees Flow Run Pipeline</h3>"
                 + "<table cellspacing=\"2\" cellpadding=\"4\"> \n"
                 + "  <tr>\n"
                 + "    <td>Pipeline URL:</td>\n"

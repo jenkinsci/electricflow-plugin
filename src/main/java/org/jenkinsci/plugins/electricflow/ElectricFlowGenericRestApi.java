@@ -124,7 +124,7 @@ public class ElectricFlowGenericRestApi
         throws IOException
     {
         String url         = efClient.getElectricFlowUrl() + urlPath;
-        String summaryText = "<h3>ElectricFlow Generic REST API</h3>"
+        String summaryText = "<h3>CloudBees Flow Generic REST API</h3>"
                 + "<table cellspacing=\"2\" cellpadding=\"4\"> \n"
                 + "  <tr>\n"
                 + "    <td style='width:20%;'>URL Path:</td>\n"

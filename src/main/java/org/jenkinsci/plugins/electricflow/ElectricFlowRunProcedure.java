@@ -161,7 +161,7 @@ public class ElectricFlowRunProcedure
                 .getString("jobId");
         String jobUrl = configuration.getElectricFlowUrl()
                 + "/commander/link/jobDetails/jobs/" + jobId;
-        String summaryText = "<h3>ElectricFlow Run Procedure</h3>"
+        String summaryText = "<h3>CloudBees Flow Run Procedure</h3>"
                 + "<table cellspacing=\"2\" cellpadding=\"4\"> \n"
                 + "  <tr>\n"
                 + "    <td>Procedure Name:</td>\n"

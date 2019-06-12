@@ -219,7 +219,7 @@ public class ElectricFlowDeployApplication
         String deployRunUrl    = configuration.getElectricFlowUrl()
                 + "/flow/#applications/" + processId + "/" + jobId
                 + "/runningProcess";
-        String summaryText     = "<h3>ElectricFlow Deploy Application</h3>"
+        String summaryText     = "<h3>CloudBees Flow Deploy Application</h3>"
                 + "<table cellspacing=\"2\" cellpadding=\"4\"> \n"
                 + "  <tr>\n"
                 + "    <td>Application Name:</td>\n"
