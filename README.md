@@ -16,6 +16,6 @@ With the CloudBees Flow plugin you can:
 * Trigger a pipeline in CloudBees Flow
 * Deploy an application in CloudBees Flow
 * Publish an artifact from Jenkins into the CloudBees Flow artifact repository
-* Run a Procedure in ElectricFlow
+* Run a Procedure in CloudBees Flow
 * Call a REST API to invoke any action in CloudBees Flow
 * Create Application in CloudBees Flow from Deployment Package
