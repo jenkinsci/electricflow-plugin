@@ -210,7 +210,7 @@ public class ElectricFlowUploadArtifactPublisher
             ? "default"
             : repositoryName;
 
-        return "<h3>ElectricFlow Publish Artifact</h3>"
+        return "<h3>CloudBees Flow Publish Artifact</h3>"
             + "<table cellspacing=\"2\" cellpadding=\"4\">\n"
             + "  <tr>\n"
             + "    <td>Artifact URL:</td>\n"
@@ -386,7 +386,7 @@ public class ElectricFlowUploadArtifactPublisher
          */
         @Override public String getDisplayName()
         {
-            return "ElectricFlow - Publish Artifact";
+            return "CloudBees Flow - Publish Artifact";
         }
 
         public String getElectricFlowPassword()

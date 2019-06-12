@@ -271,7 +271,7 @@ public class ElectricFlowPipelinePublisher
         String     url           = efClient.getElectricFlowUrl()
                 + "/flow/#pipeline-run/" + pipelineId
                 + "/" + flowRuntimeId;
-        String     summaryText   = "<h3>ElectricFlow Run Pipeline</h3>"
+        String     summaryText   = "<h3>CloudBees Flow Run Pipeline</h3>"
                 + "<table cellspacing=\"2\" cellpadding=\"4\"> \n"
                 + "  <tr>\n"
                 + "    <td>Pipeline URL:</td>\n"
@@ -456,7 +456,7 @@ public class ElectricFlowPipelinePublisher
                 } else {
                     selectItemValidationWrapper = new SelectItemValidationWrapper(
                             FieldValidationStatus.ERROR,
-                            "Error when fetching set of pipeline parameters. Connection to Electric Flow Server Failed. Please fix connection information and reload this page.",
+                            "Error when fetching set of pipeline parameters. Connection to CloudBees Flow Server Failed. Please fix connection information and reload this page.",
                             "{}"
                     );
                 }
@@ -522,7 +522,7 @@ public class ElectricFlowPipelinePublisher
          */
         @Override public String getDisplayName()
         {
-            return "ElectricFlow - Run Pipeline";
+            return "CloudBees Flow - Run Pipeline";
         }
 
         @Override public String getId()

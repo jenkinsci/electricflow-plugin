@@ -10,7 +10,7 @@ All rights reserved.
 <?jelly escape-by-default='true'?>
 <j:jelly xmlns:j="jelly:core"  xmlns:f="/lib/form">
 
-  <f:section title="ElectricFlow">
+  <f:section title="CloudBees Flow">
 
   <f:entry title="Configurations" field="configurations">
       <f:repeatable field="configurations" minimum="${0}">
@@ -34,7 +34,7 @@ All rights reserved.
                   <f:password />
               </f:entry>
 
-              <f:entry title="Override Electric Flow SSL Validation Check" field="ignoreSslConnectionErrors">
+              <f:entry title="Override CloudBees Flow SSL Validation Check" field="ignoreSslConnectionErrors">
               <f:checkbox />
               </f:entry>
 

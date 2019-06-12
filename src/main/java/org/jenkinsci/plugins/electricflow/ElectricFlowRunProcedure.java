@@ -161,7 +161,7 @@ public class ElectricFlowRunProcedure
                 .getString("jobId");
         String jobUrl = configuration.getElectricFlowUrl()
                 + "/commander/link/jobDetails/jobs/" + jobId;
-        String summaryText = "<h3>ElectricFlow Run Procedure</h3>"
+        String summaryText = "<h3>CloudBees Flow Run Procedure</h3>"
                 + "<table cellspacing=\"2\" cellpadding=\"4\"> \n"
                 + "  <tr>\n"
                 + "    <td>Procedure Name:</td>\n"
@@ -366,7 +366,7 @@ public class ElectricFlowRunProcedure
                 } else {
                     selectItemValidationWrapper = new SelectItemValidationWrapper(
                             FieldValidationStatus.ERROR,
-                            "Error when fetching set of procedure parameters. Connection to Electric Flow Server Failed. Please fix connection information and reload this page.",
+                            "Error when fetching set of procedure parameters. Connection to CloudBees Flow Server Failed. Please fix connection information and reload this page.",
                             "{}"
                     );
                 }
@@ -377,7 +377,7 @@ public class ElectricFlowRunProcedure
 
         @Override
         public String getDisplayName() {
-            return "ElectricFlow - Run Procedure";
+            return "CloudBees Flow - Run Procedure";
         }
 
         @Override

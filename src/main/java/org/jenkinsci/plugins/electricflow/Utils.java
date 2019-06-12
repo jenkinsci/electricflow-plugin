@@ -147,8 +147,8 @@ public class Utils
         try {
             new ElectricFlowClient(configuration).testConnection();
         } catch (Exception e) {
-            log.error("Connection to Electric Flow Server Failed. Please fix connection information and reload this page. Error message: " + e.getMessage(), e);
-            return FormValidation.error("Connection to Electric Flow Server Failed. Please fix connection information and reload this page. Error message: " + e.getMessage());
+            log.error("Connection to CloudBees Flow Server Failed. Please fix connection information and reload this page. Error message: " + e.getMessage(), e);
+            return FormValidation.error("Connection to CloudBees Flow Server Failed. Please fix connection information and reload this page. Error message: " + e.getMessage());
         }
 
         return FormValidation.ok();

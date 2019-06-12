@@ -132,7 +132,7 @@ public class Configuration
             }
 
             return Utils.validateValueOnEmpty(value,
-                "ElectricFlow api version");
+                "CloudBees Flow api version");
         }
 
         public FormValidation doCheckElectricFlowPassword(
@@ -142,7 +142,7 @@ public class Configuration
                 return FormValidation.ok();
             }
 
-            return Utils.validateValueOnEmpty(value, "ElectricFlow password");
+            return Utils.validateValueOnEmpty(value, "CloudBees Flow password");
         }
 
         public FormValidation doCheckElectricFlowUrl(
@@ -152,7 +152,7 @@ public class Configuration
                 return FormValidation.ok();
             }
 
-            return Utils.validateValueOnEmpty(value, "ElectricFlow Url");
+            return Utils.validateValueOnEmpty(value, "CloudBees Flow Url");
         }
 
         public FormValidation doCheckElectricFlowUser(
@@ -162,7 +162,7 @@ public class Configuration
                 return FormValidation.ok();
             }
 
-            return Utils.validateValueOnEmpty(value, "ElectricFlow user");
+            return Utils.validateValueOnEmpty(value, "CloudBees Flow user");
         }
 
         public ListBoxModel doFillElectricFlowApiVersionItems()
@@ -210,8 +210,8 @@ public class Configuration
                 return FormValidation.ok("Success");
             }
             catch (Exception e) {
-                log.warn("Wrong configuration - connection to Electric Flow server failed", e);
-                return FormValidation.error("Wrong configuration - connection to Electric Flow server failed. Error message: " + e.getMessage());
+                log.warn("Wrong configuration - connection to CloudBees Flow server failed", e);
+                return FormValidation.error("Wrong configuration - connection to CloudBees Flow server failed. Error message: " + e.getMessage());
             }
         }
 
