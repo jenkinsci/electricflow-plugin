@@ -910,7 +910,9 @@ public class ElectricFlowClient
                     for (int j = 0; j < stagesArray.size(); j++) {
                         String stageName = stagesArray.getJSONObject(j)
                                                       .getString("name");
-
+                        if (stagesList.contains(stageName)) {
+                            continue;
+                        }
                         stagesList.add(stageName);
                     }
 
