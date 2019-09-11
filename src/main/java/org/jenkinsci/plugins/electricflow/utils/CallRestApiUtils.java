@@ -7,6 +7,7 @@ import hudson.model.Run;
 import hudson.model.TaskListener;
 import hudson.util.ListBoxModel;
 import org.jenkinsci.plugins.electricflow.*;
+import org.jenkinsci.plugins.electricflow.envvars.VariableInjectionAction;
 import org.jenkinsci.plugins.electricflow.models.CallRestApiModel;
 import org.jenkinsci.plugins.electricflow.ui.HtmlUtils;
 
@@ -52,10 +53,8 @@ public class CallRestApiUtils {
 
             if (callRestApiModel.isEnvVarNameForResultSet()) {
                 String envVarForResult = callRestApiModel.getEnvVarNameForResult();
-                EnvVars envVars = Utils.getNodeEnvVars();
-                envVars.put(envVarForResult, result);
-                String newValue = envVars.get(envVarForResult);
-                taskListener.getLogger().println("Setting environment variable " + envVarForResult + "='" + newValue + "'");
+                taskListener.getLogger().println("Setting environment variable " + envVarForResult + "='" + result + "'");
+                run.addAction(new VariableInjectionAction(envVarForResult, result));
             }
 
             return result;

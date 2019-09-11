@@ -44,6 +44,7 @@ public class ElectricFlowGenericRestApi
     private String httpMethod;
     private List<Pair> parameters;
     private String body;
+    private String envVarNameForResult;
 
     @DataBoundConstructor
     public ElectricFlowGenericRestApi(
@@ -93,6 +94,11 @@ public class ElectricFlowGenericRestApi
     }
 
     @Override
+    public String getEnvVarNameForResult() {
+        return envVarNameForResult;
+    }
+
+    @Override
     public BuildStepMonitor getRequiredMonitorService() {
         return BuildStepMonitor.NONE;
     }
@@ -120,6 +126,11 @@ public class ElectricFlowGenericRestApi
     @DataBoundSetter
     public void setBody(String body) {
         this.body = body;
+    }
+
+    @DataBoundSetter
+    public void setEnvVarNameForResult(String envVarNameForResult) {
+        this.envVarNameForResult = envVarNameForResult;
     }
 
     @Extension
