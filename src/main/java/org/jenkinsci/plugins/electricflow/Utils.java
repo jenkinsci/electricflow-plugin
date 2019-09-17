@@ -14,6 +14,12 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.*;
 
+import hudson.EnvVars;
+import hudson.slaves.EnvironmentVariablesNodeProperty;
+import hudson.slaves.NodeProperty;
+import hudson.slaves.NodePropertyDescriptor;
+import hudson.util.DescribableList;
+import jenkins.model.Jenkins;
 import org.apache.commons.logging.Log;
 
 import org.apache.commons.logging.LogFactory;
@@ -389,5 +395,18 @@ public class Utils
         }
 
         return rows.toString();
+    }
+
+    public static EnvVars getNodeEnvVars() {
+        DescribableList<NodeProperty<?>, NodePropertyDescriptor> globalNodeProperties = Jenkins.get().getGlobalNodeProperties();
+        List<EnvironmentVariablesNodeProperty> envVarsNodePropertyList = globalNodeProperties.getAll(hudson.slaves.EnvironmentVariablesNodeProperty.class);
+
+        if (envVarsNodePropertyList == null || envVarsNodePropertyList.isEmpty()) {
+            EnvironmentVariablesNodeProperty newEnvVarsNodeProperty = new hudson.slaves.EnvironmentVariablesNodeProperty();
+            globalNodeProperties.add(newEnvVarsNodeProperty);
+            return newEnvVarsNodeProperty.getEnvVars();
+        } else {
+            return envVarsNodePropertyList.get(0).getEnvVars();
+        }
     }
 }

@@ -1,0 +1,38 @@
+<!--
+ElectricFlowPublishApplication.java -
+
+ElectricFlowPublishApplication.java is part of ElectricCommander.
+
+Copyright (c) 2005-2017 Electric Cloud, Inc.
+All rights reserved.
+-->
+
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core" xmlns:f="/lib/form">
+    <f:entry title="Configuration" field="configuration">
+        <f:select/>
+    </f:entry>
+    <f:entry title="URL Path" field="urlPath">
+        <f:textbox/>
+    </f:entry>
+    <f:entry title="HTTP Method" field="httpMethod">
+        <f:select/>
+    </f:entry>
+    <f:entry field="parameters" title="Parameters">
+        <f:repeatable field="parameters">
+            Key:
+            <f:textbox field="key" style="width: 40%"/>
+            Value:
+            <f:textbox field="value" style="width: 40%; position: absolute"/>
+            <div align="right">
+                <f:repeatableDeleteButton/>
+            </div>
+        </f:repeatable>
+    </f:entry>
+    <f:entry title="Body" field="body">
+        <f:textarea/>
+    </f:entry>
+    <f:entry title="Environment variable name for storing result" field="envVarNameForResult">
+        <f:textbox/>
+    </f:entry>
+</j:jelly>

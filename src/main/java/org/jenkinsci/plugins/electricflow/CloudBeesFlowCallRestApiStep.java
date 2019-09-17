@@ -1,53 +1,35 @@
-
-// ElectricFlowGenericRestApi.java --
-//
-// ElectricFlowGenericRestApi.java is part of ElectricCommander.
-//
-// Copyright (c) 2005-2017 Electric Cloud, Inc.
-// All rights reserved.
-//
-
 package org.jenkinsci.plugins.electricflow;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.annotation.Nonnull;
-
-import org.jenkinsci.plugins.electricflow.models.CallRestApiModel;
+import hudson.Extension;
 import hudson.model.*;
+import hudson.util.ListBoxModel;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.jenkinsci.plugins.electricflow.models.CallRestApiModel;
 import org.jenkinsci.plugins.electricflow.utils.CallRestApiUtils;
+import org.jenkinsci.plugins.workflow.steps.*;
 import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 
-import hudson.Extension;
-import hudson.FilePath;
-import hudson.Launcher;
+import javax.annotation.Nonnull;
+import java.util.*;
 
-import hudson.tasks.BuildStepDescriptor;
-import hudson.tasks.BuildStepMonitor;
-import hudson.tasks.Publisher;
-import hudson.tasks.Recorder;
+public class CloudBeesFlowCallRestApiStep
+        extends Step
+        implements CallRestApiModel {
 
-import hudson.util.ListBoxModel;
-
-import jenkins.tasks.SimpleBuildStep;
-
-public class ElectricFlowGenericRestApi
-        extends Recorder
-        implements SimpleBuildStep, CallRestApiModel {
-
+    private String body;
     private String configuration;
+    private List<Pair> parameters;
     private String urlPath;
     private String httpMethod;
-    private List<Pair> parameters;
-    private String body;
     private String envVarNameForResult;
 
+    private static final Log log = LogFactory.getLog(CloudBeesFlowCallRestApiStep.class);
+
     @DataBoundConstructor
-    public ElectricFlowGenericRestApi(
+    public CloudBeesFlowCallRestApiStep(
             List<Pair> parameters) {
 
         if (parameters == null) {
@@ -55,17 +37,6 @@ public class ElectricFlowGenericRestApi
         } else {
             this.parameters = new ArrayList<>(parameters);
         }
-    }
-
-    @Override
-    public void perform(
-            @Nonnull Run<?, ?> run,
-            @Nonnull FilePath filePath,
-            @Nonnull Launcher launcher,
-            @Nonnull TaskListener taskListener)
-            throws InterruptedException, IOException {
-
-        CallRestApiUtils.perform(this, run, taskListener);
     }
 
     @Override
@@ -98,11 +69,6 @@ public class ElectricFlowGenericRestApi
         return envVarNameForResult;
     }
 
-    @Override
-    public BuildStepMonitor getRequiredMonitorService() {
-        return BuildStepMonitor.NONE;
-    }
-
     @DataBoundSetter
     public void setConfiguration(String configuration) {
         this.configuration = configuration;
@@ -133,9 +99,39 @@ public class ElectricFlowGenericRestApi
         this.envVarNameForResult = envVarNameForResult;
     }
 
+    @Override
+    public StepExecution start(StepContext stepContext) throws Exception {
+        return new Execution(stepContext, this);
+    }
+
+    private static class Execution extends SynchronousStepExecution {
+
+        private transient CloudBeesFlowCallRestApiStep step;
+
+        Execution(@Nonnull StepContext context, @Nonnull CloudBeesFlowCallRestApiStep step) {
+            super(context);
+            this.step = step;
+        }
+
+        private CloudBeesFlowCallRestApiStep getStep() {
+            return step;
+        }
+
+        @Override
+        protected String run() throws Exception {
+            return CallRestApiUtils.perform(
+                    getStep(),
+                    getContext().get(Run.class),
+                    getContext().get(TaskListener.class)
+            );
+        }
+
+        private static final long serialVersionUID = 1L;
+    }
+
     @Extension
     public static final class DescriptorImpl
-            extends BuildStepDescriptor<Publisher> {
+            extends StepDescriptor {
 
 
         public ListBoxModel doFillConfigurationItems(@AncestorInPath Item item) {
@@ -152,9 +148,13 @@ public class ElectricFlowGenericRestApi
         }
 
         @Override
-        public boolean isApplicable(
-                Class<? extends AbstractProject> aClass) {
-            return true;
+        public Set<? extends Class<?>> getRequiredContext() {
+            return Collections.singleton(Run.class);
+        }
+
+        @Override
+        public String getFunctionName() {
+            return CallRestApiUtils.getFunctionName();
         }
     }
 }

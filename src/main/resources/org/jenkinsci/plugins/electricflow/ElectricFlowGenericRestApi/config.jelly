@@ -29,8 +29,10 @@ All rights reserved.
         </div>
     </f:repeatable>
   </f:entry>
-
   <f:entry title="Body" field="body">
       <f:textarea />
+  </f:entry>
+  <f:entry title="Environment variable name for storing result" field="envVarNameForResult">
+      <f:textbox/>
   </f:entry>
 </j:jelly>
