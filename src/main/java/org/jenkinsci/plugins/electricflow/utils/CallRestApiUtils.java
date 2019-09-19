@@ -68,7 +68,11 @@ public class CallRestApiUtils {
     private static String getSummaryHtml(CallRestApiModel callRestApiModel,
                                          ElectricFlowClient efClient,
                                          String result) throws IOException {
-        String url = efClient.getElectricFlowUrl() + callRestApiModel.getUrlPath();
+        Configuration configuration = Utils.getConfigurationByName(callRestApiModel.getConfiguration());
+        String urlPath = callRestApiModel.getUrlPath();
+        urlPath = urlPath.startsWith("/") ? urlPath : "/" + urlPath;
+        String url = efClient.getElectricFlowUrl() + configuration.getElectricFlowApiVersion() + urlPath;
+
         String summaryText = "<h3>CloudBees Flow Generic REST API</h3>"
                 + "<table cellspacing=\"2\" cellpadding=\"4\"> \n"
                 + "  <tr>\n"
