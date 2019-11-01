@@ -1,5 +1,6 @@
 package org.jenkinsci.plugins.electricflow.models;
 
+import org.jenkinsci.plugins.electricflow.EnvReplacer;
 import org.jenkinsci.plugins.electricflow.Pair;
 
 import java.util.List;
@@ -14,6 +15,10 @@ public interface CallRestApiModel {
     public String getHttpMethod();
 
     public List<Pair> getParameters();
+
+    public default List<Pair> getParameters(EnvReplacer envReplacer) {
+        return getParameters().stream().map(it -> new Pair(it.getKey(), envReplacer.expandEnv(it.getValue()))).collect(Collectors.toList());
+    }
 
     public String getBody();
 
