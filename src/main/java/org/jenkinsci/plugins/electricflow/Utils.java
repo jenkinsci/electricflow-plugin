@@ -108,6 +108,18 @@ public class Utils
         }
     }
 
+    public static void expandParameters(
+            JSONArray parameters,
+            EnvReplacer env,
+            String propertyName) {
+        for (Object jsonObject : parameters) {
+            JSONObject json = (JSONObject) jsonObject;
+            String parameterValue = (String) json.get(propertyName);
+            String expandValue = env.expandEnv(parameterValue);
+            json.put(propertyName, expandValue);
+        }
+    }
+
     public static ListBoxModel fillConfigurationItems()
     {
         ListBoxModel m = new ListBoxModel();

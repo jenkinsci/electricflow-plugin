@@ -100,6 +100,9 @@ public class ElectricFlowDeployApplication
         try {
             logger.println("Preparing to run process...");
 
+            EnvReplacer env = new EnvReplacer(run, taskListener);
+            expandParameters(parameter, env, "value");
+
             String     result  = efClient.runProcess(projectName,
                     applicationName, applicationProcessName, environmentName,
                     parameter);

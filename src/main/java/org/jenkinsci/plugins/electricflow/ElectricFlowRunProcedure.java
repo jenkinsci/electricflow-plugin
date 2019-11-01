@@ -88,6 +88,9 @@ public class ElectricFlowRunProcedure
         try {
             logger.println("Preparing to run procedure...");
 
+            EnvReplacer env = new EnvReplacer(run, taskListener);
+            expandParameters(parameter, env, "value");
+
             String result = efClient.runProcedure(projectName, procedureName, parameter);
 
             Map<String, String> args = new HashMap<>();

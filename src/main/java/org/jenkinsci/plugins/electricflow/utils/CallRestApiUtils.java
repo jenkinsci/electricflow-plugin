@@ -1,6 +1,5 @@
 package org.jenkinsci.plugins.electricflow.utils;
 
-import hudson.EnvVars;
 import hudson.model.Item;
 import hudson.model.Result;
 import hudson.model.Run;
@@ -30,6 +29,7 @@ public class CallRestApiUtils {
                                  TaskListener taskListener) throws IOException {
 
         try {
+            EnvReplacer envReplacer = new EnvReplacer(run, taskListener);
             ElectricFlowClient efClient = new ElectricFlowClient(
                     callRestApiModel.getConfiguration());
 
@@ -37,10 +37,11 @@ public class CallRestApiUtils {
                     callRestApiModel.getUrlPath(),
                     HttpMethod.valueOf(callRestApiModel.getHttpMethod()),
                     callRestApiModel.getBody(),
-                    callRestApiModel.getParameters()
+                    callRestApiModel.getParameters(envReplacer)
             );
             String summaryHtml = getSummaryHtml(
                     callRestApiModel,
+                    envReplacer,
                     efClient,
                     result
             );
@@ -59,13 +60,14 @@ public class CallRestApiUtils {
 
             return result;
 
-        } catch (IOException e) {
+        } catch (IOException | InterruptedException e) {
             run.setResult(Result.FAILURE);
             throw new IOException(e);
         }
     }
 
     private static String getSummaryHtml(CallRestApiModel callRestApiModel,
+                                         EnvReplacer envReplacer,
                                          ElectricFlowClient efClient,
                                          String result) throws IOException {
         Configuration configuration = Utils.getConfigurationByName(callRestApiModel.getConfiguration());
@@ -95,7 +97,7 @@ public class CallRestApiUtils {
                         + "    <td></td>    \n"
                         + "  </tr>\n");
 
-                for (Pair pair : callRestApiModel.getParameters()) {
+                for (Pair pair : callRestApiModel.getParameters(envReplacer)) {
                     strBuilder.append("  <tr>\n"
                             + "    <td>&nbsp;&nbsp;&nbsp;&nbsp;")
                             .append(HtmlUtils.encodeForHtml(pair.getKey()))
