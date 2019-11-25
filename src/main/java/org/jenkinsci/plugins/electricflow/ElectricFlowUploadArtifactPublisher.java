@@ -16,7 +16,9 @@ import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
 
-import hudson.model.Item;
+import hudson.model.*;
+import hudson.tasks.Recorder;
+import jenkins.tasks.SimpleBuildStep;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -32,10 +34,6 @@ import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
 
-import hudson.model.AbstractBuild;
-import hudson.model.AbstractProject;
-import hudson.model.BuildListener;
-
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.BuildStepMonitor;
 import hudson.tasks.Publisher;
@@ -43,9 +41,10 @@ import hudson.tasks.Publisher;
 import hudson.util.FormValidation;
 import hudson.util.ListBoxModel;
 
+import javax.annotation.Nonnull;
+
 public class ElectricFlowUploadArtifactPublisher
-    extends Publisher
-{
+    extends Recorder implements SimpleBuildStep {
 
     //~ Static fields/initializers ---------------------------------------------
 
@@ -78,14 +77,24 @@ public class ElectricFlowUploadArtifactPublisher
         this.configuration   = configuration;
     }
 
-    //~ Methods ----------------------------------------------------------------
+    @Override
+    public void perform(
+            @Nonnull Run<?, ?> run,
+            @Nonnull FilePath workspace,
+            @Nonnull Launcher launcher,
+            @Nonnull TaskListener taskListener)
+            throws InterruptedException, IOException {
+        boolean isSuccess = runProcess(run, taskListener, workspace);
+        if (!isSuccess) {
+            run.setResult(Result.FAILURE);
+        }
+    }
 
-    @Override public boolean perform(
-            AbstractBuild build,
-            Launcher      launcher,
-            BuildListener listener)
-    {
-        PrintStream logger = listener.getLogger();
+    private boolean runProcess(
+            @Nonnull Run<?, ?> run,
+            @Nonnull TaskListener taskListener,
+            @Nonnull FilePath workspace) {
+        PrintStream logger = taskListener.getLogger();
 
         try {
 
@@ -93,39 +102,25 @@ public class ElectricFlowUploadArtifactPublisher
                 log.debug("Publishing artifact...");
             }
 
-            String   workspaceDir;
-            FilePath workspace = build.getWorkspace();
-
-            if (workspace != null) {
-                workspaceDir = workspace.getRemote();
-            }
-            else {
-                logger.println("WARNING: Workspace should not be null.");
-                log.warn("Workspace should not be null");
-
-                return false;
-            }
-
             if (log.isDebugEnabled()) {
-                log.debug("Workspace directory: " + workspaceDir);
+                log.debug("Workspace directory: " + workspace);
             }
 
             // let's do a expand variables
-            EnvReplacer env                = new EnvReplacer(build, listener);
-            String      newFilePath        = env.expandEnv(filePath);
-            String      newArtifactVersion = env.expandEnv(artifactVersion);
-            String      newArtifactName    = env.expandEnv(artifactName);
+            EnvReplacer env = new EnvReplacer(run, taskListener);
+            String newFilePath = env.expandEnv(filePath);
+            String newArtifactVersion = env.expandEnv(artifactVersion);
+            String newArtifactName = env.expandEnv(artifactName);
 
             if (log.isDebugEnabled()) {
                 log.debug("Workspace directory: " + newFilePath);
             }
 
             // end of replacements
-            ElectricFlowClient efClient = new ElectricFlowClient(configuration,
-                    workspaceDir);
-            String             result   = efClient.uploadArtifact(build,
-                    listener, repositoryName, newArtifactName,
-                    newArtifactVersion, newFilePath, true);
+            ElectricFlowClient efClient = new ElectricFlowClient(configuration);
+            String result = efClient.uploadArtifact(run,
+                    taskListener, repositoryName, newArtifactName,
+                    newArtifactVersion, newFilePath, true, workspace);
 
             if (!"Artifact-Published-OK".equals(result)) {
                 logger.println("Upload result: " + result);
@@ -133,16 +128,15 @@ public class ElectricFlowUploadArtifactPublisher
                 return false;
             }
 
-            String            summaryHtml = getSummaryHtml(newArtifactVersion,
+            String summaryHtml = getSummaryHtml(newArtifactVersion,
                     newArtifactName, efClient);
-            SummaryTextAction action      = new SummaryTextAction(build,
+            SummaryTextAction action = new SummaryTextAction(run,
                     summaryHtml);
 
-            build.addAction(action);
-            build.save();
+            run.addAction(action);
+            run.save();
             logger.println("Upload result: " + result);
-        }
-        catch (NoSuchAlgorithmException | KeyManagementException
+        } catch (NoSuchAlgorithmException | KeyManagementException
                 | InterruptedException | IOException e) {
             logger.println(e.getMessage());
             log.error(e.getMessage(), e);

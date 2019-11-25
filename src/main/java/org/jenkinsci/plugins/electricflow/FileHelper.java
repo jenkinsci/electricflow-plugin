@@ -23,15 +23,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
 
+import hudson.model.*;
 import org.apache.maven.shared.utils.io.DirectoryScanner;
 
 import hudson.FilePath;
 
-import hudson.model.AbstractBuild;
-import hudson.model.BuildListener;
-import hudson.model.Computer;
-
-import hudson.slaves.SlaveComputer;
+import static org.jenkinsci.plugins.electricflow.Utils.isRunOnSlave;
 
 public class FileHelper
 {
@@ -153,55 +150,53 @@ public class FileHelper
     }
 
     static List<File> getFilesFromDirectoryWildcard(
-            AbstractBuild build,
-            BuildListener listener,
-            final String  basePath,
-            final String  path)
-        throws IOException, InterruptedException
-    {
+            Run build,
+            TaskListener listener,
+            final FilePath basePath,
+            final String path)
+            throws IOException, InterruptedException {
         return getFilesFromDirectoryWildcard(build, listener, basePath, path,
-            false);
+                false);
+    }
+
+    static FilePath getPublishArtifactWorkspaceOnMasterWhenRunIsOnSlave(Run run) {
+        return new FilePath(new File(run.getRootDir(), "publish-artifact"));
     }
 
     static List<File> getFilesFromDirectoryWildcard(
-            AbstractBuild build,
-            BuildListener listener,
-            String        basePath,
-            final String  path,
-            boolean       fullPath)
-        throws IOException, InterruptedException
-    {
-        PrintStream      logger      = listener.getLogger();
-        String[]         splitResult = splitPath(path);
-        List<File>       result      = new ArrayList<>();
-        DirectoryScanner scanner     = new DirectoryScanner();
+            Run build,
+            TaskListener listener,
+            FilePath basePathInitial,
+            final String path,
+            boolean fullPath)
+            throws IOException, InterruptedException {
+        PrintStream logger = listener.getLogger();
+        String[] splitResult = splitPath(path);
+        List<File> result = new ArrayList<>();
+        DirectoryScanner scanner = new DirectoryScanner();
 
-        if (Computer.currentComputer() instanceof SlaveComputer) {
-            File targetBuildDirectory = new File(build.getRootDir(),
-                    "cucumber-html-reports");
+        String basePathOnNodeForUploading;
 
+        if (isRunOnSlave()) {
             logger.println("Detected this build is running on a slave ");
 
-            FilePath projectWorkspaceOnSlave = build.getProject()
-                                                    .getSomeWorkspace();
+            FilePath basePathOnMaster = getPublishArtifactWorkspaceOnMasterWhenRunIsOnSlave(build);
+            FilePath basePathOnSlave = basePathInitial;
 
-            if (projectWorkspaceOnSlave != null) {
-                FilePath masterJsonReportDirectory = new FilePath(
-                        targetBuildDirectory);
+            logger.println("Copying files from: "
+                    + basePathOnSlave.toURI()
+                    + " to reports directory: "
+                    + basePathOnMaster.toURI());
+            basePathOnSlave.copyRecursiveTo("**", "",
+                    basePathOnMaster);
+            basePathOnNodeForUploading = basePathOnMaster.getRemote();
 
-                logger.println("Copying files from: "
-                        + projectWorkspaceOnSlave.toURI()
-                        + "to reports directory: "
-                        + masterJsonReportDirectory.toURI());
-                projectWorkspaceOnSlave.copyRecursiveTo("**", "",
-                    masterJsonReportDirectory);
-                scanner.setBasedir(masterJsonReportDirectory.getRemote());
-                basePath = masterJsonReportDirectory.getRemote();
-            }
+        } else {
+            basePathOnNodeForUploading = basePathInitial.getRemote();
         }
-        else {
-            scanner.setBasedir(basePath);
-        }
+
+        scanner.setBasedir(basePathOnNodeForUploading);
+
         // Now let's locate files
 
         scanner.setIncludes(splitResult);
@@ -213,7 +208,7 @@ public class FileHelper
         for (String str : files) {
 
             if (fullPath) {
-                result.add(new File(buildPath(basePath, "/", str)));
+                result.add(new File(buildPath(basePathOnNodeForUploading, "/", str)));
             }
             else {
                 result.add(new File(str));
@@ -222,7 +217,7 @@ public class FileHelper
 
         if (result.isEmpty()) {
             throw new InterruptedException(
-                "Upload result:  No files were found in path \"" + basePath
+                "Upload result:  No files were found in path \"" + basePathInitial
                     + File.separator + path
                     + "\".");
         }
