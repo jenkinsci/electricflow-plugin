@@ -208,7 +208,7 @@ public class FileHelper
 
         if (result.isEmpty()) {
             throw new InterruptedException(
-                "Upload result:  No files were found in path \"" + basePathInitial
+                "Upload result:  No files were found in path \"" + basePathOnNodeForUploading
                     + File.separator + path
                     + "\".");
         }
