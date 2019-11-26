@@ -28,8 +28,6 @@ import org.apache.maven.shared.utils.io.DirectoryScanner;
 
 import hudson.FilePath;
 
-import static org.jenkinsci.plugins.electricflow.Utils.isRunOnSlave;
-
 public class FileHelper
 {
 
@@ -159,7 +157,7 @@ public class FileHelper
                 false);
     }
 
-    static FilePath getPublishArtifactWorkspaceOnMasterWhenRunIsOnSlave(Run run) {
+    static FilePath getPublishArtifactWorkspaceOnMaster(Run run) {
         return new FilePath(new File(run.getRootDir(), "publish-artifact"));
     }
 
@@ -177,23 +175,16 @@ public class FileHelper
 
         String basePathOnNodeForUploading;
 
-        if (isRunOnSlave()) {
-            logger.println("Detected this build is running on a slave ");
+        FilePath basePathOnMaster = getPublishArtifactWorkspaceOnMaster(build);
+        FilePath basePathOnCurrentNode = basePathInitial;
 
-            FilePath basePathOnMaster = getPublishArtifactWorkspaceOnMasterWhenRunIsOnSlave(build);
-            FilePath basePathOnSlave = basePathInitial;
-
-            logger.println("Copying files from: "
-                    + basePathOnSlave.toURI()
-                    + " to reports directory: "
-                    + basePathOnMaster.toURI());
-            basePathOnSlave.copyRecursiveTo("**", "",
-                    basePathOnMaster);
-            basePathOnNodeForUploading = basePathOnMaster.getRemote();
-
-        } else {
-            basePathOnNodeForUploading = basePathInitial.getRemote();
-        }
+        logger.println("Copying files from: "
+                + basePathOnCurrentNode.toURI()
+                + " to reports directory: "
+                + basePathOnMaster.toURI());
+        basePathOnCurrentNode.copyRecursiveTo("**", "",
+                basePathOnMaster);
+        basePathOnNodeForUploading = basePathOnMaster.getRemote();
 
         scanner.setBasedir(basePathOnNodeForUploading);
 

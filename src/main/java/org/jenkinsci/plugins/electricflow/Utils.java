@@ -424,7 +424,4 @@ public class Utils
         }
     }
 
-    public static boolean isRunOnSlave() {
-        return Computer.currentComputer() instanceof SlaveComputer;
-    }
 }

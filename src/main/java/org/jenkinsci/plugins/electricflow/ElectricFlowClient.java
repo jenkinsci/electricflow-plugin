@@ -32,11 +32,10 @@ import net.sf.json.JSONObject;
 
 import hudson.util.Secret;
 
-import static org.jenkinsci.plugins.electricflow.FileHelper.getPublishArtifactWorkspaceOnMasterWhenRunIsOnSlave;
+import static org.jenkinsci.plugins.electricflow.FileHelper.getPublishArtifactWorkspaceOnMaster;
 import static org.jenkinsci.plugins.electricflow.HttpMethod.GET;
 import static org.jenkinsci.plugins.electricflow.HttpMethod.POST;
 import static org.jenkinsci.plugins.electricflow.HttpMethod.PUT;
-import static org.jenkinsci.plugins.electricflow.Utils.isRunOnSlave;
 
 public class ElectricFlowClient
 {
@@ -401,7 +400,7 @@ public class ElectricFlowClient
             log.debug("File path: " + path);
         }
 
-        String uploadWorkspace = isRunOnSlave() ? getPublishArtifactWorkspaceOnMasterWhenRunIsOnSlave(build).getRemote() : workspace.getRemote();
+        String uploadWorkspace = getPublishArtifactWorkspaceOnMaster(build).getRemote();
 
         for (File file : fileList) {
             if (file.isDirectory()) {
