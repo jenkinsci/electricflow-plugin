@@ -27,6 +27,7 @@ import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jenkinsci.Symbol;
 import org.jenkinsci.plugins.electricflow.ui.FieldValidationStatus;
 import org.jenkinsci.plugins.electricflow.ui.HtmlUtils;
 import org.jenkinsci.plugins.electricflow.ui.SelectFieldUtils;
@@ -278,9 +279,9 @@ public class ElectricFlowTriggerRelease
 
     }
 
-    //~ Inner Classes ----------------------------------------------------------
-
-    @Extension public static final class DescriptorImpl
+    @Symbol("cloudBeesFlowTriggerRelease")
+    @Extension
+    public static final class DescriptorImpl
         extends BuildStepDescriptor<Publisher>
     {
 
