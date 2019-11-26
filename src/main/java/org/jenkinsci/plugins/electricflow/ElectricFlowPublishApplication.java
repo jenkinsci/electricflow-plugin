@@ -29,6 +29,7 @@ import jenkins.tasks.SimpleBuildStep;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.jenkinsci.Symbol;
 import org.jenkinsci.plugins.electricflow.ui.HtmlUtils;
 import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.DataBoundConstructor;
@@ -71,7 +72,6 @@ public class ElectricFlowPublishApplication
 
     @DataBoundConstructor public ElectricFlowPublishApplication(
             String configuration,
-            String artifactName,
             String filePath)
     {
         this.configuration = configuration;
@@ -425,6 +425,7 @@ public class ElectricFlowPublishApplication
      * <p>See * .jelly for the actual HTML fragment for the configuration
      * screen.</p>
      */
+    @Symbol("cloudBeesFlowPublishApplication")
     @Extension // This indicates to Jenkins that this is an implementation of
                // an extension point.
     public static final class DescriptorImpl

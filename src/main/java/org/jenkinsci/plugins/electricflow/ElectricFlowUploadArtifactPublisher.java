@@ -22,6 +22,7 @@ import jenkins.tasks.SimpleBuildStep;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.jenkinsci.Symbol;
 import org.jenkinsci.plugins.electricflow.ui.HtmlUtils;
 import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.DataBoundConstructor;
@@ -230,6 +231,7 @@ public class ElectricFlowUploadArtifactPublisher
     /**
      * The class is marked as public so that it can be accessed from views.
      */
+    @Symbol("cloudBeesFlowPublishArtifact")
     @Extension // This indicates to Jenkins that this is an implementation of
                // an extension point.
     public static final class DescriptorImpl
