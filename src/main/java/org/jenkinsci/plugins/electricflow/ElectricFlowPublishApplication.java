@@ -368,7 +368,7 @@ public class ElectricFlowPublishApplication
             String path)
             throws IOException, InterruptedException {
         FilePath fullPath = new FilePath(basePath, path);
-        File   f        = new File(fullPath.getRemote());
+        File f = new File(fullPath.getRemote());
 
         if (f.exists() && f.isDirectory()) {
             List<File> fileList = FileHelper.getFilesFromDirectoryWildcard(

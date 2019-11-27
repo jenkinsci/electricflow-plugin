@@ -394,7 +394,7 @@ public class ElectricFlowClient
 
         // here we're getting files from directory using wildcard:
         List<File> fileList = FileHelper.getFilesFromDirectoryWildcard(build,
-                listener, workspace, path, true);
+                listener, workspace, path, true, true);
 
         if (log.isDebugEnabled()) {
             log.debug("File path: " + path);

@@ -15,11 +15,9 @@ import java.net.URLEncoder;
 import java.util.*;
 
 import hudson.EnvVars;
-import hudson.model.Computer;
 import hudson.slaves.EnvironmentVariablesNodeProperty;
 import hudson.slaves.NodeProperty;
 import hudson.slaves.NodePropertyDescriptor;
-import hudson.slaves.SlaveComputer;
 import hudson.util.DescribableList;
 import jenkins.model.Jenkins;
 import org.apache.commons.logging.Log;
@@ -423,5 +421,4 @@ public class Utils
             return envVarsNodePropertyList.get(0).getEnvVars();
         }
     }
-
 }

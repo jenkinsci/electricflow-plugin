@@ -154,7 +154,7 @@ public class FileHelper
             final String path)
             throws IOException, InterruptedException {
         return getFilesFromDirectoryWildcard(build, listener, basePath, path,
-                false);
+                false, false);
     }
 
     static FilePath getPublishArtifactWorkspaceOnMaster(Run run) {
@@ -166,27 +166,29 @@ public class FileHelper
             TaskListener listener,
             FilePath basePathInitial,
             final String path,
-            boolean fullPath)
+            boolean fullPath,
+            boolean copyToMasterBuildDir)
             throws IOException, InterruptedException {
         PrintStream logger = listener.getLogger();
         String[] splitResult = splitPath(path);
         List<File> result = new ArrayList<>();
         DirectoryScanner scanner = new DirectoryScanner();
 
-        String basePathOnNodeForUploading;
+        String basePathActual = basePathInitial.getRemote();
 
-        FilePath basePathOnMaster = getPublishArtifactWorkspaceOnMaster(build);
-        FilePath basePathOnCurrentNode = basePathInitial;
+        if (copyToMasterBuildDir) {
+            FilePath basePathOnMaster = getPublishArtifactWorkspaceOnMaster(build);
+            logger.println("Copying files from: "
+                    + basePathInitial.toURI()
+                    + " to reports directory: "
+                    + basePathOnMaster.toURI());
+            basePathInitial.copyRecursiveTo("**", "",
+                    basePathOnMaster);
+            basePathActual = basePathOnMaster.getRemote();
+        }
 
-        logger.println("Copying files from: "
-                + basePathOnCurrentNode.toURI()
-                + " to reports directory: "
-                + basePathOnMaster.toURI());
-        basePathOnCurrentNode.copyRecursiveTo("**", "",
-                basePathOnMaster);
-        basePathOnNodeForUploading = basePathOnMaster.getRemote();
 
-        scanner.setBasedir(basePathOnNodeForUploading);
+        scanner.setBasedir(basePathActual);
 
         // Now let's locate files
 
@@ -199,7 +201,7 @@ public class FileHelper
         for (String str : files) {
 
             if (fullPath) {
-                result.add(new File(buildPath(basePathOnNodeForUploading, "/", str)));
+                result.add(new File(buildPath(basePathActual, "/", str)));
             }
             else {
                 result.add(new File(str));
@@ -208,7 +210,7 @@ public class FileHelper
 
         if (result.isEmpty()) {
             throw new InterruptedException(
-                "Upload result:  No files were found in path \"" + basePathOnNodeForUploading
+                "Upload result:  No files were found in path \"" + basePathActual
                     + File.separator + path
                     + "\".");
         }
