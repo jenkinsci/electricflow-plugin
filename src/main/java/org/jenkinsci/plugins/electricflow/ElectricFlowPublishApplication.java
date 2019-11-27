@@ -23,10 +23,13 @@ import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
-import hudson.model.Item;
+import hudson.model.*;
+import hudson.tasks.Recorder;
+import jenkins.tasks.SimpleBuildStep;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.jenkinsci.Symbol;
 import org.jenkinsci.plugins.electricflow.ui.HtmlUtils;
 import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.DataBoundConstructor;
@@ -39,10 +42,6 @@ import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
 
-import hudson.model.AbstractBuild;
-import hudson.model.AbstractProject;
-import hudson.model.BuildListener;
-
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.BuildStepMonitor;
 import hudson.tasks.Publisher;
@@ -50,9 +49,10 @@ import hudson.tasks.Publisher;
 import hudson.util.FormValidation;
 import hudson.util.ListBoxModel;
 
+import javax.annotation.Nonnull;
+
 public class ElectricFlowPublishApplication
-    extends Publisher
-{
+        extends Recorder implements SimpleBuildStep {
 
     //~ Static fields/initializers ---------------------------------------------
 
@@ -72,7 +72,6 @@ public class ElectricFlowPublishApplication
 
     @DataBoundConstructor public ElectricFlowPublishApplication(
             String configuration,
-            String artifactName,
             String filePath)
     {
         this.configuration = configuration;
@@ -81,34 +80,34 @@ public class ElectricFlowPublishApplication
 
     //~ Methods ----------------------------------------------------------------
 
-    @Override public boolean perform(
-            AbstractBuild build,
-            Launcher      launcher,
-            BuildListener listener)
-        throws InterruptedException
-    {
-        PrintStream logger    = listener.getLogger();
-        FilePath    workspace = build.getWorkspace();
-
-        if (workspace == null) {
-            logger.println("WARNING: Workspace should not be null.");
-            log.warn("Workspace should not be null");
-
-            return false;
+    @Override public void perform(
+            @Nonnull Run<?, ?> run,
+            @Nonnull FilePath     workspace,
+            @Nonnull Launcher     launcher,
+            @Nonnull TaskListener taskListener)
+            throws InterruptedException, IOException {
+        boolean isSuccess = runProcess(run, taskListener, workspace);
+        if (!isSuccess) {
+            run.setResult(Result.FAILURE);
         }
+    }
 
-        String  workspaceDir = workspace.getRemote();
-        Integer buildNumber  = build.getNumber();
+    private boolean runProcess(
+            @Nonnull Run<?, ?> run,
+            @Nonnull TaskListener taskListener,
+            @Nonnull FilePath workspace) {
+        PrintStream logger = taskListener.getLogger();
+
+        Integer buildNumber = run.getNumber();
 
         // do replace
         String newFilePath;
 
         try {
-            EnvReplacer env = new EnvReplacer(build, listener);
+            EnvReplacer env = new EnvReplacer(run, taskListener);
 
             newFilePath = env.expandEnv(filePath);
-        }
-        catch (IOException | InterruptedException e) {
+        } catch (IOException | InterruptedException e) {
             logger.println("Unexpected error during expand \"%s\"" + e);
             log.warn(e);
             newFilePath = filePath;
@@ -118,9 +117,8 @@ public class ElectricFlowPublishApplication
         String artifactVersion = buildNumber.toString();
 
         try {
-            makeApplicationArchive(build, listener, workspaceDir, newFilePath);
-        }
-        catch (IOException | InterruptedException e) {
+            makeApplicationArchive(run, taskListener, workspace, newFilePath);
+        } catch (IOException | InterruptedException e) {
             logger.println("Warning: Cannot create archive: " + e.getMessage());
             log.warn("Can't create archive: " + e.getMessage(), e);
 
@@ -128,42 +126,40 @@ public class ElectricFlowPublishApplication
         }
 
         String artifactGroup = "org.ec";
-        String artifactKey   = getCurrentTimeStamp();
+        String artifactKey = getCurrentTimeStamp();
 
         if (log.isDebugEnabled()) {
             log.debug("ArtifactKey" + artifactKey);
         }
 
-        String artifactName   = artifactGroup + ":" + artifactKey;
+        String artifactName = artifactGroup + ":" + artifactKey;
         String deployResponse;
 
         try {
-            ElectricFlowClient efClient = new ElectricFlowClient(configuration,
-                    workspaceDir);
+            ElectricFlowClient efClient = new ElectricFlowClient(configuration);
 
-            efClient.uploadArtifact(build, listener, "default", artifactName,
-                artifactVersion,
-                ElectricFlowPublishApplication.deploymentPackageName, true);
+            efClient.uploadArtifact(run, taskListener, "default", artifactName,
+                    artifactVersion,
+                    ElectricFlowPublishApplication.deploymentPackageName, true, workspace);
             deployResponse = efClient.deployApplicationPackage(artifactGroup,
                     artifactKey, artifactVersion,
                     ElectricFlowPublishApplication.deploymentPackageName);
 
-            String            summaryHtml = getSummaryHtml(efClient,
-                    workspaceDir, logger);
-            SummaryTextAction action      = new SummaryTextAction(build,
+            String summaryHtml = getSummaryHtml(efClient,
+                    workspace.getRemote(), logger);
+            SummaryTextAction action = new SummaryTextAction(run,
                     summaryHtml);
 
-            build.addAction(action);
-            build.save();
+            run.addAction(action);
+            run.save();
 
             if (log.isDebugEnabled()) {
                 log.debug("DeployApp response: " + deployResponse);
             }
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             logger.println(
-                "Warning: Error occurred during application creation: "
-                    + e.getMessage());
+                    "Warning: Error occurred during application creation: "
+                            + e.getMessage());
             log.warn("Error occurred during application creation: "
                     + e.getMessage(), e);
 
@@ -284,7 +280,7 @@ public class ElectricFlowPublishApplication
     //~ Methods ----------------------------------------------------------------
 
     public static File createZipArchive(
-            String   basePath,
+            FilePath basePath,
             String   archiveName,
             String[] files)
         throws IOException
@@ -301,7 +297,7 @@ public class ElectricFlowPublishApplication
     }
 
     public static File createZipArchive(
-            String     basePath,
+            FilePath   basePath,
             String     archiveName,
             List<File> files)
         throws IOException
@@ -310,7 +306,7 @@ public class ElectricFlowPublishApplication
     }
 
     public static File createZipArchive(
-            String     basePath,
+            FilePath   basePath,
             String     archiveName,
             List<File> files,
             boolean    cutTopLevelDir)
@@ -330,7 +326,7 @@ public class ElectricFlowPublishApplication
             for (File row : files) {
 
                 try(FileInputStream in = new FileInputStream(
-                                FileHelper.buildPath(basePath, "/",
+                                FileHelper.buildPath(basePath.getRemote(), "/",
                                     row.getPath()))) {
                     String filePathToAdd = row.getPath();
 
@@ -365,15 +361,14 @@ public class ElectricFlowPublishApplication
     }
 
     public static File createZipArchive(
-            AbstractBuild build,
-            BuildListener listener,
-            String        basePath,
-            String        archiveName,
-            String        path)
-        throws IOException, InterruptedException
-    {
-        String fullPath = FileHelper.buildPath(basePath, "/", path);
-        File   f        = new File(fullPath);
+            Run build,
+            TaskListener listener,
+            FilePath basePath,
+            String archiveName,
+            String path)
+            throws IOException, InterruptedException {
+        FilePath fullPath = new FilePath(basePath, path);
+        File f = new File(fullPath.getRemote());
 
         if (f.exists() && f.isDirectory()) {
             List<File> fileList = FileHelper.getFilesFromDirectoryWildcard(
@@ -392,22 +387,20 @@ public class ElectricFlowPublishApplication
         return createZipArchive(basePath, archiveName, filesToArchive, true);
     }
 
-    // This methods
     public static File makeApplicationArchive(
-            AbstractBuild build,
-            BuildListener listener,
-            String        workspaceDir,
-            String        filePath)
-        throws IOException, InterruptedException
-    {
+            Run build,
+            TaskListener listener,
+            FilePath workspace,
+            String filePath)
+            throws IOException, InterruptedException {
 
         // in this method manifest is already tuned, so all we need is just to
         // package archive.
-        String archivePath = FileHelper.buildPath(workspaceDir, "/",
+        String archivePath = FileHelper.buildPath(workspace.getRemote(), "/",
                 ElectricFlowPublishApplication.deploymentPackageName);
 
-        return createZipArchive(build, listener, workspaceDir, archivePath,
-            filePath);
+        return createZipArchive(build, listener, workspace, archivePath,
+                filePath);
     }
 
     public static String getCurrentTimeStamp()
@@ -432,6 +425,7 @@ public class ElectricFlowPublishApplication
      * <p>See * .jelly for the actual HTML fragment for the configuration
      * screen.</p>
      */
+    @Symbol("cloudBeesFlowPublishApplication")
     @Extension // This indicates to Jenkins that this is an implementation of
                // an extension point.
     public static final class DescriptorImpl

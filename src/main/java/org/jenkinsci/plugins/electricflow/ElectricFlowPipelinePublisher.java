@@ -21,6 +21,7 @@ import hudson.model.*;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.jenkinsci.Symbol;
 import org.jenkinsci.plugins.electricflow.ui.FieldValidationStatus;
 import org.jenkinsci.plugins.electricflow.ui.HtmlUtils;
 import org.jenkinsci.plugins.electricflow.ui.SelectFieldUtils;
@@ -328,6 +329,7 @@ public class ElectricFlowPipelinePublisher
      * <p>See .jelly for the actual HTML fragment for the configuration
      * screen.</p>
      */
+    @Symbol("cloudBeesFlowRunPipeline")
     @Extension // This indicates to Jenkins that this is an implementation of
                // an extension point.
     public static final class DescriptorImpl

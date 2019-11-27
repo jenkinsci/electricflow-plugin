@@ -20,6 +20,9 @@ import java.util.stream.Collectors;
 
 import javax.net.ssl.HttpsURLConnection;
 
+import hudson.FilePath;
+import hudson.model.Run;
+import hudson.model.TaskListener;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -27,11 +30,9 @@ import org.apache.commons.logging.LogFactory;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 
-import hudson.model.AbstractBuild;
-import hudson.model.BuildListener;
-
 import hudson.util.Secret;
 
+import static org.jenkinsci.plugins.electricflow.FileHelper.getPublishArtifactWorkspaceOnMaster;
 import static org.jenkinsci.plugins.electricflow.HttpMethod.GET;
 import static org.jenkinsci.plugins.electricflow.HttpMethod.POST;
 import static org.jenkinsci.plugins.electricflow.HttpMethod.PUT;
@@ -50,31 +51,27 @@ public class ElectricFlowClient
     private String        electricFlowUrl;
     private String        userName;
     private String        password;
-    private String        workspaceDir;
     private String        apiVersion;
     private boolean       ignoreSslConnectionErrors;
     private List<Release> releasesList = new ArrayList<>();
     private EnvReplacer   envReplacer;
 
-    //~ Constructors -----------------------------------------------------------
-
-    public ElectricFlowClient(String configurationName)
-    {
-        this(configurationName, "");
-    }
-
-    public ElectricFlowClient(
-            String      configurationName,
-            EnvReplacer envReplacer)
-    {
-        this(configurationName, "");
-        this.envReplacer = envReplacer;
-    }
 
     public ElectricFlowClient(
             String configurationName,
-            String workspaceDir)
-    {
+            EnvReplacer envReplacer) {
+        this(configurationName);
+        this.envReplacer = envReplacer;
+    }
+
+    @Deprecated
+    public ElectricFlowClient(
+            String configurationName,
+            String workspaceDir) {
+        this(configurationName);
+    }
+
+    public ElectricFlowClient(String configurationName) {
         Configuration cred = Utils.getConfigurationByName(configurationName);
 
         if (cred != null) {
@@ -89,7 +86,6 @@ public class ElectricFlowClient
             apiVersion        = electricFlowApiVersion != null
                 ? electricFlowApiVersion
                 : "";
-            this.workspaceDir = workspaceDir;
         }
     }
 
@@ -371,16 +367,16 @@ public class ElectricFlowClient
     }
 
     public String uploadArtifact(
-            AbstractBuild build,
-            BuildListener listener,
-            String        repo,
-            String        name,
-            String        version,
-            String        path,
-            boolean       uploadDirectory)
-        throws IOException, KeyManagementException, NoSuchAlgorithmException,
-            InterruptedException
-    {
+            Run build,
+            TaskListener listener,
+            String repo,
+            String name,
+            String version,
+            String path,
+            boolean uploadDirectory,
+            FilePath workspace)
+            throws IOException, KeyManagementException, NoSuchAlgorithmException,
+            InterruptedException {
         String sessionId = this.getSessionId();
 
         // to make it working, this file should be installed:
@@ -388,7 +384,6 @@ public class ElectricFlowClient
         String requestURL = this.electricFlowUrl
                 + "/commander/cgi-bin/publishArtifactAPI.cgi";
 
-        // return sessionId;
         MultipartUtility multipart = new MultipartUtility(requestURL, CHARSET, this.getIgnoreSslConnectionErrors());
 
         multipart.addFormField("artifactName", name);
@@ -399,15 +394,15 @@ public class ElectricFlowClient
 
         // here we're getting files from directory using wildcard:
         List<File> fileList = FileHelper.getFilesFromDirectoryWildcard(build,
-                listener, this.workspaceDir, path, true);
+                listener, workspace, path, true, true);
 
         if (log.isDebugEnabled()) {
             log.debug("File path: " + path);
         }
 
-        for (File file : fileList) {
+        String uploadWorkspace = getPublishArtifactWorkspaceOnMaster(build).getRemote();
 
-            // File file = new File(row);
+        for (File file : fileList) {
             if (file.isDirectory()) {
 
                 if (!uploadDirectory) {
@@ -418,17 +413,16 @@ public class ElectricFlowClient
                 List<File> dirFiles = FileHelper.getFilesFromDirectory(file);
 
                 for (File f : dirFiles) {
-                    multipart.addFilePart("files", f, workspaceDir);
+                    multipart.addFilePart("files", f, uploadWorkspace);
                 }
             }
             else {
-                multipart.addFilePart("files", file, workspaceDir);
+                multipart.addFilePart("files", file, uploadWorkspace);
             }
         }
 
         List<String> response = multipart.finish();
 
-        // Debug.e(TAG, "SERVER REPLIED:");
         String resultLine = "";
 
         for (String line : response) {
