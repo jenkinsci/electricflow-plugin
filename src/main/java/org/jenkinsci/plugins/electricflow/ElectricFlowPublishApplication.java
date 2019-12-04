@@ -116,8 +116,9 @@ public class ElectricFlowPublishApplication
         // artifact version
         String artifactVersion = buildNumber.toString();
 
+        File archive = null;
         try {
-            makeApplicationArchive(run, taskListener, workspace, newFilePath);
+            archive = makeApplicationArchive(run, taskListener, workspace, newFilePath);
         } catch (IOException | InterruptedException e) {
             logger.println("Warning: Cannot create archive: " + e.getMessage());
             log.warn("Can't create archive: " + e.getMessage(), e);
@@ -138,9 +139,17 @@ public class ElectricFlowPublishApplication
         try {
             ElectricFlowClient efClient = new ElectricFlowClient(configuration);
 
-            efClient.uploadArtifact(run, taskListener, "default", artifactName,
+            List<File> fileList = new ArrayList<>();
+            fileList.add(archive);
+
+            efClient.uploadArtifact(
+                    fileList,
+                    archive.getParent(),
+                    "default",
+                    artifactName,
                     artifactVersion,
-                    ElectricFlowPublishApplication.deploymentPackageName, true, workspace);
+                    true
+            );
             deployResponse = efClient.deployApplicationPackage(artifactGroup,
                     artifactKey, artifactVersion,
                     ElectricFlowPublishApplication.deploymentPackageName);
