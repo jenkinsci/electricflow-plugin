@@ -51,6 +51,8 @@ import hudson.util.ListBoxModel;
 
 import javax.annotation.Nonnull;
 
+import static org.jenkinsci.plugins.electricflow.FileHelper.getPublishArtifactWorkspaceOnMaster;
+
 public class ElectricFlowPublishApplication
         extends Recorder implements SimpleBuildStep {
 
@@ -402,11 +404,9 @@ public class ElectricFlowPublishApplication
             FilePath workspace,
             String filePath)
             throws IOException, InterruptedException {
-
-        // in this method manifest is already tuned, so all we need is just to
-        // package archive.
-        String archivePath = FileHelper.buildPath(workspace.getRemote(), "/",
-                ElectricFlowPublishApplication.deploymentPackageName);
+        FilePath publishArtifactWorkspaceOnMaster = getPublishArtifactWorkspaceOnMaster(build);
+        publishArtifactWorkspaceOnMaster.mkdirs();
+        String archivePath = new FilePath(publishArtifactWorkspaceOnMaster, ElectricFlowPublishApplication.deploymentPackageName).getRemote();
 
         return createZipArchive(build, listener, workspace, archivePath,
                 filePath);
