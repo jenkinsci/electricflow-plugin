@@ -337,7 +337,7 @@ public class ElectricFlowPublishApplication
      * <p>See * .jelly for the actual HTML fragment for the configuration
      * screen.</p>
      */
-    @Symbol("cloudBeesFlowCreateAppFromJenkinsPackage")
+    @Symbol("cloudBeesFlowCreateAndDeployAppFromJenkinsPackage")
     @Extension // This indicates to Jenkins that this is an implementation of
     // an extension point.
     public static final class DescriptorImpl
