@@ -377,6 +377,36 @@ public class ElectricFlowClient
             FilePath workspace)
             throws IOException, KeyManagementException, NoSuchAlgorithmException,
             InterruptedException {
+
+        // here we're getting files from directory using wildcard:
+        List<File> fileList = FileHelper.getFilesFromDirectoryWildcard(build,
+                listener, workspace, path, true, true);
+
+        if (log.isDebugEnabled()) {
+            log.debug("File path: " + path);
+        }
+
+        String uploadWorkspace = getPublishArtifactWorkspaceOnMaster(build).getRemote();
+
+        return uploadArtifact(
+                fileList,
+                uploadWorkspace,
+                repo,
+                name,
+                version,
+                uploadDirectory
+        );
+    }
+
+    public String uploadArtifact(
+            List<File> fileList,
+            String uploadWorkspace,
+            String repo,
+            String name,
+            String version,
+            boolean uploadDirectory)
+            throws IOException, KeyManagementException, NoSuchAlgorithmException,
+            InterruptedException {
         String sessionId = this.getSessionId();
 
         // to make it working, this file should be installed:
@@ -392,16 +422,6 @@ public class ElectricFlowClient
         multipart.addFormField("compress", "1");
         multipart.addFormField("commanderSessionId", sessionId);
 
-        // here we're getting files from directory using wildcard:
-        List<File> fileList = FileHelper.getFilesFromDirectoryWildcard(build,
-                listener, workspace, path, true, true);
-
-        if (log.isDebugEnabled()) {
-            log.debug("File path: " + path);
-        }
-
-        String uploadWorkspace = getPublishArtifactWorkspaceOnMaster(build).getRemote();
-
         for (File file : fileList) {
             if (file.isDirectory()) {
 
@@ -409,14 +429,12 @@ public class ElectricFlowClient
                     continue;
                 }
 
-                // logic for dir here
                 List<File> dirFiles = FileHelper.getFilesFromDirectory(file);
 
                 for (File f : dirFiles) {
                     multipart.addFilePart("files", f, uploadWorkspace);
                 }
-            }
-            else {
+            } else {
                 multipart.addFilePart("files", file, uploadWorkspace);
             }
         }
@@ -427,9 +445,6 @@ public class ElectricFlowClient
 
         for (String line : response) {
 
-            // Debug.e(TAG, "Upload Files Response:::" + line);
-            // get your server response here.
-            // responseString = line;
             resultLine = resultLine + line;
 
             if (log.isDebugEnabled()) {
