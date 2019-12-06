@@ -9,11 +9,7 @@
 
 package org.jenkinsci.plugins.electricflow;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.PrintStream;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
@@ -25,11 +21,13 @@ import java.util.zip.ZipOutputStream;
 
 import hudson.model.*;
 import hudson.tasks.Recorder;
+import hudson.util.DirScanner;
 import jenkins.tasks.SimpleBuildStep;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.jenkinsci.Symbol;
+import org.jenkinsci.plugins.electricflow.exceptions.PluginException;
 import org.jenkinsci.plugins.electricflow.ui.HtmlUtils;
 import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.DataBoundConstructor;
@@ -58,34 +56,35 @@ public class ElectricFlowPublishApplication
 
     //~ Static fields/initializers ---------------------------------------------
 
-    private static final Log   log                   = LogFactory.getLog(
+    private static final Log log = LogFactory.getLog(
             ElectricFlowPublishApplication.class);
     public static final String deploymentPackageName = "deployment_package.zip";
-    private static List<File>  zipFiles              = new ArrayList<>();
-    private static boolean     isCutTopLevelDir;
+    private static List<File> zipFiles = new ArrayList<>();
+    private static boolean isCutTopLevelDir;
 
     //~ Instance fields --------------------------------------------------------
 
     private final String MANIFEST_NAME = "manifest.json";
     private final String configuration;
-    private String       filePath;
+    private String filePath;
 
     //~ Constructors -----------------------------------------------------------
 
-    @DataBoundConstructor public ElectricFlowPublishApplication(
+    @DataBoundConstructor
+    public ElectricFlowPublishApplication(
             String configuration,
-            String filePath)
-    {
+            String filePath) {
         this.configuration = configuration;
-        this.filePath      = filePath;
+        this.filePath = filePath;
     }
 
     //~ Methods ----------------------------------------------------------------
 
-    @Override public void perform(
+    @Override
+    public void perform(
             @Nonnull Run<?, ?> run,
-            @Nonnull FilePath     workspace,
-            @Nonnull Launcher     launcher,
+            @Nonnull FilePath workspace,
+            @Nonnull Launcher launcher,
             @Nonnull TaskListener taskListener)
             throws InterruptedException, IOException {
         boolean isSuccess = runProcess(run, taskListener, workspace);
@@ -120,8 +119,8 @@ public class ElectricFlowPublishApplication
 
         File archive = null;
         try {
-            archive = makeApplicationArchive(run, taskListener, workspace, newFilePath);
-        } catch (IOException | InterruptedException e) {
+            archive = new File(makeApplicationArchive(run, taskListener, workspace, newFilePath).getRemote());
+        } catch (IOException | InterruptedException | PluginException e) {
             logger.println("Warning: Cannot create archive: " + e.getMessage());
             log.warn("Can't create archive: " + e.getMessage(), e);
 
@@ -183,45 +182,42 @@ public class ElectricFlowPublishApplication
     /**
      * We'll use this from the {@code config.jelly}.
      *
-     * @return  we'll use this from the {@code config.jelly}.
+     * @return we'll use this from the {@code config.jelly}.
      */
-    public String getConfiguration()
-    {
+    public String getConfiguration() {
         return configuration;
     }
 
     // Overridden for better type safety.
     // If your plugin doesn't really define any property on Descriptor,
     // you don't have to do this.
-    @Override public DescriptorImpl getDescriptor()
-    {
+    @Override
+    public DescriptorImpl getDescriptor() {
         return (DescriptorImpl) super.getDescriptor();
     }
 
-    public String getFilePath()
-    {
+    public String getFilePath() {
         return filePath;
     }
 
-    @Override public BuildStepMonitor getRequiredMonitorService()
-    {
+    @Override
+    public BuildStepMonitor getRequiredMonitorService() {
         return BuildStepMonitor.NONE;
     }
 
     private String getSummaryHtml(
             ElectricFlowClient efClient,
-            String             workspaceDir,
-            PrintStream        logger)
-    {
-        String url         = efClient.getElectricFlowUrl()
+            String workspaceDir,
+            PrintStream logger) {
+        String url = efClient.getElectricFlowUrl()
                 + "/flow/#applications";
         String summaryText =
-            "<h3>CloudBees Flow Create/Deploy Application from Deployment Package</h3>"
-                + "<table cellspacing=\"2\" cellpadding=\"4\"> \n"
-                + "  <tr>\n"
-                + "    <td>Application URL:</td>\n"
-                + "    <td><a href='" + HtmlUtils.encodeForHtml(url) + "'>" + HtmlUtils.encodeForHtml(url) + "</a></td>   \n"
-                + "  </tr>\n";
+                "<h3>CloudBees Flow Create/Deploy Application from Deployment Package</h3>"
+                        + "<table cellspacing=\"2\" cellpadding=\"4\"> \n"
+                        + "  <tr>\n"
+                        + "    <td>Application URL:</td>\n"
+                        + "    <td><a href='" + HtmlUtils.encodeForHtml(url) + "'>" + HtmlUtils.encodeForHtml(url) + "</a></td>   \n"
+                        + "  </tr>\n";
 
         if (!zipFiles.isEmpty()) {
             StringBuilder strBuilder = new StringBuilder(summaryText);
@@ -246,14 +242,13 @@ public class ElectricFlowPublishApplication
 
                     try {
                         byte[] encoded = Files.readAllBytes(Paths.get(
-                                    manifestPath));
+                                manifestPath));
 
                         jsonContent = new String(encoded, "UTF-8");
-                    }
-                    catch (IOException e) {
+                    } catch (IOException e) {
                         logger.println(
-                            "Warning: Error occurred during read manifest file. "
-                                + e.getMessage());
+                                "Warning: Error occurred during read manifest file. "
+                                        + e.getMessage());
                         log.warn(e.getMessage(), e);
                     }
 
@@ -261,23 +256,23 @@ public class ElectricFlowPublishApplication
                 }
 
                 strBuilder.append("  <tr>\n"
-                                  + "    <td>&nbsp;&nbsp;&nbsp;&nbsp;")
-                          .append(HtmlUtils.encodeForHtml(fileName))
-                          .append("</td>\n"
-                              + "    <td>")
-                          .append("</td>    \n"
-                              + "  </tr>\n");
+                        + "    <td>&nbsp;&nbsp;&nbsp;&nbsp;")
+                        .append(HtmlUtils.encodeForHtml(fileName))
+                        .append("</td>\n"
+                                + "    <td>")
+                        .append("</td>    \n"
+                                + "  </tr>\n");
             }
 
             if (!jsonContent.isEmpty()) {
                 strBuilder.append("  <tr>\n"
-                                  + "    <td>&nbsp;&nbsp;&nbsp;&nbsp;")
-                          .append(HtmlUtils.encodeForHtml(MANIFEST_NAME))
-                          .append("</td>\n"
-                              + "    <td>")
-                          .append("<pre>").append(HtmlUtils.encodeForHtml(jsonContent)).append("</pre>")
-                          .append("</td>    \n"
-                              + "  </tr>\n");
+                        + "    <td>&nbsp;&nbsp;&nbsp;&nbsp;")
+                        .append(HtmlUtils.encodeForHtml(MANIFEST_NAME))
+                        .append("</td>\n"
+                                + "    <td>")
+                        .append("<pre>").append(HtmlUtils.encodeForHtml(jsonContent)).append("</pre>")
+                        .append("</td>    \n"
+                                + "  </tr>\n");
             }
 
             summaryText = strBuilder.toString();
@@ -288,139 +283,47 @@ public class ElectricFlowPublishApplication
         return summaryText;
     }
 
-    //~ Methods ----------------------------------------------------------------
-
-    public static File createZipArchive(
-            FilePath basePath,
-            String   archiveName,
-            String[] files)
-        throws IOException
-    {
-        List<File> fileList = new ArrayList<>();
-
-        for (String file : files) {
-            File f = new File(file);
-
-            fileList.add(f);
-        }
-
-        return createZipArchive(basePath, archiveName, fileList);
-    }
-
-    public static File createZipArchive(
-            FilePath   basePath,
-            String     archiveName,
-            List<File> files)
-        throws IOException
-    {
-        return createZipArchive(basePath, archiveName, files, false);
-    }
-
-    public static File createZipArchive(
-            FilePath   basePath,
-            String     archiveName,
-            List<File> files,
-            boolean    cutTopLevelDir)
-        throws IOException
-    {
-        isCutTopLevelDir = cutTopLevelDir;
-
-        File archive = new File(archiveName);
-
-        try(ZipOutputStream out = new ZipOutputStream(
-                        new FileOutputStream(archive))) {
-
-            if (cutTopLevelDir) {
-                cutTopLevelDir = FileHelper.isTopLevelDirSame(files);
-            }
-
-            for (File row : files) {
-
-                try(FileInputStream in = new FileInputStream(
-                                FileHelper.buildPath(basePath.getRemote(), "/",
-                                    row.getPath()))) {
-                    String filePathToAdd = row.getPath();
-
-                    if (cutTopLevelDir) {
-                        filePathToAdd = FileHelper.cutTopLevelDir(
-                                filePathToAdd);
-                    }
-
-                    out.putNextEntry(new ZipEntry(filePathToAdd));
-
-                    int    len;
-                    byte[] buf = new byte[1024];
-
-                    while ((len = in.read(buf)) > 0) {
-                        out.write(buf, 0, len);
-                    }
-
-                    // Complete the entry
-                    out.closeEntry();
-                }
-                catch (IOException e) {
-                    throw new IOException("Unable to compress zip file: "
-                            + basePath, e);
-                }
-            }
-        }
-        catch (IOException e) {
-            throw new IOException(e);
-        }
-
-        return archive;
-    }
-
-    public static File createZipArchive(
-            Run build,
-            TaskListener listener,
-            FilePath basePath,
-            String archiveName,
-            String path)
-            throws IOException, InterruptedException {
-        FilePath fullPath = new FilePath(basePath, path);
-        File f = new File(fullPath.getRemote());
-
-        if (f.exists() && f.isDirectory()) {
-            List<File> fileList = FileHelper.getFilesFromDirectoryWildcard(
-                    build, listener, fullPath, "**");
-
-            setZipFiles(fileList);
-
-            return createZipArchive(fullPath, archiveName, fileList);
-        }
-
-        List<File> filesToArchive = FileHelper.getFilesFromDirectoryWildcard(
-                build, listener, basePath, path);
-
-        setZipFiles(filesToArchive);
-
-        return createZipArchive(basePath, archiveName, filesToArchive, true);
-    }
-
-    public static File makeApplicationArchive(
+    public static FilePath makeApplicationArchive(
             Run build,
             TaskListener listener,
             FilePath workspace,
             String filePath)
-            throws IOException, InterruptedException {
+            throws IOException, InterruptedException, PluginException {
+        FilePath source = new FilePath(workspace, filePath);
+        String sourcePatternRelative = filePath;
+        if (source.isDirectory()) {
+            workspace = source;
+            sourcePatternRelative = "**";
+        }
+
         FilePath publishArtifactWorkspaceOnMaster = getPublishArtifactWorkspaceOnMaster(build);
         publishArtifactWorkspaceOnMaster.mkdirs();
-        String archivePath = new FilePath(publishArtifactWorkspaceOnMaster, ElectricFlowPublishApplication.deploymentPackageName).getRemote();
+        FilePath archiveFilePath = new FilePath(publishArtifactWorkspaceOnMaster, ElectricFlowPublishApplication.deploymentPackageName);
 
-        return createZipArchive(build, listener, workspace, archivePath,
-                filePath);
+        listener.getLogger().println(
+                "Creating archive " + archiveFilePath.getRemote()
+                        + " from files and directories which match the following pattern " + sourcePatternRelative
+                        + " within workspace " + workspace.getRemote());
+
+        int numberOfItemsArchived = 0;
+        try (OutputStream outputStream = new FileOutputStream(archiveFilePath.getRemote())) {
+            numberOfItemsArchived = workspace.zip(outputStream, new DirScanner.Glob(sourcePatternRelative, null));
+        }
+
+        if (numberOfItemsArchived < 1) {
+            throw new PluginException("No files or directories found during scan by the following pattern: " + sourcePatternRelative);
+        }
+
+        return archiveFilePath;
     }
 
-    public static String getCurrentTimeStamp()
-    {
+    public static String getCurrentTimeStamp() {
         String dateFormat = "yyyy-MM-dd-HH-mm-ss.S";
 
         return new SimpleDateFormat(dateFormat).format(new Date());
     }
 
-    private static void setZipFiles(List<File> fileList)
-    {
+    private static void setZipFiles(List<File> fileList) {
         zipFiles.clear();
         zipFiles.addAll(fileList);
     }
@@ -430,23 +333,22 @@ public class ElectricFlowPublishApplication
     /**
      * Descriptor for {@link BuildStepDescriptor}. Used as a singleton. The
      * class is marked as public so that it can be accessed from views.
-     *
+     * <p>
      * <p>See * .jelly for the actual HTML fragment for the configuration
      * screen.</p>
      */
     @Symbol("cloudBeesFlowCreateAppFromJenkinsPackage")
     @Extension // This indicates to Jenkins that this is an implementation of
-               // an extension point.
+    // an extension point.
     public static final class DescriptorImpl
-        extends BuildStepDescriptor<Publisher>
-    {
+            extends BuildStepDescriptor<Publisher> {
 
         //~ Instance fields ----------------------------------------------------
 
         /**
          * To persist global configuration information, simply store it in a
          * field and call save().
-         *
+         * <p>
          * <p>If you don't want fields to be persisted, use {@code transient}.
          * </p>
          */
@@ -460,20 +362,19 @@ public class ElectricFlowPublishApplication
          * In order to load the persisted global configuration, you have to call
          * load() in the constructor.
          */
-        public DescriptorImpl()
-        {
+        public DescriptorImpl() {
             load();
         }
 
         //~ Methods ------------------------------------------------------------
 
-        @Override public boolean configure(
+        @Override
+        public boolean configure(
                 StaplerRequest req,
-                JSONObject     formData)
-            throws FormException
-        {
-            electricFlowUrl      = formData.getString("electricFlowUrl");
-            electricFlowUser     = formData.getString("electricFlowUser");
+                JSONObject formData)
+                throws FormException {
+            electricFlowUrl = formData.getString("electricFlowUrl");
+            electricFlowUser = formData.getString("electricFlowUser");
             electricFlowPassword = formData.getString("electricFlowPassword");
 
             save();
@@ -509,33 +410,30 @@ public class ElectricFlowPublishApplication
         /**
          * This human readable name is used in the configuration screen.
          *
-         * @return  this human readable name is used in the configuration
-         *          screen.
+         * @return this human readable name is used in the configuration
+         * screen.
          */
-        @Override public String getDisplayName()
-        {
+        @Override
+        public String getDisplayName() {
             return
-                "CloudBees Flow - Create/Deploy Application from Deployment Package";
+                    "CloudBees Flow - Create/Deploy Application from Deployment Package";
         }
 
-        public String getElectricFlowPassword()
-        {
+        public String getElectricFlowPassword() {
             return electricFlowPassword;
         }
 
-        public String getElectricFlowUrl()
-        {
+        public String getElectricFlowUrl() {
             return electricFlowUrl;
         }
 
-        public String getElectricFlowUser()
-        {
+        public String getElectricFlowUser() {
             return electricFlowUser;
         }
 
-        @Override public boolean isApplicable(
-                Class<? extends AbstractProject> aClass)
-        {
+        @Override
+        public boolean isApplicable(
+                Class<? extends AbstractProject> aClass) {
 
             // Indicates that this builder can be used with all kinds of
             // project types
