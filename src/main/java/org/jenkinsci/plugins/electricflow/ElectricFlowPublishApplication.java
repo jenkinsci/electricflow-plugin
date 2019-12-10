@@ -154,18 +154,15 @@ public class ElectricFlowPublishApplication
             deployResponse = efClient.deployApplicationPackage(artifactGroup,
                     artifactKey, artifactVersion,
                     ElectricFlowPublishApplication.deploymentPackageName);
+            logger.println("Flow response on triggering CreateApplicationFromDeploymentPackage: " + deployResponse);
 
-            String summaryHtml = getSummaryHtml(efClient,
+            String summaryHtml = getSummaryHtml(efClient, deployResponse,
                     workspace.getRemote(), logger);
             SummaryTextAction action = new SummaryTextAction(run,
                     summaryHtml);
 
             run.addAction(action);
             run.save();
-
-            if (log.isDebugEnabled()) {
-                log.debug("DeployApp response: " + deployResponse);
-            }
         } catch (Exception e) {
             logger.println(
                     "Warning: Error occurred during application creation: "
@@ -207,17 +204,28 @@ public class ElectricFlowPublishApplication
 
     private String getSummaryHtml(
             ElectricFlowClient efClient,
+            String deployResponse,
             String workspaceDir,
             PrintStream logger) {
         String url = efClient.getElectricFlowUrl()
                 + "/flow/#applications";
+        String jobId = JSONObject.fromObject(deployResponse)
+                .getString("jobId");
+        String jobUrl = efClient.getElectricFlowUrl()
+                + "/commander/link/jobDetails/jobs/" + jobId;
         String summaryText =
                 "<h3>CloudBees Flow Create/Deploy Application from Deployment Package</h3>"
                         + "<table cellspacing=\"2\" cellpadding=\"4\"> \n"
                         + "  <tr>\n"
                         + "    <td>Application URL:</td>\n"
                         + "    <td><a href='" + HtmlUtils.encodeForHtml(url) + "'>" + HtmlUtils.encodeForHtml(url) + "</a></td>   \n"
+                        + "  </tr>\n"
+                        + "  <tr>\n"
+                        + "    <td>CloudBees Flow Job:</td>\n"
+                        + "    <td><a href='" + HtmlUtils.encodeForHtml(jobUrl) + "'>link to createApplicationFromDeploymentPackage job</a></td>   \n"
                         + "  </tr>\n";
+        ;
+
 
         if (!zipFiles.isEmpty()) {
             StringBuilder strBuilder = new StringBuilder(summaryText);
