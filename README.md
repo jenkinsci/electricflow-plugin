@@ -80,8 +80,13 @@ This build action has following parameters:
 
 ![](docs/images/CreateDeplApp.png)
 
-Note: pipelines are not supported for this post build action in this
-version of plugin.
+**Create and Deploy Application from Deployment Package (Pipeline Script)**
+
+``` syntaxhighlighter-pre
+node {
+    cloudBeesFlowCreateAndDeployAppFromJenkinsPackage configuration: 'CBFConfiguration', filePath: 'CBFProject/target/'
+}
+```
 
 ## Publish Artifact to CloudBees Flow
 
@@ -109,8 +114,13 @@ This build action takes the following parameters:
 
 ![](docs/images/PublishArtifact.png)
 
-Note: pipelines are not supported for this post build action in this
-version of plugin.
+**Publish Artifact (Pipeline Script)**
+
+``` syntaxhighlighter-pre
+node {
+    cloudBeesFlowPublishArtifact artifactName: 'application:jpetstore', artifactVersion: '1.0', configuration: 'CBFConfiguration', filePath: 'CBFProject/target/jpetstore.war', repositoryName: 'default'
+}
+```
 
 ## Run Pipeline in CloudBees Flow
 
@@ -397,6 +407,30 @@ pipeline{
 ```
 
 # Release Notes
+
+## Version 1.1.12 (Dec 17, 2019)
+
+Migrated plugin documentation from Wiki to GitHub
+
+## Version 1.1.11 (Dec 11, 2019)
+
+Updated "CloudBees Flow - Publish Artifact"
+  - Added pipeline compatibility
+  - Fixed support of running on slaves
+  
+Updated "CloudBees Flow - Create and Deploy Application from Deployment Package"
+  - Added pipeline compatibility
+  - Fixed support of running on slaves
+  - Added link to CloubBees Flow job within summary of a build
+  
+Added pipeline function aliases for all post build actions.
+
+Added expand environment variable functionality for the following post build actions:
+  - CloudBees Flow - Call REST API
+  - CloudBees Flow - Run Procedure
+  - CloudBees Flow - Deploy Application
+
+Added simple Jenkinsfile to the plugin repository
 
 ## Version 1.1.10 (Sep 26, 2019)
 
