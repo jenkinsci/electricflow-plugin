@@ -27,7 +27,7 @@
 
   <name>CloudBees Flow</name>
   <description>CloudBees Flow Application Release Orchestration</description>
-  <url>https://wiki.jenkins-ci.org/display/JENKINS/CloudBees+Flow+Plugin</url>
+  <url>https://github.com/jenkinsci/electricflow-plugin</url>
 
   <!-- The default licence for Jenkins OSS Plugins is MIT. Substitute for the applicable one if needed. -->
 
