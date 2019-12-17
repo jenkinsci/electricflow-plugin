@@ -53,7 +53,7 @@ following attributes need to be specified:
     SSL certificate setup required in Jenkins and CloudBees Flow as per
     the CloudBees Flow Server documentation.
 
-![](https://wiki.jenkins.io/download/attachments/116097128/Configuration.png?version=2&modificationDate=1562231341000&api=v2)
+![](docs/images/Configuration.png)
 
 # Supported Post Build Actions
 
@@ -78,7 +78,7 @@ This build action has following parameters:
 -   Deployment Package Path: Location or path for the deployment package
     to be published to CloudBees Flow. For e.g., MyProject/target
 
-![](https://wiki.jenkins.io/download/attachments/116097128/CreateDeplApp.png?version=2&modificationDate=1562231411000&api=v2)
+![](docs/images/CreateDeplApp.png)
 
 Note: pipelines are not supported for this post build action in this
 version of plugin.
@@ -107,7 +107,7 @@ This build action takes the following parameters:
 -   CloudBees Flow Repository Name: Name of the CloudBees Flow
     Repository
 
-![](https://wiki.jenkins.io/download/attachments/116097128/PublishArtifact.png?version=2&modificationDate=1562231475000&api=v2)
+![](docs/images/PublishArtifact.png)
 
 Note: pipelines are not supported for this post build action in this
 version of plugin.
@@ -131,7 +131,7 @@ This build action takes the following parameters:
   -   Parameter value to be specified will be displayed as text input
     field
 
-![](https://wiki.jenkins.io/download/attachments/116097128/RunPipeline.png?version=4&modificationDate=1562231566000&api=v2)
+![](docs/images/RunPipeline.png)
 
 **Run Pipeline Example (Pipeline Script)**
 
@@ -169,7 +169,7 @@ This build action takes the following parameters:
     calling CloudBees REST API (JSON output) will be stored within
     provided environment variable available within build.
 
-![](https://wiki.jenkins.io/download/attachments/116097128/image2019-9-27_16-51-9.png?version=1&modificationDate=1569592271000&api=v2)
+![](docs/images/image2019-9-27_16-51-9.png)
 
 **Call REST API Example \#1 (Pipeline Script)**
 
@@ -195,7 +195,7 @@ node{
 }
 ```
 
-![](https://wiki.jenkins.io/download/attachments/116097128/image2019-9-27_16-58-46.png?version=1&modificationDate=1569592728000&api=v2)
+![](docs/images/image2019-9-27_16-58-46.png)
 
 **Call REST API Example \#2 (Pipeline Script)**
 
@@ -235,7 +235,7 @@ name
   -   Parameter value to be specified will be displayed as text input
     field
 
-![](https://wiki.jenkins.io/download/attachments/116097128/DeployApplication.png?version=3&modificationDate=1562233476000&api=v2)
+![](docs/images/DeployApplication.png)
 
 **Deploy Application Example (Pipeline Script)**
 
@@ -281,7 +281,7 @@ Flow pipeline
 
   -   Parameter value to be specified should go in the text input field
 
-![](https://wiki.jenkins.io/download/attachments/116097128/TriggerRelease.png?version=3&modificationDate=1562233550000&api=v2)
+![](docs/images/TriggerRelease.png)
 
 **Trigger Release Example (Pipeline Script)**
 
@@ -315,7 +315,7 @@ This build action has following parameters:
 
   -   Parameter value to be specified should go in the text input field
 
-![](https://wiki.jenkins.io/download/attachments/116097128/RunProcedure.png?version=3&modificationDate=1562233656000&api=v2)
+![](docs/images/RunProcedure.png)
 
 **Run Procedure Example (Pipeline Script)**
 
@@ -360,7 +360,7 @@ This workflow step takes the following parameters:
     calling CloudBees REST API (JSON output) will be stored within
     provided environment variable available within build.
 
-![](https://wiki.jenkins.io/download/attachments/116097128/image2019-9-27_18-9-24.png?version=1&modificationDate=1569596967000&api=v2)
+![](docs/images/image2019-9-27_18-9-24.png)
 
   
 
