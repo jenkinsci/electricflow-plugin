@@ -159,7 +159,7 @@ node{
 ## Call REST API of CloudBees Flow
 
 This integration allows you to call the CloudBees Flow REST API. Similar
-workflow step is available.
+pipeline step is available.
 
 This build action takes the following parameters:
 
@@ -340,9 +340,9 @@ node{
 }
 ```
 
-# Supported Workflow Steps
+# Supported Pipeline Steps
 
-Following workflow steps are available in CloudBees Flow Plugin.
+Following pipeline steps are available in CloudBees Flow Plugin.
 
 ## Call REST API of CloudBees Flow
 
@@ -352,7 +352,7 @@ available.
 
 Function name: cloudBeesFlowCallRestApi
 
-This workflow step takes the following parameters:
+This pipeline step takes the following parameters:
 
 -   Configuration: Specify the name of the CloudBees Flow configuration.
 
@@ -374,7 +374,7 @@ This workflow step takes the following parameters:
 
   
 
-**Call REST API Example Workflow Step \#1 (Scripted Pipeline)**
+**Call REST API Example Pipeline Step \#1 (Scripted Pipeline)**
 
 ``` syntaxhighlighter-pre
 node{
@@ -386,7 +386,7 @@ node{
 }
 ```
 
-**Call REST API Example Workflow Step \#2 (Declarative Pipeline)**
+**Call REST API Example Pipeline Step \#2 (Declarative Pipeline)**
 
 ``` syntaxhighlighter-pre
 pipeline{
@@ -416,11 +416,11 @@ Migrated plugin documentation from Wiki to GitHub
 
 Updated "CloudBees Flow - Publish Artifact"
   - Added pipeline compatibility
-  - Fixed support of running on slaves
+  - Fixed support of running on agents
   
 Updated "CloudBees Flow - Create and Deploy Application from Deployment Package"
   - Added pipeline compatibility
-  - Fixed support of running on slaves
+  - Fixed support of running on agents
   - Added link to CloubBees Flow job within summary of a build
   
 Added pipeline function aliases for all post build actions.
