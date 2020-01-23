@@ -80,7 +80,6 @@ public class ElectricFlowRunProcedure
     private boolean runProcedure(
             @Nonnull Run<?, ?> run,
             @Nonnull TaskListener taskListener) {
-        ElectricFlowClient efClient = ElectricFlowClientFactory.getElectricFlowClient(configuration, overrideCredential);
         PrintStream logger = taskListener.getLogger();
 
         logger.println("Project name: " + projectName + ", Procedure name: " + procedureName);
@@ -93,6 +92,8 @@ public class ElectricFlowRunProcedure
 
             EnvReplacer env = new EnvReplacer(run, taskListener);
             expandParameters(parameter, env, "value");
+
+            ElectricFlowClient efClient = ElectricFlowClientFactory.getElectricFlowClient(configuration, overrideCredential, env);
 
             String result = efClient.runProcedure(projectName, procedureName, parameter);
 

@@ -48,12 +48,12 @@ public class Credential
         return password;
     }
 
-    public String getCredentialIdUsernameAndPassword() {
-        return credentialIdUsernameAndPassword;
+    public String getCredentialIdUsernameAndPassword(EnvReplacer envReplacer) {
+        return envReplacer == null ? credentialIdUsernameAndPassword : envReplacer.expandEnv(credentialIdUsernameAndPassword);
     }
 
-    public StandardUsernamePasswordCredentials getUsernamePasswordBasedOnCredentialId() {
-        return getStandardUsernamePasswordCredentialsById(getCredentialIdUsernameAndPassword());
+    public StandardUsernamePasswordCredentials getUsernamePasswordBasedOnCredentialId(EnvReplacer envReplacer) {
+        return getStandardUsernamePasswordCredentialsById(getCredentialIdUsernameAndPassword(envReplacer));
     }
 
     public boolean isCredentialOption(String credentialOptionStr) {

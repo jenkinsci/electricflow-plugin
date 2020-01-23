@@ -2,16 +2,14 @@ package org.jenkinsci.plugins.electricflow.factories;
 
 import com.cloudbees.plugins.credentials.common.StandardUsernamePasswordCredentials;
 import hudson.util.Secret;
-import org.jenkinsci.plugins.electricflow.Configuration;
-import org.jenkinsci.plugins.electricflow.Credential;
-import org.jenkinsci.plugins.electricflow.ElectricFlowClient;
-import org.jenkinsci.plugins.electricflow.Utils;
+import org.jenkinsci.plugins.electricflow.*;
 import org.jenkinsci.plugins.electricflow.models.CredentialOption;
 
 public class ElectricFlowClientFactory {
     public static ElectricFlowClient getElectricFlowClient(
             String configurationName,
-            Credential overrideCredential) {
+            Credential overrideCredential,
+            EnvReplacer envReplacer) {
         Configuration cred = Utils.getConfigurationByName(configurationName);
 
         if (cred == null) {
@@ -35,7 +33,7 @@ public class ElectricFlowClientFactory {
             username = overrideCredential.getUsername();
             password = overrideCredential.getPassword().getPlainText();
         } else {
-            StandardUsernamePasswordCredentials creds = overrideCredential.getUsernamePasswordBasedOnCredentialId();
+            StandardUsernamePasswordCredentials creds = overrideCredential.getUsernamePasswordBasedOnCredentialId(envReplacer);
             if (creds == null) {
                 throw new RuntimeException("Override credentials are not found by provided credential id");
             }
