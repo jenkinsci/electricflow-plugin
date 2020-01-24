@@ -13,6 +13,7 @@ import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
 import hudson.model.*;
+import hudson.scm.ChangeLogSet;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.BuildStepMonitor;
 import hudson.tasks.Publisher;
@@ -25,6 +26,7 @@ import net.sf.json.JSONObject;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jenkinsci.Symbol;
+import org.jenkinsci.plugins.electricflow.integration.ElectricFlowChangeSet;
 import org.jenkinsci.plugins.electricflow.ui.FieldValidationStatus;
 import org.jenkinsci.plugins.electricflow.ui.HtmlUtils;
 import org.jenkinsci.plugins.electricflow.ui.SelectFieldUtils;
@@ -37,14 +39,19 @@ import org.kohsuke.stapler.QueryParameter;
 import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.io.PrintStream;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.*;
 
+import static net.sf.json.JSONObject.fromObject;
 import static org.jenkinsci.plugins.electricflow.Utils.*;
 import static org.jenkinsci.plugins.electricflow.ui.SelectFieldUtils.checkAnySelectItemsIsValidationWrappers;
 import static org.jenkinsci.plugins.electricflow.ui.SelectFieldUtils.getSelectItemValue;
 import static org.jenkinsci.plugins.electricflow.ui.SelectFieldUtils.isSelectItemValidationWrapper;
+
+import jenkins.model.Jenkins;
+import jenkins.scm.*;
 
 public class ElectricFlowRunProcedure
         extends Recorder
@@ -81,9 +88,25 @@ public class ElectricFlowRunProcedure
         ElectricFlowClient efClient = new ElectricFlowClient(configuration);
         PrintStream logger = taskListener.getLogger();
 
+        // getting information for changesets
+        RunWithSCM<?,?> abstractBuild = (RunWithSCM<?,?>) run;
+        // run.getAr
+        // ChangeLogSet<? extends ChangeLogSet.Entry> changeset = abstractBuild.getChangeSet();
+        List<ChangeLogSet<? extends ChangeLogSet.Entry>> changesets = abstractBuild.getChangeSets();
+        Iterator<ChangeLogSet<? extends ChangeLogSet.Entry>> itrChangeSet = changesets.iterator();
+        while (itrChangeSet.hasNext()) {
+            ChangeLogSet<? extends ChangeLogSet.Entry> str = itrChangeSet.next();
+            List<Object> items = Arrays.asList(str.getItems());
+            for (int i = 0; i < items.size(); i++) {
+                Object cs = items.get(i);
+                ElectricFlowChangeSet ecs = ElectricFlowChangeSet.getChangesetFromObject(cs);
+            }
+        }
+        // end of changesets section.
+        logger.println("JENKINS VERSION: " + Jenkins.VERSION);
         logger.println("Project name: " + projectName + ", Procedure name: " + procedureName);
 
-        JSONObject procedure = JSONObject.fromObject(procedureParameters).getJSONObject("procedure");
+        JSONObject procedure = fromObject(procedureParameters).getJSONObject("procedure");
         JSONArray parameter = JSONArray.fromObject(procedure.getString("parameters"));
 
         try {
@@ -161,7 +184,7 @@ public class ElectricFlowRunProcedure
             Map<String, String> args) {
         String result = args.get("result");
         String procedureName = args.get("procedureName");
-        String jobId = JSONObject.fromObject(result)
+        String jobId = fromObject(result)
                 .getString("jobId");
         String jobUrl = configuration.getElectricFlowUrl()
                 + "/commander/link/jobDetails/jobs/" + jobId;
@@ -334,7 +357,7 @@ public class ElectricFlowRunProcedure
                 String deployParametersValue = getSelectItemValue(procedureParameters);
 
                 if (!deployParametersValue.isEmpty() && !"{}".equals(deployParametersValue)) {
-                    JSONObject json = JSONObject.fromObject(deployParametersValue);
+                    JSONObject json = fromObject(deployParametersValue);
                     JSONObject jsonArray = json.getJSONObject("procedure");
 
                     if (procedureName.equals(jsonArray.get("procedureName"))) {
@@ -343,7 +366,7 @@ public class ElectricFlowRunProcedure
                 }
 
                 List<String> parameters = client.getProcedureFormalParameters(projectName, procedureName);
-                JSONObject main = JSONObject.fromObject(
+                JSONObject main = fromObject(
                         "{'procedure':{'procedureName':'" + procedureName
                                 + "',   'parameters':[]}}");
                 JSONArray ja = main.getJSONObject("procedure")
@@ -445,7 +468,7 @@ public class ElectricFlowRunProcedure
                 return paramsMap;
             }
 
-            JSONObject json = JSONObject.fromObject(procedureParameters);
+            JSONObject json = fromObject(procedureParameters);
 
             if (!json.containsKey("procedure")
                     || !json.getJSONObject("procedure").containsKey("parameters")) {
