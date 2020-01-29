@@ -11,9 +11,7 @@ import hudson.model.Descriptor;
 import hudson.model.Item;
 import hudson.security.ACL;
 import hudson.util.ListBoxModel;
-import hudson.util.Secret;
 import jenkins.model.Jenkins;
-import org.jenkinsci.plugins.electricflow.models.CredentialOption;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 import java.util.Collections;
@@ -23,43 +21,26 @@ import static com.cloudbees.plugins.credentials.CredentialsProvider.lookupCreden
 public class Credential
         extends AbstractDescribableImpl<Credential> {
 
-    private final CredentialOption credentialOption;
-    private final String username;
-    private final Secret password;
-    private final String credentialIdUsernameAndPassword;
+    private final String credentialId;
 
     @DataBoundConstructor
-    public Credential(CredentialOption credentialOption, String username, Secret password, String credentialIdUsernameAndPassword) {
-        this.credentialOption = credentialOption;
-        this.username = username;
-        this.password = password;
-        this.credentialIdUsernameAndPassword = credentialIdUsernameAndPassword;
+    public Credential(String credentialId) {
+        this.credentialId = credentialId;
     }
 
-    public CredentialOption getCredentialOption() {
-        return credentialOption;
+
+    public String getCredentialId(EnvReplacer envReplacer) {
+        return envReplacer == null ? getCredentialId() : envReplacer.expandEnv(getCredentialId());
     }
 
-    public String getUsername() {
-        return username;
+    public String getCredentialId() {
+        return credentialId;
     }
 
-    public Secret getPassword() {
-        return password;
-    }
-
-    public String getCredentialIdUsernameAndPassword(EnvReplacer envReplacer) {
-        return envReplacer == null ? credentialIdUsernameAndPassword : envReplacer.expandEnv(credentialIdUsernameAndPassword);
-    }
 
     public StandardUsernamePasswordCredentials getUsernamePasswordBasedOnCredentialId(EnvReplacer envReplacer) {
-        return getStandardUsernamePasswordCredentialsById(getCredentialIdUsernameAndPassword(envReplacer));
+        return getStandardUsernamePasswordCredentialsById(getCredentialId(envReplacer));
     }
-
-    public boolean isCredentialOption(String credentialOptionStr) {
-        return this.credentialOption == CredentialOption.valueOf(credentialOptionStr);
-    }
-
 
     @Extension
     public static class DescriptorImpl extends Descriptor<Credential> {
@@ -69,7 +50,7 @@ public class Credential
             return "Credential";
         }
 
-        public static ListBoxModel doFillCredentialIdUsernameAndPasswordItems(Item item) {
+        public static ListBoxModel doFillCredentialIdItems(Item item) {
             if (item == null || !item.hasPermission(Item.CONFIGURE)) {
                 return new ListBoxModel();
             }
@@ -93,7 +74,7 @@ public class Credential
 
         return CredentialsMatchers.firstOrNull(
                 lookupCredentials(StandardUsernamePasswordCredentials.class,
-                        Jenkins.getInstanceOrNull(),
+                        Jenkins.get(),
                         ACL.SYSTEM,
                         new SchemeRequirement("http"),
                         new SchemeRequirement("https")),

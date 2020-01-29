@@ -3,7 +3,6 @@ package org.jenkinsci.plugins.electricflow.factories;
 import com.cloudbees.plugins.credentials.common.StandardUsernamePasswordCredentials;
 import hudson.util.Secret;
 import org.jenkinsci.plugins.electricflow.*;
-import org.jenkinsci.plugins.electricflow.models.CredentialOption;
 
 public class ElectricFlowClientFactory {
     public static ElectricFlowClient getElectricFlowClient(
@@ -29,9 +28,6 @@ public class ElectricFlowClientFactory {
             username = cred.getElectricFlowUser();
             password = Secret.fromString(cred.getElectricFlowPassword())
                     .getPlainText();
-        } else if (overrideCredential.getCredentialOption() == CredentialOption.userNameAndPassword) {
-            username = overrideCredential.getUsername();
-            password = overrideCredential.getPassword().getPlainText();
         } else {
             StandardUsernamePasswordCredentials creds = overrideCredential.getUsernamePasswordBasedOnCredentialId(envReplacer);
             if (creds == null) {

@@ -272,8 +272,8 @@ public class ElectricFlowRunProcedure
             return Utils.fillConfigurationItems();
         }
 
-        public ListBoxModel doFillCredentialIdUsernameAndPasswordItems(@AncestorInPath Item item) {
-            return Credential.DescriptorImpl.doFillCredentialIdUsernameAndPasswordItems(item);
+        public ListBoxModel doFillCredentialIdItems(@AncestorInPath Item item) {
+            return Credential.DescriptorImpl.doFillCredentialIdItems(item);
         }
 
         public ListBoxModel doFillProjectNameItems(
