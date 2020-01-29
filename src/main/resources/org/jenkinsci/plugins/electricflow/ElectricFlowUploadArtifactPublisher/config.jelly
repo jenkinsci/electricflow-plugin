@@ -12,6 +12,7 @@ All rights reserved.
   <f:entry title="Configuration" field="configuration">
       <f:select />
   </f:entry>
+    <st:include class="org.jenkinsci.plugins.electricflow.Credential" page="overrideCredential.jelly" />
   <f:entry title="Artifact Path" field="filePath">
       <f:textbox />
   </f:entry>

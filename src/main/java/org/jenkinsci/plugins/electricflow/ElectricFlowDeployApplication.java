@@ -25,6 +25,7 @@ import net.sf.json.JSONObject;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jenkinsci.Symbol;
+import org.jenkinsci.plugins.electricflow.factories.ElectricFlowClientFactory;
 import org.jenkinsci.plugins.electricflow.ui.FieldValidationStatus;
 import org.jenkinsci.plugins.electricflow.ui.HtmlUtils;
 import org.jenkinsci.plugins.electricflow.ui.SelectFieldUtils;
@@ -55,6 +56,7 @@ public class ElectricFlowDeployApplication
     //~ Instance fields --------------------------------------------------------
 
     private String configuration;
+    private Credential overrideCredential;
     private String projectName;
     private String applicationName;
     private String applicationProcessName;
@@ -84,7 +86,6 @@ public class ElectricFlowDeployApplication
             @Nonnull Run<?, ?>    run,
             @Nonnull TaskListener taskListener)
     {
-        ElectricFlowClient efClient = new ElectricFlowClient(configuration);
         PrintStream        logger   = taskListener.getLogger();
 
         logger.println("Project name: "
@@ -102,6 +103,7 @@ public class ElectricFlowDeployApplication
             logger.println("Preparing to run process...");
 
             EnvReplacer env = new EnvReplacer(run, taskListener);
+            ElectricFlowClient efClient = ElectricFlowClientFactory.getElectricFlowClient(configuration, overrideCredential, env);
             expandParameters(parameter, env, "value");
 
             String     result  = efClient.runProcess(projectName,
@@ -169,6 +171,10 @@ public class ElectricFlowDeployApplication
     public String getStoredConfiguration()
     {
         return configuration;
+    }
+
+    public Credential getOverrideCredential() {
+        return overrideCredential;
     }
 
     public String getDeployParameters()
@@ -257,6 +263,11 @@ public class ElectricFlowDeployApplication
     @DataBoundSetter public void setConfiguration(String configuration)
     {
         this.configuration = configuration;
+    }
+
+    @DataBoundSetter
+    public void setOverrideCredential(Credential overrideCredential) {
+        this.overrideCredential = overrideCredential;
     }
 
     @DataBoundSetter public void setDeployParameters(String deployParameters)
@@ -445,6 +456,10 @@ public class ElectricFlowDeployApplication
                 return new ListBoxModel();
             }
             return Utils.fillConfigurationItems();
+        }
+
+        public ListBoxModel doFillCredentialIdItems(@AncestorInPath Item item) {
+            return Credential.DescriptorImpl.doFillCredentialIdItems(item);
         }
 
         public ListBoxModel doFillDeployParametersItems(

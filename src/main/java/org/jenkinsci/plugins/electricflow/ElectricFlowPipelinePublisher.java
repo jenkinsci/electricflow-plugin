@@ -22,6 +22,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.jenkinsci.Symbol;
+import org.jenkinsci.plugins.electricflow.factories.ElectricFlowClientFactory;
 import org.jenkinsci.plugins.electricflow.ui.FieldValidationStatus;
 import org.jenkinsci.plugins.electricflow.ui.HtmlUtils;
 import org.jenkinsci.plugins.electricflow.ui.SelectFieldUtils;
@@ -65,6 +66,7 @@ public class ElectricFlowPipelinePublisher
     private String    projectName;
     private String    pipelineName;
     private String    configuration;
+    private Credential overrideCredential;
     private String    addParam;
     private JSONArray additionalOption;
 
@@ -121,9 +123,21 @@ public class ElectricFlowPipelinePublisher
             "Project name: " + projectName
                 + ", Pipeline name: " + pipelineName);
 
-        // exp ends here
-        ElectricFlowClient efClient = new ElectricFlowClient(
-                this.configuration);
+        EnvReplacer env = null;
+        ElectricFlowClient efClient;
+        try {
+            env = new EnvReplacer(run, taskListener);
+            efClient = ElectricFlowClientFactory.getElectricFlowClient(configuration, overrideCredential, env);
+        } catch (Exception e) {
+            taskListener.getLogger()
+                    .println(
+                            "Cannot create CloudBees Flow client. Error: "
+                                    + e.getMessage());
+            log.error("Cannot create CloudBees Flow client. Error: "
+                    + e.getMessage(), e);
+
+            return false;
+        }
 
         try {
             List<String> paramsResponse = efClient.getPipelineFormalParameters(
@@ -157,8 +171,6 @@ public class ElectricFlowPipelinePublisher
                         pipelineName);
             }
             else {
-                EnvReplacer env = new EnvReplacer(run, taskListener);
-
                 expandParameters(parameters, env);
                 pipelineResult = efClient.runPipeline(projectName, pipelineName,
                         parameters);
@@ -202,6 +214,10 @@ public class ElectricFlowPipelinePublisher
     public String getConfiguration()
     {
         return configuration;
+    }
+
+    public Credential getOverrideCredential() {
+        return overrideCredential;
     }
 
     public String getStoredConfiguration()
@@ -309,6 +325,11 @@ public class ElectricFlowPipelinePublisher
     @DataBoundSetter public void setConfiguration(String configuration)
     {
         this.configuration = configuration;
+    }
+
+    @DataBoundSetter
+    public void setOverrideCredential(Credential overrideCredential) {
+        this.overrideCredential = overrideCredential;
     }
 
     @DataBoundSetter public void setPipelineName(String pipelineName)
@@ -472,6 +493,10 @@ public class ElectricFlowPipelinePublisher
                 return new ListBoxModel();
             }
             return Utils.fillConfigurationItems();
+        }
+
+        public ListBoxModel doFillCredentialIdItems(@AncestorInPath Item item) {
+            return Credential.DescriptorImpl.doFillCredentialIdItems(item);
         }
 
         public ListBoxModel doFillPipelineNameItems(

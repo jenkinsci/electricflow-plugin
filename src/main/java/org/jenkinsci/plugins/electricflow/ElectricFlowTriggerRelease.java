@@ -28,6 +28,7 @@ import net.sf.json.JSONObject;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jenkinsci.Symbol;
+import org.jenkinsci.plugins.electricflow.factories.ElectricFlowClientFactory;
 import org.jenkinsci.plugins.electricflow.ui.FieldValidationStatus;
 import org.jenkinsci.plugins.electricflow.ui.HtmlUtils;
 import org.jenkinsci.plugins.electricflow.ui.SelectFieldUtils;
@@ -63,6 +64,7 @@ public class ElectricFlowTriggerRelease
     //~ Instance fields --------------------------------------------------------
 
     private String configuration;
+    private Credential overrideCredential;
     private String projectName;
     private String releaseName;
     private String startingStage;
@@ -106,8 +108,7 @@ public class ElectricFlowTriggerRelease
             logger.println("Preparing to triggerRelease...");
 
             EnvReplacer        env      = new EnvReplacer(run, taskListener);
-            ElectricFlowClient efClient = new ElectricFlowClient(configuration,
-                    env);
+            ElectricFlowClient efClient = ElectricFlowClientFactory.getElectricFlowClient(configuration, overrideCredential, env);
 
             expandParameters(pipelineParameters, env);
 
@@ -138,6 +139,10 @@ public class ElectricFlowTriggerRelease
     public String getStoredConfiguration()
     {
         return configuration;
+    }
+
+    public Credential getOverrideCredential() {
+        return overrideCredential;
     }
 
     @Override public DescriptorImpl getDescriptor()
@@ -255,6 +260,11 @@ public class ElectricFlowTriggerRelease
         this.configuration = configuration;
     }
 
+    @DataBoundSetter
+    public void setOverrideCredential(Credential overrideCredential) {
+        this.overrideCredential = overrideCredential;
+    }
+
     @DataBoundSetter public void setParameters(String parameters)
     {
         this.parameters = getSelectItemValue(parameters);
@@ -355,6 +365,10 @@ public class ElectricFlowTriggerRelease
                 return new ListBoxModel();
             }
             return Utils.fillConfigurationItems();
+        }
+
+        public ListBoxModel doFillCredentialIdItems(@AncestorInPath Item item) {
+            return Credential.DescriptorImpl.doFillCredentialIdItems(item);
         }
 
         public ListBoxModel doFillParametersItems(
