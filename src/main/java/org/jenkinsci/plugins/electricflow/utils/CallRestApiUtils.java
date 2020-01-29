@@ -7,6 +7,7 @@ import hudson.model.TaskListener;
 import hudson.util.ListBoxModel;
 import org.jenkinsci.plugins.electricflow.*;
 import org.jenkinsci.plugins.electricflow.envvars.VariableInjectionAction;
+import org.jenkinsci.plugins.electricflow.factories.ElectricFlowClientFactory;
 import org.jenkinsci.plugins.electricflow.models.CallRestApiModel;
 import org.jenkinsci.plugins.electricflow.ui.HtmlUtils;
 
@@ -30,8 +31,10 @@ public class CallRestApiUtils {
 
         try {
             EnvReplacer envReplacer = new EnvReplacer(run, taskListener);
-            ElectricFlowClient efClient = new ElectricFlowClient(
-                    callRestApiModel.getConfiguration());
+            ElectricFlowClient efClient = ElectricFlowClientFactory.getElectricFlowClient(
+                    callRestApiModel.getConfiguration(),
+                    callRestApiModel.getOverrideCredential(),
+                    envReplacer);
 
             String result = efClient.runRestAPI(
                     callRestApiModel.getUrlPath(),

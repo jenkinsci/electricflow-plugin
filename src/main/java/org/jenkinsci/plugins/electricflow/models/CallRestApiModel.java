@@ -1,5 +1,6 @@
 package org.jenkinsci.plugins.electricflow.models;
 
+import org.jenkinsci.plugins.electricflow.Credential;
 import org.jenkinsci.plugins.electricflow.EnvReplacer;
 import org.jenkinsci.plugins.electricflow.Pair;
 
@@ -9,6 +10,8 @@ import java.util.stream.Collectors;
 public interface CallRestApiModel {
 
     public String getConfiguration();
+
+    public Credential getOverrideCredential();
 
     public String getUrlPath();
 

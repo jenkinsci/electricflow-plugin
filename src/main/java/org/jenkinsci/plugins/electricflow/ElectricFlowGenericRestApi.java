@@ -40,6 +40,7 @@ public class ElectricFlowGenericRestApi
         implements SimpleBuildStep, CallRestApiModel {
 
     private String configuration;
+    private Credential overrideCredential;
     private String urlPath;
     private String httpMethod;
     private List<Pair> parameters;
@@ -71,6 +72,10 @@ public class ElectricFlowGenericRestApi
     @Override
     public String getConfiguration() {
         return configuration;
+    }
+
+    public Credential getOverrideCredential() {
+        return overrideCredential;
     }
 
     @Override
@@ -109,6 +114,11 @@ public class ElectricFlowGenericRestApi
     }
 
     @DataBoundSetter
+    public void setOverrideCredential(Credential overrideCredential) {
+        this.overrideCredential = overrideCredential;
+    }
+
+    @DataBoundSetter
     public void setUrlPath(String urlPath) {
         this.urlPath = urlPath;
     }
@@ -140,6 +150,10 @@ public class ElectricFlowGenericRestApi
 
         public ListBoxModel doFillConfigurationItems(@AncestorInPath Item item) {
             return CallRestApiUtils.doFillConfigurationItems(item);
+        }
+
+        public ListBoxModel doFillCredentialIdItems(@AncestorInPath Item item) {
+            return Credential.DescriptorImpl.doFillCredentialIdItems(item);
         }
 
         public ListBoxModel doFillHttpMethodItems(@AncestorInPath Item item) {
