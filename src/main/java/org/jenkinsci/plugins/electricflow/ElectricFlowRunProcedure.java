@@ -18,6 +18,7 @@ import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.BuildStepMonitor;
 import hudson.tasks.Publisher;
 import hudson.tasks.Recorder;
+import hudson.tasks.junit.TestResult;
 import hudson.util.FormValidation;
 import hudson.util.ListBoxModel;
 import jenkins.tasks.SimpleBuildStep;
@@ -26,6 +27,7 @@ import net.sf.json.JSONObject;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jenkinsci.Symbol;
+import org.jenkinsci.plugins.electricflow.data.CloudBeesFlowBuildData;
 import org.jenkinsci.plugins.electricflow.integration.ElectricFlowChangeSet;
 import org.jenkinsci.plugins.electricflow.ui.FieldValidationStatus;
 import org.jenkinsci.plugins.electricflow.ui.HtmlUtils;
@@ -52,7 +54,10 @@ import static org.jenkinsci.plugins.electricflow.ui.SelectFieldUtils.isSelectIte
 
 import jenkins.model.Jenkins;
 import jenkins.scm.*;
-
+import hudson.tasks.junit.TestResultAction;
+import jenkins.util.VirtualFile;
+// import hudson.model.Run.ArtifactList
+import hudson.model.Run.ArtifactList;
 public class ElectricFlowRunProcedure
         extends Recorder
         implements SimpleBuildStep {
@@ -88,21 +93,10 @@ public class ElectricFlowRunProcedure
         ElectricFlowClient efClient = new ElectricFlowClient(configuration);
         PrintStream logger = taskListener.getLogger();
 
-        // getting information for changesets
-        RunWithSCM<?,?> abstractBuild = (RunWithSCM<?,?>) run;
-        // run.getAr
-        // ChangeLogSet<? extends ChangeLogSet.Entry> changeset = abstractBuild.getChangeSet();
-        List<ChangeLogSet<? extends ChangeLogSet.Entry>> changesets = abstractBuild.getChangeSets();
-        Iterator<ChangeLogSet<? extends ChangeLogSet.Entry>> itrChangeSet = changesets.iterator();
-        while (itrChangeSet.hasNext()) {
-            ChangeLogSet<? extends ChangeLogSet.Entry> str = itrChangeSet.next();
-            List<Object> items = Arrays.asList(str.getItems());
-            for (int i = 0; i < items.size(); i++) {
-                Object cs = items.get(i);
-                ElectricFlowChangeSet ecs = ElectricFlowChangeSet.getChangesetFromObject(cs);
-            }
-        }
-        // end of changesets section.
+
+        CloudBeesFlowBuildData cbfbd = new CloudBeesFlowBuildData(run, logger);
+        cbfbd.dump();
+
         logger.println("JENKINS VERSION: " + Jenkins.VERSION);
         logger.println("Project name: " + projectName + ", Procedure name: " + procedureName);
 
