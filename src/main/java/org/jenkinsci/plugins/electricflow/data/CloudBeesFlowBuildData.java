@@ -1,5 +1,6 @@
 package org.jenkinsci.plugins.electricflow.data;
 
+import hudson.model.Result;
 import hudson.model.Run;
 import hudson.scm.ChangeLogSet;
 import jenkins.scm.RunWithSCM;
@@ -10,6 +11,8 @@ import org.jenkinsci.plugins.electricflow.extension.CloudBeesFlowTestResult;
 import java.io.PrintStream;
 import java.util.Iterator;
 import java.util.List;
+// import com.cloudbees.workflow.*
+// im[prt]
 
 public class CloudBeesFlowBuildData {
     protected String displayName;
@@ -39,7 +42,10 @@ public class CloudBeesFlowBuildData {
         this.setDisplayName(run.getDisplayName());
         this.setBuilding(run.isBuilding());
         // todo: improve result handling
-        this.setResult(run.getResult().toString());
+        Result result = run.getResult();
+        if (result != null) {
+            this.setResult(result.toString());
+        }
         // todo: Improve reason handling
         // this.setReason(run.get);
         this.setDuration(run.getDuration());
@@ -57,6 +63,7 @@ public class CloudBeesFlowBuildData {
         this.changeSets = new CloudBeesFlowSCMData(changeSets);
         this.testResult = new CloudBeesFlowTestResultData(run);
         this.artifacts = new CloudBeesFlowArtifactData(run);
+        this.stages = new CloudBeesFlowPipelineData(run);
     }
     public void dump() {
         logger.println("===");

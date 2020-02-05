@@ -13,23 +13,39 @@ public class CloudBeesFlowTestResult implements ExtensionPoint {
     protected String url;
 
     public CloudBeesFlowTestResult() {};
-
     public static CloudBeesFlowTestResult build (Run run) {
         final Jenkins jenkins = Jenkins.get();
         if (jenkins != null) {
-            TestResultAction obj = run.getAction(TestResultAction.class);
-            if (obj != null) {
-                TestResultAction testData = obj;
-                CloudBeesFlowTestResult cloudBeesFlowTestResult = new CloudBeesFlowTestResult();
-                cloudBeesFlowTestResult.setFailCount(obj.getFailCount());
-                cloudBeesFlowTestResult.setSkipCount(obj.getSkipCount());
-                cloudBeesFlowTestResult.setTotalCount(obj.getTotalCount());
-                return cloudBeesFlowTestResult;
+            ExtensionList.lookup(CloudBeesFlowTestResult.class);
+
+            final ExtensionList<CloudBeesFlowTestResult> makers = ExtensionList.lookup(CloudBeesFlowTestResult.class);
+            for (CloudBeesFlowTestResult m : makers) {
+                System.out.println("Iterating through extensions");
+                Class varClass = m.getClass();
+                boolean popRes = m.populate(run);
+                if (popRes) {
+                    return m;
+                }
             }
         }
         return null;
-
     }
+//    public static CloudBeesFlowTestResult build (Run run) {
+//        final Jenkins jenkins = Jenkins.get();
+//        if (jenkins != null) {
+//            TestResultAction obj = run.getAction(TestResultAction.class);
+//            if (obj != null) {
+//                TestResultAction testData = obj;
+//                CloudBeesFlowTestResult cloudBeesFlowTestResult = new CloudBeesFlowTestResult();
+//                cloudBeesFlowTestResult.setFailCount(obj.getFailCount());
+//                cloudBeesFlowTestResult.setSkipCount(obj.getSkipCount());
+//                cloudBeesFlowTestResult.setTotalCount(obj.getTotalCount());
+//                return cloudBeesFlowTestResult;
+//            }
+//        }
+//        return null;
+//
+//    }
 
     // service methods
     // isApplicable() returns false because it will be implemented in subclasses
@@ -37,7 +53,9 @@ public class CloudBeesFlowTestResult implements ExtensionPoint {
         return false;
     }
     // populate
-    public void populate(Object object) { }
+    public boolean populate(Run run) {
+        return false;
+    }
 
     // getters and setters
     public int getFailCount() {

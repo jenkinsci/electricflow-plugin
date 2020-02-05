@@ -9,6 +9,7 @@
 
 package org.jenkinsci.plugins.electricflow;
 
+import com.cloudbees.workflow.rest.external.StageNodeExt;
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
@@ -33,6 +34,7 @@ import org.jenkinsci.plugins.electricflow.ui.FieldValidationStatus;
 import org.jenkinsci.plugins.electricflow.ui.HtmlUtils;
 import org.jenkinsci.plugins.electricflow.ui.SelectFieldUtils;
 import org.jenkinsci.plugins.electricflow.ui.SelectItemValidationWrapper;
+import org.jenkinsci.plugins.workflow.job.WorkflowRun;
 import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
@@ -58,6 +60,8 @@ import hudson.tasks.junit.TestResultAction;
 import jenkins.util.VirtualFile;
 // import hudson.model.Run.ArtifactList
 import hudson.model.Run.ArtifactList;
+import com.cloudbees.workflow.rest.external.RunExt;
+
 public class ElectricFlowRunProcedure
         extends Recorder
         implements SimpleBuildStep {
@@ -95,8 +99,9 @@ public class ElectricFlowRunProcedure
 
 
         CloudBeesFlowBuildData cbfbd = new CloudBeesFlowBuildData(run, logger);
-        cbfbd.dump();
-
+        // cbfbd.dump();
+        //RunExt re = RunExt.create((WorkflowRun)run);
+        //List<StageNodeExt> stages = re.getStages();
         logger.println("JENKINS VERSION: " + Jenkins.VERSION);
         logger.println("Project name: " + projectName + ", Procedure name: " + procedureName);
 
