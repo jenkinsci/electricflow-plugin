@@ -10,6 +10,7 @@
 package org.jenkinsci.plugins.electricflow;
 
 import com.cloudbees.workflow.rest.external.StageNodeExt;
+import com.google.gson.JsonObject;
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
@@ -102,6 +103,8 @@ public class ElectricFlowRunProcedure
         // cbfbd.dump();
         //RunExt re = RunExt.create((WorkflowRun)run);
         //List<StageNodeExt> stages = re.getStages();
+        JSONObject json = cbfbd.toJsonObject();
+        logger.println("JSON: " + json.toString());
         logger.println("JENKINS VERSION: " + Jenkins.VERSION);
         logger.println("Project name: " + projectName + ", Procedure name: " + procedureName);
 

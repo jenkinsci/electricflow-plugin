@@ -1,18 +1,20 @@
 package org.jenkinsci.plugins.electricflow.data;
 
+import com.google.gson.JsonObject;
 import hudson.model.Result;
 import hudson.model.Run;
 import hudson.scm.ChangeLogSet;
 import jenkins.scm.RunWithSCM;
+import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
 import org.jenkinsci.plugins.electricflow.extension.CloudBeesFlowArtifact;
+import org.jenkinsci.plugins.electricflow.extension.CloudBeesFlowPipeline;
 import org.jenkinsci.plugins.electricflow.extension.CloudBeesFlowSCM;
 import org.jenkinsci.plugins.electricflow.extension.CloudBeesFlowTestResult;
 
 import java.io.PrintStream;
 import java.util.Iterator;
 import java.util.List;
-// import com.cloudbees.workflow.*
-// im[prt]
 
 public class CloudBeesFlowBuildData {
     protected String displayName;
@@ -64,6 +66,82 @@ public class CloudBeesFlowBuildData {
         this.testResult = new CloudBeesFlowTestResultData(run);
         this.artifacts = new CloudBeesFlowArtifactData(run);
         this.stages = new CloudBeesFlowPipelineData(run);
+    }
+    public JSONObject toJsonObject() {
+        JSONObject json = new JSONObject();
+
+        // adding non-complex values of this
+        if (this.getDisplayName() != null) {
+            json.put("displayName", this.getDisplayName());
+        }
+
+        if (this.getLaunchedBy() != null) {
+            json.put("launchedBy", this.getLaunchedBy());
+        }
+        json.put("buildNumber", this.getBuildNumber());
+        json.put("building", this.isBuilding());
+        if (this.getResult() != null) {
+            json.put("result", this.getResult());
+        }
+        if (this.getReason() != null) {
+            json.put("reason", this.getReason());
+        }
+        json.put("duration", this.getDuration());
+        json.put("estimatedDuration", this.getEstimatedDuration());
+        json.put("timestamp", this.getTimestamp());
+        if (this.getLogs() != null) {
+            json.put("logs", this.getLogs());
+        }
+        if (this.getUrl() != null) {
+            json.put("url", this.getUrl());
+        }
+
+        // now adding object values to json
+
+        // processing pipeline data
+        CloudBeesFlowPipelineData pipelineData = this.getStages();
+        if (pipelineData != null && pipelineData.getPipelineData() != null && pipelineData.getPipelineData().size() > 0) {
+            JSONArray pipelineJsonArray = new JSONArray();
+            //            json.put("stages", new JSONArray());
+            List<CloudBeesFlowPipeline> pipelineRows = pipelineData.getPipelineData();
+            for (int i = 0; i < pipelineRows.size(); i++) {
+                pipelineJsonArray.add(pipelineRows.get(i).toJsonObject());
+            }
+            json.put("stage", pipelineJsonArray);
+        }
+
+        // processing artifacts data
+        CloudBeesFlowArtifactData artifactsData = this.getArtifacts();
+        if (artifactsData != null && artifactsData.getArtifactData().size() > 0) {
+            JSONArray artifactsJsonArray = new JSONArray();
+            List<CloudBeesFlowArtifact> artifactRows = artifactsData.getArtifactData();
+            for (int i = 0; i < artifactRows.size(); i++) {
+                artifactsJsonArray.add(artifactRows.get(i).toJsonObject());
+            }
+            json.put("artifacts", artifactsJsonArray);
+        }
+
+        // processing test results data
+        CloudBeesFlowTestResultData testResultData = this.getTestResult();
+        if (testResultData != null && testResultData.getTestResultData().size() > 0) {
+            JSONArray testResultsJsonArray = new JSONArray();
+            List<CloudBeesFlowTestResult> testResultRows = testResultData.getTestResultData();
+            for (int i = 0; i < testResultRows.size(); i++) {
+                testResultsJsonArray.add(testResultRows.get(i).toJsonObject());
+            }
+            json.put("testResult", testResultsJsonArray);
+        }
+        // processing SCM data
+        CloudBeesFlowSCMData scmData = this.getChangeSets();
+        if (scmData != null && scmData.getScmData().size() > 0) {
+            JSONArray scmJsonArray = new JSONArray();
+            List<CloudBeesFlowSCM> scmRows = scmData.getScmData();
+            for (int i = 0; i < scmRows.size(); i++) {
+                scmJsonArray.add(scmRows.get(i).toJsonObject());
+            }
+            json.put("changeSets", scmJsonArray);
+        }
+        return json;
     }
     public void dump() {
         logger.println("===");
@@ -201,5 +279,37 @@ public class CloudBeesFlowBuildData {
 
     public void setUrl(String url) {
         this.url = url;
+    }
+
+    public CloudBeesFlowPipelineData getStages() {
+        return stages;
+    }
+
+    public void setStages(CloudBeesFlowPipelineData stages) {
+        this.stages = stages;
+    }
+
+    public CloudBeesFlowSCMData getChangeSets() {
+        return changeSets;
+    }
+
+    public void setChangeSets(CloudBeesFlowSCMData changeSets) {
+        this.changeSets = changeSets;
+    }
+
+    public CloudBeesFlowArtifactData getArtifacts() {
+        return artifacts;
+    }
+
+    public void setArtifacts(CloudBeesFlowArtifactData artifacts) {
+        this.artifacts = artifacts;
+    }
+
+    public CloudBeesFlowTestResultData getTestResult() {
+        return testResult;
+    }
+
+    public void setTestResult(CloudBeesFlowTestResultData testResult) {
+        this.testResult = testResult;
     }
 }

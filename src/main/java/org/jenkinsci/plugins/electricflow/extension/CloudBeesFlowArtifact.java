@@ -3,6 +3,7 @@ package org.jenkinsci.plugins.electricflow.extension;
 import hudson.model.Run;
 import hudson.model.Run.ArtifactList;
 import hudson.model.Run.Artifact;
+import net.sf.json.JSONObject;
 
 public class CloudBeesFlowArtifact {
     protected String relativePath;
@@ -34,6 +35,24 @@ public class CloudBeesFlowArtifact {
         cloudBeesFlowArtifact.setLength(obj.getLength());
         cloudBeesFlowArtifact.setSize(obj.getFileSize());
         return cloudBeesFlowArtifact;
+    }
+
+    public JSONObject toJsonObject() {
+        JSONObject json = new JSONObject();
+
+        if (this.getDisplayPath() != null) {
+            json.put("displayPath", this.getDisplayPath());
+        }
+        if (this.getName() != null) {
+            json.put("name", this.getName());
+        }
+        if (this.getHref() != null) {
+            json.put("href", this.getHref());
+        }
+        if (this.getSize() > 0) {
+            json.put("size", this.getSize());
+        }
+        return json;
     }
     public String getRelativePath() {
         return relativePath;

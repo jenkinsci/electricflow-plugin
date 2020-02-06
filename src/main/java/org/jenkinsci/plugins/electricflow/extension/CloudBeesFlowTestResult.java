@@ -5,6 +5,7 @@ import hudson.ExtensionPoint;
 import hudson.model.Run;
 import hudson.tasks.junit.TestResultAction;
 import jenkins.model.Jenkins;
+import net.sf.json.JSONObject;
 
 public class CloudBeesFlowTestResult implements ExtensionPoint {
     protected int failCount;
@@ -29,6 +30,17 @@ public class CloudBeesFlowTestResult implements ExtensionPoint {
             }
         }
         return null;
+    }
+    public JSONObject toJsonObject() {
+        JSONObject json = new JSONObject();
+
+        if (this.getUrl() != null) {
+            json.put("url", this.getUrl());
+        }
+        json.put("failCount", this.getFailCount());
+        json.put("skipCount", this.getSkipCount());
+        json.put("totalCount", this.getTotalCount());
+        return json;
     }
 //    public static CloudBeesFlowTestResult build (Run run) {
 //        final Jenkins jenkins = Jenkins.get();

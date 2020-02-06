@@ -4,6 +4,7 @@ import hudson.ExtensionList;
 import hudson.ExtensionPoint;
 import hudson.model.Run;
 import jenkins.model.Jenkins;
+import net.sf.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,6 +32,24 @@ public class CloudBeesFlowPipeline implements ExtensionPoint {
             }
         }
         return null;
+    }
+    public JSONObject toJsonObject() {
+        JSONObject json = new JSONObject();
+
+        if (this.getStageName() != null) {
+            json.put("stageName", this.getStageName());
+        }
+        if (this.getResult() != null) {
+            json.put("result", this.getResult());
+        }
+        if (this.getReason() != null) {
+            json.put("reason", this.getReason());
+        }
+        json.put("duration", this.getDuration());
+        json.put("timestamp", this.getTimestamp());
+        json.put("logs", this.getLogs());
+
+        return json;
     }
 //    public boolean populate(Run run) {
 //        return false;

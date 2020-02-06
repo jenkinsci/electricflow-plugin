@@ -3,6 +3,7 @@ package org.jenkinsci.plugins.electricflow.extension;
 import hudson.ExtensionList;
 import hudson.ExtensionPoint;
 import jenkins.model.Jenkins;
+import net.sf.json.JSONObject;
 
 public class CloudBeesFlowSCM implements ExtensionPoint {
     protected String scmReportUrl;
@@ -32,6 +33,34 @@ public class CloudBeesFlowSCM implements ExtensionPoint {
             }
         }
         return null;
+    }
+    public JSONObject toJsonObject() {
+        JSONObject json = new JSONObject();
+
+        if (this.getTimestamp() > 0) {
+            json.put("timestamp", this.getTimestamp());
+        }
+
+        if (this.getScmReportUrl() != null) {
+            json.put("scmRepoUrl", this.getScmReportUrl());
+        }
+        if (this.getScmType() != null) {
+            json.put("scmType", this.getScmType());
+        }
+        if (this.getCommitId() != null) {
+            json.put("commitId", this.getCommitId());
+        }
+        if (this.getAuthor() != null) {
+            json.put("author", this.getAuthor());
+        }
+        if (this.getAuthorEmail() != null) {
+            json.put("authorEmail", this.getAuthorEmail());
+        }
+        if (this.getCommitMessage() != null) {
+            json.put("commitMessage", this.getCommitMessage());
+        }
+
+        return json;
     }
     // service methods
     // isApplicable() returns false because it will be implemented in subclasses
