@@ -140,8 +140,7 @@ public class ElectricFlowPipelinePublisher
         }
 
         try {
-            List<String> paramsResponse = efClient.getPipelineFormalParameters(
-                    pipelineName);
+            List<String> paramsResponse = efClient.getPipelineFormalParameters(projectName, pipelineName);
 
             if (log.isDebugEnabled()) {
                 log.debug("FormalParameters are: "
@@ -417,6 +416,7 @@ public class ElectricFlowPipelinePublisher
 
         public ListBoxModel doFillAddParamItems(
                 @QueryParameter String configuration,
+                @QueryParameter String projectName,
                 @QueryParameter String pipelineName,
                 @QueryParameter String addParam,
                 @AncestorInPath Item item) {
@@ -450,7 +450,7 @@ public class ElectricFlowPipelinePublisher
                 ElectricFlowClient efClient   = new ElectricFlowClient(
                         configuration);
                 List<String>       parameters =
-                        efClient.getPipelineFormalParameters(pipelineName);
+                        efClient.getPipelineFormalParameters(projectName, pipelineName);
                 JSONObject         main       = JSONObject.fromObject(
                         "{'pipeline':{'pipelineName':'" + pipelineName
                                 + "','parameters':[]}}");
