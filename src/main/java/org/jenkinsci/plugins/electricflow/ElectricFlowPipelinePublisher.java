@@ -10,6 +10,7 @@
 package org.jenkinsci.plugins.electricflow;
 
 import java.io.IOException;
+import java.io.PrintStream;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -22,6 +23,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.jenkinsci.Symbol;
+import org.jenkinsci.plugins.electricflow.data.CloudBeesFlowBuildData;
 import org.jenkinsci.plugins.electricflow.ui.FieldValidationStatus;
 import org.jenkinsci.plugins.electricflow.ui.HtmlUtils;
 import org.jenkinsci.plugins.electricflow.ui.SelectFieldUtils;
@@ -168,7 +170,12 @@ public class ElectricFlowPipelinePublisher
                     pipelineResult, parameters);
             SummaryTextAction action      = new SummaryTextAction(run,
                     summaryHtml);
+            String flowRuntimeId = getFlowRuntimeIdFromResponse(pipelineResult);
+            String projectName = getProjectNameFromResponse(pipelineResult);
 
+            // PrintStream logger = taskListener.getLogger();
+            CloudBeesFlowBuildData cbfdb = new CloudBeesFlowBuildData(run);
+            String associateResult = efClient.setJenkinsBuildDetails(cbfdb, projectName, flowRuntimeId);
             run.addAction(action);
             run.save();
             logListener(buildListener, taskListener,
@@ -260,6 +267,25 @@ public class ElectricFlowPipelinePublisher
         return BuildStepMonitor.NONE;
     }
 
+    private String getFlowRuntimeIdFromResponse(String pipelineResult) {
+        JSONObject flowRuntime   = JSONObject.fromObject(pipelineResult).getJSONObject("flowRuntime");
+        // String     pipelineId    = (String) flowRuntime.get("pipelineId");
+        String     flowRuntimeId = (String) flowRuntime.get("flowRuntimeId");
+        return flowRuntimeId;
+    }
+    private String getProjectNameFromResponse(String pipelineResult) {
+        JSONObject flowRuntime   = JSONObject.fromObject(pipelineResult).getJSONObject("flowRuntime");
+
+        String projectName = (String) flowRuntime.get("projectName");
+        return projectName;
+    }
+    private String getSetJenkinsBuildDetailsUrlBase(String pipelineResult) {
+        JSONObject flowRuntime   = JSONObject.fromObject(pipelineResult).getJSONObject("flowRuntime");
+        String flowRuntimeId = (String) flowRuntime.get("flowRuntimeId");
+        String projectName = (String) flowRuntime.get("projectName");
+        String retval = "/flowRuntimes/" + flowRuntimeId + "/jenkinsBuildDetails";
+        return retval;
+    }
     private String getSummaryHtml(
             ElectricFlowClient efClient,
             String             pipelineResult,

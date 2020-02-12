@@ -99,7 +99,7 @@ public class ElectricFlowRunProcedure
         PrintStream logger = taskListener.getLogger();
 
 
-        CloudBeesFlowBuildData cbfbd = new CloudBeesFlowBuildData(run, logger);
+        CloudBeesFlowBuildData cbfbd = new CloudBeesFlowBuildData(run);
         // cbfbd.dump();
         //RunExt re = RunExt.create((WorkflowRun)run);
         //List<StageNodeExt> stages = re.getStages();

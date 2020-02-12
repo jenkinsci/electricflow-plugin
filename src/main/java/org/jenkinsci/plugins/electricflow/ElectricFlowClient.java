@@ -31,6 +31,7 @@ import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 
 import hudson.util.Secret;
+import org.jenkinsci.plugins.electricflow.data.CloudBeesFlowBuildData;
 
 import static org.jenkinsci.plugins.electricflow.FileHelper.getPublishArtifactWorkspaceOnMaster;
 import static org.jenkinsci.plugins.electricflow.HttpMethod.GET;
@@ -365,7 +366,23 @@ public class ElectricFlowClient
             conn.disconnect();
         }
     }
-
+    public String setJenkinsBuildDetails(
+            CloudBeesFlowBuildData cloudBeesFlowBuildData,
+            String projectName,
+            String flowRuntimeId
+    ) throws  IOException {
+        String endpoint = "flowRuntimes/" + flowRuntimeId + "/jenkinsBuildDetails";
+        // String endpoint = "/projects/" + projectName + "/jenkinsBuildDetails";
+        JSONObject obj = new JSONObject();
+        obj.put("buildName", cloudBeesFlowBuildData.getJobName());
+        obj.put("projectName", projectName);
+        JSONObject jenkinsData = new JSONObject();
+        // obj.put("jenkinsData", jenkinsData.toString());
+        obj.put("jenkinsData", cloudBeesFlowBuildData.toJsonObject());
+        // obj.put()
+        String content = obj.toString();
+        return runRestAPI(endpoint, POST, content);
+    }
     public String uploadArtifact(
             Run build,
             TaskListener listener,

@@ -17,6 +17,7 @@ import java.util.Iterator;
 import java.util.List;
 
 public class CloudBeesFlowBuildData {
+    protected String jobName;
     protected String displayName;
     protected String launchedBy;
     protected int buildNumber;
@@ -33,15 +34,21 @@ public class CloudBeesFlowBuildData {
     protected CloudBeesFlowArtifactData artifacts;
     protected CloudBeesFlowTestResultData testResult;
 
-    public PrintStream logger;
+    // public PrintStream logger;
 
 
     // constructor
-    public CloudBeesFlowBuildData (Run<?,?> run, PrintStream logger) {
-        this.logger = logger;
+    public CloudBeesFlowBuildData (Run<?,?> run) {
+        // this.logger = logger;
         // populating scalar values.
+        // this.name = run.getName
+
+        String thisName = run.getCharacteristicEnvVars().get("JOB_NAME");
+        this.jobName = thisName;
+
         this.setBuildNumber(run.getNumber());
-        this.setDisplayName(run.getDisplayName());
+        // this.setDisplayName(run.getDisplayName());
+        this.setDisplayName(this.getJobName() + run.getDisplayName());
         this.setBuilding(run.isBuilding());
         // todo: improve result handling
         Result result = run.getResult();
@@ -112,7 +119,8 @@ public class CloudBeesFlowBuildData {
 
         // processing artifacts data
         CloudBeesFlowArtifactData artifactsData = this.getArtifacts();
-        if (artifactsData != null && artifactsData.getArtifactData().size() > 0) {
+        // TODO: Improve not-null validation here
+        if (artifactsData != null && artifactsData.getArtifactData() != null && artifactsData.getArtifactData().size() > 0) {
             JSONArray artifactsJsonArray = new JSONArray();
             List<CloudBeesFlowArtifact> artifactRows = artifactsData.getArtifactData();
             for (int i = 0; i < artifactRows.size(); i++) {
@@ -123,7 +131,7 @@ public class CloudBeesFlowBuildData {
 
         // processing test results data
         CloudBeesFlowTestResultData testResultData = this.getTestResult();
-        if (testResultData != null && testResultData.getTestResultData().size() > 0) {
+        if (testResultData != null && testResultData.getTestResultData() != null && testResultData.getTestResultData().size() > 0) {
             JSONArray testResultsJsonArray = new JSONArray();
             List<CloudBeesFlowTestResult> testResultRows = testResultData.getTestResultData();
             for (int i = 0; i < testResultRows.size(); i++) {
@@ -143,6 +151,8 @@ public class CloudBeesFlowBuildData {
         }
         return json;
     }
+
+    /*
     public void dump() {
         logger.println("===");
         logger.println("Beginning of CloudBeesFlowBuildData");
@@ -192,6 +202,8 @@ public class CloudBeesFlowBuildData {
         }
         logger.println("===");
     }
+
+    */
     // end of constructor
     public String getDisplayName() {
         return displayName;
@@ -279,6 +291,14 @@ public class CloudBeesFlowBuildData {
 
     public void setUrl(String url) {
         this.url = url;
+    }
+
+    public String getJobName() {
+        return jobName;
+    }
+
+    public void setJobName(String jobName) {
+        this.jobName = jobName;
     }
 
     public CloudBeesFlowPipelineData getStages() {
