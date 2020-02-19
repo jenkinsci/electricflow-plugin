@@ -149,7 +149,6 @@ public class MultipartUtility
 
             outputStream.flush();
             inputStream.close();
-            writer.append(LINE_FEED);
             writer.flush();
         }
         catch (IOException e) {

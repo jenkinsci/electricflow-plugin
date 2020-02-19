@@ -8,10 +8,11 @@ All rights reserved.
 -->
 
 <?jelly escape-by-default='true'?>
-<j:jelly xmlns:j="jelly:core" xmlns:f="/lib/form">
+<j:jelly xmlns:j="jelly:core" xmlns:f="/lib/form" xmlns:st="jelly:stapler">
     <f:entry title="Configuration" field="configuration" >
         <f:select onchange="deleteReleaseParameterRows()"/>
     </f:entry>
+    <st:include class="org.jenkinsci.plugins.electricflow.Credential" page="overrideCredential.jelly" />
     <f:entry title="Project Name" field="projectName" >
         <f:select onchange="deleteReleaseParameterRows()"/>
     </f:entry>

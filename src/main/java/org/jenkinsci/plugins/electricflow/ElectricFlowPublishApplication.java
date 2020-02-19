@@ -28,6 +28,7 @@ import org.apache.commons.logging.LogFactory;
 
 import org.jenkinsci.Symbol;
 import org.jenkinsci.plugins.electricflow.exceptions.PluginException;
+import org.jenkinsci.plugins.electricflow.factories.ElectricFlowClientFactory;
 import org.jenkinsci.plugins.electricflow.ui.HtmlUtils;
 import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.DataBoundConstructor;
@@ -66,6 +67,7 @@ public class ElectricFlowPublishApplication
 
     private final String MANIFEST_NAME = "manifest.json";
     private final String configuration;
+    private Credential overrideCredential;
     private String filePath;
 
     //~ Constructors -----------------------------------------------------------
@@ -73,8 +75,10 @@ public class ElectricFlowPublishApplication
     @DataBoundConstructor
     public ElectricFlowPublishApplication(
             String configuration,
+            Credential overrideCredential,
             String filePath) {
         this.configuration = configuration;
+        this.overrideCredential = overrideCredential;
         this.filePath = filePath;
     }
 
@@ -104,8 +108,10 @@ public class ElectricFlowPublishApplication
         // do replace
         String newFilePath;
 
+        EnvReplacer env = null;
+
         try {
-            EnvReplacer env = new EnvReplacer(run, taskListener);
+            env = new EnvReplacer(run, taskListener);
 
             newFilePath = env.expandEnv(filePath);
         } catch (IOException | InterruptedException e) {
@@ -138,8 +144,7 @@ public class ElectricFlowPublishApplication
         String deployResponse;
 
         try {
-            ElectricFlowClient efClient = new ElectricFlowClient(configuration);
-
+            ElectricFlowClient efClient = ElectricFlowClientFactory.getElectricFlowClient(configuration, overrideCredential, env);
             List<File> fileList = new ArrayList<>();
             fileList.add(archive);
 
@@ -183,6 +188,10 @@ public class ElectricFlowPublishApplication
      */
     public String getConfiguration() {
         return configuration;
+    }
+
+    public Credential getOverrideCredential() {
+        return overrideCredential;
     }
 
     // Overridden for better type safety.
@@ -413,6 +422,10 @@ public class ElectricFlowPublishApplication
                 return new ListBoxModel();
             }
             return Utils.fillConfigurationItems();
+        }
+
+        public ListBoxModel doFillCredentialIdItems(@AncestorInPath Item item) {
+            return Credential.DescriptorImpl.doFillCredentialIdItems(item);
         }
 
         /**

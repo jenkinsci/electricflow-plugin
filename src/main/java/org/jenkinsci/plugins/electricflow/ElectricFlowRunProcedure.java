@@ -31,6 +31,7 @@ import org.apache.commons.logging.LogFactory;
 import org.jenkinsci.Symbol;
 import org.jenkinsci.plugins.electricflow.data.CloudBeesFlowBuildData;
 import org.jenkinsci.plugins.electricflow.integration.ElectricFlowChangeSet;
+import org.jenkinsci.plugins.electricflow.factories.ElectricFlowClientFactory;
 import org.jenkinsci.plugins.electricflow.ui.FieldValidationStatus;
 import org.jenkinsci.plugins.electricflow.ui.HtmlUtils;
 import org.jenkinsci.plugins.electricflow.ui.SelectFieldUtils;
@@ -71,6 +72,7 @@ public class ElectricFlowRunProcedure
             ElectricFlowRunProcedure.class);
 
     private String configuration;
+    private Credential overrideCredential;
     private String projectName;
     private String procedureName;
     private String procedureParameters;
@@ -95,7 +97,6 @@ public class ElectricFlowRunProcedure
     private boolean runProcedure(
             @Nonnull Run<?, ?> run,
             @Nonnull TaskListener taskListener) {
-        ElectricFlowClient efClient = new ElectricFlowClient(configuration);
         PrintStream logger = taskListener.getLogger();
 
 
@@ -116,6 +117,8 @@ public class ElectricFlowRunProcedure
 
             EnvReplacer env = new EnvReplacer(run, taskListener);
             expandParameters(parameter, env, "value");
+
+            ElectricFlowClient efClient = ElectricFlowClientFactory.getElectricFlowClient(configuration, overrideCredential, env);
 
             String result = efClient.runProcedure(projectName, procedureName, parameter);
 
@@ -145,6 +148,10 @@ public class ElectricFlowRunProcedure
 
     public String getConfiguration() {
         return configuration;
+    }
+
+    public Credential getOverrideCredential() {
+        return overrideCredential;
     }
 
     public String getStoredConfiguration() {
@@ -207,6 +214,11 @@ public class ElectricFlowRunProcedure
     @DataBoundSetter
     public void setConfiguration(String configuration) {
         this.configuration = configuration;
+    }
+
+    @DataBoundSetter
+    public void setOverrideCredential(Credential overrideCredential) {
+        this.overrideCredential = overrideCredential;
     }
 
     @DataBoundSetter
@@ -283,6 +295,10 @@ public class ElectricFlowRunProcedure
                 return new ListBoxModel();
             }
             return Utils.fillConfigurationItems();
+        }
+
+        public ListBoxModel doFillCredentialIdItems(@AncestorInPath Item item) {
+            return Credential.DescriptorImpl.doFillCredentialIdItems(item);
         }
 
         public ListBoxModel doFillProjectNameItems(

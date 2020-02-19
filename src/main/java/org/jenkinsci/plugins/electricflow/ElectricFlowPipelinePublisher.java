@@ -24,6 +24,7 @@ import org.apache.commons.logging.LogFactory;
 
 import org.jenkinsci.Symbol;
 import org.jenkinsci.plugins.electricflow.data.CloudBeesFlowBuildData;
+import org.jenkinsci.plugins.electricflow.factories.ElectricFlowClientFactory;
 import org.jenkinsci.plugins.electricflow.ui.FieldValidationStatus;
 import org.jenkinsci.plugins.electricflow.ui.HtmlUtils;
 import org.jenkinsci.plugins.electricflow.ui.SelectFieldUtils;
@@ -67,6 +68,7 @@ public class ElectricFlowPipelinePublisher
     private String    projectName;
     private String    pipelineName;
     private String    configuration;
+    private Credential overrideCredential;
     private String    addParam;
     private JSONArray additionalOption;
 
@@ -123,13 +125,24 @@ public class ElectricFlowPipelinePublisher
             "Project name: " + projectName
                 + ", Pipeline name: " + pipelineName);
 
-        // exp ends here
-        ElectricFlowClient efClient = new ElectricFlowClient(
-                this.configuration);
+        EnvReplacer env = null;
+        ElectricFlowClient efClient;
+        try {
+            env = new EnvReplacer(run, taskListener);
+            efClient = ElectricFlowClientFactory.getElectricFlowClient(configuration, overrideCredential, env);
+        } catch (Exception e) {
+            taskListener.getLogger()
+                    .println(
+                            "Cannot create CloudBees Flow client. Error: "
+                                    + e.getMessage());
+            log.error("Cannot create CloudBees Flow client. Error: "
+                    + e.getMessage(), e);
+
+            return false;
+        }
 
         try {
-            List<String> paramsResponse = efClient.getPipelineFormalParameters(
-                    pipelineName);
+            List<String> paramsResponse = efClient.getPipelineFormalParameters(projectName, pipelineName);
 
             if (log.isDebugEnabled()) {
                 log.debug("FormalParameters are: "
@@ -159,8 +172,6 @@ public class ElectricFlowPipelinePublisher
                         pipelineName);
             }
             else {
-                EnvReplacer env = new EnvReplacer(run, taskListener);
-
                 expandParameters(parameters, env);
                 pipelineResult = efClient.runPipeline(projectName, pipelineName,
                         parameters);
@@ -209,6 +220,10 @@ public class ElectricFlowPipelinePublisher
     public String getConfiguration()
     {
         return configuration;
+    }
+
+    public Credential getOverrideCredential() {
+        return overrideCredential;
     }
 
     public String getStoredConfiguration()
@@ -337,6 +352,11 @@ public class ElectricFlowPipelinePublisher
         this.configuration = configuration;
     }
 
+    @DataBoundSetter
+    public void setOverrideCredential(Credential overrideCredential) {
+        this.overrideCredential = overrideCredential;
+    }
+
     @DataBoundSetter public void setPipelineName(String pipelineName)
     {
         this.pipelineName = getSelectItemValue(pipelineName);
@@ -422,6 +442,7 @@ public class ElectricFlowPipelinePublisher
 
         public ListBoxModel doFillAddParamItems(
                 @QueryParameter String configuration,
+                @QueryParameter String projectName,
                 @QueryParameter String pipelineName,
                 @QueryParameter String addParam,
                 @AncestorInPath Item item) {
@@ -455,7 +476,7 @@ public class ElectricFlowPipelinePublisher
                 ElectricFlowClient efClient   = new ElectricFlowClient(
                         configuration);
                 List<String>       parameters =
-                        efClient.getPipelineFormalParameters(pipelineName);
+                        efClient.getPipelineFormalParameters(projectName, pipelineName);
                 JSONObject         main       = JSONObject.fromObject(
                         "{'pipeline':{'pipelineName':'" + pipelineName
                                 + "','parameters':[]}}");
@@ -498,6 +519,10 @@ public class ElectricFlowPipelinePublisher
                 return new ListBoxModel();
             }
             return Utils.fillConfigurationItems();
+        }
+
+        public ListBoxModel doFillCredentialIdItems(@AncestorInPath Item item) {
+            return Credential.DescriptorImpl.doFillCredentialIdItems(item);
         }
 
         public ListBoxModel doFillPipelineNameItems(

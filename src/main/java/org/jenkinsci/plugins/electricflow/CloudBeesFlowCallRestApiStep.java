@@ -21,6 +21,7 @@ public class CloudBeesFlowCallRestApiStep
 
     private String body;
     private String configuration;
+    private Credential overrideCredential;
     private List<Pair> parameters;
     private String urlPath;
     private String httpMethod;
@@ -42,6 +43,10 @@ public class CloudBeesFlowCallRestApiStep
     @Override
     public String getConfiguration() {
         return configuration;
+    }
+
+    public Credential getOverrideCredential() {
+        return overrideCredential;
     }
 
     @Override
@@ -72,6 +77,11 @@ public class CloudBeesFlowCallRestApiStep
     @DataBoundSetter
     public void setConfiguration(String configuration) {
         this.configuration = configuration;
+    }
+
+    @DataBoundSetter
+    public void setOverrideCredential(Credential overrideCredential) {
+        this.overrideCredential = overrideCredential;
     }
 
     @DataBoundSetter
@@ -136,6 +146,10 @@ public class CloudBeesFlowCallRestApiStep
 
         public ListBoxModel doFillConfigurationItems(@AncestorInPath Item item) {
             return CallRestApiUtils.doFillConfigurationItems(item);
+        }
+
+        public ListBoxModel doFillCredentialIdItems(@AncestorInPath Item item) {
+            return Credential.DescriptorImpl.doFillCredentialIdItems(item);
         }
 
         public ListBoxModel doFillHttpMethodItems(@AncestorInPath Item item) {

@@ -23,6 +23,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.jenkinsci.Symbol;
+import org.jenkinsci.plugins.electricflow.factories.ElectricFlowClientFactory;
 import org.jenkinsci.plugins.electricflow.ui.HtmlUtils;
 import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.DataBoundConstructor;
@@ -55,6 +56,7 @@ public class ElectricFlowUploadArtifactPublisher
     //~ Instance fields --------------------------------------------------------
 
     private final String configuration;
+    private Credential overrideCredential;
     private final String repositoryName;
     private String       artifactName;
     private String       artifactVersion;
@@ -69,13 +71,15 @@ public class ElectricFlowUploadArtifactPublisher
             String artifactName,
             String artifactVersion,
             String filePath,
-            String configuration)
+            String configuration,
+            Credential overrideCredential)
     {
         this.repositoryName  = repositoryName;
         this.artifactName    = artifactName;
         this.artifactVersion = artifactVersion;
         this.filePath        = filePath;
         this.configuration   = configuration;
+        this.overrideCredential = overrideCredential;
     }
 
     @Override
@@ -118,7 +122,7 @@ public class ElectricFlowUploadArtifactPublisher
             }
 
             // end of replacements
-            ElectricFlowClient efClient = new ElectricFlowClient(configuration);
+            ElectricFlowClient efClient = ElectricFlowClientFactory.getElectricFlowClient(configuration, overrideCredential, env);
             String result = efClient.uploadArtifact(run,
                     taskListener, repositoryName, newArtifactName,
                     newArtifactVersion, newFilePath, true, workspace);
@@ -166,6 +170,10 @@ public class ElectricFlowUploadArtifactPublisher
     public String getConfiguration()
     {
         return configuration;
+    }
+
+    public Credential getOverrideCredential() {
+        return overrideCredential;
     }
 
     // Overridden for better type safety.
@@ -332,6 +340,10 @@ public class ElectricFlowUploadArtifactPublisher
                 return new ListBoxModel();
             }
             return Utils.fillConfigurationItems();
+        }
+
+        public ListBoxModel doFillCredentialIdItems(@AncestorInPath Item item) {
+            return Credential.DescriptorImpl.doFillCredentialIdItems(item);
         }
 
         public ListBoxModel doFillRepositoryNameItems(
