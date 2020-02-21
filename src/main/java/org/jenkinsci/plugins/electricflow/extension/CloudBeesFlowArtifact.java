@@ -20,6 +20,7 @@ public class CloudBeesFlowArtifact {
     protected String name;
     protected String href;
     protected String length;
+    // protected String artifactServer;
     protected long size;
 
     public CloudBeesFlowArtifact() {};
@@ -34,6 +35,7 @@ public class CloudBeesFlowArtifact {
         cloudBeesFlowArtifact.setHref(obj.getHref());
         cloudBeesFlowArtifact.setLength(obj.getLength());
         cloudBeesFlowArtifact.setSize(obj.getFileSize());
+        // String url = obj.get
         return cloudBeesFlowArtifact;
     }
 
@@ -93,4 +95,5 @@ public class CloudBeesFlowArtifact {
     public void setLength(String length) {
         this.length = length;
     }
+
 }

@@ -9,8 +9,13 @@ import net.sf.json.JSONObject;
 
 public class CloudBeesFlowTestResult implements ExtensionPoint {
     protected int failCount;
+    protected int failCountPrevious;
     protected int skipCount;
+    protected int skipCountPrevious;
     protected int totalCount;
+    protected int totalCountPrevious;
+    protected float duration;
+    protected float durationPrevious;
     protected String url;
 
     public CloudBeesFlowTestResult() {};
@@ -40,6 +45,14 @@ public class CloudBeesFlowTestResult implements ExtensionPoint {
         json.put("failCount", this.getFailCount());
         json.put("skipCount", this.getSkipCount());
         json.put("totalCount", this.getTotalCount());
+        json.put("duration", this.getDuration());
+
+        // adding previous run
+        json.put("failCountPrevious", this.getFailCountPrevious());
+        json.put("skipCountPrevious", this.getSkipCountPrevious());
+        json.put("totalCountPrevious", this.getTotalCountPrevious());
+        json.put("durationPrevious", this.getDurationPrevious());
+
         return json;
     }
 //    public static CloudBeesFlowTestResult build (Run run) {
@@ -100,5 +113,45 @@ public class CloudBeesFlowTestResult implements ExtensionPoint {
 
     public void setUrl(String url) {
         this.url = url;
+    }
+
+    public float getDuration() {
+        return duration;
+    }
+
+    public void setDuration(float duration) {
+        this.duration = duration;
+    }
+
+    public int getFailCountPrevious() {
+        return failCountPrevious;
+    }
+
+    public void setFailCountPrevious(int failCountPrevious) {
+        this.failCountPrevious = failCountPrevious;
+    }
+
+    public int getSkipCountPrevious() {
+        return skipCountPrevious;
+    }
+
+    public void setSkipCountPrevious(int skipCountPrevious) {
+        this.skipCountPrevious = skipCountPrevious;
+    }
+
+    public int getTotalCountPrevious() {
+        return totalCountPrevious;
+    }
+
+    public void setTotalCountPrevious(int totalCountPrevious) {
+        this.totalCountPrevious = totalCountPrevious;
+    }
+
+    public float getDurationPrevious() {
+        return durationPrevious;
+    }
+
+    public void setDurationPrevious(float durationPrevious) {
+        this.durationPrevious = durationPrevious;
     }
 }

@@ -175,6 +175,7 @@ public class ElectricFlowPipelinePublisher
 
             // PrintStream logger = taskListener.getLogger();
             CloudBeesFlowBuildData cbfdb = new CloudBeesFlowBuildData(run);
+            taskListener.getLogger().println("CBF Data: " + cbfdb.toJsonObject().toString());
             String associateResult = efClient.setJenkinsBuildDetails(cbfdb, projectName, flowRuntimeId);
             run.addAction(action);
             run.save();

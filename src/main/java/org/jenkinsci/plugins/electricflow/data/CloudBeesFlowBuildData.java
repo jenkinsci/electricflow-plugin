@@ -85,7 +85,7 @@ public class CloudBeesFlowBuildData {
         if (this.getLaunchedBy() != null) {
             json.put("launchedBy", this.getLaunchedBy());
         }
-        json.put("buildNumber", this.getBuildNumber());
+        json.put("buildNumber", Integer.toString(this.getBuildNumber()));
         json.put("building", this.isBuilding());
         if (this.getResult() != null) {
             json.put("result", this.getResult());

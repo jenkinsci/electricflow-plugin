@@ -374,11 +374,12 @@ public class ElectricFlowClient
         String endpoint = "flowRuntimes/" + flowRuntimeId + "/jenkinsBuildDetails";
         // String endpoint = "/projects/" + projectName + "/jenkinsBuildDetails";
         JSONObject obj = new JSONObject();
-        obj.put("buildName", cloudBeesFlowBuildData.getJobName());
+        obj.put("buildName", cloudBeesFlowBuildData.getDisplayName());
         obj.put("projectName", projectName);
         JSONObject jenkinsData = new JSONObject();
         // obj.put("jenkinsData", jenkinsData.toString());
-        obj.put("jenkinsData", cloudBeesFlowBuildData.toJsonObject());
+        obj.put("jenkinsData", cloudBeesFlowBuildData.toJsonObject().toString());
+        obj.put("buildTriggerSource", "Jenkins");
         // obj.put()
         String content = obj.toString();
         return runRestAPI(endpoint, POST, content);
