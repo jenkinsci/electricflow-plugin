@@ -12,6 +12,7 @@ import org.jenkinsci.plugins.electricflow.extension.CloudBeesFlowPipeline;
 import org.jenkinsci.plugins.electricflow.extension.CloudBeesFlowSCM;
 import org.jenkinsci.plugins.electricflow.extension.CloudBeesFlowTestResult;
 
+import java.io.IOException;
 import java.io.PrintStream;
 import java.util.Iterator;
 import java.util.List;
@@ -50,6 +51,12 @@ public class CloudBeesFlowBuildData {
         // this.setDisplayName(run.getDisplayName());
         this.setDisplayName(this.getJobName() + run.getDisplayName());
         this.setBuilding(run.isBuilding());
+        try {
+            List<String> runLogs = run.getLog(200);
+            String logLines = String.join("\n", runLogs);
+            this.setLogs(logLines);
+        } catch(IOException e) {};
+
         // todo: improve result handling
         Result result = run.getResult();
         if (result != null) {

@@ -18,7 +18,7 @@ public class CloudBeesFlowPipelineRest extends CloudBeesFlowPipeline {
 //    }
     @Override
     public List<CloudBeesFlowPipeline> generate(Run run) {
-        List<CloudBeesFlowPipeline> result= new ArrayList<>();
+        List<CloudBeesFlowPipeline> result = new ArrayList<>();
         try {
             RunExt re = RunExt.create((WorkflowRun) run);
             List<StageNodeExt> stages = re.getStages();

@@ -710,62 +710,83 @@ public class ElectricFlowClient
         return jsonArray;
     }
 
-    public List<String> getPipelineFormalParameters(String pipelineName)
-        throws Exception
-    {
+    public List<String> getPipelineFormalParameters(String projectName, String pipelineName)
+            throws Exception {
         List<String> formalParameters = new ArrayList<>();
-        String       pipelineId       = this.getPipelineIdByName(pipelineName);
+        String pipelineId = this.getPipelineId(projectName, pipelineName);
 
         if (!pipelineId.isEmpty()) {
-            String     requestEndpoint = "/objects?request=findObjects";
-            JSONObject obj             = new JSONObject();
-            JSONObject filter          = new JSONObject();
+            return getPipelineFormalParameters(pipelineId);
+        }
 
-            filter.put("operator", "equals");
-            filter.put("propertyName", "container");
-            filter.put("operand1", "pipeline-" + pipelineId);
-            obj.put("filter", filter);
-            obj.put("objectType", "formalParameter");
+        return formalParameters;
+    }
 
-            String     result     = runRestAPI(requestEndpoint, PUT,
-                    obj.toString());
-            JSONObject jsonObject = JSONObject.fromObject(result);
-            JSONArray  arr        = jsonObject.getJSONArray("object");
+    public List<String> getPipelineFormalParameters(String pipelineId)
+            throws Exception {
+        List<String> formalParameters = new ArrayList<>();
 
-            for (int i = 0; i < arr.size(); i++) {
-                String parameterName = arr.getJSONObject(i)
-                                          .getJSONObject("formalParameter")
-                                          .getString("formalParameterName");
+        String requestEndpoint = "/objects?request=findObjects";
+        JSONObject obj = new JSONObject();
+        JSONObject filter = new JSONObject();
 
-                if (parameterName.equals("ec_stagesToRun")) {
-                    continue;
-                }
+        filter.put("operator", "equals");
+        filter.put("propertyName", "container");
+        filter.put("operand1", "pipeline-" + pipelineId);
+        obj.put("filter", filter);
+        obj.put("objectType", "formalParameter");
 
-                formalParameters.add(parameterName);
+        String result = runRestAPI(requestEndpoint, PUT,
+                obj.toString());
+        JSONObject jsonObject = JSONObject.fromObject(result);
+        JSONArray arr = jsonObject.getJSONArray("object");
 
-                if (log.isDebugEnabled()) {
-                    log.debug("Formal parameter: " + parameterName);
-                }
+        for (int i = 0; i < arr.size(); i++) {
+            String parameterName = arr.getJSONObject(i)
+                    .getJSONObject("formalParameter")
+                    .getString("formalParameterName");
+
+            if (parameterName.equals("ec_stagesToRun")) {
+                continue;
+            }
+
+            formalParameters.add(parameterName);
+
+            if (log.isDebugEnabled()) {
+                log.debug("Formal parameter: " + parameterName);
             }
         }
 
         return formalParameters;
     }
 
-    private String getPipelineIdByName(String pipelineName)
-        throws Exception
-    {
-        String     requestEndpoint = "/objects?request=findObjects";
-        JSONObject obj             = new JSONObject();
-        JSONObject filter          = new JSONObject();
+    private String getPipelineId(String projectName, String pipelineName)
+            throws Exception {
+        String requestEndpoint = "/objects?request=findObjects";
+        JSONObject obj = new JSONObject();
+        JSONObject filterTop = new JSONObject();
+        JSONArray filters = new JSONArray();
+        JSONObject filterPerProject = new JSONObject();
+        JSONObject filterPerPipeline = new JSONObject();
 
-        filter.put("operator", "equals");
-        filter.put("propertyName", "pipelineName");
-        filter.put("operand1", pipelineName);
-        obj.put("filter", filter);
+        filterPerProject.put("operator", "equals");
+        filterPerProject.put("propertyName", "projectName");
+        filterPerProject.put("operand1", projectName);
+
+        filterPerPipeline.put("operator", "equals");
+        filterPerPipeline.put("propertyName", "pipelineName");
+        filterPerPipeline.put("operand1", pipelineName);
+
+        filters.add(filterPerProject);
+        filters.add(filterPerPipeline);
+
+        filterTop.put("operator", "and");
+        filterTop.put("filter", filters);
+
+        obj.put("filter", filterTop);
         obj.put("objectType", "pipeline");
 
-        String     result     = runRestAPI(requestEndpoint, PUT,
+        String result = runRestAPI(requestEndpoint, PUT,
                 obj.toString());
         JSONObject jsonObject = JSONObject.fromObject(result);
 
@@ -774,11 +795,11 @@ public class ElectricFlowClient
 
             for (int i = 0; i < arr.size(); i++) {
                 String pipelineName2 = arr.getJSONObject(i)
-                                          .getJSONObject("pipeline")
-                                          .getString("pipelineName");
-                String pipelineId    = arr.getJSONObject(i)
-                                          .getJSONObject("pipeline")
-                                          .getString("pipelineId");
+                        .getJSONObject("pipeline")
+                        .getString("pipelineName");
+                String pipelineId = arr.getJSONObject(i)
+                        .getJSONObject("pipeline")
+                        .getString("pipelineId");
 
                 if (pipelineName.equals(pipelineName2)) {
                     return pipelineId;
@@ -920,13 +941,15 @@ public class ElectricFlowClient
             String     gotReleaseName  = releaseObject.getString("releaseName");
             String     gotPipelineName = releaseObject.getString(
                     "pipelineName");
+            String     gotPipelineId = releaseObject.getString(
+                    "pipelineId");
             JSONObject stages          = releaseObject.getJSONObject("stages");
             Release    release         = new Release(conf, projectName,
                     gotReleaseName);
 
             release.setPipelineName(gotPipelineName);
             release.setPipelineParameters(getPipelineFormalParameters(
-                    gotPipelineName));
+                    gotPipelineId));
 
             if (!stages.isEmpty()) {
                 JSONArray stagesArray = stages.getJSONArray("stage");
