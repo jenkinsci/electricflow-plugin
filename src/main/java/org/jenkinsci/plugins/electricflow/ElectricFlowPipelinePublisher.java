@@ -238,7 +238,7 @@ public class ElectricFlowPipelinePublisher
     private JSONArray getPipelineParameters()
     {
 
-        if (addParam != null) {
+        if (addParam != null && !addParam.isEmpty() && !"{}".equals(addParam)) {
             JSONObject pipelineJsonObject = JSONObject.fromObject(addParam)
                                                       .getJSONObject(
                                                           "pipeline");
