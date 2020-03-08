@@ -45,6 +45,11 @@ public class CloudBeesFlowArtifact {
         if (this.getDisplayPath() != null) {
             json.put("displayPath", this.getDisplayPath());
         }
+        
+        //Workaround until we have a way to unambiguously get the type of
+        //Repository - For example, Flow Artifact Repository or Artifact Subsystem etc., 
+        json.put("repositoryType", "Flow Artifact Repository");
+        
         if (this.getName() != null) {
             json.put("name", this.getName());
         }

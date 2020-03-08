@@ -376,7 +376,10 @@ public class ElectricFlowClient
         JSONObject obj = new JSONObject();
         obj.put("buildName", cloudBeesFlowBuildData.getDisplayName());
         obj.put("projectName", projectName);
-        JSONObject jenkinsData = new JSONObject();
+        
+        //VJN :: This got caught by DLS_DEAD_LOCAL_STORE warning. Hence commenting it. 
+        //JSONObject jenkinsData = new JSONObject();
+        
         // obj.put("jenkinsData", jenkinsData.toString());
         obj.put("jenkinsData", cloudBeesFlowBuildData.toJsonObject().toString());
         obj.put("buildTriggerSource", "Jenkins");

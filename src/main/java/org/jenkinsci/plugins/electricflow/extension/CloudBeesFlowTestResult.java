@@ -7,6 +7,8 @@ import hudson.tasks.junit.TestResultAction;
 import jenkins.model.Jenkins;
 import net.sf.json.JSONObject;
 
+import java.lang.Math;
+
 public class CloudBeesFlowTestResult implements ExtensionPoint {
     protected int failCount;
     protected int failCountPrevious;
@@ -39,19 +41,30 @@ public class CloudBeesFlowTestResult implements ExtensionPoint {
     public JSONObject toJsonObject() {
         JSONObject json = new JSONObject();
 
+        // VJN:: Converting secondsfor both duration and durationPrevious
+        //to milliseconds.
+
+        long durationSecs = (long) Math.ceil(this.getDuration() * 1000);
+        long durationPreviousSecs = (long) Math.ceil(this.getDurationPrevious() * 1000);
+
         if (this.getUrl() != null) {
             json.put("url", this.getUrl());
         }
         json.put("failCount", this.getFailCount());
+        json.put("passCount", (this.getTotalCount() - this.getFailCount() - this.getSkipCount()) );
         json.put("skipCount", this.getSkipCount());
         json.put("totalCount", this.getTotalCount());
-        json.put("duration", this.getDuration());
+        //json.put("duration", this.getDuration());
+        json.put("duration", durationSecs);
+
 
         // adding previous run
         json.put("failCountPrevious", this.getFailCountPrevious());
+        json.put("passCountPrevious", (this.getTotalCountPrevious() - this.getFailCountPrevious() - this.getSkipCountPrevious()) );
         json.put("skipCountPrevious", this.getSkipCountPrevious());
         json.put("totalCountPrevious", this.getTotalCountPrevious());
-        json.put("durationPrevious", this.getDurationPrevious());
+        //json.put("durationPrevious", this.getDurationPrevious());
+        json.put("durationPrevious", durationPreviousSecs);
 
         return json;
     }
@@ -90,7 +103,7 @@ public class CloudBeesFlowTestResult implements ExtensionPoint {
     public void setFailCount(int failCount) {
         this.failCount = failCount;
     }
-
+   
     public int getSkipCount() {
         return skipCount;
     }
@@ -120,7 +133,7 @@ public class CloudBeesFlowTestResult implements ExtensionPoint {
     }
 
     public void setDuration(float duration) {
-        this.duration = duration;
+        this.duration = duration ;
     }
 
     public int getFailCountPrevious() {
@@ -153,5 +166,6 @@ public class CloudBeesFlowTestResult implements ExtensionPoint {
 
     public void setDurationPrevious(float durationPrevious) {
         this.durationPrevious = durationPrevious;
+
     }
 }

@@ -17,6 +17,8 @@ import java.io.PrintStream;
 import java.util.Iterator;
 import java.util.List;
 
+import jenkins.model.Jenkins;
+
 public class CloudBeesFlowBuildData {
     protected String jobName;
     protected String displayName;
@@ -30,6 +32,7 @@ public class CloudBeesFlowBuildData {
     protected long timestamp;
     protected String logs;
     protected String url;
+    protected String blueOceanUrl;
     protected CloudBeesFlowPipelineData stages;
     protected CloudBeesFlowSCMData changeSets;
     protected CloudBeesFlowArtifactData artifacts;
@@ -46,6 +49,10 @@ public class CloudBeesFlowBuildData {
 
         String thisName = run.getCharacteristicEnvVars().get("JOB_NAME");
         this.jobName = thisName;
+
+
+        Jenkins instance = Jenkins.get();
+        String rootUrl = instance.getRootUrl();
 
         this.setBuildNumber(run.getNumber());
         // this.setDisplayName(run.getDisplayName());
@@ -67,7 +74,7 @@ public class CloudBeesFlowBuildData {
         this.setDuration(run.getDuration());
         this.setEstimatedDuration(run.getEstimatedDuration());
         this.setTimestamp(run.getTimestamp().getTimeInMillis());
-        this.setUrl(run.getUrl());
+        this.setUrl(rootUrl + run.getUrl());
         // this.setLogs(run.getLog(200));
         // this.setLaunchedBy();
         // populating object values:
@@ -108,6 +115,9 @@ public class CloudBeesFlowBuildData {
         }
         if (this.getUrl() != null) {
             json.put("url", this.getUrl());
+            this.blueOceanUrl=this.getUrl().replace("job/"+this.jobName, "blue/organizations/jenkins/"+this.jobName+"/detail/"+this.jobName);
+            json.put("consoleLogUrl", this.getUrl() + "console");
+            json.put("blueOceanUrl", this.blueOceanUrl);
         }
 
         // now adding object values to json
