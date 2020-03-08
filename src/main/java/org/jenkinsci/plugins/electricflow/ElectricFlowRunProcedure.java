@@ -9,14 +9,18 @@
 
 package org.jenkinsci.plugins.electricflow;
 
+import com.cloudbees.workflow.rest.external.StageNodeExt;
+import com.google.gson.JsonObject;
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
 import hudson.model.*;
+import hudson.scm.ChangeLogSet;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.BuildStepMonitor;
 import hudson.tasks.Publisher;
 import hudson.tasks.Recorder;
+import hudson.tasks.junit.TestResult;
 import hudson.util.FormValidation;
 import hudson.util.ListBoxModel;
 import jenkins.tasks.SimpleBuildStep;
@@ -25,11 +29,17 @@ import net.sf.json.JSONObject;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jenkinsci.Symbol;
+
+import org.jenkinsci.plugins.electricflow.data.CloudBeesFlowBuildData;
+import org.jenkinsci.plugins.electricflow.integration.ElectricFlowChangeSet;
+
 import org.jenkinsci.plugins.electricflow.factories.ElectricFlowClientFactory;
+
 import org.jenkinsci.plugins.electricflow.ui.FieldValidationStatus;
 import org.jenkinsci.plugins.electricflow.ui.HtmlUtils;
 import org.jenkinsci.plugins.electricflow.ui.SelectFieldUtils;
 import org.jenkinsci.plugins.electricflow.ui.SelectItemValidationWrapper;
+import org.jenkinsci.plugins.workflow.job.WorkflowRun;
 import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
@@ -38,14 +48,24 @@ import org.kohsuke.stapler.QueryParameter;
 import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.io.PrintStream;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.*;
 
+import static net.sf.json.JSONObject.fromObject;
 import static org.jenkinsci.plugins.electricflow.Utils.*;
 import static org.jenkinsci.plugins.electricflow.ui.SelectFieldUtils.checkAnySelectItemsIsValidationWrappers;
 import static org.jenkinsci.plugins.electricflow.ui.SelectFieldUtils.getSelectItemValue;
 import static org.jenkinsci.plugins.electricflow.ui.SelectFieldUtils.isSelectItemValidationWrapper;
+
+import jenkins.model.Jenkins;
+import jenkins.scm.*;
+import hudson.tasks.junit.TestResultAction;
+import jenkins.util.VirtualFile;
+// import hudson.model.Run.ArtifactList
+import hudson.model.Run.ArtifactList;
+import com.cloudbees.workflow.rest.external.RunExt;
 
 public class ElectricFlowRunProcedure
         extends Recorder
@@ -82,9 +102,17 @@ public class ElectricFlowRunProcedure
             @Nonnull TaskListener taskListener) {
         PrintStream logger = taskListener.getLogger();
 
+
+        CloudBeesFlowBuildData cbfbd = new CloudBeesFlowBuildData(run);
+        // cbfbd.dump();
+        //RunExt re = RunExt.create((WorkflowRun)run);
+        //List<StageNodeExt> stages = re.getStages();
+        JSONObject json = cbfbd.toJsonObject();
+        logger.println("JSON: " + json.toString());
+        logger.println("JENKINS VERSION: " + Jenkins.VERSION);
         logger.println("Project name: " + projectName + ", Procedure name: " + procedureName);
 
-        JSONObject procedure = JSONObject.fromObject(procedureParameters).getJSONObject("procedure");
+        JSONObject procedure = fromObject(procedureParameters).getJSONObject("procedure");
         JSONArray parameter = JSONArray.fromObject(procedure.getString("parameters"));
 
         try {
@@ -168,7 +196,7 @@ public class ElectricFlowRunProcedure
             Map<String, String> args) {
         String result = args.get("result");
         String procedureName = args.get("procedureName");
-        String jobId = JSONObject.fromObject(result)
+        String jobId = fromObject(result)
                 .getString("jobId");
         String jobUrl = configuration.getElectricFlowUrl()
                 + "/commander/link/jobDetails/jobs/" + jobId;
@@ -350,7 +378,7 @@ public class ElectricFlowRunProcedure
                 String deployParametersValue = getSelectItemValue(procedureParameters);
 
                 if (!deployParametersValue.isEmpty() && !"{}".equals(deployParametersValue)) {
-                    JSONObject json = JSONObject.fromObject(deployParametersValue);
+                    JSONObject json = fromObject(deployParametersValue);
                     JSONObject jsonArray = json.getJSONObject("procedure");
 
                     if (procedureName.equals(jsonArray.get("procedureName"))) {
@@ -359,7 +387,7 @@ public class ElectricFlowRunProcedure
                 }
 
                 List<String> parameters = client.getProcedureFormalParameters(projectName, procedureName);
-                JSONObject main = JSONObject.fromObject(
+                JSONObject main = fromObject(
                         "{'procedure':{'procedureName':'" + procedureName
                                 + "',   'parameters':[]}}");
                 JSONArray ja = main.getJSONObject("procedure")
@@ -461,7 +489,7 @@ public class ElectricFlowRunProcedure
                 return paramsMap;
             }
 
-            JSONObject json = JSONObject.fromObject(procedureParameters);
+            JSONObject json = fromObject(procedureParameters);
 
             if (!json.containsKey("procedure")
                     || !json.getJSONObject("procedure").containsKey("parameters")) {
