@@ -20,11 +20,19 @@ public class CloudBeesFlowSCMGit extends CloudBeesFlowSCM {
     public void populate (Object obj) {
         GitChangeSet object = (GitChangeSet) obj;
         this.setAuthor(object.getAuthorName());
-        log.println("CloudBeesFlowSCMGit:: Authorname is" + object.getAuthorName());
+        
+        if (log.isDebugEnabled()) {
+            log.debug("CloudBeesFlowSCMGit:: Authorname is" + object.getAuthorName());
+        }
+        
         this.setAuthorEmail(object.getAuthorEmail());
         this.setCommitId(object.getCommitId());
         this.setCommitMessage(object.getComment());
-        log.println("CloudBeesFlowSCMGit:: Commit Message is" + object.getComment());
+
+        if (log.isDebugEnabled()) {
+            log.debug("CloudBeesFlowSCMGit:: Commit Message is" + object.getComment());
+        }
+       
         this.setTimestamp(object.getTimestamp());
         this.setScmType("git");
         // this.scmReportUrl = object.get

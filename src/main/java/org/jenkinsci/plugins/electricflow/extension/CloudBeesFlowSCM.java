@@ -34,10 +34,19 @@ public class CloudBeesFlowSCM implements ExtensionPoint {
 
             final ExtensionList<CloudBeesFlowSCM> makers = ExtensionList.lookup(CloudBeesFlowSCM.class);
             for (CloudBeesFlowSCM m : makers) {
-                log.println("CloudBeesFlowSCM:: Iterating through extensions");
+                
+                if (log.isDebugEnabled()) {
+                    log.debug("CloudBeesFlowSCM:: Iterating through extensions");
+                }
+             
+               
                 boolean applicable = m.isApplicable(obj);
                 if (applicable) {
-                    log.println("CloudBeesFlowSCM:: Applicable");
+                    
+                    if (log.isDebugEnabled()) {
+                        log.debug("CloudBeesFlowSCM:: Applicable");
+                    }
+                    
                     m.populate(obj);
                     return m;
                 }

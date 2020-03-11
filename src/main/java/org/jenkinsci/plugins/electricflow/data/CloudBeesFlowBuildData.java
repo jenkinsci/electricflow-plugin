@@ -167,6 +167,7 @@ public class CloudBeesFlowBuildData {
             json.put("changeSets", scmJsonArray);
         }
          
+       /*
         //VJN : Currently this is hard coded and ugly !!!!
 
        JSONObject tempJson = new JSONObject();
@@ -184,7 +185,7 @@ public class CloudBeesFlowBuildData {
        
        JSONObject tempJson1 = new JSONObject();
        
-       //Populate Object
+       
        tempJson1.put( "scmReportUrl", "");
        tempJson1.put("authorEmail", "justnoxx@gmail.com");
        tempJson1.put("timestamp","1581336286000");
@@ -203,6 +204,7 @@ public class CloudBeesFlowBuildData {
 
        //Add Array to changesets
        json.put("changesets", tempJsonArr);
+       */
 
        return json;
     }
