@@ -35,6 +35,7 @@ public class CloudBeesFlowArtifact {
         cloudBeesFlowArtifact.setHref(obj.getHref());
         cloudBeesFlowArtifact.setLength(obj.getLength());
         cloudBeesFlowArtifact.setSize(obj.getFileSize());
+
         // String url = obj.get
         return cloudBeesFlowArtifact;
     }
@@ -59,6 +60,15 @@ public class CloudBeesFlowArtifact {
         if (this.getSize() > 0) {
             json.put("size", this.getSize());
         }
+
+        //VJN : Currently hardcoded
+
+        json.put("artifactName", "com.example:java-maven-junit-helloworld");
+	    json.put("artifactVersion", "2.0-SNAPSHOT");
+	    json.put("repositoryName", "default");
+	    json.put("url", "https://34.66.46.112/commander/link/artifactVersionDetails/artifactVersions/com.example%3Ajava-maven-junit-helloworld%3A2.0-SNAPSHOT?s=Artifacts&ss=Artifacts");
+
+
         return json;
     }
     public String getRelativePath() {

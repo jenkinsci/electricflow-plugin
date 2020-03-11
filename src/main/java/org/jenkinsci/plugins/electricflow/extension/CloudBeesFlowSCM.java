@@ -5,6 +5,10 @@ import hudson.ExtensionPoint;
 import jenkins.model.Jenkins;
 import net.sf.json.JSONObject;
 
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 public class CloudBeesFlowSCM implements ExtensionPoint {
     protected String scmReportUrl;
     protected String scmType;
@@ -14,8 +18,15 @@ public class CloudBeesFlowSCM implements ExtensionPoint {
     protected String authorEmail;
     protected String commitMessage;
 
+
+    
+
     // constructor
     public CloudBeesFlowSCM() {}
+
+    // VJN Adding some debuggging
+    private static final Log log = LogFactory.getLog(CloudBeesFlowSCM.class);
+
     public static CloudBeesFlowSCM build (Object obj) {
         final Jenkins jenkins = Jenkins.get();
         if (jenkins != null) {
@@ -23,10 +34,10 @@ public class CloudBeesFlowSCM implements ExtensionPoint {
 
             final ExtensionList<CloudBeesFlowSCM> makers = ExtensionList.lookup(CloudBeesFlowSCM.class);
             for (CloudBeesFlowSCM m : makers) {
-                System.out.println("Iterating through extensions");
+                log.println("CloudBeesFlowSCM:: Iterating through extensions");
                 boolean applicable = m.isApplicable(obj);
                 if (applicable) {
-                    System.out.println("Applicable");
+                    log.println("CloudBeesFlowSCM:: Applicable");
                     m.populate(obj);
                     return m;
                 }

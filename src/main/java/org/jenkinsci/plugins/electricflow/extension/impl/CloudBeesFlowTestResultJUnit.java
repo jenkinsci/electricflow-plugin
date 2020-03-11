@@ -23,6 +23,8 @@ public class CloudBeesFlowTestResultJUnit extends CloudBeesFlowTestResult {
             this.setFailCount(obj.getFailCount());
             this.setSkipCount(obj.getSkipCount());
             this.setTotalCount(obj.getTotalCount());
+            this.setDisplayName(obj.getDisplayName());
+
             // this.setUrl(obj.getUrlName());
             TestResult result = obj.getResult();
 

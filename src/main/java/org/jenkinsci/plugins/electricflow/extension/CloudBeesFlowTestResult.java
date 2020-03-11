@@ -19,6 +19,7 @@ public class CloudBeesFlowTestResult implements ExtensionPoint {
     protected float duration;
     protected float durationPrevious;
     protected String url;
+    protected String displayName;
 
     public CloudBeesFlowTestResult() {};
     public static CloudBeesFlowTestResult build (Run run) {
@@ -41,15 +42,17 @@ public class CloudBeesFlowTestResult implements ExtensionPoint {
     public JSONObject toJsonObject() {
         JSONObject json = new JSONObject();
 
-        // VJN:: Converting secondsfor both duration and durationPrevious
+        // VJN:: Converting seconds for both duration and durationPrevious
         //to milliseconds.
 
-        long durationSecs = (long) Math.ceil(this.getDuration() * 1000);
-        long durationPreviousSecs = (long) Math.ceil(this.getDurationPrevious() * 1000);
+        double durationSecs = (double) this.getDuration() * 1000 ;
+        double durationPreviousSecs = (double) this.getDurationPrevious() * 1000;
 
         if (this.getUrl() != null) {
             json.put("url", this.getUrl());
         }
+
+        json.put("displayName", this.getDisplayName());
         json.put("failCount", this.getFailCount());
         json.put("passCount", (this.getTotalCount() - this.getFailCount() - this.getSkipCount()) );
         json.put("skipCount", this.getSkipCount());
@@ -126,6 +129,14 @@ public class CloudBeesFlowTestResult implements ExtensionPoint {
 
     public void setUrl(String url) {
         this.url = url;
+    }
+
+    public String getDisplayName() {
+        return displayName;
+    }
+
+    public void setDisplayName(String displayName) {
+        this.displayName = displayName;
     }
 
     public float getDuration() {

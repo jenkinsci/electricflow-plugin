@@ -5,16 +5,26 @@ import hudson.plugins.git.GitChangeSet;
 import org.jenkinsci.plugins.electricflow.extension.CloudBeesFlowSCM;
 import org.jenkinsci.plugins.variant.OptionalExtension;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
+
+
 // @Extension
 @OptionalExtension(requirePlugins="git")
 public class CloudBeesFlowSCMGit extends CloudBeesFlowSCM {
 
+    // VJN Adding some debuggging
+    private static final Log log = LogFactory.getLog(CloudBeesFlowSCMGit.class);
+
     public void populate (Object obj) {
         GitChangeSet object = (GitChangeSet) obj;
         this.setAuthor(object.getAuthorName());
+        log.println("CloudBeesFlowSCMGit:: Authorname is" + object.getAuthorName());
         this.setAuthorEmail(object.getAuthorEmail());
         this.setCommitId(object.getCommitId());
         this.setCommitMessage(object.getComment());
+        log.println("CloudBeesFlowSCMGit:: Commit Message is" + object.getComment());
         this.setTimestamp(object.getTimestamp());
         this.setScmType("git");
         // this.scmReportUrl = object.get
