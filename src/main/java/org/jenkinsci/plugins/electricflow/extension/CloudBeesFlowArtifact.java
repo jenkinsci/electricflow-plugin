@@ -62,12 +62,10 @@ public class CloudBeesFlowArtifact {
         }
 
         //VJN : Currently hardcoded
-
-        json.put("artifactName", "com.example:java-maven-junit-helloworld");
-	    json.put("artifactVersion", "2.0-SNAPSHOT");
-	    json.put("repositoryName", "default");
-	    json.put("url", "https://34.66.46.112/commander/link/artifactVersionDetails/artifactVersions/com.example%3Ajava-maven-junit-helloworld%3A2.0-SNAPSHOT?s=Artifacts&ss=Artifacts");
-
+        json.put("artifactName", "com.demo:helloworld");
+        json.put("artifactVersion", "1.0-SNAPSHOT");
+        json.put("repositoryName", "default");
+        json.put("url", "https://35.230.91.86/commander/link/artifactVersionDetails/artifactVersions/com.demo%3Ahelloworld%3A1.0-SNAPSHOT?s=Artifacts&ss=Artifacts");
 
         return json;
     }
