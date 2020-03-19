@@ -366,27 +366,57 @@ public class ElectricFlowClient
             conn.disconnect();
         }
     }
-    public String setJenkinsBuildDetails(
+
+    // Flow Endpoint :: flowRuntimes​/{flowRuntimeId}​/jenkinsBuildDetails​/{buildName}
+    public String setJenkinsBuildDetailsRunPipeline(
             CloudBeesFlowBuildData cloudBeesFlowBuildData,
             String projectName,
             String flowRuntimeId
     ) throws  IOException {
         String endpoint = "flowRuntimes/" + flowRuntimeId + "/jenkinsBuildDetails";
-        // String endpoint = "/projects/" + projectName + "/jenkinsBuildDetails";
         JSONObject obj = new JSONObject();
         obj.put("buildName", cloudBeesFlowBuildData.getDisplayName());
         obj.put("projectName", projectName);
-        
-        //VJN :: This got caught by DLS_DEAD_LOCAL_STORE warning. Hence commenting it. 
-        //JSONObject jenkinsData = new JSONObject();
-        
-        // obj.put("jenkinsData", jenkinsData.toString());
         obj.put("jenkinsData", cloudBeesFlowBuildData.toJsonObject().toString());
         obj.put("buildTriggerSource", "Jenkins");
-        // obj.put()
         String content = obj.toString();
         return runRestAPI(endpoint, POST, content);
     }
+
+
+    // Flow Endpoint :: projects​/{projectName}​/releases​/{releaseName}​/jenkinsBuildDetails​/{buildName}
+    public String setJenkinsBuildDetailsTriggerRelease(
+            CloudBeesFlowBuildData cloudBeesFlowBuildData,
+            String projectName,
+            String releaseName,
+            String releaseProjectName
+    ) throws  IOException {
+        String endpoint = "projects/" + projectName + "/releases/" + releaseName + "/jenkinsBuildDetails" ;
+        JSONObject obj = new JSONObject();
+        obj.put("buildName", cloudBeesFlowBuildData.getDisplayName());
+        obj.put("jenkinsData", cloudBeesFlowBuildData.toJsonObject().toString());
+        obj.put("buildTriggerSource", "Jenkins");
+        String content = obj.toString();
+        return runRestAPI(endpoint, POST, content);
+    }
+
+    // Flow Endpoint :: artifactVersions​/{artifactVersionName}​/jenkinsBuildDetails​/{buildName}
+    public String setJenkinsBuildDetailsPublishArtifact(
+            CloudBeesFlowBuildData cloudBeesFlowBuildData,
+            String projectName,
+            String artifactVersionName
+
+    ) throws  IOException {
+        String endpoint = "artifactVersions/" + artifactVersionName + "/jenkinsBuildDetails" ;
+        JSONObject obj = new JSONObject();
+        obj.put("projectName", projectName);
+        obj.put("buildName", cloudBeesFlowBuildData.getDisplayName());
+        obj.put("jenkinsData", cloudBeesFlowBuildData.toJsonObject().toString());
+        obj.put("buildTriggerSource", "Jenkins");
+        String content = obj.toString();
+        return runRestAPI(endpoint, POST, content);
+    }
+
     public String uploadArtifact(
             Run build,
             TaskListener listener,

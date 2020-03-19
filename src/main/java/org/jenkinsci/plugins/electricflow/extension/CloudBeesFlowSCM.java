@@ -24,7 +24,7 @@ public class CloudBeesFlowSCM implements ExtensionPoint {
     // constructor
     public CloudBeesFlowSCM() {}
 
-    // VJN Adding some debuggging
+    // Add some debugging
     private static final Log log = LogFactory.getLog(CloudBeesFlowSCM.class);
 
     public static CloudBeesFlowSCM build (Object obj) {

@@ -166,45 +166,6 @@ public class CloudBeesFlowBuildData {
             }
             json.put("changeSets", scmJsonArray);
         }
-         
-       /*
-        //VJN : Currently this is hard coded and ugly !!!!
-
-       JSONObject tempJson = new JSONObject();
-       
-       //Populate Object
-       tempJson.put( "scmReportUrl", "");
-       tempJson.put("authorEmail", "justnoxx@gmail.com");
-       tempJson.put("timestamp","1581336251000");
-       tempJson.put("scmType","git");
-       tempJson.put("commitMessage","Added jenkins file\n");
-       tempJson.put("author","justnoxx");
-       tempJson.put("commitId","97b3adc7370f70b416202d12518d78f4f4a95d23");
-
-       
-       
-       JSONObject tempJson1 = new JSONObject();
-       
-       
-       tempJson1.put( "scmReportUrl", "");
-       tempJson1.put("authorEmail", "justnoxx@gmail.com");
-       tempJson1.put("timestamp","1581336286000");
-       tempJson1.put("scmType","git");
-       tempJson1.put("commitMessage","Performed cleanup for readme\n");
-       tempJson1.put("author","justnoxx");
-       tempJson1.put("commitId","884d743352687fd9c10da648f9d6336fa577274f");
-
-       
-       JSONArray tempJsonArr = new JSONArray();
-       
-       //Populate Array
-       tempJsonArr.add(tempJson);
-       tempJsonArr.add(tempJson1);
-
-
-       //Add Array to changesets
-       json.put("changesets", tempJsonArr);
-       */
 
        return json;
     }

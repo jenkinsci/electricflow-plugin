@@ -31,7 +31,6 @@ public class CloudBeesFlowPipeline implements ExtensionPoint {
                 }
             }
         }
-        //VJN :: This got caught by DLS_DEAD_STORE
         return result;
     }
     public JSONObject toJsonObject() {

@@ -14,9 +14,6 @@ public class CloudBeesFlowTestResultJUnit extends CloudBeesFlowTestResult {
         TestResultAction obj = run.getAction(TestResultAction.class);
         // TestResult tr2 = obj.getTestResultPath();
 
-        // VJN :: An ugly if-else block for handling NULL is to get around 
-        // the warning thrown from Maven
-        
         if (obj != null) {
 
             // CloudBeesFlowTestResult cloudBeesFlowTestResult = new CloudBeesFlowTestResult();
@@ -36,8 +33,8 @@ public class CloudBeesFlowTestResultJUnit extends CloudBeesFlowTestResult {
                 String testReportUrl = rootUrl + '/' + run.getUrl() + '/' + urlName;
                 this.setUrl(testReportUrl);
 
-             // VJN :: Based on Maven's  NP_NULL_ON_SOME_PATH spot check
-             // had to bring the previousTestRun check within the IF
+             // Based on Maven's  NP_NULL_ON_SOME_PATH spot check
+             // this check is brought within the IF
                hudson.tasks.test.TestResult previousTestRun = result.getPreviousResult();
                if (previousTestRun != null) {
                 // previousTestRun.getFal

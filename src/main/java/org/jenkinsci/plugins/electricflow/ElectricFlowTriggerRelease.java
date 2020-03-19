@@ -28,6 +28,7 @@ import net.sf.json.JSONObject;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jenkinsci.Symbol;
+import org.jenkinsci.plugins.electricflow.data.CloudBeesFlowBuildData;
 import org.jenkinsci.plugins.electricflow.factories.ElectricFlowClientFactory;
 import org.jenkinsci.plugins.electricflow.ui.FieldValidationStatus;
 import org.jenkinsci.plugins.electricflow.ui.HtmlUtils;
@@ -91,12 +92,11 @@ public class ElectricFlowTriggerRelease
                 release.getString("parameters"));
         List<String> stagesToRun        = new ArrayList<>();
 
-        if (startingStage.isEmpty()) {
 
+        if (startingStage.isEmpty()) {
             for (int i = 0; i < stages.size(); i++) {
                 JSONObject stage = stages.getJSONObject(i);
-
-                if (stage.getBoolean("stageValue")) {
+                if (stage.getString("stageName").length() > 0) {
                     stagesToRun.add(stage.getString("stageName"));
                 }
             }
@@ -112,7 +112,7 @@ public class ElectricFlowTriggerRelease
 
             expandParameters(pipelineParameters, env);
 
-            String            releaseResult = efClient.runRelease(projectName,
+            String releaseResult = efClient.runRelease(projectName,
                     releaseName, stagesToRun, startingStage,
                     pipelineParameters);
             String            summaryHtml   = getSummaryHtml(efClient,
@@ -120,16 +120,52 @@ public class ElectricFlowTriggerRelease
             SummaryTextAction action        = new SummaryTextAction(run,
                     summaryHtml);
 
+            //String releaseName = getReleaseNameFromResponse(releaseResult);
+            //String projectName = getProjectNameFromResponse(releaseResult);
+
+
+            // PrintStream logger = taskListener.getLogger();
+            CloudBeesFlowBuildData cbfdb = new CloudBeesFlowBuildData(run);
+
+            taskListener.getLogger().println("++++++++++++++++++++++++++++++++++++++++++++");
+            taskListener.getLogger().println("Release Name is " + releaseName );
+            taskListener.getLogger().println("Project Name is " + projectName );
+            taskListener.getLogger().println("CBF Data: " + cbfdb.toJsonObject().toString());
+            taskListener.getLogger().println("++++++++++++++++++++++++" );
+            taskListener.getLogger().println("About to call setJenkinsBuildDetails after triggering a Flow Release" );
+            String associateResult = efClient.setJenkinsBuildDetailsTriggerRelease(cbfdb, projectName, releaseName, "");
+            taskListener.getLogger().println("Return from efClient: " + associateResult);
+            taskListener.getLogger().println("++++++++++++++++++++++++++++++++++++++++++++");
+
             run.addAction(action);
             run.save();
             logger.println("TriggerRelease  result: "
                     + formatJsonOutput(releaseResult));
+        }
+        // This was found by REC_CATCH_EXCEPTION thrown by Maven
+        catch (RuntimeException e) {
+            throw e;
         }
         catch (Exception e) {
             logger.println(e.getMessage());
             log.error(e.getMessage(), e);
         }
     }
+
+    private String getReleaseNameFromResponse(String releaseResult) {
+        JSONObject releaseJSON   = JSONObject.fromObject(releaseResult).getJSONObject("release");
+        return (String) releaseJSON.get("releaseName");
+    }
+    private String getProjectNameFromResponse(String releaseResult) {
+        JSONObject releaseJSON   = JSONObject.fromObject(releaseResult).getJSONObject("release");
+        return (String) releaseJSON.get("projectName");
+    }
+    private String getSetJenkinsBuildDetailsUrlBase(String releaseResult) {
+        JSONObject releaseJSON   = JSONObject.fromObject(releaseResult).getJSONObject("release");
+        String retval = "/flowRuntimes/" + (String) releaseJSON.get("releaseName") + "/jenkinsBuildDetails";
+        return retval;
+    }
+
 
     public String getConfiguration()
     {

@@ -186,11 +186,14 @@ public class ElectricFlowPipelinePublisher
 
             // PrintStream logger = taskListener.getLogger();
             CloudBeesFlowBuildData cbfdb = new CloudBeesFlowBuildData(run);
+            taskListener.getLogger().println("++++++++++++++++++++++++++++++++++++++++++++");
             taskListener.getLogger().println("CBF Data: " + cbfdb.toJsonObject().toString());
-            String associateResult = efClient.setJenkinsBuildDetails(cbfdb, projectName, flowRuntimeId);
-            
-            //VJN : With out associateResult being used, it is deemed as DLS_DEAD_LOCAL_STORE
+            taskListener.getLogger().println("++++++++++++++++++++++++++++++++++++++++++++");
+            taskListener.getLogger().println("About to call setJenkinsBuildDetails after running a Pipeline");
+            String associateResult = efClient.setJenkinsBuildDetailsRunPipeline(cbfdb, projectName, flowRuntimeId);
             taskListener.getLogger().println("Return from efClient: " + associateResult);
+            taskListener.getLogger().println("++++++++++++++++++++++++++++++++++++++++++++");
+
             run.addAction(action);
             run.save();
             logListener(buildListener, taskListener,
@@ -299,7 +302,6 @@ public class ElectricFlowPipelinePublisher
         return projectName;
     }
     private String getSetJenkinsBuildDetailsUrlBase(String pipelineResult) {
-        
         JSONObject flowRuntime   = JSONObject.fromObject(pipelineResult).getJSONObject("flowRuntime");
         String flowRuntimeId = (String) flowRuntime.get("flowRuntimeId");
         //VJN :: This got caught by DLS_DEAD_LOCAL_STORE warning. Removing it. 

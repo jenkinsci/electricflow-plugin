@@ -42,7 +42,7 @@ public class CloudBeesFlowTestResult implements ExtensionPoint {
     public JSONObject toJsonObject() {
         JSONObject json = new JSONObject();
 
-        // VJN:: Converting seconds for both duration and durationPrevious
+        //Converting seconds for both duration and durationPrevious
         //to milliseconds.
 
         double durationSecs = (double) this.getDuration() * 1000 ;

@@ -61,7 +61,7 @@ public class CloudBeesFlowArtifact {
             json.put("size", this.getSize());
         }
 
-        //VJN : Currently hardcoded
+        //Currently hardcoded. This will be fixed soon.
         json.put("artifactName", "com.demo:helloworld");
         json.put("artifactVersion", "1.0-SNAPSHOT");
         json.put("repositoryName", "default");

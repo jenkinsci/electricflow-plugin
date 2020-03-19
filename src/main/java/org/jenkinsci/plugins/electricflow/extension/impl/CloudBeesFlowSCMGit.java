@@ -14,7 +14,7 @@ import org.apache.commons.logging.LogFactory;
 @OptionalExtension(requirePlugins="git")
 public class CloudBeesFlowSCMGit extends CloudBeesFlowSCM {
 
-    // VJN Adding some debuggging
+    // Adding some debugging
     private static final Log log = LogFactory.getLog(CloudBeesFlowSCMGit.class);
 
     public void populate (Object obj) {

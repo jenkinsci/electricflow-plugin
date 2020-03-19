@@ -23,6 +23,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.jenkinsci.Symbol;
+import org.jenkinsci.plugins.electricflow.data.CloudBeesFlowBuildData;
 import org.jenkinsci.plugins.electricflow.factories.ElectricFlowClientFactory;
 import org.jenkinsci.plugins.electricflow.ui.HtmlUtils;
 import org.kohsuke.stapler.AncestorInPath;
@@ -116,6 +117,7 @@ public class ElectricFlowUploadArtifactPublisher
             String newFilePath = env.expandEnv(filePath);
             String newArtifactVersion = env.expandEnv(artifactVersion);
             String newArtifactName = env.expandEnv(artifactName);
+            String artifactVersionName = newArtifactName + ":" + newArtifactVersion ;
 
             if (log.isDebugEnabled()) {
                 log.debug("Workspace directory: " + newFilePath);
@@ -138,10 +140,31 @@ public class ElectricFlowUploadArtifactPublisher
             SummaryTextAction action = new SummaryTextAction(run,
                     summaryHtml);
 
+
+            CloudBeesFlowBuildData cbfdb = new CloudBeesFlowBuildData(run);
+            taskListener.getLogger().println("++++++++++++++++++++++++++++++++++++++++++++");
+            taskListener.getLogger().println("Artifact Name is " + newArtifactName );
+            taskListener.getLogger().println("Artifact Version is " + newArtifactVersion );
+            taskListener.getLogger().println("Artifact Version name is " + artifactVersionName );
+            taskListener.getLogger().println("About to call setJenkinsBuildDetails" );
+            taskListener.getLogger().println("CBF Data: " + cbfdb.toJsonObject().toString());
+            taskListener.getLogger().println("++++++++++++++++++++++++++++++++++++++++++++");
+            //Considering that the JenkinsBuildDetails Flow Rest API requires a Project to associate a build with and a Project is not
+            //required to Publish an Artifact, the project called "default" is used to workaround it.
+            //This design in Core Flow Integration, needs to be revisited.
+            String associateResult = efClient.setJenkinsBuildDetailsPublishArtifact(cbfdb, "default", artifactVersionName);
+            taskListener.getLogger().println("Return from efClient: " + associateResult);
+            taskListener.getLogger().println("++++++++++++++++++++++++++++++++++++++++++++");
             run.addAction(action);
             run.save();
             logger.println("Upload result: " + result);
-        } catch (NoSuchAlgorithmException | KeyManagementException
+        }
+
+        // This was found by REC_CATCH_EXCEPTION spot check from Maven
+        catch (RuntimeException e) {
+            throw e;
+        }
+        catch (NoSuchAlgorithmException | KeyManagementException
                 | InterruptedException | IOException e) {
             logger.println(e.getMessage());
             log.error(e.getMessage(), e);
