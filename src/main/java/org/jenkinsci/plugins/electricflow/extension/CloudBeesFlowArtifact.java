@@ -72,7 +72,7 @@ public class CloudBeesFlowArtifact {
     }
 
     if (this.getRepositoryName() != null) {
-      json.put("respositoryName", this.getRepositoryName());
+      json.put("repositoryName", this.getRepositoryName());
     }
 
     if (this.getRepositoryType() != null) {
