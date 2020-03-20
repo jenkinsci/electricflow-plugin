@@ -152,7 +152,9 @@ public class CloudBeesFlowBuildData {
             JSONArray testResultsJsonArray = new JSONArray();
             List<CloudBeesFlowTestResult> testResultRows = testResultData.getTestResultData();
             for (int i = 0; i < testResultRows.size(); i++) {
-                testResultsJsonArray.add(testResultRows.get(i).toJsonObject());
+                if (testResultRows.get(i) != null) {
+                    testResultsJsonArray.add(testResultRows.get(i).toJsonObject());
+                }
             }
             json.put("testResult", testResultsJsonArray);
         }

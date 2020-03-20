@@ -61,6 +61,7 @@ public class ElectricFlowUploadArtifactPublisher
     private String       artifactName;
     private String       artifactVersion;
     private String       filePath;
+    private int artifactCount;
 
     //~ Constructors -----------------------------------------------------------
 
@@ -133,10 +134,18 @@ public class ElectricFlowUploadArtifactPublisher
                 return false;
             }
 
+            FlowArtifactObject artifactSummary = new FlowArtifactObject(artifactName,
+                    artifactVersion,
+                    filePath,
+                    repositoryName,
+                    efClient.getElectricFlowUrl()
+                    + "/commander/link/artifactVersionDetails/artifactVersions/"
+                    + Utils.encodeURL(newArtifactName + ":" + newArtifactVersion)
+                    + "?s=Artifacts&ss=Artifacts");
             String summaryHtml = getSummaryHtml(newArtifactVersion,
                     newArtifactName, efClient);
-            SummaryTextAction action = new SummaryTextAction(run,
-                    summaryHtml);
+            ArtifactSummaryTextAction action = new ArtifactSummaryTextAction(run,
+                    summaryHtml, artifactSummary);
 
             run.addAction(action);
             run.save();
