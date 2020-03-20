@@ -44,7 +44,7 @@ public class ElectricFlowClient {
 
   private static final Log log = LogFactory.getLog(ElectricFlowClient.class);
   private static final String CHARSET = "UTF-8";
-  public static final String JENKINS_BUILD_ASSOCIATION_TYPE = "triggeredByFlow";
+  public static final String JENKINS_BUILD_ASSOCIATION_TYPE = "triggeredByJenkins";
   public static final String BUILD_TRIGGER_SOURCE = "Jenkins";
 
   // ~ Instance fields --------------------------------------------------------
