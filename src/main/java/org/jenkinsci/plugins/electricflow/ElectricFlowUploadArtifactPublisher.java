@@ -35,6 +35,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jenkinsci.Symbol;
 import org.jenkinsci.plugins.electricflow.data.CloudBeesFlowBuildData;
+import org.jenkinsci.plugins.electricflow.extension.ArtifactUploadData;
 import org.jenkinsci.plugins.electricflow.factories.ElectricFlowClientFactory;
 import org.jenkinsci.plugins.electricflow.ui.HtmlUtils;
 import org.kohsuke.stapler.AncestorInPath;
@@ -135,26 +136,52 @@ public class ElectricFlowUploadArtifactPublisher extends Recorder implements Sim
         return false;
       }
 
-      String summaryHtml = getSummaryHtml(newArtifactVersion, newArtifactName, efClient);
-      SummaryTextAction action = new SummaryTextAction(run, summaryHtml);
+      String efUrl =
+          efClient.getElectricFlowUrl()
+              + "/commander/link/artifactVersionDetails/artifactVersions/"
+              + Utils.encodeURL(newArtifactName + ":" + newArtifactVersion)
+              + "?s=Artifacts&ss=Artifacts";
 
-      CloudBeesFlowBuildData cbfdb = new CloudBeesFlowBuildData(run);
+      String repository = repositoryName.isEmpty() ? "default" : repositoryName;
+
+      String summaryHtml = getSummaryHtml(newArtifactVersion, newArtifactName, repository, efUrl);
+
+      ArtifactUploadSummaryTextAction action =
+          new ArtifactUploadSummaryTextAction(run, summaryHtml);
+
+      ArtifactUploadData artifactUploadData = new ArtifactUploadData();
+      artifactUploadData.setArtifactName(newArtifactName);
+      artifactUploadData.setArtifactUrl(efUrl);
+      artifactUploadData.setArtifactVersion(newArtifactVersion);
+      artifactUploadData.setRepositoryName(repository);
+      artifactUploadData.setRepositoryType("Flow Artifact Repository");
+
+      action.setArtifactUploadData(artifactUploadData);
+
+      CloudBeesFlowBuildData cloudBeesFlowBuildData = new CloudBeesFlowBuildData(run);
       taskListener.getLogger().println("++++++++++++++++++++++++++++++++++++++++++++");
-      taskListener.getLogger().println("Artifact Name is " + newArtifactName);
-      taskListener.getLogger().println("Artifact Version is " + newArtifactVersion);
-      taskListener.getLogger().println("Artifact Version name is " + artifactVersionName);
-      taskListener.getLogger().println("About to call setJenkinsBuildDetails");
-      taskListener.getLogger().println("CBF Data: " + cbfdb.toJsonObject().toString());
+      taskListener.getLogger().println("Artifact Name: " + artifactUploadData.getArtifactName());
+      taskListener.getLogger().println("Artifact Version: " + artifactUploadData.getArtifactVersion());
+      taskListener.getLogger().println("Artifact Url: " + artifactUploadData.getArtifactUrl());
+      taskListener.getLogger().println("Repository Name: " + artifactUploadData.getRepositoryName());
+      taskListener
+          .getLogger()
+          .println("Jenkins Build Data for setJenkinsBuildDetail API: " + cloudBeesFlowBuildData.toJsonObject().toString());
       taskListener.getLogger().println("++++++++++++++++++++++++++++++++++++++++++++");
+
       // Considering that the JenkinsBuildDetails Flow Rest API requires a Project to associate a
       // build with and a Project is not
       // required to Publish an Artifact, the project called "default" is used to workaround it.
       // This design in Core Flow Integration, needs to be revisited.
       String associateResult =
-          efClient.setJenkinsBuildDetailsPublishArtifact(cbfdb, "default", artifactVersionName);
-      taskListener.getLogger().println("Return from efClient: " + associateResult);
+          efClient.setJenkinsBuildDetailsPublishArtifact(
+              cloudBeesFlowBuildData, "Default", artifactVersionName);
+
+      taskListener.getLogger().println("Response from Flow Server: " + associateResult);
       taskListener.getLogger().println("++++++++++++++++++++++++++++++++++++++++++++");
+
       run.addAction(action);
+
       run.save();
       logger.println("Upload result: " + result);
     }
@@ -218,14 +245,14 @@ public class ElectricFlowUploadArtifactPublisher extends Recorder implements Sim
   }
 
   private String getSummaryHtml(
-      String newArtifactVersion, String newArtifactName, ElectricFlowClient efClient)
+      String newArtifactVersion, String newArtifactName, String repository, String efUrl)
       throws UnsupportedEncodingException {
+
     String url =
-        efClient.getElectricFlowUrl()
+        efUrl
             + "/commander/link/artifactVersionDetails/artifactVersions/"
             + Utils.encodeURL(newArtifactName + ":" + newArtifactVersion)
             + "?s=Artifacts&ss=Artifacts";
-    String repository = repositoryName.isEmpty() ? "default" : repositoryName;
 
     return "<h3>CloudBees Flow Publish Artifact</h3>"
         + "<table cellspacing=\"2\" cellpadding=\"4\">\n"

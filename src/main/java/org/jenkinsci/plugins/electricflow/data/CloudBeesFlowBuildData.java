@@ -91,8 +91,11 @@ public class CloudBeesFlowBuildData {
     if (this.getLaunchedBy() != null) {
       json.put("launchedBy", this.getLaunchedBy());
     }
+
     json.put("buildNumber", Integer.toString(this.getBuildNumber()));
+
     json.put("building", this.isBuilding());
+
     if (this.getResult() != null) {
       json.put("result", this.getResult());
     }
@@ -102,9 +105,11 @@ public class CloudBeesFlowBuildData {
     json.put("duration", this.getDuration());
     json.put("estimatedDuration", this.getEstimatedDuration());
     json.put("timestamp", this.getTimestamp());
+
     if (this.getLogs() != null) {
       json.put("logs", this.getLogs());
     }
+
     if (this.getUrl() != null) {
       json.put("url", this.getUrl());
       blueOceanUrl =
@@ -128,6 +133,7 @@ public class CloudBeesFlowBuildData {
       for (int i = 0; i < pipelineRows.size(); i++) {
         pipelineJsonArray.add(pipelineRows.get(i).toJsonObject());
       }
+
       json.put("stage", pipelineJsonArray);
     }
 
@@ -140,7 +146,6 @@ public class CloudBeesFlowBuildData {
         && artifactsData.getArtifactData().size() > 0) {
       JSONArray artifactsJsonArray = new JSONArray();
       List<CloudBeesFlowArtifact> artifactRows = artifactsData.getArtifactData();
-
       for (int i = 0; i < artifactRows.size(); i++) {
         artifactsJsonArray.add(artifactRows.get(i).toJsonObject());
       }
