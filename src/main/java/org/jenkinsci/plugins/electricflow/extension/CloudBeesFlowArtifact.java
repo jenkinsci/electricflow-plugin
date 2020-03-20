@@ -9,9 +9,9 @@ public class CloudBeesFlowArtifact {
   protected String name;
   protected String href;
   protected String length;
-  // protected String artifactServer;
   protected long size;
-public CloudBeesFlowArtifact() {}
+
+  public CloudBeesFlowArtifact() {}
 
   public static CloudBeesFlowArtifact build(Artifact obj) {
     CloudBeesFlowArtifact cloudBeesFlowArtifact = new CloudBeesFlowArtifact();
@@ -24,11 +24,10 @@ public CloudBeesFlowArtifact() {}
     cloudBeesFlowArtifact.setLength(obj.getLength());
     cloudBeesFlowArtifact.setSize(obj.getFileSize());
 
-    // String url = obj.get
     return cloudBeesFlowArtifact;
   }
 
-    public long getSize() {
+  public long getSize() {
     return size;
   };
 
@@ -43,8 +42,6 @@ public CloudBeesFlowArtifact() {}
       json.put("displayPath", this.getDisplayPath());
     }
 
-    // Workaround until we have a way to unambiguously get the type of
-    // Repository - For example, Flow Artifact Repository or Artifact Subsystem etc.,
     json.put("repositoryType", "Flow Artifact Repository");
 
     if (this.getName() != null) {
@@ -57,7 +54,7 @@ public CloudBeesFlowArtifact() {}
       json.put("size", this.getSize());
     }
 
-    // Currently hardcoded. This will be fixed soon.
+    // Currently hardcoded. This will be fixed soon. TODO: remove them
     json.put("artifactName", "com.demo:helloworld");
     json.put("artifactVersion", "1.0-SNAPSHOT");
     json.put("repositoryName", "default");

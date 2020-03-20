@@ -9,12 +9,17 @@ import jenkins.model.Jenkins;
 import jenkins.scm.RunWithSCM;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.jenkinsci.plugins.electricflow.extension.CloudBeesFlowArtifact;
 import org.jenkinsci.plugins.electricflow.extension.CloudBeesFlowPipeline;
 import org.jenkinsci.plugins.electricflow.extension.CloudBeesFlowSCM;
 import org.jenkinsci.plugins.electricflow.extension.CloudBeesFlowTestResult;
 
 public class CloudBeesFlowBuildData {
+
+  private static final Log log = LogFactory.getLog(CloudBeesFlowBuildData.class);
+
   protected String jobName;
   protected String displayName;
   protected String launchedBy;
@@ -33,31 +38,25 @@ public class CloudBeesFlowBuildData {
   protected CloudBeesFlowArtifactData artifacts;
   protected CloudBeesFlowTestResultData testResult;
 
-  // public PrintStream logger;
-
   // constructor
   public CloudBeesFlowBuildData(Run<?, ?> run) {
-    // this.logger = logger;
-    // populating scalar values.
-    // this.name = run.getName
 
-    String thisName = run.getCharacteristicEnvVars().get("JOB_NAME");
-    this.jobName = thisName;
+    this.jobName = run.getCharacteristicEnvVars().get("JOB_NAME");
 
     Jenkins instance = Jenkins.get();
     String rootUrl = instance.getRootUrl();
 
     this.setBuildNumber(run.getNumber());
-    // this.setDisplayName(run.getDisplayName());
     this.setDisplayName(this.getJobName() + run.getDisplayName());
     this.setBuilding(run.isBuilding());
+
     try {
       List<String> runLogs = run.getLog(200);
       String logLines = String.join("\n", runLogs);
       this.setLogs(logLines);
     } catch (IOException e) {
+      log.error(e.getMessage());
     }
-    ;
 
     // todo: improve result handling
     Result result = run.getResult();
@@ -65,13 +64,10 @@ public class CloudBeesFlowBuildData {
       this.setResult(result.toString());
     }
     // todo: Improve reason handling
-    // this.setReason(run.get);
     this.setDuration(run.getDuration());
     this.setEstimatedDuration(run.getEstimatedDuration());
     this.setTimestamp(run.getTimestamp().getTimeInMillis());
     this.setUrl(rootUrl + run.getUrl());
-    // this.setLogs(run.getLog(200));
-    // this.setLaunchedBy();
     // populating object values:
 
     // getting changesets information:
@@ -111,7 +107,7 @@ public class CloudBeesFlowBuildData {
     }
     if (this.getUrl() != null) {
       json.put("url", this.getUrl());
-      this.blueOceanUrl =
+      blueOceanUrl =
           this.getUrl()
               .replace(
                   "job/" + this.jobName,
@@ -128,7 +124,6 @@ public class CloudBeesFlowBuildData {
         && pipelineData.getPipelineData() != null
         && pipelineData.getPipelineData().size() > 0) {
       JSONArray pipelineJsonArray = new JSONArray();
-      //            json.put("stages", new JSONArray());
       List<CloudBeesFlowPipeline> pipelineRows = pipelineData.getPipelineData();
       for (int i = 0; i < pipelineRows.size(); i++) {
         pipelineJsonArray.add(pipelineRows.get(i).toJsonObject());
@@ -138,12 +133,14 @@ public class CloudBeesFlowBuildData {
 
     // processing artifacts data
     CloudBeesFlowArtifactData artifactsData = this.getArtifacts();
+
     // TODO: Improve not-null validation here
     if (artifactsData != null
         && artifactsData.getArtifactData() != null
         && artifactsData.getArtifactData().size() > 0) {
       JSONArray artifactsJsonArray = new JSONArray();
       List<CloudBeesFlowArtifact> artifactRows = artifactsData.getArtifactData();
+
       for (int i = 0; i < artifactRows.size(); i++) {
         artifactsJsonArray.add(artifactRows.get(i).toJsonObject());
       }
@@ -176,58 +173,6 @@ public class CloudBeesFlowBuildData {
     return json;
   }
 
-  /*
-  public void dump() {
-      logger.println("===");
-      logger.println("Beginning of CloudBeesFlowBuildData");
-      logger.println("Build: " + this.getDisplayName());
-      logger.println("Build Number: " + this.getBuildNumber());
-      // logger.println("Is Building?: " + this.isBuilding());
-      logger.println("Result: " + this.getResult());
-      logger.println("Duration: " + this.getDuration());
-      logger.println("Estimated duration: " + this.getEstimatedDuration());
-      logger.println("Timestamp: " + this.getTimestamp());
-      logger.println("URL: " + this.getUrl());
-
-      logger.println("---");
-      logger.println("Test results:");
-      List<CloudBeesFlowTestResult> tr = this.testResult.getTestResultData();
-      for (int i = 0; i < tr.size(); i++) {
-          logger.println(i + ":");
-          CloudBeesFlowTestResult row = tr.get(i);
-          logger.println("Fail count: " + row.getFailCount());
-          logger.println("Skip count: " + row.getSkipCount());
-          logger.println("Total count: " + row.getTotalCount());
-      }
-
-      logger.println("---");
-      logger.println("Artifacts: ");
-      List<CloudBeesFlowArtifact> ar = this.artifacts.getArtifactData();
-      for (int i = 0; i < ar.size(); i++) {
-          logger.println(i + ":");
-          CloudBeesFlowArtifact row = ar.get(i);
-          logger.println("File Name: " + row.getName());
-          logger.println("Size: " + row.getSize());
-          logger.println("Href: " + row.getHref());
-      }
-
-      logger.println("---");
-      logger.println("SCM data:");
-      List<CloudBeesFlowSCM> cs = this.changeSets.getScmData();
-      for (int i = 0; i < cs.size(); i++) {
-          logger.println(i + ":");
-          CloudBeesFlowSCM row = cs.get(i);
-          logger.println("SCM: " + row.getScmType());
-          logger.println("Timestamp: " + row.getTimestamp());
-          logger.println("Author name: " + row.getAuthor());
-          logger.println("Author email: " + row.getAuthorEmail());
-          logger.println("Commit ID: " + row.getCommitId());
-          logger.println("" + row.getCommitMessage());
-      }
-      logger.println("===");
-  }
-
-  */
   // end of constructor
   public String getDisplayName() {
     return displayName;

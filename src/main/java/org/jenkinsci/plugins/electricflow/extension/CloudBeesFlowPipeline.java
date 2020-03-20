@@ -5,7 +5,6 @@ import hudson.ExtensionPoint;
 import hudson.model.Run;
 import java.util.ArrayList;
 import java.util.List;
-import jenkins.model.Jenkins;
 import net.sf.json.JSONObject;
 
 public class CloudBeesFlowPipeline implements ExtensionPoint {
@@ -18,18 +17,14 @@ public class CloudBeesFlowPipeline implements ExtensionPoint {
 
   public CloudBeesFlowPipeline() {}
 
-  public static List<CloudBeesFlowPipeline> build(Run run) {
-    final Jenkins jenkins = Jenkins.get();
+  public static List<CloudBeesFlowPipeline> build(Run<?, ?> run) {
     List<CloudBeesFlowPipeline> result = new ArrayList<>();
-    if (jenkins != null) {
-      ExtensionList.lookup(CloudBeesFlowPipeline.class);
-      final ExtensionList<CloudBeesFlowPipeline> makers =
-          ExtensionList.lookup(CloudBeesFlowPipeline.class);
-      for (CloudBeesFlowPipeline m : makers) {
-        result = m.generate(run);
-        if (result != null) {
-          return result;
-        }
+    ExtensionList.lookup(CloudBeesFlowPipeline.class);
+    ExtensionList<CloudBeesFlowPipeline> makers = ExtensionList.lookup(CloudBeesFlowPipeline.class);
+    for (CloudBeesFlowPipeline m : makers) {
+      result = m.generate(run);
+      if (result != null) {
+        return result;
       }
     }
     return result;
@@ -53,10 +48,8 @@ public class CloudBeesFlowPipeline implements ExtensionPoint {
 
     return json;
   }
-  //    public boolean populate(Run run) {
-  //        return false;
-  //    }
-  public List<CloudBeesFlowPipeline> generate(Run run) {
+
+  public List<CloudBeesFlowPipeline> generate(Run<?,?> run) {
     return new ArrayList<>();
   }
 

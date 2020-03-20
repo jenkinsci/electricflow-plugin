@@ -2,7 +2,6 @@ package org.jenkinsci.plugins.electricflow.integration;
 
 import hudson.ExtensionList;
 import hudson.ExtensionPoint;
-import jenkins.model.Jenkins;
 
 public class ElectricFlowChangeSet implements ExtensionPoint {
   protected String authorName;
@@ -17,21 +16,15 @@ public class ElectricFlowChangeSet implements ExtensionPoint {
   }
 
   public static ElectricFlowChangeSet getChangesetFromObject(Object obj) {
-    final Jenkins jenkins = Jenkins.get();
-    if (jenkins != null) {
-      ExtensionList.lookup(ElectricFlowChangeSet.class);
-      // final ExtensionList<ElectricFlowChangeSet> makers =
-      // jenkins.getExtensionList(ElectricFlowChangeSet.class);
-      final ExtensionList<ElectricFlowChangeSet> makers =
-          ExtensionList.lookup(ElectricFlowChangeSet.class);
-      for (ElectricFlowChangeSet m : makers) {
-        System.out.println("Iterating through extensions");
-        boolean applicable = m.isApplicable(obj);
-        if (applicable) {
-          System.out.println("Applicable");
-          m.populate(obj);
-          return m;
-        }
+    ExtensionList.lookup(ElectricFlowChangeSet.class);
+    ExtensionList<ElectricFlowChangeSet> makers = ExtensionList.lookup(ElectricFlowChangeSet.class);
+    for (ElectricFlowChangeSet m : makers) {
+      System.out.println("Iterating through extensions");
+      boolean applicable = m.isApplicable(obj);
+      if (applicable) {
+        System.out.println("Applicable");
+        m.populate(obj);
+        return m;
       }
     }
 
@@ -70,15 +63,9 @@ public class ElectricFlowChangeSet implements ExtensionPoint {
     this.comments = comments;
   }
 
-  // default implementation of this method. Should return false if asked from this class object
-  // directly.
   public boolean isApplicable(Object object) {
     return false;
   }
 
   public void populate(Object object) {}
-  //    public static ExtensionList<Animal> all() {
-  //        return Jenkins.getInstanceOrNull().getExtensionList(Animal.class); //
-  // getActiveInstance() starting with Jenkins 1.590, else getInstance()
-  //    }
 }

@@ -7,6 +7,7 @@ import jenkins.model.Jenkins;
 import net.sf.json.JSONObject;
 
 public class CloudBeesFlowTestResult implements ExtensionPoint {
+
   protected int failCount;
   protected int failCountPrevious;
   protected int skipCount;
@@ -21,19 +22,15 @@ public class CloudBeesFlowTestResult implements ExtensionPoint {
   public CloudBeesFlowTestResult() {};
 
   public static CloudBeesFlowTestResult build(Run run) {
-    final Jenkins jenkins = Jenkins.get();
-    if (jenkins != null) {
-      ExtensionList.lookup(CloudBeesFlowTestResult.class);
+    ExtensionList.lookup(CloudBeesFlowTestResult.class);
 
-      final ExtensionList<CloudBeesFlowTestResult> makers =
-          ExtensionList.lookup(CloudBeesFlowTestResult.class);
-      for (CloudBeesFlowTestResult m : makers) {
-        System.out.println("Iterating through extensions");
-        Class varClass = m.getClass();
-        boolean popRes = m.populate(run);
-        if (popRes) {
-          return m;
-        }
+    ExtensionList<CloudBeesFlowTestResult> makers =
+        ExtensionList.lookup(CloudBeesFlowTestResult.class);
+    for (CloudBeesFlowTestResult m : makers) {
+      System.out.println("Iterating through extensions");
+      boolean popRes = m.populate(run);
+      if (popRes) {
+        return m;
       }
     }
     return null;
@@ -44,7 +41,6 @@ public class CloudBeesFlowTestResult implements ExtensionPoint {
 
     // Converting seconds for both duration and durationPrevious
     // to milliseconds.
-
     double durationSecs = (double) this.getDuration() * 1000;
     double durationPreviousSecs = (double) this.getDurationPrevious() * 1000;
 
@@ -57,7 +53,6 @@ public class CloudBeesFlowTestResult implements ExtensionPoint {
     json.put("passCount", (this.getTotalCount() - this.getFailCount() - this.getSkipCount()));
     json.put("skipCount", this.getSkipCount());
     json.put("totalCount", this.getTotalCount());
-    // json.put("duration", this.getDuration());
     json.put("duration", durationSecs);
 
     // adding previous run
@@ -67,39 +62,19 @@ public class CloudBeesFlowTestResult implements ExtensionPoint {
         (this.getTotalCountPrevious() - this.getFailCountPrevious() - this.getSkipCountPrevious()));
     json.put("skipCountPrevious", this.getSkipCountPrevious());
     json.put("totalCountPrevious", this.getTotalCountPrevious());
-    // json.put("durationPrevious", this.getDurationPrevious());
     json.put("durationPrevious", durationPreviousSecs);
 
     return json;
   }
-  //    public static CloudBeesFlowTestResult build (Run run) {
-  //        final Jenkins jenkins = Jenkins.get();
-  //        if (jenkins != null) {
-  //            TestResultAction obj = run.getAction(TestResultAction.class);
-  //            if (obj != null) {
-  //                TestResultAction testData = obj;
-  //                CloudBeesFlowTestResult cloudBeesFlowTestResult = new CloudBeesFlowTestResult();
-  //                cloudBeesFlowTestResult.setFailCount(obj.getFailCount());
-  //                cloudBeesFlowTestResult.setSkipCount(obj.getSkipCount());
-  //                cloudBeesFlowTestResult.setTotalCount(obj.getTotalCount());
-  //                return cloudBeesFlowTestResult;
-  //            }
-  //        }
-  //        return null;
-  //
-  //    }
 
-  // service methods
-  // isApplicable() returns false because it will be implemented in subclasses
   public boolean isApplicable(Object object) {
     return false;
   }
-  // populate
-  public boolean populate(Run run) {
+
+  public boolean populate(Run<?,?> run) {
     return false;
   }
 
-  // getters and setters
   public int getFailCount() {
     return failCount;
   }

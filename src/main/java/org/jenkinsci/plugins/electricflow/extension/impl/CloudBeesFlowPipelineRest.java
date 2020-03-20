@@ -11,9 +11,6 @@ import org.jenkinsci.plugins.workflow.job.WorkflowRun;
 
 @OptionalExtension(requirePlugins = "pipeline-rest-api")
 public class CloudBeesFlowPipelineRest extends CloudBeesFlowPipeline {
-  //    public boolean populate(Run run) {
-  //
-  //    }
   @Override
   public List<CloudBeesFlowPipeline> generate(Run run) {
     List<CloudBeesFlowPipeline> result = new ArrayList<>();
@@ -25,9 +22,6 @@ public class CloudBeesFlowPipelineRest extends CloudBeesFlowPipeline {
         CloudBeesFlowPipeline pipelineNode = new CloudBeesFlowPipeline();
         pipelineNode.setDuration(node.getDurationMillis());
         pipelineNode.setStageName(node.getName());
-        // pipelineNode.setReason(node.getError().toString());
-        // pipelineNode.setResult(node.getStatus().toString());
-        long startTime = node.getStartTimeMillis();
         pipelineNode.setTimestamp(node.getStartTimeMillis());
         result.add(pipelineNode);
       }

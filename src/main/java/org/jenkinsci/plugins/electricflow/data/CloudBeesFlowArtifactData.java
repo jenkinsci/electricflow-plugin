@@ -5,20 +5,24 @@ import hudson.model.Run.Artifact;
 import hudson.model.Run.ArtifactList;
 import java.util.ArrayList;
 import java.util.List;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.jenkinsci.plugins.electricflow.extension.CloudBeesFlowArtifact;
 
 public class CloudBeesFlowArtifactData {
+
+  private static final Log log = LogFactory.getLog(CloudBeesFlowArtifactData.class);
+
   private List<CloudBeesFlowArtifact> artifactData;
 
-  public CloudBeesFlowArtifactData(Run run) {
+  public CloudBeesFlowArtifactData(Run<?,?> run) {
     this.artifactData = new ArrayList<>();
     ArtifactList obj = (ArtifactList) run.getArtifacts();
-    for (int i = 0; i < obj.size(); i++) {
-      Artifact row = (Artifact) obj.get(i);
+    for (Object o : obj) {
+      Artifact row = (Artifact) o;
       CloudBeesFlowArtifact art = CloudBeesFlowArtifact.build(row);
       this.artifactData.add(art);
     }
-    System.out.println("Done with artifacts");
   }
 
   public List<CloudBeesFlowArtifact> getArtifactData() {

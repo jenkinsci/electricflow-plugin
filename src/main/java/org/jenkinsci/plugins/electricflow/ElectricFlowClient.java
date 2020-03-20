@@ -370,7 +370,7 @@ public class ElectricFlowClient {
   }
 
   public String uploadArtifact(
-      Run build,
+      Run<?, ?> build,
       TaskListener listener,
       String repo,
       String name,

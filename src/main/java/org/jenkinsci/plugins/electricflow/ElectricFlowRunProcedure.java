@@ -34,7 +34,6 @@ import hudson.tasks.Publisher;
 import hudson.tasks.Recorder;
 import hudson.util.FormValidation;
 import hudson.util.ListBoxModel;
-import java.io.IOException;
 import java.io.PrintStream;
 import java.util.HashMap;
 import java.util.List;
@@ -78,9 +77,10 @@ public class ElectricFlowRunProcedure extends Recorder implements SimpleBuildSte
       @Nonnull Run<?, ?> run,
       @Nonnull FilePath filePath,
       @Nonnull Launcher launcher,
-      @Nonnull TaskListener taskListener)
-      throws InterruptedException, IOException {
+      @Nonnull TaskListener taskListener) {
+
     boolean isSuccess = runProcedure(run, taskListener);
+
     if (!isSuccess) {
       run.setResult(Result.FAILURE);
     }
@@ -89,11 +89,9 @@ public class ElectricFlowRunProcedure extends Recorder implements SimpleBuildSte
   private boolean runProcedure(@Nonnull Run<?, ?> run, @Nonnull TaskListener taskListener) {
     PrintStream logger = taskListener.getLogger();
 
-    CloudBeesFlowBuildData cbfbd = new CloudBeesFlowBuildData(run);
-    // cbfbd.dump();
-    // RunExt re = RunExt.create((WorkflowRun)run);
-    // List<StageNodeExt> stages = re.getStages();
-    JSONObject json = cbfbd.toJsonObject();
+    CloudBeesFlowBuildData cloudBeesFlowBuildData = new CloudBeesFlowBuildData(run);
+    JSONObject json = cloudBeesFlowBuildData.toJsonObject();
+
     logger.println("JSON: " + json.toString());
     logger.println("JENKINS VERSION: " + Jenkins.VERSION);
     logger.println("Project name: " + projectName + ", Procedure name: " + procedureName);
@@ -126,7 +124,6 @@ public class ElectricFlowRunProcedure extends Recorder implements SimpleBuildSte
     } catch (Exception e) {
       logger.println(e.getMessage());
       log.error(e.getMessage(), e);
-
       return false;
     }
 

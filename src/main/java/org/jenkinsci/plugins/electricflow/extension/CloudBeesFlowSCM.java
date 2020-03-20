@@ -8,8 +8,8 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 public class CloudBeesFlowSCM implements ExtensionPoint {
-  // Add some debugging
   private static final Log log = LogFactory.getLog(CloudBeesFlowSCM.class);
+
   protected String scmReportUrl;
   protected String scmType;
   protected String commitId;

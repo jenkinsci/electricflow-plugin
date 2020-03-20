@@ -8,6 +8,7 @@ import java.util.List;
 import org.jenkinsci.plugins.electricflow.extension.CloudBeesFlowSCM;
 
 public class CloudBeesFlowSCMData {
+
   private List<CloudBeesFlowSCM> scmData;
 
   public CloudBeesFlowSCMData(List<ChangeLogSet<? extends ChangeLogSet.Entry>> changeSets) {
@@ -19,10 +20,7 @@ public class CloudBeesFlowSCMData {
       for (int i = 0; i < items.size(); i++) {
         Object cs = items.get(i);
         CloudBeesFlowSCM changeSet = CloudBeesFlowSCM.build(cs);
-
         this.scmData.add(changeSet);
-
-        // ElectricFlowChangeSet ecs = ElectricFlowChangeSet.getChangesetFromObject(cs);
       }
     }
   }
