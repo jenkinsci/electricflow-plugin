@@ -1,50 +1,85 @@
+
+// ArtifactUploadData.java --
+//
+// ArtifactUploadData.java is part of CloudBees Flow.
+//
+// Copyright (c) 2020 CloudBees, Inc.
+// All rights reserved.
+//
+
 package org.jenkinsci.plugins.electricflow.extension;
 
-public class ArtifactUploadData {
+public class ArtifactUploadData
+{
 
-  protected String artifactName;
-  protected String artifactVersion;
-  protected String artifactUrl;
-  protected String repositoryName;
-  protected String repositoryType;
+    //~ Instance fields --------------------------------------------------------
 
-  public String getArtifactName() {
-    return artifactName;
-  }
+    protected String artifactName;
+    protected String artifactVersion;
+    protected String artifactUrl;
+    protected String repositoryName;
+    protected String repositoryType;
+    protected String filePath;
 
-  public void setArtifactName(String artifactName) {
-    this.artifactName = artifactName;
-  }
+    //~ Methods ----------------------------------------------------------------
 
-  public String getArtifactVersion() {
-    return artifactVersion;
-  }
+    public String getArtifactName()
+    {
+        return artifactName;
+    }
 
-  public void setArtifactVersion(String artifactVersion) {
-    this.artifactVersion = artifactVersion;
-  }
+    public String getArtifactUrl()
+    {
+        return artifactUrl;
+    }
 
-  public String getArtifactUrl() {
-    return artifactUrl;
-  }
+    public String getArtifactVersion()
+    {
+        return artifactVersion;
+    }
 
-  public void setArtifactUrl(String artifactUrl) {
-    this.artifactUrl = artifactUrl;
-  }
+    public String getFilePath()
+    {
+        return filePath;
+    }
 
-  public String getRepositoryName() {
-    return repositoryName;
-  }
+    public String getRepositoryName()
+    {
+        return repositoryName;
+    }
 
-  public void setRepositoryName(String repositoryName) {
-    this.repositoryName = repositoryName;
-  }
+    public String getRepositoryType()
+    {
+        return repositoryType;
+    }
 
-  public String getRepositoryType() {
-    return repositoryType;
-  }
+    public void setArtifactName(String artifactName)
+    {
+        this.artifactName = artifactName;
+    }
 
-  public void setRepositoryType(String repositoryType) {
-    this.repositoryType = repositoryType;
-  }
+    public void setArtifactUrl(String artifactUrl)
+    {
+        this.artifactUrl = artifactUrl;
+    }
+
+    public void setArtifactVersion(String artifactVersion)
+    {
+        this.artifactVersion = artifactVersion;
+    }
+
+    public void setFilePath(String filePath)
+    {
+        this.filePath = filePath;
+    }
+
+    public void setRepositoryName(String repositoryName)
+    {
+        this.repositoryName = repositoryName;
+    }
+
+    public void setRepositoryType(String repositoryType)
+    {
+        this.repositoryType = repositoryType;
+    }
 }

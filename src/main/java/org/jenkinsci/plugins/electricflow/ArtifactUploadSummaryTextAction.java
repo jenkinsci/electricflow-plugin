@@ -22,8 +22,7 @@ public class ArtifactUploadSummaryTextAction extends SummaryTextAction {
     return artifactUploadData;
   }
 
-  public void setArtifactUploadData(
-      ArtifactUploadData artifactUploadData) {
+  public void setArtifactUploadData(ArtifactUploadData artifactUploadData) {
     this.artifactUploadData = artifactUploadData;
   }
 }

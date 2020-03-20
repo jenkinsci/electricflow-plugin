@@ -49,6 +49,8 @@ public class ElectricFlowUploadArtifactPublisher extends Recorder implements Sim
 
   private static final Log log = LogFactory.getLog(ElectricFlowUploadArtifactPublisher.class);
 
+  public static final String FLOW_ARTIFACT_REPOSITORY = "Flow Artifact Repository";
+
   // ~ Instance fields --------------------------------------------------------
 
   private final String configuration;
@@ -119,6 +121,7 @@ public class ElectricFlowUploadArtifactPublisher extends Recorder implements Sim
       // end of replacements
       ElectricFlowClient efClient =
           ElectricFlowClientFactory.getElectricFlowClient(configuration, overrideCredential, env);
+
       String result =
           efClient.uploadArtifact(
               run,
@@ -136,7 +139,7 @@ public class ElectricFlowUploadArtifactPublisher extends Recorder implements Sim
         return false;
       }
 
-      String efUrl =
+      String efArtifactUrl =
           efClient.getElectricFlowUrl()
               + "/commander/link/artifactVersionDetails/artifactVersions/"
               + Utils.encodeURL(newArtifactName + ":" + newArtifactVersion)
@@ -144,29 +147,42 @@ public class ElectricFlowUploadArtifactPublisher extends Recorder implements Sim
 
       String repository = repositoryName.isEmpty() ? "default" : repositoryName;
 
-      String summaryHtml = getSummaryHtml(newArtifactVersion, newArtifactName, repository, efUrl);
+      String summaryHtml =
+          getSummaryHtml(newArtifactVersion, newArtifactName, repository, efArtifactUrl);
 
       ArtifactUploadSummaryTextAction action =
           new ArtifactUploadSummaryTextAction(run, summaryHtml);
 
       ArtifactUploadData artifactUploadData = new ArtifactUploadData();
       artifactUploadData.setArtifactName(newArtifactName);
-      artifactUploadData.setArtifactUrl(efUrl);
+      artifactUploadData.setArtifactUrl(efArtifactUrl);
       artifactUploadData.setArtifactVersion(newArtifactVersion);
       artifactUploadData.setRepositoryName(repository);
-      artifactUploadData.setRepositoryType("Flow Artifact Repository");
+      artifactUploadData.setRepositoryType(FLOW_ARTIFACT_REPOSITORY);
+      artifactUploadData.setFilePath(newFilePath);
 
       action.setArtifactUploadData(artifactUploadData);
 
       CloudBeesFlowBuildData cloudBeesFlowBuildData = new CloudBeesFlowBuildData(run);
+
       taskListener.getLogger().println("++++++++++++++++++++++++++++++++++++++++++++");
       taskListener.getLogger().println("Artifact Name: " + artifactUploadData.getArtifactName());
-      taskListener.getLogger().println("Artifact Version: " + artifactUploadData.getArtifactVersion());
-      taskListener.getLogger().println("Artifact Url: " + artifactUploadData.getArtifactUrl());
-      taskListener.getLogger().println("Repository Name: " + artifactUploadData.getRepositoryName());
       taskListener
           .getLogger()
-          .println("Jenkins Build Data for setJenkinsBuildDetail API: " + cloudBeesFlowBuildData.toJsonObject().toString());
+          .println("Artifact Version: " + artifactUploadData.getArtifactVersion());
+      taskListener.getLogger().println("Artifact Url: " + artifactUploadData.getArtifactUrl());
+      taskListener
+          .getLogger()
+          .println("Repository Name: " + artifactUploadData.getRepositoryName());
+      taskListener
+          .getLogger()
+          .println("Repository Type: " + artifactUploadData.getRepositoryType());
+      taskListener.getLogger().println("File path: " + artifactUploadData.getFilePath());
+      taskListener
+          .getLogger()
+          .println(
+              "Jenkins Build Data for setJenkinsBuildDetail API: "
+                  + cloudBeesFlowBuildData.toJsonObject().toString());
       taskListener.getLogger().println("++++++++++++++++++++++++++++++++++++++++++++");
 
       // Considering that the JenkinsBuildDetails Flow Rest API requires a Project to associate a
@@ -181,13 +197,14 @@ public class ElectricFlowUploadArtifactPublisher extends Recorder implements Sim
       taskListener.getLogger().println("++++++++++++++++++++++++++++++++++++++++++++");
 
       run.addAction(action);
-
       run.save();
+
       logger.println("Upload result: " + result);
     }
 
     // This was found by REC_CATCH_EXCEPTION spot check from Maven
     catch (RuntimeException e) {
+      log.error(e.getMessage(), e);
       throw e;
     } catch (NoSuchAlgorithmException
         | KeyManagementException

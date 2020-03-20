@@ -7,41 +7,55 @@ import jenkins.model.Jenkins;
 import org.jenkinsci.plugins.electricflow.extension.CloudBeesFlowTestResult;
 import org.jenkinsci.plugins.variant.OptionalExtension;
 
-@OptionalExtension(requirePlugins = "junit")
+@OptionalExtension(requirePlugins="junit")
 public class CloudBeesFlowTestResultJUnit extends CloudBeesFlowTestResult {
+    public boolean populate(Run run) {
+        //TestResult obj2 = run.getAction(TestResult.class);
+        TestResultAction obj = run.getAction(TestResultAction.class);
+        // TestResult tr2 = obj.getTestResultPath();
 
-  public boolean populate(Run<?,?> run) {
-    TestResultAction obj = run.getAction(TestResultAction.class);
+        // VJN :: An ugly if-else block for handling NULL is to get around 
+        // the warning thrown from Maven
+        
+        if (obj != null) {
 
-    if (obj != null) {
+            // CloudBeesFlowTestResult cloudBeesFlowTestResult = new CloudBeesFlowTestResult();
+            this.setFailCount(obj.getFailCount());
+            this.setSkipCount(obj.getSkipCount());
+            this.setTotalCount(obj.getTotalCount());
+            this.setDisplayName(obj.getDisplayName());
 
-      this.setFailCount(obj.getFailCount());
-      this.setSkipCount(obj.getSkipCount());
-      this.setTotalCount(obj.getTotalCount());
-      this.setDisplayName(obj.getDisplayName());
+            // this.setUrl(obj.getUrlName());
+            TestResult result = obj.getResult();
 
-      TestResult result = obj.getResult();
+            if (result != null) {
+                this.setDuration(result.getDuration());
+                String urlName = obj.getUrlName();
+                Jenkins instance = Jenkins.get();
+                String rootUrl = instance.getRootUrl();
+                String testReportUrl = rootUrl + '/' + run.getUrl() + '/' + urlName;
+                this.setUrl(testReportUrl);
 
-      if (result != null) {
-        this.setDuration(result.getDuration());
-        String urlName = obj.getUrlName();
-        Jenkins instance = Jenkins.get();
-        String rootUrl = instance.getRootUrl();
-        String testReportUrl = rootUrl + '/' + run.getUrl() + '/' + urlName;
-        this.setUrl(testReportUrl);
+             // VJN :: Based on Maven's  NP_NULL_ON_SOME_PATH spot check
+             // had to bring the previousTestRun check within the IF
+               hudson.tasks.test.TestResult previousTestRun = result.getPreviousResult();
+               if (previousTestRun != null) {
+                // previousTestRun.getFal
+                this.setTotalCountPrevious(previousTestRun.getTotalCount());
+                this.setSkipCountPrevious(previousTestRun.getSkipCount());
+                this.setFailCountPrevious(previousTestRun.getFailCount());
+                this.setDurationPrevious(previousTestRun.getDuration());
 
-        // Based on Maven's  NP_NULL_ON_SOME_PATH spot check
-        // this check is brought within the IF
-        hudson.tasks.test.TestResult previousTestRun = result.getPreviousResult();
-        if (previousTestRun != null) {
-          this.setTotalCountPrevious(previousTestRun.getTotalCount());
-          this.setSkipCountPrevious(previousTestRun.getSkipCount());
-          this.setFailCountPrevious(previousTestRun.getFailCount());
-          this.setDurationPrevious(previousTestRun.getDuration());
-        }
-      }
-      return true;
+            }
+
+            }
+            // this.setDuration(obj.getResult().getDuration());
+//                cloudBeesFlowTestResult.setFailCount(obj.getFailCount());
+//                cloudBeesFlowTestResult.setSkipCount(obj.getSkipCount());
+//                cloudBeesFlowTestResult.setTotalCount(obj.getTotalCount());
+            return true;
+            }
+        
+        return false;
     }
-    return false;
-  }
 }

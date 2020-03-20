@@ -44,6 +44,8 @@ public class ElectricFlowClient {
 
   private static final Log log = LogFactory.getLog(ElectricFlowClient.class);
   private static final String CHARSET = "UTF-8";
+  public static final String JENKINS_BUILD_ASSOCIATION_TYPE = "triggeredByFlow";
+  public static final String BUILD_TRIGGER_SOURCE = "Jenkins";
 
   // ~ Instance fields --------------------------------------------------------
 
@@ -332,7 +334,8 @@ public class ElectricFlowClient {
     obj.put("buildName", cloudBeesFlowBuildData.getDisplayName());
     obj.put("projectName", projectName);
     obj.put("jenkinsData", cloudBeesFlowBuildData.toJsonObject().toString());
-    obj.put("buildTriggerSource", "Jenkins");
+    obj.put("buildTriggerSource", BUILD_TRIGGER_SOURCE);
+    obj.put("jenkinsBuildAssociationType", JENKINS_BUILD_ASSOCIATION_TYPE);
     String content = obj.toString();
     return runRestAPI(endpoint, POST, content);
   }
@@ -350,7 +353,8 @@ public class ElectricFlowClient {
     JSONObject obj = new JSONObject();
     obj.put("buildName", cloudBeesFlowBuildData.getDisplayName());
     obj.put("jenkinsData", cloudBeesFlowBuildData.toJsonObject().toString());
-    obj.put("buildTriggerSource", "Jenkins");
+    obj.put("buildTriggerSource", BUILD_TRIGGER_SOURCE);
+    obj.put("jenkinsBuildAssociationType", JENKINS_BUILD_ASSOCIATION_TYPE);
     String content = obj.toString();
     return runRestAPI(endpoint, POST, content);
   }
@@ -364,7 +368,8 @@ public class ElectricFlowClient {
     obj.put("projectName", projectName);
     obj.put("buildName", cloudBeesFlowBuildData.getDisplayName());
     obj.put("jenkinsData", cloudBeesFlowBuildData.toJsonObject().toString());
-    obj.put("buildTriggerSource", "Jenkins");
+    obj.put("buildTriggerSource", BUILD_TRIGGER_SOURCE);
+    obj.put("jenkinsBuildAssociationType", JENKINS_BUILD_ASSOCIATION_TYPE);
     String content = obj.toString();
     return runRestAPI(endpoint, POST, content);
   }
