@@ -3,105 +3,108 @@ package org.jenkinsci.plugins.electricflow.extension;
 import hudson.ExtensionList;
 import hudson.ExtensionPoint;
 import hudson.model.Run;
+import java.util.ArrayList;
+import java.util.List;
 import jenkins.model.Jenkins;
 import net.sf.json.JSONObject;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public class CloudBeesFlowPipeline implements ExtensionPoint {
-    protected String stageName;
-    protected String result;
-    protected String reason;
-    protected long duration;
-    protected long timestamp;
-    protected String logs;
+  protected String stageName;
+  protected String result;
+  protected String reason;
+  protected long duration;
+  protected long timestamp;
+  protected String logs;
 
-    public CloudBeesFlowPipeline() {}
-    public static List<CloudBeesFlowPipeline> build (Run run) {
-        final Jenkins jenkins = Jenkins.get();
-        List<CloudBeesFlowPipeline> result = new ArrayList<>();
-        if (jenkins != null) {
-            ExtensionList.lookup(CloudBeesFlowPipeline.class);
-            final ExtensionList<CloudBeesFlowPipeline> makers = ExtensionList.lookup(CloudBeesFlowPipeline.class);
-            for (CloudBeesFlowPipeline m : makers) {
-                result = m.generate(run);
-                if (result != null) {
-                    return result;
-                }
-            }
+  public CloudBeesFlowPipeline() {}
+
+  public static List<CloudBeesFlowPipeline> build(Run run) {
+    final Jenkins jenkins = Jenkins.get();
+    List<CloudBeesFlowPipeline> result = new ArrayList<>();
+    if (jenkins != null) {
+      ExtensionList.lookup(CloudBeesFlowPipeline.class);
+      final ExtensionList<CloudBeesFlowPipeline> makers =
+          ExtensionList.lookup(CloudBeesFlowPipeline.class);
+      for (CloudBeesFlowPipeline m : makers) {
+        result = m.generate(run);
+        if (result != null) {
+          return result;
         }
-        return result;
+      }
     }
-    public JSONObject toJsonObject() {
-        JSONObject json = new JSONObject();
+    return result;
+  }
 
-        if (this.getStageName() != null) {
-            json.put("stageName", this.getStageName());
-        }
-        if (this.getResult() != null) {
-            json.put("result", this.getResult());
-        }
-        if (this.getReason() != null) {
-            json.put("reason", this.getReason());
-        }
-        json.put("duration", this.getDuration());
-        json.put("timestamp", this.getTimestamp());
-        json.put("logs", this.getLogs());
+  public JSONObject toJsonObject() {
+    JSONObject json = new JSONObject();
 
-        return json;
+    if (this.getStageName() != null) {
+      json.put("stageName", this.getStageName());
     }
-//    public boolean populate(Run run) {
-//        return false;
-//    }
-    public List<CloudBeesFlowPipeline> generate(Run run) {
-        return new ArrayList<>();
+    if (this.getResult() != null) {
+      json.put("result", this.getResult());
     }
-    public String getStageName() {
-        return stageName;
+    if (this.getReason() != null) {
+      json.put("reason", this.getReason());
     }
+    json.put("duration", this.getDuration());
+    json.put("timestamp", this.getTimestamp());
+    json.put("logs", this.getLogs());
 
-    public void setStageName(String stageName) {
-        this.stageName = stageName;
-    }
+    return json;
+  }
+  //    public boolean populate(Run run) {
+  //        return false;
+  //    }
+  public List<CloudBeesFlowPipeline> generate(Run run) {
+    return new ArrayList<>();
+  }
 
-    public String getResult() {
-        return result;
-    }
+  public String getStageName() {
+    return stageName;
+  }
 
-    public void setResult(String result) {
-        this.result = result;
-    }
+  public void setStageName(String stageName) {
+    this.stageName = stageName;
+  }
 
-    public String getReason() {
-        return reason;
-    }
+  public String getResult() {
+    return result;
+  }
 
-    public void setReason(String reason) {
-        this.reason = reason;
-    }
+  public void setResult(String result) {
+    this.result = result;
+  }
 
-    public long getDuration() {
-        return duration;
-    }
+  public String getReason() {
+    return reason;
+  }
 
-    public void setDuration(long duration) {
-        this.duration = duration;
-    }
+  public void setReason(String reason) {
+    this.reason = reason;
+  }
 
-    public long getTimestamp() {
-        return timestamp;
-    }
+  public long getDuration() {
+    return duration;
+  }
 
-    public void setTimestamp(long timestamp) {
-        this.timestamp = timestamp;
-    }
+  public void setDuration(long duration) {
+    this.duration = duration;
+  }
 
-    public String getLogs() {
-        return logs;
-    }
+  public long getTimestamp() {
+    return timestamp;
+  }
 
-    public void setLogs(String logs) {
-        this.logs = logs;
-    }
+  public void setTimestamp(long timestamp) {
+    this.timestamp = timestamp;
+  }
+
+  public String getLogs() {
+    return logs;
+  }
+
+  public void setLogs(String logs) {
+    this.logs = logs;
+  }
 }
