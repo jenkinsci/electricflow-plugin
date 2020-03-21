@@ -329,11 +329,14 @@ public class ElectricFlowClient {
   public String setJenkinsBuildDetailsRunPipeline(
       CloudBeesFlowBuildData cloudBeesFlowBuildData, String projectName, String flowRuntimeId)
       throws IOException {
-    String endpoint = "projects/" + projectName + "/jenkinsBuildDetails";
+    String endpoint =
+        "projects/"
+            + projectName
+            + "/jenkinsBuildDetails/"
+            + cloudBeesFlowBuildData.getDisplayName()
+            + "?request=setJenkinsBuildDetail";
     JSONObject obj = new JSONObject();
-    obj.put("buildName", cloudBeesFlowBuildData.getDisplayName());
     obj.put("flowRuntimeId", flowRuntimeId);
-    obj.put("projectName", projectName);
     obj.put("jenkinsData", cloudBeesFlowBuildData.toJsonObject().toString());
     obj.put("buildTriggerSource", BUILD_TRIGGER_SOURCE);
     obj.put("jenkinsBuildAssociationType", JENKINS_BUILD_ASSOCIATION_TYPE);
@@ -349,10 +352,13 @@ public class ElectricFlowClient {
       String releaseName,
       String releaseProjectName)
       throws IOException {
-    String endpoint = "projects/" + projectName + "/jenkinsBuildDetails";
+    String endpoint =
+        "projects/"
+            + projectName
+            + "/jenkinsBuildDetails/"
+            + cloudBeesFlowBuildData.getDisplayName()
+            + "?request=setJenkinsBuildDetail";
     JSONObject obj = new JSONObject();
-    obj.put("request", "setJenkinsBuildDetail");
-    obj.put("buildName", cloudBeesFlowBuildData.getDisplayName());
     obj.put("releaseName", releaseName);
     obj.put("jenkinsData", cloudBeesFlowBuildData.toJsonObject().toString());
     obj.put("buildTriggerSource", BUILD_TRIGGER_SOURCE);
@@ -365,12 +371,14 @@ public class ElectricFlowClient {
   public String setJenkinsBuildDetailsPublishArtifact(
       CloudBeesFlowBuildData cloudBeesFlowBuildData, String projectName, String artifactVersionName)
       throws IOException {
-    String endpoint = "projects/" + projectName + "/jenkinsBuildDetails";
+    String endpoint =
+        "projects/"
+            + projectName
+            + "/jenkinsBuildDetails/"
+            + cloudBeesFlowBuildData.getDisplayName()
+            + "?request=setJenkinsBuildDetail";
     JSONObject obj = new JSONObject();
-    obj.put("request", "setJenkinsBuildDetail");
     obj.put("artifactVersionName", artifactVersionName);
-    obj.put("projectName", projectName);
-    obj.put("buildName", cloudBeesFlowBuildData.getDisplayName());
     obj.put("jenkinsData", cloudBeesFlowBuildData.toJsonObject().toString());
     obj.put("buildTriggerSource", BUILD_TRIGGER_SOURCE);
     obj.put("jenkinsBuildAssociationType", JENKINS_BUILD_ASSOCIATION_TYPE);
