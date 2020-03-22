@@ -324,6 +324,7 @@ public class ElectricFlowClient {
     String endpoint = "/jenkinsBuildDetails?request=setJenkinsBuildDetail";
     JSONObject obj = new JSONObject();
     obj.put("buildName", cloudBeesFlowBuildData.getDisplayName());
+    obj.put("projectName", projectName);
     obj.put("flowRuntimeId", flowRuntimeId);
     obj.put("jenkinsData", cloudBeesFlowBuildData.toJsonObject().toString());
     obj.put("buildTriggerSource", BUILD_TRIGGER_SOURCE);
@@ -343,6 +344,7 @@ public class ElectricFlowClient {
     String endpoint = "/jenkinsBuildDetails?request=setJenkinsBuildDetail";
     JSONObject obj = new JSONObject();
     obj.put("buildName", cloudBeesFlowBuildData.getDisplayName());
+    obj.put("projectName", projectName);
     obj.put("releaseName", releaseName);
     obj.put("jenkinsData", cloudBeesFlowBuildData.toJsonObject().toString());
     obj.put("buildTriggerSource", BUILD_TRIGGER_SOURCE);
@@ -358,6 +360,7 @@ public class ElectricFlowClient {
     String endpoint = "/jenkinsBuildDetails?request=setJenkinsBuildDetail";
     JSONObject obj = new JSONObject();
     obj.put("buildName", cloudBeesFlowBuildData.getDisplayName());
+    obj.put("projectName", projectName);
     obj.put("artifactVersionName", artifactVersionName);
     obj.put("jenkinsData", cloudBeesFlowBuildData.toJsonObject().toString());
     obj.put("buildTriggerSource", BUILD_TRIGGER_SOURCE);
