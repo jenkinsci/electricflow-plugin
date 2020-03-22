@@ -1,11 +1,3 @@
-// ElectricFlowClient.java --
-//
-// ElectricFlowClient.java is part of ElectricCommander.
-//
-// Copyright (c) 2005-2017 Electric Cloud, Inc.
-// All rights reserved.
-//
-
 package org.jenkinsci.plugins.electricflow;
 
 import static org.jenkinsci.plugins.electricflow.FileHelper.getPublishArtifactWorkspaceOnMaster;
@@ -329,13 +321,9 @@ public class ElectricFlowClient {
   public String setJenkinsBuildDetailsRunPipeline(
       CloudBeesFlowBuildData cloudBeesFlowBuildData, String projectName, String flowRuntimeId)
       throws IOException {
-    String endpoint =
-        "projects/"
-            + projectName
-            + "/jenkinsBuildDetails/"
-            + cloudBeesFlowBuildData.getDisplayName()
-            + "?request=setJenkinsBuildDetail";
+    String endpoint = "/jenkinsBuildDetails/?request=setJenkinsBuildDetail";
     JSONObject obj = new JSONObject();
+    obj.put("buildName", cloudBeesFlowBuildData.getDisplayName());
     obj.put("flowRuntimeId", flowRuntimeId);
     obj.put("jenkinsData", cloudBeesFlowBuildData.toJsonObject().toString());
     obj.put("buildTriggerSource", BUILD_TRIGGER_SOURCE);
@@ -352,13 +340,9 @@ public class ElectricFlowClient {
       String releaseName,
       String releaseProjectName)
       throws IOException {
-    String endpoint =
-        "projects/"
-            + projectName
-            + "/jenkinsBuildDetails/"
-            + cloudBeesFlowBuildData.getDisplayName()
-            + "?request=setJenkinsBuildDetail";
+    String endpoint = "/jenkinsBuildDetails/?request=setJenkinsBuildDetail";
     JSONObject obj = new JSONObject();
+    obj.put("buildName", cloudBeesFlowBuildData.getDisplayName());
     obj.put("releaseName", releaseName);
     obj.put("jenkinsData", cloudBeesFlowBuildData.toJsonObject().toString());
     obj.put("buildTriggerSource", BUILD_TRIGGER_SOURCE);
@@ -371,13 +355,9 @@ public class ElectricFlowClient {
   public String setJenkinsBuildDetailsPublishArtifact(
       CloudBeesFlowBuildData cloudBeesFlowBuildData, String projectName, String artifactVersionName)
       throws IOException {
-    String endpoint =
-        "projects/"
-            + projectName
-            + "/jenkinsBuildDetails/"
-            + cloudBeesFlowBuildData.getDisplayName()
-            + "?request=setJenkinsBuildDetail";
+    String endpoint = "/jenkinsBuildDetails/?request=setJenkinsBuildDetail";
     JSONObject obj = new JSONObject();
+    obj.put("buildName", cloudBeesFlowBuildData.getDisplayName());
     obj.put("artifactVersionName", artifactVersionName);
     obj.put("jenkinsData", cloudBeesFlowBuildData.toJsonObject().toString());
     obj.put("buildTriggerSource", BUILD_TRIGGER_SOURCE);
