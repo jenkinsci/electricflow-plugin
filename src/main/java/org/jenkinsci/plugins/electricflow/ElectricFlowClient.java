@@ -321,7 +321,7 @@ public class ElectricFlowClient {
   public String setJenkinsBuildDetailsRunPipeline(
       CloudBeesFlowBuildData cloudBeesFlowBuildData, String projectName, String flowRuntimeId)
       throws IOException {
-    String endpoint = "/jenkinsBuildDetails/?request=setJenkinsBuildDetail";
+    String endpoint = "/jenkinsBuildDetails?request=setJenkinsBuildDetail";
     JSONObject obj = new JSONObject();
     obj.put("buildName", cloudBeesFlowBuildData.getDisplayName());
     obj.put("flowRuntimeId", flowRuntimeId);
@@ -340,7 +340,7 @@ public class ElectricFlowClient {
       String releaseName,
       String releaseProjectName)
       throws IOException {
-    String endpoint = "/jenkinsBuildDetails/?request=setJenkinsBuildDetail";
+    String endpoint = "/jenkinsBuildDetails?request=setJenkinsBuildDetail";
     JSONObject obj = new JSONObject();
     obj.put("buildName", cloudBeesFlowBuildData.getDisplayName());
     obj.put("releaseName", releaseName);
@@ -355,7 +355,7 @@ public class ElectricFlowClient {
   public String setJenkinsBuildDetailsPublishArtifact(
       CloudBeesFlowBuildData cloudBeesFlowBuildData, String projectName, String artifactVersionName)
       throws IOException {
-    String endpoint = "/jenkinsBuildDetails/?request=setJenkinsBuildDetail";
+    String endpoint = "/jenkinsBuildDetails?request=setJenkinsBuildDetail";
     JSONObject obj = new JSONObject();
     obj.put("buildName", cloudBeesFlowBuildData.getDisplayName());
     obj.put("artifactVersionName", artifactVersionName);
