@@ -1,4 +1,3 @@
-
 // ElectricFlowProjectAction.java --
 //
 // ElectricFlowProjectAction.java is part of ElectricCommander.
@@ -12,45 +11,40 @@ package org.jenkinsci.plugins.electricflow;
 import hudson.model.AbstractProject;
 import hudson.model.Action;
 
-public class ElectricFlowProjectAction
-    implements Action
-{
+public class ElectricFlowProjectAction implements Action {
 
-    //~ Instance fields --------------------------------------------------------
+  // ~ Instance fields --------------------------------------------------------
 
-    private AbstractProject<?, ?> project;
+  private AbstractProject<?, ?> project;
 
-    //~ Constructors -----------------------------------------------------------
+  // ~ Constructors -----------------------------------------------------------
 
-    ElectricFlowProjectAction(final AbstractProject<?, ?> project)
-    {
-        this.project = project;
-    }
+  ElectricFlowProjectAction(final AbstractProject<?, ?> project) {
+    this.project = project;
+  }
 
-    //~ Methods ----------------------------------------------------------------
+  // ~ Methods ----------------------------------------------------------------
 
-    @Override public String getDisplayName()
-    {
-        return "ElectricFlow Pipeline publisher action";
-    }
+  @Override
+  public String getDisplayName() {
+    return "ElectricFlow Pipeline publisher action";
+  }
 
-    @Override public String getIconFileName()
-    {
-        return "/plugin/electricflow-integration/img/project_icon.png";
-    }
+  @Override
+  public String getIconFileName() {
+    return "/plugin/electricflow-integration/img/project_icon.png";
+  }
 
-    public AbstractProject<?, ?> getProject()
-    {
-        return this.project;
-    }
+  public AbstractProject<?, ?> getProject() {
+    return this.project;
+  }
 
-    public String getProjectName()
-    {
-        return this.project.getName();
-    }
+  public String getProjectName() {
+    return this.project.getName();
+  }
 
-    @Override public String getUrlName()
-    {
-        return "Electric flow publisher action";
-    }
+  @Override
+  public String getUrlName() {
+    return "Electric flow publisher action";
+  }
 }

@@ -1,4 +1,3 @@
-
 // Release.java --
 //
 // Release.java is part of ElectricCommander.
@@ -12,79 +11,65 @@ package org.jenkinsci.plugins.electricflow;
 import java.util.Collections;
 import java.util.List;
 
-public class Release
-{
+public class Release {
 
-    //~ Instance fields --------------------------------------------------------
+  // ~ Instance fields --------------------------------------------------------
 
-    private String       configuration;
-    private List<String> startStages;
-    private String       releaseName;
-    private String       pipelineName;
-    private List<String> pipelineParameters;
+  private String configuration;
+  private List<String> startStages;
+  private String releaseName;
+  private String pipelineName;
+  private List<String> pipelineParameters;
+  private String projectName;
 
-    public String getProjectName() {
-        return projectName;
-    }
+  public Release(String configuration, String projectName, String releaseName) {
+    this.configuration = configuration;
+    this.releaseName = releaseName;
+    this.projectName = projectName;
+  }
 
-    private String projectName;
+  // ~ Constructors -----------------------------------------------------------
 
-    //~ Constructors -----------------------------------------------------------
+  public String getProjectName() {
+    return projectName;
+  }
 
-    public Release(
-            String configuration,
-            String projectName,
-            String releaseName)
-    {
-        this.configuration = configuration;
-        this.releaseName   = releaseName;
-        this.projectName = projectName;
-    }
+  // ~ Methods ----------------------------------------------------------------
 
-    //~ Methods ----------------------------------------------------------------
+  public String getConfiguration() {
+    return configuration;
+  }
 
-    public String getConfiguration()
-    {
-        return configuration;
-    }
+  public String getPipelineName() {
+    return pipelineName;
+  }
 
-    public String getPipelineName()
-    {
-        return pipelineName;
-    }
+  public void setPipelineName(String pipelineName) {
+    this.pipelineName = pipelineName;
+  }
 
-    public String getReleaseName() {
-        return releaseName;
-    }
+  public String getReleaseName() {
+    return releaseName;
+  }
 
-    public List<String> getPipelineParameters()
-    {
-        return pipelineParameters;
-    }
+  public void setReleaseName(String releaseName) {
+    this.releaseName = releaseName;
+  }
 
-    public List<String> getStartStages()
-    {
-        return startStages;
-    }
+  public List<String> getPipelineParameters() {
+    return pipelineParameters;
+  }
 
-    public void setPipelineName(String pipelineName)
-    {
-        this.pipelineName = pipelineName;
-    }
+  public void setPipelineParameters(List<String> pipelineParameters) {
+    this.pipelineParameters = pipelineParameters;
+  }
 
-    public void setPipelineParameters(List<String> pipelineParameters)
-    {
-        this.pipelineParameters = pipelineParameters;
-    }
+  public List<String> getStartStages() {
+    return startStages;
+  }
 
-    public void setReleaseName(String releaseName)
-    {
-        this.releaseName = releaseName;
-    }
-
-    public void setStartStages(List<String> startStages)
-    {
-        Collections.sort(startStages, String::compareTo);
-        this.startStages = startStages;
-    }
+  public void setStartStages(List<String> startStages) {
+    Collections.sort(startStages, String::compareTo);
+    this.startStages = startStages;
+  }
 }

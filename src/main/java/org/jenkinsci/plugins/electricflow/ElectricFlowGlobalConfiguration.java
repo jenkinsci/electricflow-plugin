@@ -1,4 +1,3 @@
-
 // ElectricFlowGlobalConfiguration.java --
 //
 // ElectricFlowGlobalConfiguration.java is part of ElectricCommander.
@@ -9,47 +8,36 @@
 
 package org.jenkinsci.plugins.electricflow;
 
+import hudson.Extension;
 import java.util.List;
-
+import jenkins.model.GlobalConfiguration;
+import net.sf.json.JSONObject;
 import org.kohsuke.stapler.StaplerRequest;
 
-import net.sf.json.JSONObject;
+@Extension
+public class ElectricFlowGlobalConfiguration extends GlobalConfiguration {
 
-import hudson.Extension;
+  // ~ Instance fields --------------------------------------------------------
 
-import jenkins.model.GlobalConfiguration;
+  public List<Configuration> efConfigurations;
 
-@Extension public class ElectricFlowGlobalConfiguration
-    extends GlobalConfiguration
-{
+  // ~ Constructors -----------------------------------------------------------
 
-    //~ Instance fields --------------------------------------------------------
+  public ElectricFlowGlobalConfiguration() {
+    load();
+  }
 
-    public List<Configuration> efConfigurations;
+  // ~ Methods ----------------------------------------------------------------
 
-    //~ Constructors -----------------------------------------------------------
+  @Override
+  public boolean configure(StaplerRequest req, JSONObject formData) throws FormException {
+    this.efConfigurations = req.bindJSONToList(Configuration.class, formData.get("configurations"));
+    save();
 
-    public ElectricFlowGlobalConfiguration()
-    {
-        load();
-    }
+    return true;
+  }
 
-    //~ Methods ----------------------------------------------------------------
-
-    @Override public boolean configure(
-            StaplerRequest req,
-            JSONObject     formData)
-        throws FormException
-    {
-        this.efConfigurations = req.bindJSONToList(Configuration.class,
-                formData.get("configurations"));
-        save();
-
-        return true;
-    }
-
-    public List<Configuration> getConfigurations()
-    {
-        return this.efConfigurations;
-    }
+  public List<Configuration> getConfigurations() {
+    return this.efConfigurations;
+  }
 }
