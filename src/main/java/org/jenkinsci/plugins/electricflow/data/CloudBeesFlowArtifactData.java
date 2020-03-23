@@ -1,12 +1,3 @@
-
-// CloudBeesFlowArtifactData.java --
-//
-// CloudBeesFlowArtifactData.java is part of CloudBees Flow.
-//
-// Copyright (c) 2020 CloudBees, Inc.
-// All rights reserved.
-//
-
 package org.jenkinsci.plugins.electricflow.data;
 
 import java.util.ArrayList;
