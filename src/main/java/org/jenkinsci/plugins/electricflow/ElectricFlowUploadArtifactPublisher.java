@@ -25,7 +25,6 @@ import net.sf.json.JSONObject;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jenkinsci.Symbol;
-import org.jenkinsci.plugins.electricflow.data.CloudBeesFlowBuildData;
 import org.jenkinsci.plugins.electricflow.extension.ArtifactUploadData;
 import org.jenkinsci.plugins.electricflow.factories.ElectricFlowClientFactory;
 import org.jenkinsci.plugins.electricflow.ui.HtmlUtils;
@@ -154,8 +153,6 @@ public class ElectricFlowUploadArtifactPublisher extends Recorder implements Sim
 
       action.setArtifactUploadData(artifactUploadData);
 
-      CloudBeesFlowBuildData cloudBeesFlowBuildData = new CloudBeesFlowBuildData(run);
-
       taskListener.getLogger().println("++++++++++++++++++++++++++++++++++++++++++++");
       taskListener.getLogger().println("Artifact Name: " + artifactUploadData.getArtifactName());
       taskListener
@@ -172,22 +169,6 @@ public class ElectricFlowUploadArtifactPublisher extends Recorder implements Sim
           .getLogger()
           .println("Repository Type: " + artifactUploadData.getRepositoryType());
       taskListener.getLogger().println("File path: " + artifactUploadData.getFilePath());
-      taskListener
-          .getLogger()
-          .println(
-              "Jenkins Build Data for setJenkinsBuildDetail API: "
-                  + cloudBeesFlowBuildData.toJsonObject().toString());
-      taskListener.getLogger().println("++++++++++++++++++++++++++++++++++++++++++++");
-
-      // Considering that the JenkinsBuildDetails Flow Rest API requires a Project to associate a
-      // build with and a Project is not
-      // required to Publish an Artifact, the project called "default" is used to workaround it.
-      // This design in Core Flow Integration, needs to be revisited.
-      String associateResult =
-          efClient.setJenkinsBuildDetailsPublishArtifact(
-              cloudBeesFlowBuildData, "Default", artifactVersionName);
-
-      taskListener.getLogger().println("Response from Flow Server: " + associateResult);
       taskListener.getLogger().println("++++++++++++++++++++++++++++++++++++++++++++");
 
       run.addAction(action);
