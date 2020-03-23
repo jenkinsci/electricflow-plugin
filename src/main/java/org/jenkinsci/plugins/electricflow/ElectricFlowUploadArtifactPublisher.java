@@ -153,7 +153,7 @@ public class ElectricFlowUploadArtifactPublisher extends Recorder implements Sim
 
       ArtifactUploadData artifactUploadData = new ArtifactUploadData();
       artifactUploadData.setArtifactName(newArtifactName);
-      artifactUploadData.setArtifactUrl(HtmlUtils.encodeForHtml(efArtifactUrl));
+      artifactUploadData.setArtifactUrl(efArtifactUrl);
       artifactUploadData.setArtifactVersion(newArtifactVersion);
       artifactUploadData.setRepositoryName(repository);
       artifactUploadData.setRepositoryType(FLOW_ARTIFACT_REPOSITORY);
