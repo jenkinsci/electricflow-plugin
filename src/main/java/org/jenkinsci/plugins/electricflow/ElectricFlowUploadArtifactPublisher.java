@@ -24,7 +24,6 @@ import hudson.util.FormValidation;
 import hudson.util.ListBoxModel;
 import java.io.IOException;
 import java.io.PrintStream;
-import java.io.UnsupportedEncodingException;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
@@ -147,8 +146,7 @@ public class ElectricFlowUploadArtifactPublisher extends Recorder implements Sim
 
       String repository = repositoryName.isEmpty() ? "default" : repositoryName;
 
-      String summaryHtml =
-          getSummaryHtml(newArtifactVersion, newArtifactName, repository, efArtifactUrl);
+      String summaryHtml = getSummaryHtml(newArtifactVersion, repository, efArtifactUrl);
 
       ArtifactUploadSummaryTextAction action =
           new ArtifactUploadSummaryTextAction(run, summaryHtml);
@@ -261,30 +259,22 @@ public class ElectricFlowUploadArtifactPublisher extends Recorder implements Sim
     return BuildStepMonitor.NONE;
   }
 
-  private String getSummaryHtml(
-      String newArtifactVersion, String newArtifactName, String repository, String efUrl)
-      throws UnsupportedEncodingException {
-
-    String url =
-        efUrl
-            + "/commander/link/artifactVersionDetails/artifactVersions/"
-            + Utils.encodeURL(newArtifactName + ":" + newArtifactVersion)
-            + "?s=Artifacts&ss=Artifacts";
+  private String getSummaryHtml(String newArtifactVersion, String repository, String efUrl) {
 
     return "<h3>CloudBees Flow Publish Artifact</h3>"
         + "<table cellspacing=\"2\" cellpadding=\"4\">\n"
         + "  <tr>\n"
         + "    <td>Artifact URL:</td>\n"
         + "    <td><a href ='"
-        + HtmlUtils.encodeForHtml(url)
+        + HtmlUtils.encodeForHtml(efUrl)
         + "'>"
-        + HtmlUtils.encodeForHtml(url)
+        + HtmlUtils.encodeForHtml(efUrl)
         + "</a></td> \n"
         + "  </tr>\n"
         + "  <tr>\n"
         + "    <td>Artifact Name:</td>\n"
         + "    <td><a href ='"
-        + HtmlUtils.encodeForHtml(url)
+        + HtmlUtils.encodeForHtml(efUrl)
         + "'>"
         + HtmlUtils.encodeForHtml(artifactName)
         + "</a></td> \n"
