@@ -1,11 +1,3 @@
-// SummaryTextAction.java --
-//
-// SummaryTextAction.java is part of ElectricCommander.
-//
-// Copyright (c) 2005-2017 Electric Cloud, Inc.
-// All rights reserved.
-//
-
 package org.jenkinsci.plugins.electricflow;
 
 import static org.jenkinsci.plugins.electricflow.ui.HtmlUtils.getHtmlPolicy;
