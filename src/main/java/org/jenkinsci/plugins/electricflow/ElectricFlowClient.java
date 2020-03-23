@@ -353,22 +353,6 @@ public class ElectricFlowClient {
     return runRestAPI(endpoint, POST, content);
   }
 
-  // Flow Endpoint :: artifactVersions​/{artifactVersionName}​/jenkinsBuildDetails​/{buildName}
-  public String setJenkinsBuildDetailsPublishArtifact(
-      CloudBeesFlowBuildData cloudBeesFlowBuildData, String projectName, String artifactVersionName)
-      throws IOException {
-    String endpoint = "/jenkinsBuildDetails?request=setJenkinsBuildDetail";
-    JSONObject obj = new JSONObject();
-    obj.put("buildName", cloudBeesFlowBuildData.getDisplayName());
-    obj.put("projectName", projectName);
-    obj.put("artifactVersionName", artifactVersionName);
-    obj.put("jenkinsData", cloudBeesFlowBuildData.toJsonObject().toString());
-    obj.put("buildTriggerSource", BUILD_TRIGGER_SOURCE);
-    obj.put("jenkinsBuildAssociationType", JENKINS_BUILD_ASSOCIATION_TYPE);
-    String content = obj.toString();
-    return runRestAPI(endpoint, POST, content);
-  }
-
   public String uploadArtifact(
       Run<?, ?> build,
       TaskListener listener,
