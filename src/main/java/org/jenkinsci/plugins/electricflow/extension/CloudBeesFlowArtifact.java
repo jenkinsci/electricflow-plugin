@@ -69,7 +69,7 @@ public class CloudBeesFlowArtifact {
       json.put("artifactVersion", this.getArtifactVersion());
     }
 
-    if (this.getArtifactVersion() != null) {
+    if (this.getArtifactVersionName() != null) {
       json.put("artifactVersionName", this.getArtifactVersionName());
     }
 
