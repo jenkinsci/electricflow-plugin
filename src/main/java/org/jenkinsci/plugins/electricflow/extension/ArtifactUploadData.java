@@ -1,12 +1,3 @@
-
-// ArtifactUploadData.java --
-//
-// ArtifactUploadData.java is part of CloudBees Flow.
-//
-// Copyright (c) 2020 CloudBees, Inc.
-// All rights reserved.
-//
-
 package org.jenkinsci.plugins.electricflow.extension;
 
 public class ArtifactUploadData
