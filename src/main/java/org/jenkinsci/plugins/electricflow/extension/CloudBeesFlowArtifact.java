@@ -13,6 +13,7 @@ public class CloudBeesFlowArtifact {
   protected long size;
   protected String artifactName;
   protected String artifactVersion;
+  protected String artifactVersionName;
   protected String artifactUrl;
   protected String repositoryName;
   protected String repositoryType;
@@ -32,6 +33,7 @@ public class CloudBeesFlowArtifact {
     if (artifactUploadData != null) {
       cloudBeesFlowArtifact.setArtifactName(artifactUploadData.getArtifactName());
       cloudBeesFlowArtifact.setArtifactVersion(artifactUploadData.getArtifactVersion());
+      cloudBeesFlowArtifact.setArtifactVersionName(artifactUploadData.getArtifactVersionName());
       cloudBeesFlowArtifact.setArtifactUrl(artifactUploadData.getArtifactUrl());
       cloudBeesFlowArtifact.setRepositoryName(artifactUploadData.getRepositoryName());
       cloudBeesFlowArtifact.setRepositoryType(artifactUploadData.getRepositoryType());
@@ -65,6 +67,10 @@ public class CloudBeesFlowArtifact {
 
     if (this.getArtifactVersion() != null) {
       json.put("artifactVersion", this.getArtifactVersion());
+    }
+
+    if (this.getArtifactVersion() != null) {
+      json.put("artifactVersionName", this.getArtifactVersionName());
     }
 
     if (this.getArtifactUrl() != null) {
@@ -144,6 +150,14 @@ public class CloudBeesFlowArtifact {
 
   public void setArtifactVersion(String artifactVersion) {
     this.artifactVersion = artifactVersion;
+  }
+
+  public String getArtifactVersionName() {
+    return artifactVersionName;
+  }
+
+  public void setArtifactVersionName(String artifactVersionName) {
+    this.artifactVersionName = artifactVersionName;
   }
 
   public String getArtifactUrl() {

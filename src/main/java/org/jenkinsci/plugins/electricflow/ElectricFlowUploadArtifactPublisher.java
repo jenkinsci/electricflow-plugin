@@ -147,6 +147,7 @@ public class ElectricFlowUploadArtifactPublisher extends Recorder implements Sim
       artifactUploadData.setArtifactName(newArtifactName);
       artifactUploadData.setArtifactUrl(efArtifactUrl);
       artifactUploadData.setArtifactVersion(newArtifactVersion);
+      artifactUploadData.setArtifactVersionName(artifactVersionName);
       artifactUploadData.setRepositoryName(repository);
       artifactUploadData.setRepositoryType(FLOW_ARTIFACT_REPOSITORY);
       artifactUploadData.setFilePath(newFilePath);
@@ -160,6 +161,9 @@ public class ElectricFlowUploadArtifactPublisher extends Recorder implements Sim
       taskListener
           .getLogger()
           .println("Artifact Version: " + artifactUploadData.getArtifactVersion());
+      taskListener
+          .getLogger()
+          .println("Artifact Version Name: " + artifactUploadData.getArtifactVersionName());
       taskListener.getLogger().println("Artifact Url: " + artifactUploadData.getArtifactUrl());
       taskListener
           .getLogger()
