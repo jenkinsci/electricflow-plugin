@@ -1,5 +1,7 @@
 package org.jenkinsci.plugins.electricflow.data;
 
+import hudson.model.Cause;
+import hudson.model.Cause.UserIdCause;
 import hudson.model.Result;
 import hudson.model.Run;
 import hudson.scm.ChangeLogSet;
@@ -63,12 +65,25 @@ public class CloudBeesFlowBuildData {
     if (result != null) {
       this.setResult(result.toString());
     }
+
+    //resolve the launchedBy
+    List<Cause> causes = run.getCauses();
+    for(Cause cause: causes){
+       if(cause instanceof Cause.UserIdCause){
+         this.setLaunchedBy(((UserIdCause) cause).getUserName());
+         break;
+       }
+    }
+
     // todo: Improve reason handling
-    this.setDuration(run.getDuration());
+    long duration = run.getDuration();
+    if (duration == 0) {
+        duration = Math.max(System.currentTimeMillis() - run.getStartTimeInMillis(), 0);
+    }
+    this.setDuration(duration);
     this.setEstimatedDuration(run.getEstimatedDuration());
     this.setTimestamp(run.getTimestamp().getTimeInMillis());
     this.setUrl(rootUrl + run.getUrl());
-    // populating object values:
 
     // getting changesets information:
     RunWithSCM<?, ?> abstractBuild = (RunWithSCM<?, ?>) run;
