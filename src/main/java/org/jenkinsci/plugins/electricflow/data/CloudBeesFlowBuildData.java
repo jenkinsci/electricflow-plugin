@@ -68,11 +68,9 @@ public class CloudBeesFlowBuildData {
 
     //resolve the launchedBy
     List<Cause> causes = run.getCauses();
-    for(Cause cause: causes){
-       if(cause instanceof Cause.UserIdCause){
-         this.setLaunchedBy(((UserIdCause) cause).getUserName());
-         break;
-       }
+    if(!causes.isEmpty()){
+      Cause cause = causes.stream().findFirst().get();
+      this.setLaunchedBy(cause.getShortDescription());
     }
 
     // todo: Improve reason handling
