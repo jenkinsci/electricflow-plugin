@@ -23,8 +23,8 @@ public class CloudBeesFlowArtifact {
   public static CloudBeesFlowArtifact build(Artifact artifact, ArtifactUploadData artifactUploadData) {
     CloudBeesFlowArtifact cloudBeesFlowArtifact = new CloudBeesFlowArtifact();
 
+    cloudBeesFlowArtifact.setRelativePath(artifact.relativePath);
     cloudBeesFlowArtifact.setDisplayPath(artifact.getDisplayPath());
-    cloudBeesFlowArtifact.setRelativePath(artifact.getDisplayPath());
     cloudBeesFlowArtifact.setName(artifact.getFileName());
     cloudBeesFlowArtifact.setHref(artifact.getHref());
     cloudBeesFlowArtifact.setLength(artifact.getLength());
