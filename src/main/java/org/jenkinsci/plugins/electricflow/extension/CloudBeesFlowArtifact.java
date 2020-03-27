@@ -20,15 +20,15 @@ public class CloudBeesFlowArtifact {
 
   public CloudBeesFlowArtifact() {}
 
-  public static CloudBeesFlowArtifact build(Artifact obj, ArtifactUploadData artifactUploadData) {
+  public static CloudBeesFlowArtifact build(Artifact artifact, ArtifactUploadData artifactUploadData) {
     CloudBeesFlowArtifact cloudBeesFlowArtifact = new CloudBeesFlowArtifact();
 
-    cloudBeesFlowArtifact.setDisplayPath(obj.getDisplayPath());
-    cloudBeesFlowArtifact.setRelativePath(obj.getDisplayPath());
-    cloudBeesFlowArtifact.setName(obj.getFileName());
-    cloudBeesFlowArtifact.setHref(obj.getHref());
-    cloudBeesFlowArtifact.setLength(obj.getLength());
-    cloudBeesFlowArtifact.setSize(obj.getFileSize());
+    cloudBeesFlowArtifact.setDisplayPath(artifact.getDisplayPath());
+    cloudBeesFlowArtifact.setRelativePath(artifact.getDisplayPath());
+    cloudBeesFlowArtifact.setName(artifact.getFileName());
+    cloudBeesFlowArtifact.setHref(artifact.getHref());
+    cloudBeesFlowArtifact.setLength(artifact.getLength());
+    cloudBeesFlowArtifact.setSize(artifact.getFileSize());
 
     if (artifactUploadData != null) {
       cloudBeesFlowArtifact.setArtifactName(artifactUploadData.getArtifactName());

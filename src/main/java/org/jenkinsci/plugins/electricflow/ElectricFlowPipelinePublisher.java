@@ -110,7 +110,7 @@ public class ElectricFlowPipelinePublisher extends Recorder implements SimpleBui
     }
   }
 
-  private boolean runPipeline(Run run, BuildListener buildListener, TaskListener taskListener) {
+  private boolean runPipeline(Run<?,?> run, BuildListener buildListener, TaskListener taskListener) {
     logListener(
         buildListener,
         taskListener,
