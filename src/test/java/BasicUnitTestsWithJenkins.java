@@ -1,3 +1,4 @@
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import hudson.Functions;
@@ -5,7 +6,8 @@ import hudson.model.FreeStyleBuild;
 import hudson.model.FreeStyleProject;
 import hudson.tasks.BatchFile;
 import hudson.tasks.Shell;
-import java.io.File;
+
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.LinkedList;
@@ -52,7 +54,7 @@ public class BasicUnitTestsWithJenkins {
     electricFlowGlobalConfiguration.efConfigurations.add(configuration);
     electricFlowGlobalConfiguration.save();
 
-    assertTrue(electricFlowGlobalConfiguration.getConfigurations().size() == 1);
+    assertEquals(1, electricFlowGlobalConfiguration.getConfigurations().size());
   }
 
   @Test
@@ -64,9 +66,16 @@ public class BasicUnitTestsWithJenkins {
         .add(Functions.isWindows() ? new BatchFile(command) : new Shell(command));
     FreeStyleBuild build = project.scheduleBuild2(0).get();
     System.out.println(build.getDisplayName() + " completed");
-    File logFile = build.getLogFile();
+
+    InputStreamReader logFile = new InputStreamReader(build.getLogInputStream());
     StringBuilder log = new StringBuilder();
-    Files.lines(Paths.get(logFile.getPath())).forEachOrdered(log::append);
+
+    final char[] buffer = new char[1024];
+    int charsRead;
+    while((charsRead = logFile.read(buffer, 0, buffer.length)) > 0){
+      log.append(buffer, 0, charsRead);
+    }
+
     assertTrue(log.toString().contains("echo hello"));
   }
 }
