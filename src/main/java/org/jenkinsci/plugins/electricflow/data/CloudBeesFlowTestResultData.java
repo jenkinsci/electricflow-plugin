@@ -12,7 +12,9 @@ public class CloudBeesFlowTestResultData {
     this.testResultData = new ArrayList<>();
 
     CloudBeesFlowTestResult testResult = CloudBeesFlowTestResult.build(run);
-    this.testResultData.add(testResult);
+    if (testResult != null){
+      this.testResultData.add(testResult);
+    }
   }
 
   public List<CloudBeesFlowTestResult> getTestResultData() {
