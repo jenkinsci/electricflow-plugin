@@ -1,0 +1,72 @@
+<!--
+config.jelly -
+
+config.jelly is part of ElectricCommander.
+
+Copyright (c) 2005-2017 Electric Cloud, Inc.
+All rights reserved.
+-->
+
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core" xmlns:f="/lib/form" xmlns:st="jelly:stapler">
+    <f:entry title="Configuration" field="configuration" >
+        <f:select id="ef_sjbd_configuration"/>
+    </f:entry>
+    <st:include class="org.jenkinsci.plugins.electricflow.Credential" page="overrideCredential.jelly" />
+    <f:entry title="Project Name" field="projectName" >
+        <f:select id="ef_sjbd_projectName"/>
+    </f:entry>
+    <f:entry title="Release Name" field="releaseName" >
+        <f:select id="ef_sjbd_releaseName"/>
+    </f:entry>
+
+    <f:invisibleEntry>
+        <f:checkbox field="validationTrigger" id="ef_sjbd_validationTrigger"/>
+    </f:invisibleEntry>
+
+    <f:invisibleEntry>
+        <f:readOnlyTextbox field="storedConfiguration"/>
+    </f:invisibleEntry>
+    <f:invisibleEntry>
+        <f:readOnlyTextbox field="storedProjectName"/>
+    </f:invisibleEntry>
+    <f:invisibleEntry>
+        <f:readOnlyTextbox field="storedReleaseName"/>
+    </f:invisibleEntry>
+
+    <j:if test="${instance != null}">
+        <f:entry field="validateAndCompareBeforeApply">
+        </f:entry>
+    </j:if>
+    <j:if test="${instance == null}">
+        <f:entry field="validateBeforeApply">
+        </f:entry>
+    </j:if>
+
+    <f:entry>
+        <div style="float:right">
+            <span class="yui-button yui-push-button yui-button validate-button">
+                <button type="button" onclick="triggerExtraValidationForSetJenkinsBuildDetails();">Validate Before Apply</button>
+            </span>
+        </div>
+        <j:if test="${instance != null}">
+            <f:validateButton title="Compare Before Apply"
+                              progress="Comparing values..."
+                              method="showOldValues"
+                              with="configuration,projectName,releaseName,storedConfiguration,storedProjectName,storedReleaseName" />
+        </j:if>
+    </f:entry>
+
+    <script>
+        function updateReleaseJson() {
+            var procedureName = document.getElementById("ef_sjbd_releaseName").value;
+            var json = JSON.parse('{"release":{"releaseName":"' + releaseName + '"}}');
+        }
+
+
+        function triggerExtraValidationForSetJenkinsBuildDetails() {
+            document.getElementById("ef_sjbd_validationTrigger").click();
+        }
+    </script>
+
+</j:jelly>
