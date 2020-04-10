@@ -36,7 +36,6 @@ import java.util.Map;
 import javax.annotation.Nonnull;
 import jenkins.model.Jenkins;
 import jenkins.tasks.SimpleBuildStep;
-import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -52,9 +51,9 @@ import org.kohsuke.stapler.QueryParameter;
 
 // import hudson.model.Run.ArtifactList
 
-public class ElectricFlowSetJenkinsBuildDetails extends Recorder implements SimpleBuildStep {
+public class ElectricFlowAttachBuildDetailsToRelease extends Recorder implements SimpleBuildStep {
 
-  private static final Log log = LogFactory.getLog(ElectricFlowSetJenkinsBuildDetails.class);
+  private static final Log log = LogFactory.getLog(ElectricFlowAttachBuildDetailsToRelease.class);
 
   private String configuration;
   private Credential overrideCredential;
@@ -62,7 +61,7 @@ public class ElectricFlowSetJenkinsBuildDetails extends Recorder implements Simp
   private String releaseName;
 
   @DataBoundConstructor
-  public ElectricFlowSetJenkinsBuildDetails() {
+  public ElectricFlowAttachBuildDetailsToRelease() {
   }
 
   @Override
@@ -189,15 +188,18 @@ public class ElectricFlowSetJenkinsBuildDetails extends Recorder implements Simp
     );
 
     String buildUrl = electricFlowClient.getElectricFlowUrl() + path;
-    return "<h3>CloudBees Flow - Attaching Jenkins Build to Release</h3>"
+    return "<h3>CloudBees Flow - Attach Build Details to Release</h3>"
             + "<table cellspacing=\"2\" cellpadding=\"4\"> \n"
             + "  <tr>\n"
-            + "    <td>Go to Flow to see the attached build:</td>\n"
+            + "    <td>Flow release page:</td>\n"
             + "    <td><a target='_blank' href='"
             + HtmlUtils.encodeForHtml(buildUrl)
             + "'>"
             + HtmlUtils.encodeForHtml(releaseName)
             + "</a></td>   \n"
+        // TODO: Show tests count
+        // TODO: Show duration
+        // TODO: Show etc
             + "  </tr>"
         + "</table>";
   }
@@ -321,12 +323,12 @@ public class ElectricFlowSetJenkinsBuildDetails extends Recorder implements Simp
 
     @Override
     public String getDisplayName() {
-      return "CloudBees Flow - Set Jenkins Build Details";
+      return "CloudBees Flow - Attach Build Details To Release";
     }
 
     @Override
     public String getId() {
-      return "electricFlowSetJenkinsBuildDetails";
+      return "electricFlowAttachBuildDetailsToRelease";
     }
 
     @Override
