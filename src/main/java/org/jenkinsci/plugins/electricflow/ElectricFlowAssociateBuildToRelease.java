@@ -51,9 +51,9 @@ import org.kohsuke.stapler.QueryParameter;
 
 // import hudson.model.Run.ArtifactList
 
-public class ElectricFlowAttachBuildDetailsToRelease extends Recorder implements SimpleBuildStep {
+public class ElectricFlowAssociateBuildToRelease extends Recorder implements SimpleBuildStep {
 
-  private static final Log log = LogFactory.getLog(ElectricFlowAttachBuildDetailsToRelease.class);
+  private static final Log log = LogFactory.getLog(ElectricFlowAssociateBuildToRelease.class);
 
   private String configuration;
   private Credential overrideCredential;
@@ -61,7 +61,7 @@ public class ElectricFlowAttachBuildDetailsToRelease extends Recorder implements
   private String releaseName;
 
   @DataBoundConstructor
-  public ElectricFlowAttachBuildDetailsToRelease() {
+  public ElectricFlowAssociateBuildToRelease() {
   }
 
   @Override
@@ -323,12 +323,12 @@ public class ElectricFlowAttachBuildDetailsToRelease extends Recorder implements
 
     @Override
     public String getDisplayName() {
-      return "CloudBees Flow - Attach Build Details To Release";
+      return "CloudBees Flow - Associate Build To Release";
     }
 
     @Override
     public String getId() {
-      return "electricFlowAttachBuildDetailsToRelease";
+      return "electricFlowAssociateBuildToRelease";
     }
 
     @Override
