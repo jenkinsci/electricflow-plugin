@@ -9,7 +9,6 @@
 package org.jenkinsci.plugins.electricflow;
 
 import static net.sf.json.JSONObject.fromObject;
-import static org.jenkinsci.plugins.electricflow.Utils.expandParameters;
 import static org.jenkinsci.plugins.electricflow.Utils.formatJsonOutput;
 import static org.jenkinsci.plugins.electricflow.Utils.getValidationComparisonHeaderRow;
 import static org.jenkinsci.plugins.electricflow.Utils.getValidationComparisonRow;
@@ -31,7 +30,7 @@ import hudson.tasks.Recorder;
 import hudson.util.FormValidation;
 import hudson.util.ListBoxModel;
 import java.io.PrintStream;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import javax.annotation.Nonnull;
@@ -73,54 +72,54 @@ public class ElectricFlowSetJenkinsBuildDetails extends Recorder implements Simp
       @Nonnull Launcher launcher,
       @Nonnull TaskListener taskListener) {
 
-    boolean isSuccess = runProcedure(run, taskListener);
+    boolean isSuccess = setJenkinsBuildDetails(run, taskListener);
 
     if (!isSuccess) {
       run.setResult(Result.FAILURE);
     }
   }
 
-  private boolean runProcedure(@Nonnull Run<?, ?> run, @Nonnull TaskListener taskListener) {
+  private boolean setJenkinsBuildDetails(@Nonnull Run<?, ?> run,
+      @Nonnull TaskListener taskListener) {
     PrintStream logger = taskListener.getLogger();
 
     CloudBeesFlowBuildData cloudBeesFlowBuildData = new CloudBeesFlowBuildData(run);
     JSONObject json = cloudBeesFlowBuildData.toJsonObject();
 
-    logger.println("JSON: " + json.toString());
     logger.println("JENKINS VERSION: " + Jenkins.VERSION);
     logger.println("Project name: " + projectName + ", Release name: " + releaseName);
+    logger.println("JSON: " + json.toString());
 
-    throw new RuntimeException("Not implemented");
+    try {
+      logger.println("Preparing to attach build...");
 
-//    try {
-//      logger.println("Preparing to run procedure...");
-//
-//      EnvReplacer env = new EnvReplacer(run, taskListener);
+      EnvReplacer env = new EnvReplacer(run, taskListener);
 //      expandParameters(parameter, env, "value");
-//
-//      ElectricFlowClient efClient =
-//          ElectricFlowClientFactory.getElectricFlowClient(configuration, overrideCredential, env);
-//
-//      String result = efClient.runProcedure(projectName, releaseName, parameter);
-//
-//      Map<String, String> args = new HashMap<>();
-//
-//      args.put("procedureName", releaseName);
-//      args.put("result", result);
-//
-//      String summaryHtml = getSummaryHtml(efClient, parameter, args);
-//      SummaryTextAction action = new SummaryTextAction(run, summaryHtml);
-//
-//      run.addAction(action);
-//      run.save();
-//      logger.println("Run procedure result: " + formatJsonOutput(result));
-//    } catch (Exception e) {
-//      logger.println(e.getMessage());
-//      log.error(e.getMessage(), e);
-//      return false;
-//    }
-//
-//    return true;
+
+      ElectricFlowClient efClient =
+          ElectricFlowClientFactory.getElectricFlowClient(configuration, overrideCredential, env);
+
+      String result = efClient.setJenkinsBuildDetailsTriggerRelease(
+          cloudBeesFlowBuildData, projectName, releaseName
+      );
+
+      Map<String, String> args = new LinkedHashMap<>();
+      args.put("projectName", projectName);
+      args.put("releaseName", releaseName);
+      args.put("buildName", run.getDisplayName());
+
+      SummaryTextAction action = new SummaryTextAction(run, getSummaryHtml(efClient, result, args));
+
+      run.addAction(action);
+      run.save();
+      logger.println("Create jenkinsBuildDetails result: " + formatJsonOutput(result));
+    } catch (Exception e) {
+      logger.println(e.getMessage());
+      log.error(e.getMessage(), e);
+      return false;
+    }
+
+    return true;
   }
 
   public String getConfiguration() {
@@ -177,29 +176,30 @@ public class ElectricFlowSetJenkinsBuildDetails extends Recorder implements Simp
   }
 
   private String getSummaryHtml(
-      ElectricFlowClient configuration, JSONArray parameters, Map<String, String> args) {
-    throw new RuntimeException("Not implemented");
+      ElectricFlowClient electricFlowClient, String jsonResult, Map<String, String> args) {
 
-//    String result = args.get("result");
-//    String procedureName = args.get("releaseName");
-//    String jobId = fromObject(result).getString("jobId");
-//    String jobUrl = configuration.getElectricFlowUrl() + "/commander/link/jobDetails/jobs/" + jobId;
-//    String summaryText =
-//        "<h3>CloudBees Flow Run Procedure</h3>"
-//            + "<table cellspacing=\"2\" cellpadding=\"4\"> \n"
-//            + "  <tr>\n"
-//            + "    <td>Procedure Name:</td>\n"
-//            + "    <td><a href='"
-//            + HtmlUtils.encodeForHtml(jobUrl)
-//            + "'>"
-//            + HtmlUtils.encodeForHtml(procedureName)
-//            + "</a></td>   \n"
-//            + "  </tr>";
-//
-//    summaryText = Utils.getParametersHTML(parameters, summaryText, "actualParameterName", "value");
-//    summaryText = summaryText + "</table>";
-//
-//    return summaryText;
+    String result = jsonResult;
+
+    String releaseName = args.get("releaseName");
+    String projectName = args.get("projectName");
+    String buildName = args.get("buildName");
+
+    String path = String.format(
+        "/projects/%s/releases/%s/jenkinsBuildDetails/%s", projectName, releaseName, buildName
+    );
+
+    String buildUrl = electricFlowClient.getElectricFlowUrl() + path;
+    return "<h3>CloudBees Flow - Attaching Jenkins Build to Release</h3>"
+            + "<table cellspacing=\"2\" cellpadding=\"4\"> \n"
+            + "  <tr>\n"
+            + "    <td>Go to Flow to see the attached build:</td>\n"
+            + "    <td><a target='_blank' href='"
+            + HtmlUtils.encodeForHtml(buildUrl)
+            + "'>"
+            + HtmlUtils.encodeForHtml(releaseName)
+            + "</a></td>   \n"
+            + "  </tr>"
+        + "</table>";
   }
 
   @Symbol("cloudBeesFlowSetJenkinsBuildDetails")

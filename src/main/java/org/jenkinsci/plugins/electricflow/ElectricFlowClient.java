@@ -338,10 +338,11 @@ public class ElectricFlowClient {
   public String setJenkinsBuildDetailsTriggerRelease(
       CloudBeesFlowBuildData cloudBeesFlowBuildData,
       String projectName,
-      String releaseName,
-      String releaseProjectName)
+      String releaseName)
       throws IOException {
+
     String endpoint = "/jenkinsBuildDetails?request=setJenkinsBuildDetail";
+
     JSONObject obj = new JSONObject();
     obj.put("buildName", cloudBeesFlowBuildData.getDisplayName());
     obj.put("projectName", projectName);
@@ -349,7 +350,9 @@ public class ElectricFlowClient {
     obj.put("jenkinsData", cloudBeesFlowBuildData.toJsonObject().toString());
     obj.put("buildTriggerSource", BUILD_TRIGGER_SOURCE);
     obj.put("jenkinsBuildAssociationType", JENKINS_BUILD_ASSOCIATION_TYPE);
+
     String content = obj.toString();
+
     return runRestAPI(endpoint, POST, content);
   }
 

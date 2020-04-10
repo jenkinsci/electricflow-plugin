@@ -132,7 +132,7 @@ public class ElectricFlowTriggerRelease extends Recorder implements SimpleBuildS
           .getLogger()
           .println("About to call setJenkinsBuildDetails after triggering a Flow Release");
       String associateResult =
-          efClient.setJenkinsBuildDetailsTriggerRelease(cbfdb, projectName, releaseName, "");
+          efClient.setJenkinsBuildDetailsTriggerRelease(cbfdb, projectName, releaseName);
       taskListener.getLogger().println("Return from efClient: " + associateResult);
       taskListener.getLogger().println("++++++++++++++++++++++++++++++++++++++++++++");
 
