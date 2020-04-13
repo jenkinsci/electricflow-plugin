@@ -207,7 +207,7 @@ public class ElectricFlowAssociateBuildToRelease extends Recorder implements Sim
         + "</table>";
   }
 
-  @Symbol("cloudBeesFlowSetJenkinsBuildDetails")
+  @Symbol("cloudBeesFlowAssociateBuildToReleease")
   @Extension
   public static final class DescriptorImpl extends BuildStepDescriptor<Publisher> {
 
