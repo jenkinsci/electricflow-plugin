@@ -10,18 +10,18 @@ All rights reserved.
 <?jelly escape-by-default='true'?>
 <j:jelly xmlns:j="jelly:core" xmlns:f="/lib/form" xmlns:st="jelly:stapler">
     <f:entry title="Configuration" field="configuration" >
-        <f:select id="ef_sjbd_configuration"/>
+        <f:select id="ef_abtr_configuration"/>
     </f:entry>
     <st:include class="org.jenkinsci.plugins.electricflow.Credential" page="overrideCredential.jelly" />
     <f:entry title="Project Name" field="projectName" >
-        <f:select id="ef_sjbd_projectName"/>
+        <f:select id="ef_abtr_projectName"/>
     </f:entry>
     <f:entry title="Release Name" field="releaseName" >
-        <f:select id="ef_sjbd_releaseName"/>
+        <f:select id="ef_abtr_releaseName"/>
     </f:entry>
 
     <f:invisibleEntry>
-        <f:checkbox field="validationTrigger" id="ef_sjbd_validationTrigger"/>
+        <f:checkbox field="validationTrigger" id="ef_abtr_validationTrigger"/>
     </f:invisibleEntry>
 
     <f:invisibleEntry>
@@ -59,13 +59,13 @@ All rights reserved.
 
     <script>
         function updateReleaseJson() {
-            var procedureName = document.getElementById("ef_sjbd_releaseName").value;
+            var procedureName = document.getElementById("ef_abtr_releaseName").value;
             var json = JSON.parse('{"release":{"releaseName":"' + releaseName + '"}}');
         }
 
 
         function triggerExtraValidationForSetJenkinsBuildDetails() {
-            document.getElementById("ef_sjbd_validationTrigger").click();
+            document.getElementById("ef_abtr_validationTrigger").click();
         }
     </script>
 
