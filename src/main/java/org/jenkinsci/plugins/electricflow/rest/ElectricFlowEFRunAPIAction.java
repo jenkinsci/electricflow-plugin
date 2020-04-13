@@ -6,6 +6,7 @@ import jenkins.model.Jenkins;
 import jenkins.model.ParameterizedJobMixIn;
 import net.sf.json.JSONException;
 import net.sf.json.JSONObject;
+import org.jenkinsci.plugins.electricflow.causes.EFCause;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.StaplerResponse;
@@ -107,47 +108,3 @@ public class ElectricFlowEFRunAPIAction<T extends Job<?, ?> & ParameterizedJobMi
     }
 }
 
-@ExportedBean
-class EFCause extends hudson.model.Cause {
-    @Exported
-    public String flowRuntimeId;
-    @Exported
-    public String projectName;
-    @Exported
-    public String releaseName;
-
-    @Exported
-    public String getFlowRuntimeId() {
-        return flowRuntimeId;
-    }
-
-    @Exported
-    public void setFlowRuntimeId(String flowRuntimeId) {
-        this.flowRuntimeId = flowRuntimeId;
-    }
-
-    @Exported
-    public String getProjectName() {
-        return projectName;
-    }
-
-    @Exported
-    public void setProjectName(String projectName) {
-        this.projectName = projectName;
-    }
-
-    @Exported
-    public String getReleaseName() {
-        return releaseName;
-    }
-
-    @Exported
-    public void setReleaseName(String releaseName) {
-        this.releaseName = releaseName;
-    }
-
-
-    public String getShortDescription() {
-        return "EF Data";
-    }
-}
