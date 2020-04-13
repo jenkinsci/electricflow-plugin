@@ -36,6 +36,7 @@ import java.util.Map;
 import javax.annotation.Nonnull;
 import jenkins.model.Jenkins;
 import jenkins.tasks.SimpleBuildStep;
+import net.sf.json.JSONException;
 import net.sf.json.JSONObject;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -93,7 +94,6 @@ public class ElectricFlowAssociateBuildToRelease extends Recorder implements Sim
       logger.println("Preparing to attach build...");
 
       EnvReplacer env = new EnvReplacer(run, taskListener);
-//      expandParameters(parameter, env, "value");
 
       ElectricFlowClient efClient =
           ElectricFlowClientFactory.getElectricFlowClient(configuration, overrideCredential, env);
@@ -177,30 +177,33 @@ public class ElectricFlowAssociateBuildToRelease extends Recorder implements Sim
   private String getSummaryHtml(
       ElectricFlowClient electricFlowClient, String jsonResult, Map<String, String> args) {
 
-    String result = jsonResult;
-
     String releaseName = args.get("releaseName");
-    String projectName = args.get("projectName");
-    String buildName = args.get("buildName");
+    String releaseRunLink = electricFlowClient.getElectricFlowUrl();
 
-    String path = String.format(
-        "/projects/%s/releases/%s/jenkinsBuildDetails/%s", projectName, releaseName, buildName
-    );
+    try {
+      String flowRuntimeId = fromObject(jsonResult)
+          .getJSONObject("jenkinsBuildDetailInfo")
+          .getString("flowRuntimeId");
 
-    String buildUrl = electricFlowClient.getElectricFlowUrl() + path;
-    return "<h3>CloudBees Flow - Attach Build Details to Release</h3>"
-            + "<table cellspacing=\"2\" cellpadding=\"4\"> \n"
-            + "  <tr>\n"
-            + "    <td>Flow release page:</td>\n"
-            + "    <td><a target='_blank' href='"
-            + HtmlUtils.encodeForHtml(buildUrl)
-            + "'>"
-            + HtmlUtils.encodeForHtml(releaseName)
-            + "</a></td>   \n"
-        // TODO: Show tests count
-        // TODO: Show duration
-        // TODO: Show etc
-            + "  </tr>"
+      String path = String.format("flow/#pipeline-run/%s", flowRuntimeId);
+      releaseRunLink += path;
+    } catch (JSONException ex) {
+      // CEV-24565 API version does not support returning flowRuntimeId.
+      releaseRunLink += "/flow/#releases";
+    }
+
+    return "<h3>CloudBees Flow - Associate Build To Release</h3>"
+        + "<table cellspacing=\"2\" cellpadding=\"4\"> \n"
+        + "  <tr>\n"
+        + "    <td>Flow release page:</td>\n"
+        + "    <td>"
+        + "<a target='_blank' href='"
+        + HtmlUtils.encodeForHtml(releaseRunLink)
+        + "'>"
+        + HtmlUtils.encodeForHtml(releaseName)
+        + "</a>"
+        + "</td>\n"
+        + "  </tr>"
         + "</table>";
   }
 
