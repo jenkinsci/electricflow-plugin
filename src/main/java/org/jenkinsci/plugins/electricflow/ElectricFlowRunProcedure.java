@@ -12,6 +12,7 @@ package org.jenkinsci.plugins.electricflow;
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
+import hudson.RelativePath;
 import hudson.model.*;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.BuildStepMonitor;
@@ -278,6 +279,8 @@ public class ElectricFlowRunProcedure
 
         public ListBoxModel doFillProjectNameItems(
                 @QueryParameter String configuration,
+                @QueryParameter boolean overrideCredential,
+                @QueryParameter @RelativePath("overrideCredential") String credentialId,
                 @AncestorInPath Item item) {
             if (item == null || !item.hasPermission(Item.CONFIGURE)) {
                 return new ListBoxModel();
@@ -288,6 +291,8 @@ public class ElectricFlowRunProcedure
         public ListBoxModel doFillProcedureNameItems(
                 @QueryParameter String projectName,
                 @QueryParameter String configuration,
+                @QueryParameter boolean overrideCredential,
+                @QueryParameter @RelativePath("overrideCredential") String credentialId,
                 @AncestorInPath Item item) {
             if (item == null || !item.hasPermission(Item.CONFIGURE)) {
                 return new ListBoxModel();
@@ -301,7 +306,7 @@ public class ElectricFlowRunProcedure
                         && !projectName.isEmpty()
                         && SelectFieldUtils.checkAllSelectItemsAreNotValidationWrappers(projectName)) {
 
-                    ElectricFlowClient client = new ElectricFlowClient(configuration);
+                    ElectricFlowClient client = ElectricFlowClientFactory.getElectricFlowClient(configuration, new Credential(credentialId), null, true);
 
                     List<String> procedures = client.getProcedures(projectName);
 
@@ -324,6 +329,8 @@ public class ElectricFlowRunProcedure
 
         public ListBoxModel doFillProcedureParametersItems(
                 @QueryParameter String configuration,
+                @QueryParameter boolean overrideCredential,
+                @QueryParameter @RelativePath("overrideCredential") String credentialId,
                 @QueryParameter String projectName,
                 @QueryParameter String procedureName,
                 @QueryParameter String procedureParameters,
@@ -343,7 +350,7 @@ public class ElectricFlowRunProcedure
                     return m;
                 }
 
-                ElectricFlowClient client = new ElectricFlowClient(configuration);
+                ElectricFlowClient client = ElectricFlowClientFactory.getElectricFlowClient(configuration, new Credential(credentialId), null, true);
 
                 Map<String, String> storedParams = new HashMap<>();
 
