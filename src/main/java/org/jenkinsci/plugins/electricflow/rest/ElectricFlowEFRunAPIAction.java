@@ -1,5 +1,6 @@
 package org.jenkinsci.plugins.electricflow.rest;
 
+import groovy.json.JsonException;
 import hudson.model.*;
 import hudson.util.IOUtils;
 import jenkins.model.Jenkins;
@@ -53,7 +54,7 @@ public class ElectricFlowEFRunAPIAction<T extends Job<?, ?> & ParameterizedJobMi
     // action methods
     @POST
     public void doIndex(StaplerRequest req, StaplerResponse rsp) throws IOException, ServletException {
-        rsp.setStatus(200);
+        rsp.setStatus(201);
         String responseString = "Hello World";
         byte[] responseBytes = responseString.getBytes();
         rsp.setContentLength(responseBytes.length);
@@ -63,6 +64,7 @@ public class ElectricFlowEFRunAPIAction<T extends Job<?, ?> & ParameterizedJobMi
         // out.close();
     }
 
+    // TODO: Add CSRF protection here during implementation after PoC
     public void doBuild(
             StaplerRequest req,
             StaplerResponse rsp
@@ -70,7 +72,7 @@ public class ElectricFlowEFRunAPIAction<T extends Job<?, ?> & ParameterizedJobMi
             // @QueryParameter("value") final String value,
             // JSONObject formData
             ) throws IOException, ServletException {
-        rsp.setStatus(200);
+        rsp.setStatus(201);
         // ServletInputStream is = req.getInputStream();
         BufferedReader br = req.getReader();
         StringBuilder sb = new StringBuilder();
@@ -81,28 +83,43 @@ public class ElectricFlowEFRunAPIAction<T extends Job<?, ?> & ParameterizedJobMi
         JSONObject jsonObject = JSONObject.fromObject(sb.toString());
 
         String flowRuntimeId = null;
-        String projectName;
-        String releaseName;
+        String projectName = null;
+        String releaseName = null;
 
         try {
             flowRuntimeId = jsonObject.getString("flowRuntimeId");
         } catch (JSONException e) {};
+        try {
+            projectName = jsonObject.getString("projectName");
+        } catch (JSONException e) {};
+        try {
+            releaseName = jsonObject.getString("releaseName");
+        } catch (JSONException e) {};
 
-        String responseString = "Hello World default";
-        if (flowRuntimeId != null) {
-            responseString = flowRuntimeId;
-        }
-        byte[] responseBytes = responseString.getBytes();
-        rsp.setContentLength(responseBytes.length);
-        OutputStream out = rsp.getOutputStream();
+        JSONObject responseObject = new JSONObject();
+        responseObject.put("status", "ok");
+
+
+
         EFCause efcause = new EFCause();
         if (flowRuntimeId != null) {
             efcause.setFlowRuntimeId(flowRuntimeId);
-            efcause.setProjectName(flowRuntimeId);
-            efcause.setReleaseName(flowRuntimeId);
+        }
+        if (projectName != null) {
+            efcause.setProjectName(projectName);
+        }
+        if (releaseName != null) {
+            efcause.setReleaseName(releaseName);
         }
         CauseAction ca = new CauseAction(efcause);
         Queue.WaitingItem schedule = Jenkins.get().getQueue().schedule(project, 0, ca);
+        rsp.setHeader("location", "queue/" + Long.toString(schedule.getId()));
+        OutputStream out = rsp.getOutputStream();
+
+        responseObject.put("queueId", schedule.getId());
+        String responseString = responseObject.toString();
+        byte[] responseBytes = responseString.getBytes();
+        rsp.setContentLength(responseBytes.length);
         out.write(responseBytes);
         out.flush();
     }

@@ -12,38 +12,52 @@ public class EFCause extends hudson.model.Cause {
     @Exported
     public String releaseName;
 
-    @Exported
+    // @Exported
     public String getFlowRuntimeId() {
         return flowRuntimeId;
     }
-
-    @Exported
     public void setFlowRuntimeId(String flowRuntimeId) {
         this.flowRuntimeId = flowRuntimeId;
     }
 
-    @Exported
+    //@Exported
     public String getProjectName() {
         return projectName;
     }
-
-    @Exported
     public void setProjectName(String projectName) {
         this.projectName = projectName;
     }
 
-    @Exported
+    //@Exported
     public String getReleaseName() {
         return releaseName;
     }
-
-    @Exported
     public void setReleaseName(String releaseName) {
         this.releaseName = releaseName;
     }
 
 
     public String getShortDescription() {
-        return "EF Data";
+        StringBuilder shortDescription = new StringBuilder();
+        shortDescription.append("CloudBeesFlow Triggered this build:");
+        // shortDescription.append(System.getProperty("<br/>"));
+
+        if (this.getFlowRuntimeId() != null) {
+            shortDescription.append("<br/>");
+            shortDescription.append("Flow Runtime ID: " + this.getFlowRuntimeId());
+            // shortDescription.append(System.getProperty("line.separator"));
+        }
+        if (this.getProjectName() != null) {
+            shortDescription.append("<br/>");
+            shortDescription.append("Release Project Name: " + this.getReleaseName());
+            // shortDescription.append(System.getProperty("line.separator"));
+        }
+        if (this.getReleaseName() != null) {
+            shortDescription.append("<br/>");
+            shortDescription.append("Release Name: " + this.getReleaseName());
+            // shortDescription.append(System.getProperty("line.separator"));
+        }
+
+        return shortDescription.toString();
     }
 }
