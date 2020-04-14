@@ -285,7 +285,8 @@ public class ElectricFlowRunProcedure
             if (item == null || !item.hasPermission(Item.CONFIGURE)) {
                 return new ListBoxModel();
             }
-            return Utils.getProjects(configuration);
+            Credential overrideCredentialObj = overrideCredential ? new Credential(credentialId) : null;
+            return Utils.getProjects(configuration, overrideCredentialObj);
         }
 
         public ListBoxModel doFillProcedureNameItems(
@@ -306,7 +307,8 @@ public class ElectricFlowRunProcedure
                         && !projectName.isEmpty()
                         && SelectFieldUtils.checkAllSelectItemsAreNotValidationWrappers(projectName)) {
 
-                    ElectricFlowClient client = ElectricFlowClientFactory.getElectricFlowClient(configuration, new Credential(credentialId), null, true);
+                    Credential overrideCredentialObj = overrideCredential ? new Credential(credentialId) : null;
+                    ElectricFlowClient client = ElectricFlowClientFactory.getElectricFlowClient(configuration, overrideCredentialObj, null, true);
 
                     List<String> procedures = client.getProcedures(projectName);
 
@@ -350,7 +352,8 @@ public class ElectricFlowRunProcedure
                     return m;
                 }
 
-                ElectricFlowClient client = ElectricFlowClientFactory.getElectricFlowClient(configuration, new Credential(credentialId), null, true);
+                Credential overrideCredentialObj = overrideCredential ? new Credential(credentialId) : null;
+                ElectricFlowClient client = ElectricFlowClientFactory.getElectricFlowClient(configuration, overrideCredentialObj, null, true);
 
                 Map<String, String> storedParams = new HashMap<>();
 

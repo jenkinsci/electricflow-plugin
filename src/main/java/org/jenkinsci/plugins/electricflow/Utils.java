@@ -32,6 +32,7 @@ import hudson.util.FormValidation;
 import hudson.util.ListBoxModel;
 
 import jenkins.model.GlobalConfiguration;
+import org.jenkinsci.plugins.electricflow.factories.ElectricFlowClientFactory;
 import org.jenkinsci.plugins.electricflow.ui.FieldValidationStatus;
 import org.jenkinsci.plugins.electricflow.ui.HtmlUtils;
 import org.jenkinsci.plugins.electricflow.ui.SelectFieldUtils;
@@ -317,6 +318,10 @@ public class Utils
     }
 
     public static ListBoxModel getProjects(String configuration) {
+        return getProjects(configuration, null);
+    }
+
+    public static ListBoxModel getProjects(String configuration, Credential overrideCredential) {
         try {
             ListBoxModel m = new ListBoxModel();
 
@@ -327,7 +332,7 @@ public class Utils
             ).getJsonStr());
 
             if (!configuration.isEmpty()) {
-                ElectricFlowClient efClient = new ElectricFlowClient(configuration);
+                ElectricFlowClient efClient = ElectricFlowClientFactory.getElectricFlowClient(configuration, overrideCredential, null, true);
                 String projectsString = efClient.getProjects();
                 JSONObject jsonObject = JSONObject.fromObject(projectsString);
                 JSONArray projects = jsonObject.getJSONArray("project");
