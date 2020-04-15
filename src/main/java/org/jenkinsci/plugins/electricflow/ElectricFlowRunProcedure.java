@@ -319,7 +319,8 @@ public class ElectricFlowRunProcedure
 
                 return m;
             } catch (Exception e) {
-                if (Utils.isEflowAvailable(configuration)) {
+                Credential overrideCredentialObj = overrideCredential ? new Credential(credentialId) : null;
+                if (Utils.isEflowAvailable(configuration, overrideCredentialObj)) {
                     log.error("Error when fetching values for this parameter - procedure. Error message: " + e.getMessage(), e);
                     return SelectFieldUtils.getListBoxModelOnException("Select procedure");
                 } else {
@@ -387,7 +388,8 @@ public class ElectricFlowRunProcedure
                 ListBoxModel m = new ListBoxModel();
                 SelectItemValidationWrapper selectItemValidationWrapper;
 
-                if (Utils.isEflowAvailable(configuration)) {
+                Credential overrideCredentialObj = overrideCredential ? new Credential(credentialId) : null;
+                if (Utils.isEflowAvailable(configuration, overrideCredentialObj)) {
                     log.error("Error when fetching set of procedure parameters. Error message: " + e.getMessage(), e);
                     selectItemValidationWrapper = new SelectItemValidationWrapper(
                             FieldValidationStatus.ERROR,

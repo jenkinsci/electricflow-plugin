@@ -12,6 +12,7 @@ package org.jenkinsci.plugins.electricflow;
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
+import hudson.RelativePath;
 import hudson.model.AbstractProject;
 import hudson.model.Item;
 import hudson.model.Run;
@@ -373,6 +374,8 @@ public class ElectricFlowTriggerRelease
 
         public ListBoxModel doFillParametersItems(
                 @QueryParameter String configuration,
+                @QueryParameter boolean overrideCredential,
+                @QueryParameter @RelativePath("overrideCredential") String credentialId,
                 @QueryParameter String projectName,
                 @QueryParameter String releaseName,
                 @QueryParameter String parameters,
@@ -409,7 +412,8 @@ public class ElectricFlowTriggerRelease
                 }
 
                 if (!configuration.isEmpty() && !releaseName.isEmpty()) {
-                    ElectricFlowClient client = new ElectricFlowClient(configuration);
+                    Credential overrideCredentialObj = overrideCredential ? new Credential(credentialId) : null;
+                    ElectricFlowClient client = ElectricFlowClientFactory.getElectricFlowClient(configuration, overrideCredentialObj, null, true);
                     Release      release            = client.getRelease(
                             configuration, projectName, releaseName);
                     List<String> stages             = release.getStartStages();
@@ -441,7 +445,8 @@ public class ElectricFlowTriggerRelease
                 ListBoxModel m = new ListBoxModel();
                 SelectItemValidationWrapper selectItemValidationWrapper;
 
-                if (Utils.isEflowAvailable(configuration)) {
+                Credential overrideCredentialObj = overrideCredential ? new Credential(credentialId) : null;
+                if (Utils.isEflowAvailable(configuration, overrideCredentialObj)) {
                     log.error("Error when fetching set of parameters. Error message: " + e.getMessage(), e);
                     selectItemValidationWrapper = new SelectItemValidationWrapper(
                             FieldValidationStatus.ERROR,
@@ -462,16 +467,21 @@ public class ElectricFlowTriggerRelease
 
         public ListBoxModel doFillProjectNameItems(
                 @QueryParameter String configuration,
+                @QueryParameter boolean overrideCredential,
+                @QueryParameter @RelativePath("overrideCredential") String credentialId,
                 @AncestorInPath Item item) {
             if (item == null || !item.hasPermission(Item.CONFIGURE)) {
                 return new ListBoxModel();
             }
-            return Utils.getProjects(configuration);
+            Credential overrideCredentialObj = overrideCredential ? new Credential(credentialId) : null;
+            return Utils.getProjects(configuration, overrideCredentialObj);
         }
 
         public ListBoxModel doFillReleaseNameItems(
                 @QueryParameter String projectName,
                 @QueryParameter String configuration,
+                @QueryParameter boolean overrideCredential,
+                @QueryParameter @RelativePath("overrideCredential") String credentialId,
                 @AncestorInPath Item item) {
             if (item == null || !item.hasPermission(Item.CONFIGURE)) {
                 return new ListBoxModel();
@@ -485,7 +495,8 @@ public class ElectricFlowTriggerRelease
                         && !projectName.isEmpty()
                         && SelectFieldUtils.checkAllSelectItemsAreNotValidationWrappers(projectName)) {
 
-                    ElectricFlowClient client = new ElectricFlowClient(configuration);
+                    Credential overrideCredentialObj = overrideCredential ? new Credential(credentialId) : null;
+                    ElectricFlowClient client = ElectricFlowClientFactory.getElectricFlowClient(configuration, overrideCredentialObj, null, true);
 
                     List<String> releasesList = client.getReleases(configuration,
                             projectName);
@@ -497,7 +508,8 @@ public class ElectricFlowTriggerRelease
 
                 return m;
             } catch (Exception e) {
-                if (Utils.isEflowAvailable(configuration)) {
+                Credential overrideCredentialObj = overrideCredential ? new Credential(credentialId) : null;
+                if (Utils.isEflowAvailable(configuration, overrideCredentialObj)) {
                     log.error("Error when fetching values for this parameter - release. Error message: " + e.getMessage(), e);
                     return SelectFieldUtils.getListBoxModelOnException("Select release");
                 } else {
@@ -508,6 +520,8 @@ public class ElectricFlowTriggerRelease
 
         public ListBoxModel doFillStartingStageItems(
                 @QueryParameter String configuration,
+                @QueryParameter boolean overrideCredential,
+                @QueryParameter @RelativePath("overrideCredential") String credentialId,
                 @QueryParameter String projectName,
                 @QueryParameter String releaseName,
                 @AncestorInPath Item item)
@@ -528,7 +542,8 @@ public class ElectricFlowTriggerRelease
                     return m;
                 }
 
-                ElectricFlowClient client = new ElectricFlowClient(configuration);
+                Credential overrideCredentialObj = overrideCredential ? new Credential(credentialId) : null;
+                ElectricFlowClient client = ElectricFlowClientFactory.getElectricFlowClient(configuration, overrideCredentialObj, null, true);
 
                 Release release = client.getRelease(configuration, projectName,
                         releaseName);
@@ -545,7 +560,8 @@ public class ElectricFlowTriggerRelease
 
                 return m;
             } catch (Exception e) {
-                if (Utils.isEflowAvailable(configuration)) {
+                Credential overrideCredentialObj = overrideCredential ? new Credential(credentialId) : null;
+                if (Utils.isEflowAvailable(configuration, overrideCredentialObj)) {
                     log.error("Error when fetching values for this parameter - starting stage. Error message: " + e.getMessage(), e);
                     return SelectFieldUtils.getListBoxModelOnException("Select starting stage");
                 } else {
