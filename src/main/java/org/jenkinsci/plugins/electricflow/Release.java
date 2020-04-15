@@ -17,6 +17,7 @@ public class Release {
 
   private String configuration;
   private List<String> startStages;
+  private String releaseId;
   private String releaseName;
   private String pipelineName;
   private List<String> pipelineParameters;
@@ -35,6 +36,15 @@ public class Release {
   }
 
   // ~ Methods ----------------------------------------------------------------
+
+
+  public String getReleaseId() {
+    return releaseId;
+  }
+
+  public void setReleaseId(String releaseId) {
+    this.releaseId = releaseId;
+  }
 
   public String getConfiguration() {
     return configuration;

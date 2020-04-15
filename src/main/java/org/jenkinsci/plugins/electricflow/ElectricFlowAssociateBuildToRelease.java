@@ -8,7 +8,6 @@
 
 package org.jenkinsci.plugins.electricflow;
 
-import static net.sf.json.JSONObject.fromObject;
 import static org.jenkinsci.plugins.electricflow.Utils.formatJsonOutput;
 import static org.jenkinsci.plugins.electricflow.Utils.getValidationComparisonHeaderRow;
 import static org.jenkinsci.plugins.electricflow.Utils.getValidationComparisonRow;
@@ -36,7 +35,6 @@ import java.util.Map;
 import javax.annotation.Nonnull;
 import jenkins.model.Jenkins;
 import jenkins.tasks.SimpleBuildStep;
-import net.sf.json.JSONException;
 import net.sf.json.JSONObject;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -107,7 +105,9 @@ public class ElectricFlowAssociateBuildToRelease extends Recorder implements Sim
       args.put("releaseName", releaseName);
       args.put("buildName", run.getDisplayName());
 
-      SummaryTextAction action = new SummaryTextAction(run, getSummaryHtml(efClient, result, args));
+      SummaryTextAction action = new SummaryTextAction(
+          run, getSummaryHtml(efClient, result, args, logger)
+      );
 
       run.addAction(action);
       run.save();
@@ -175,12 +175,26 @@ public class ElectricFlowAssociateBuildToRelease extends Recorder implements Sim
   }
 
   private String getSummaryHtml(
-      ElectricFlowClient electricFlowClient, String jsonResult, Map<String, String> args) {
+      ElectricFlowClient electricFlowClient, String jsonResult, Map<String, String> args,
+      PrintStream logger) {
 
     String releaseName = args.get("releaseName");
+    String projectName = args.get("projectName");
     String releaseRunLink = electricFlowClient.getElectricFlowUrl();
 
     try {
+      Release release = electricFlowClient.getRelease(configuration, projectName, releaseName);
+      String path = String.format("/flow/#pipeline-run/%s", release.getReleaseId());
+      releaseRunLink += path;
+    } catch (Exception e) {
+      releaseRunLink += "/flow/#releases";
+      logger.println("WARN: Failed to determine release id. UL will point to the releases instead");
+    }
+
+    logger.println(String.format("INFO: link to the release: %s", releaseRunLink));
+
+   /*
+   try {
       String flowRuntimeId = fromObject(jsonResult)
           .getJSONObject("jenkinsBuildDetailInfo")
           .getString("flowRuntimeId");
@@ -189,8 +203,8 @@ public class ElectricFlowAssociateBuildToRelease extends Recorder implements Sim
       releaseRunLink += path;
     } catch (JSONException ex) {
       // CEV-24565 API version does not support returning flowRuntimeId.
-      releaseRunLink += "/flow/#releases";
-    }
+      releaseRunLink += "flow/#releases";
+    }*/
 
     return "<h3>CloudBees Flow - Associate Build To Release</h3>"
         + "<table cellspacing=\"2\" cellpadding=\"4\"> \n"
