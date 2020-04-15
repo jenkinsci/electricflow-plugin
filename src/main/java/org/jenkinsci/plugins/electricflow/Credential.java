@@ -21,7 +21,7 @@ import static com.cloudbees.plugins.credentials.CredentialsProvider.lookupCreden
 public class Credential
         extends AbstractDescribableImpl<Credential> {
 
-    private final String credentialId;
+    private String credentialId;
 
     @DataBoundConstructor
     public Credential(String credentialId) {

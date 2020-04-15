@@ -5,10 +5,24 @@ import hudson.util.Secret;
 import org.jenkinsci.plugins.electricflow.*;
 
 public class ElectricFlowClientFactory {
+
     public static ElectricFlowClient getElectricFlowClient(
             String configurationName,
             Credential overrideCredential,
             EnvReplacer envReplacer) {
+        return getElectricFlowClient(
+                configurationName,
+                overrideCredential,
+                envReplacer,
+                false
+        );
+    }
+
+    public static ElectricFlowClient getElectricFlowClient(
+            String configurationName,
+            Credential overrideCredential,
+            EnvReplacer envReplacer,
+            boolean ignoreUnresolvedOverrideCredential) {
         Configuration cred = Utils.getConfigurationByName(configurationName);
 
         if (cred == null) {
@@ -31,10 +45,17 @@ public class ElectricFlowClientFactory {
         } else {
             StandardUsernamePasswordCredentials creds = overrideCredential.getUsernamePasswordBasedOnCredentialId(envReplacer);
             if (creds == null) {
-                throw new RuntimeException("Override credentials are not found by provided credential id");
+                if (ignoreUnresolvedOverrideCredential) {
+                    username = cred.getElectricFlowUser();
+                    password = Secret.fromString(cred.getElectricFlowPassword())
+                            .getPlainText();
+                } else {
+                    throw new RuntimeException("Override credentials are not found by provided credential id");
+                }
+            } else {
+                username = creds.getUsername();
+                password = creds.getPassword().getPlainText();
             }
-            username = creds.getUsername();
-            password = creds.getPassword().getPlainText();
         }
 
         return new ElectricFlowClient(

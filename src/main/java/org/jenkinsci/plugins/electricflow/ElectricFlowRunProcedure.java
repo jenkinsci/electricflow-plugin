@@ -12,6 +12,7 @@ package org.jenkinsci.plugins.electricflow;
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
+import hudson.RelativePath;
 import hudson.model.*;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.BuildStepMonitor;
@@ -278,16 +279,21 @@ public class ElectricFlowRunProcedure
 
         public ListBoxModel doFillProjectNameItems(
                 @QueryParameter String configuration,
+                @QueryParameter boolean overrideCredential,
+                @QueryParameter @RelativePath("overrideCredential") String credentialId,
                 @AncestorInPath Item item) {
             if (item == null || !item.hasPermission(Item.CONFIGURE)) {
                 return new ListBoxModel();
             }
-            return Utils.getProjects(configuration);
+            Credential overrideCredentialObj = overrideCredential ? new Credential(credentialId) : null;
+            return Utils.getProjects(configuration, overrideCredentialObj);
         }
 
         public ListBoxModel doFillProcedureNameItems(
                 @QueryParameter String projectName,
                 @QueryParameter String configuration,
+                @QueryParameter boolean overrideCredential,
+                @QueryParameter @RelativePath("overrideCredential") String credentialId,
                 @AncestorInPath Item item) {
             if (item == null || !item.hasPermission(Item.CONFIGURE)) {
                 return new ListBoxModel();
@@ -301,7 +307,8 @@ public class ElectricFlowRunProcedure
                         && !projectName.isEmpty()
                         && SelectFieldUtils.checkAllSelectItemsAreNotValidationWrappers(projectName)) {
 
-                    ElectricFlowClient client = new ElectricFlowClient(configuration);
+                    Credential overrideCredentialObj = overrideCredential ? new Credential(credentialId) : null;
+                    ElectricFlowClient client = ElectricFlowClientFactory.getElectricFlowClient(configuration, overrideCredentialObj, null, true);
 
                     List<String> procedures = client.getProcedures(projectName);
 
@@ -312,7 +319,8 @@ public class ElectricFlowRunProcedure
 
                 return m;
             } catch (Exception e) {
-                if (Utils.isEflowAvailable(configuration)) {
+                Credential overrideCredentialObj = overrideCredential ? new Credential(credentialId) : null;
+                if (Utils.isEflowAvailable(configuration, overrideCredentialObj)) {
                     log.error("Error when fetching values for this parameter - procedure. Error message: " + e.getMessage(), e);
                     return SelectFieldUtils.getListBoxModelOnException("Select procedure");
                 } else {
@@ -324,6 +332,8 @@ public class ElectricFlowRunProcedure
 
         public ListBoxModel doFillProcedureParametersItems(
                 @QueryParameter String configuration,
+                @QueryParameter boolean overrideCredential,
+                @QueryParameter @RelativePath("overrideCredential") String credentialId,
                 @QueryParameter String projectName,
                 @QueryParameter String procedureName,
                 @QueryParameter String procedureParameters,
@@ -343,7 +353,8 @@ public class ElectricFlowRunProcedure
                     return m;
                 }
 
-                ElectricFlowClient client = new ElectricFlowClient(configuration);
+                Credential overrideCredentialObj = overrideCredential ? new Credential(credentialId) : null;
+                ElectricFlowClient client = ElectricFlowClientFactory.getElectricFlowClient(configuration, overrideCredentialObj, null, true);
 
                 Map<String, String> storedParams = new HashMap<>();
 
@@ -377,7 +388,8 @@ public class ElectricFlowRunProcedure
                 ListBoxModel m = new ListBoxModel();
                 SelectItemValidationWrapper selectItemValidationWrapper;
 
-                if (Utils.isEflowAvailable(configuration)) {
+                Credential overrideCredentialObj = overrideCredential ? new Credential(credentialId) : null;
+                if (Utils.isEflowAvailable(configuration, overrideCredentialObj)) {
                     log.error("Error when fetching set of procedure parameters. Error message: " + e.getMessage(), e);
                     selectItemValidationWrapper = new SelectItemValidationWrapper(
                             FieldValidationStatus.ERROR,

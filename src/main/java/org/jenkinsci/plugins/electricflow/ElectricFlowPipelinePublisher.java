@@ -17,6 +17,7 @@ import java.util.Map;
 import javax.annotation.Nonnull;
 import javax.servlet.ServletException;
 
+import hudson.RelativePath;
 import hudson.model.*;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -416,6 +417,8 @@ public class ElectricFlowPipelinePublisher
 
         public ListBoxModel doFillAddParamItems(
                 @QueryParameter String configuration,
+                @QueryParameter boolean overrideCredential,
+                @QueryParameter @RelativePath("overrideCredential") String credentialId,
                 @QueryParameter String projectName,
                 @QueryParameter String pipelineName,
                 @QueryParameter String addParam,
@@ -447,8 +450,8 @@ public class ElectricFlowPipelinePublisher
                     }
                 }
 
-                ElectricFlowClient efClient   = new ElectricFlowClient(
-                        configuration);
+                Credential overrideCredentialObj = overrideCredential ? new Credential(credentialId) : null;
+                ElectricFlowClient efClient = ElectricFlowClientFactory.getElectricFlowClient(configuration, overrideCredentialObj, null, true);
                 List<String>       parameters =
                         efClient.getPipelineFormalParameters(projectName, pipelineName);
                 JSONObject         main       = JSONObject.fromObject(
@@ -469,7 +472,8 @@ public class ElectricFlowPipelinePublisher
                 ListBoxModel m = new ListBoxModel();
                 SelectItemValidationWrapper selectItemValidationWrapper;
 
-                if (Utils.isEflowAvailable(configuration)) {
+                Credential overrideCredentialObj = overrideCredential ? new Credential(credentialId) : null;
+                if (Utils.isEflowAvailable(configuration, overrideCredentialObj)) {
                     log.error("Error when fetching set of pipeline parameters. Error message: " + e.getMessage(), e);
                     selectItemValidationWrapper = new SelectItemValidationWrapper(
                             FieldValidationStatus.ERROR,
@@ -502,20 +506,26 @@ public class ElectricFlowPipelinePublisher
         public ListBoxModel doFillPipelineNameItems(
                 @QueryParameter String projectName,
                 @QueryParameter String configuration,
+                @QueryParameter boolean overrideCredential,
+                @QueryParameter @RelativePath("overrideCredential") String credentialId,
                 @AncestorInPath Item item) {
             if (item == null || !item.hasPermission(Item.CONFIGURE)) {
                 return new ListBoxModel();
             }
-            return Utils.getPipelines(configuration, projectName);
+            Credential overrideCredentialObj = overrideCredential ? new Credential(credentialId) : null;
+            return Utils.getPipelines(configuration, overrideCredentialObj, projectName);
         }
 
         public ListBoxModel doFillProjectNameItems(
                 @QueryParameter String configuration,
+                @QueryParameter boolean overrideCredential,
+                @QueryParameter @RelativePath("overrideCredential") String credentialId,
                 @AncestorInPath Item item) {
             if (item == null || !item.hasPermission(Item.CONFIGURE)) {
                 return new ListBoxModel();
             }
-            return Utils.getProjects(configuration);
+            Credential overrideCredentialObj = overrideCredential ? new Credential(credentialId) : null;
+            return Utils.getProjects(configuration, overrideCredentialObj);
         }
 
         @Override public void doHelp(

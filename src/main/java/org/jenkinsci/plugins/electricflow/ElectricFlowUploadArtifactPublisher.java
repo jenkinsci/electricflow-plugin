@@ -16,6 +16,7 @@ import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
 
+import hudson.RelativePath;
 import hudson.model.*;
 import hudson.tasks.Recorder;
 import jenkins.tasks.SimpleBuildStep;
@@ -348,6 +349,8 @@ public class ElectricFlowUploadArtifactPublisher
 
         public ListBoxModel doFillRepositoryNameItems(
                 @QueryParameter String configuration,
+                @QueryParameter boolean overrideCredential,
+                @QueryParameter @RelativePath("overrideCredential") String credentialId,
                 @AncestorInPath Item item) {
             if (item == null || !item.hasPermission(Item.CONFIGURE)) {
                 return new ListBoxModel();
@@ -361,8 +364,8 @@ public class ElectricFlowUploadArtifactPublisher
             }
 
             try {
-                ElectricFlowClient efClient     = new ElectricFlowClient(
-                        configuration);
+                Credential overrideCredentialObj = overrideCredential ? new Credential(credentialId) : null;
+                ElectricFlowClient efClient = ElectricFlowClientFactory.getElectricFlowClient(configuration, overrideCredentialObj, null, true);
                 List<String>       repositories;
 
                 repositories = efClient.getArtifactRepositories();
