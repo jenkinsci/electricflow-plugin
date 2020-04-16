@@ -12,7 +12,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.LinkedList;
+import org.junit.Assume;
 import org.junit.ClassRule;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.jvnet.hudson.test.BuildWatcher;
@@ -35,7 +37,9 @@ public class ElectricFlowAssociateBuildToReleaseTest {
   public JenkinsRule jenkinsRule = new JenkinsRule();
 
   @Test
-  public void basicTestFreeStyleProject() throws Exception {
+  @Ignore
+  public void runPbaWithFreestyleProject() throws Exception {
+
     String command = "echo hello";
     FreeStyleProject project = jenkinsRule.createFreeStyleProject();
     applyFlowConfiguration(FLOW_CONFIG_NAME);
@@ -50,6 +54,8 @@ public class ElectricFlowAssociateBuildToReleaseTest {
     pba.setReleaseName("Application v1.0");
 
     project.getPublishersList().add(pba);
+
+    Assume.assumeTrue(System.getenv("COMMANDER_PASSWORD") != null);
 
     FreeStyleBuild build = project.scheduleBuild2(0).get();
     System.out.println(build.getDisplayName() + " completed");
