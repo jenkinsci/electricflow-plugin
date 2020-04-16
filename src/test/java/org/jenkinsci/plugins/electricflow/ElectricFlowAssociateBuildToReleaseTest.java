@@ -41,7 +41,6 @@ public class ElectricFlowAssociateBuildToReleaseTest {
 
     String command = "echo hello";
     FreeStyleProject project = jenkinsRule.createFreeStyleProject();
-    applyFlowConfiguration(FLOW_CONFIG_NAME);
 
     project.getBuildersList().add(
         Functions.isWindows() ? new BatchFile(command) : new Shell(command)
@@ -56,6 +55,7 @@ public class ElectricFlowAssociateBuildToReleaseTest {
 
     /* Test will be skipped if properties are not set */
     Assume.assumeTrue(System.getenv("COMMANDER_PASSWORD") != null);
+    applyFlowConfiguration(FLOW_CONFIG_NAME);
 
     FreeStyleBuild build = project.scheduleBuild2(0).get();
     System.out.println(build.getDisplayName() + " completed");
@@ -67,7 +67,24 @@ public class ElectricFlowAssociateBuildToReleaseTest {
     assertTrue(log.contains("/flow/#pipeline-run/"));
   }
 
-  public void applyFlowConfiguration(String configName) {
+  @Test
+  public void checkPBADryRun(){
+    ElectricFlowAssociateBuildToRelease pba = new ElectricFlowAssociateBuildToRelease();
+
+    String expectedConfigName = FLOW_CONFIG_NAME;
+    String expectedProjectName = "Default";
+    String expectedReleaseName = "Application v1.0";
+
+    pba.setConfiguration(expectedConfigName);
+    pba.setProjectName(expectedProjectName);
+    pba.setReleaseName(expectedReleaseName);
+
+    assertEquals(expectedConfigName, pba.getConfiguration());
+    assertEquals(expectedProjectName, pba.getProjectName());
+    assertEquals(expectedReleaseName, pba.getReleaseName());
+  }
+
+  private void applyFlowConfiguration(String configName) {
     ElectricFlowGlobalConfiguration electricFlowGlobalConfiguration =
         (ElectricFlowGlobalConfiguration)
             jenkinsRule
@@ -92,7 +109,7 @@ public class ElectricFlowAssociateBuildToReleaseTest {
     assertEquals(1, electricFlowGlobalConfiguration.getConfigurations().size());
   }
 
-  public static String readLog(InputStream logInputSteam) throws IOException {
+  private static String readLog(InputStream logInputSteam) throws IOException {
     InputStreamReader logFile = new InputStreamReader(logInputSteam);
     StringBuilder log = new StringBuilder();
 
