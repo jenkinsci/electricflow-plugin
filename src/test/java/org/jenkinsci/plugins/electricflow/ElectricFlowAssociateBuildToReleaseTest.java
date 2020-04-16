@@ -1,3 +1,5 @@
+package org.jenkinsci.plugins.electricflow;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -6,22 +8,18 @@ import hudson.model.FreeStyleBuild;
 import hudson.model.FreeStyleProject;
 import hudson.tasks.BatchFile;
 import hudson.tasks.Shell;
-
-import java.io.*;
-import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.LinkedList;
-import org.jenkinsci.plugins.electricflow.Configuration;
-import org.jenkinsci.plugins.electricflow.ElectricFlowAssociateBuildToRelease;
-import org.jenkinsci.plugins.electricflow.ElectricFlowGlobalConfiguration;
-import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.jvnet.hudson.test.BuildWatcher;
 import org.jvnet.hudson.test.JenkinsRule;
 
-public class BasicIntegrationTestsWithJenkins {
+public class ElectricFlowAssociateBuildToReleaseTest {
+
   public static final String FLOW_CONFIG_NAME = "realFlowConfig";
   public static final String FLOW_PROTOCOL = "https";
   public static final String FLOW_HOST = System.getenv("COMMANDER_SERVER");
@@ -31,14 +29,16 @@ public class BasicIntegrationTestsWithJenkins {
   public static final String FLOW_PASSWORD = System.getenv("COMMANDER_PASSWORD");
   public static final String FLOW_REST_API_URI_PATH = "/rest/v1.0";
 
-  @ClassRule public static BuildWatcher buildWatcher = new BuildWatcher();
-  @Rule public JenkinsRule jenkinsRule = new JenkinsRule();
+  @ClassRule
+  public static BuildWatcher buildWatcher = new BuildWatcher();
+  @Rule
+  public JenkinsRule jenkinsRule = new JenkinsRule();
 
   @Test
   public void basicTestFreeStyleProject() throws Exception {
     String command = "echo hello";
     FreeStyleProject project = jenkinsRule.createFreeStyleProject();
-    applyConfigurationToInstance();
+    applyFlowConfiguration(FLOW_CONFIG_NAME);
 
     project.getBuildersList().add(
         Functions.isWindows() ? new BatchFile(command) : new Shell(command)
@@ -61,7 +61,7 @@ public class BasicIntegrationTestsWithJenkins {
     assertTrue(log.contains("/flow/#pipeline-run/"));
   }
 
-  public void applyConfigurationToInstance(){
+  public void applyFlowConfiguration(String configName) {
     ElectricFlowGlobalConfiguration electricFlowGlobalConfiguration =
         (ElectricFlowGlobalConfiguration)
             jenkinsRule
@@ -73,7 +73,7 @@ public class BasicIntegrationTestsWithJenkins {
 
     Configuration configuration =
         new Configuration(
-            FLOW_CONFIG_NAME,
+            configName,
             FLOW_ENDPOINT,
             FLOW_USER,
             FLOW_PASSWORD,
@@ -92,7 +92,7 @@ public class BasicIntegrationTestsWithJenkins {
 
     final char[] buffer = new char[1024];
     int charsRead;
-    while((charsRead = logFile.read(buffer, 0, buffer.length)) > 0){
+    while ((charsRead = logFile.read(buffer, 0, buffer.length)) > 0) {
       log.append(buffer, 0, charsRead);
     }
 
