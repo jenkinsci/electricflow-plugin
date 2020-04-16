@@ -1,6 +1,7 @@
 package org.jenkinsci.plugins.electricflow.factories;
 
 import com.cloudbees.plugins.credentials.common.StandardUsernamePasswordCredentials;
+import hudson.model.Run;
 import hudson.util.Secret;
 import org.jenkinsci.plugins.electricflow.*;
 
@@ -23,6 +24,21 @@ public class ElectricFlowClientFactory {
             Credential overrideCredential,
             EnvReplacer envReplacer,
             boolean ignoreUnresolvedOverrideCredential) {
+        return getElectricFlowClient(
+                configurationName,
+                overrideCredential,
+                null,
+                envReplacer,
+                ignoreUnresolvedOverrideCredential
+        );
+    }
+
+    public static ElectricFlowClient getElectricFlowClient(
+            String configurationName,
+            Credential overrideCredential,
+            Run run,
+            EnvReplacer envReplacer,
+            boolean ignoreUnresolvedOverrideCredential) {
         Configuration cred = Utils.getConfigurationByName(configurationName);
 
         if (cred == null) {
@@ -43,7 +59,7 @@ public class ElectricFlowClientFactory {
             password = Secret.fromString(cred.getElectricFlowPassword())
                     .getPlainText();
         } else {
-            StandardUsernamePasswordCredentials creds = overrideCredential.getUsernamePasswordBasedOnCredentialId(envReplacer);
+            StandardUsernamePasswordCredentials creds = overrideCredential.getUsernamePasswordBasedOnCredentialId(envReplacer, run);
             if (creds == null) {
                 if (ignoreUnresolvedOverrideCredential) {
                     username = cred.getElectricFlowUser();

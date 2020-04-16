@@ -94,7 +94,13 @@ public class ElectricFlowRunProcedure
             EnvReplacer env = new EnvReplacer(run, taskListener);
             expandParameters(parameter, env, "value");
 
-            ElectricFlowClient efClient = ElectricFlowClientFactory.getElectricFlowClient(configuration, overrideCredential, env);
+            ElectricFlowClient efClient = ElectricFlowClientFactory
+                    .getElectricFlowClient(
+                            configuration,
+                            overrideCredential,
+                            run,
+                            env,
+                            false);
 
             String result = efClient.runProcedure(projectName, procedureName, parameter);
 

@@ -1,6 +1,7 @@
 package org.jenkinsci.plugins.electricflow;
 
 import com.cloudbees.plugins.credentials.CredentialsMatchers;
+import com.cloudbees.plugins.credentials.CredentialsProvider;
 import com.cloudbees.plugins.credentials.common.StandardUsernameListBoxModel;
 import com.cloudbees.plugins.credentials.common.StandardUsernamePasswordCredentials;
 import com.cloudbees.plugins.credentials.domains.DomainRequirement;
@@ -9,6 +10,7 @@ import hudson.Extension;
 import hudson.model.AbstractDescribableImpl;
 import hudson.model.Descriptor;
 import hudson.model.Item;
+import hudson.model.Run;
 import hudson.security.ACL;
 import hudson.util.ListBoxModel;
 import jenkins.model.Jenkins;
@@ -38,8 +40,11 @@ public class Credential
     }
 
 
-    public StandardUsernamePasswordCredentials getUsernamePasswordBasedOnCredentialId(EnvReplacer envReplacer) {
-        return getStandardUsernamePasswordCredentialsById(getCredentialId(envReplacer));
+    public StandardUsernamePasswordCredentials getUsernamePasswordBasedOnCredentialId(EnvReplacer envReplacer, Run run) {
+        String credentialIdResolved = getCredentialId(envReplacer);
+        return run == null
+                ? getStandardUsernamePasswordCredentialsById(credentialIdResolved)
+                : getStandardUsernamePasswordCredentialsByIdAndRun(credentialIdResolved, run);
     }
 
     @Extension
@@ -81,4 +86,19 @@ public class Credential
                 CredentialsMatchers.withId(credentialsId)
         );
     }
+
+    private static StandardUsernamePasswordCredentials getStandardUsernamePasswordCredentialsByIdAndRun(String credentialsId, Run run) {
+        if (credentialsId == null) {
+            return null;
+        }
+
+        return CredentialsProvider.findCredentialById(
+                credentialsId,
+                StandardUsernamePasswordCredentials.class,
+                run,
+                Collections.emptyList()
+        );
+    }
+
+
 }

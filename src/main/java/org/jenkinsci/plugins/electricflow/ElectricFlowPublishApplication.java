@@ -144,7 +144,13 @@ public class ElectricFlowPublishApplication
         String deployResponse;
 
         try {
-            ElectricFlowClient efClient = ElectricFlowClientFactory.getElectricFlowClient(configuration, overrideCredential, env);
+            ElectricFlowClient efClient = ElectricFlowClientFactory
+                    .getElectricFlowClient(
+                            configuration,
+                            overrideCredential,
+                            run,
+                            env,
+                            false);
             List<File> fileList = new ArrayList<>();
             fileList.add(archive);
 

@@ -128,7 +128,13 @@ public class ElectricFlowPipelinePublisher
         ElectricFlowClient efClient;
         try {
             env = new EnvReplacer(run, taskListener);
-            efClient = ElectricFlowClientFactory.getElectricFlowClient(configuration, overrideCredential, env);
+            efClient = ElectricFlowClientFactory
+                    .getElectricFlowClient(
+                            configuration,
+                            overrideCredential,
+                            run,
+                            env,
+                            false);
         } catch (Exception e) {
             taskListener.getLogger()
                     .println(
