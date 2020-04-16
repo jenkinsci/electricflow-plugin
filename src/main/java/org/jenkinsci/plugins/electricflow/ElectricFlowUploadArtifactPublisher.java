@@ -123,7 +123,13 @@ public class ElectricFlowUploadArtifactPublisher
             }
 
             // end of replacements
-            ElectricFlowClient efClient = ElectricFlowClientFactory.getElectricFlowClient(configuration, overrideCredential, env);
+            ElectricFlowClient efClient = ElectricFlowClientFactory
+                    .getElectricFlowClient(
+                            configuration,
+                            overrideCredential,
+                            run,
+                            env,
+                            false);
             String result = efClient.uploadArtifact(run,
                     taskListener, repositoryName, newArtifactName,
                     newArtifactVersion, newFilePath, true, workspace);

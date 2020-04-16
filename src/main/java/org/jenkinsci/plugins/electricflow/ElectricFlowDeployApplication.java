@@ -104,7 +104,13 @@ public class ElectricFlowDeployApplication
             logger.println("Preparing to run process...");
 
             EnvReplacer env = new EnvReplacer(run, taskListener);
-            ElectricFlowClient efClient = ElectricFlowClientFactory.getElectricFlowClient(configuration, overrideCredential, env);
+            ElectricFlowClient efClient = ElectricFlowClientFactory
+                    .getElectricFlowClient(
+                            configuration,
+                            overrideCredential,
+                            run,
+                            env,
+                            false);
             expandParameters(parameter, env, "value");
 
             String     result  = efClient.runProcess(projectName,

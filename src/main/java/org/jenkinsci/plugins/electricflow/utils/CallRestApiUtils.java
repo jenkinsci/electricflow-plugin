@@ -31,10 +31,13 @@ public class CallRestApiUtils {
 
         try {
             EnvReplacer envReplacer = new EnvReplacer(run, taskListener);
-            ElectricFlowClient efClient = ElectricFlowClientFactory.getElectricFlowClient(
-                    callRestApiModel.getConfiguration(),
-                    callRestApiModel.getOverrideCredential(),
-                    envReplacer);
+            ElectricFlowClient efClient = ElectricFlowClientFactory
+                    .getElectricFlowClient(
+                            callRestApiModel.getConfiguration(),
+                            callRestApiModel.getOverrideCredential(),
+                            run,
+                            envReplacer,
+                            false);
 
             String result = efClient.runRestAPI(
                     callRestApiModel.getUrlPath(),

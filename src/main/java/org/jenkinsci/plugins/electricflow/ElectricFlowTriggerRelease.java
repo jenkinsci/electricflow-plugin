@@ -109,7 +109,13 @@ public class ElectricFlowTriggerRelease
             logger.println("Preparing to triggerRelease...");
 
             EnvReplacer        env      = new EnvReplacer(run, taskListener);
-            ElectricFlowClient efClient = ElectricFlowClientFactory.getElectricFlowClient(configuration, overrideCredential, env);
+            ElectricFlowClient efClient = ElectricFlowClientFactory
+                    .getElectricFlowClient(
+                            configuration,
+                            overrideCredential,
+                            run,
+                            env,
+                            false);
 
             expandParameters(pipelineParameters, env);
 
