@@ -37,7 +37,6 @@ public class ElectricFlowAssociateBuildToReleaseTest {
   public JenkinsRule jenkinsRule = new JenkinsRule();
 
   @Test
-  @Ignore
   public void runPbaWithFreestyleProject() throws Exception {
 
     String command = "echo hello";
@@ -55,6 +54,7 @@ public class ElectricFlowAssociateBuildToReleaseTest {
 
     project.getPublishersList().add(pba);
 
+    /* Test will be skipped if properties are not set */
     Assume.assumeTrue(System.getenv("COMMANDER_PASSWORD") != null);
 
     FreeStyleBuild build = project.scheduleBuild2(0).get();
