@@ -26,7 +26,8 @@ import java.io.OutputStream;
 import java.nio.CharBuffer;
 import java.util.Map;
 
-public class ElectricFlowEFRunAPIAction<T extends Job<?, ?> & ParameterizedJobMixIn.ParameterizedJob>  implements Action {
+// public class ElectricFlowEFRunAPIAction<T extends Job<?, ?> & ParameterizedJobMixIn.ParameterizedJob>  implements Action {
+public class ElectricFlowEFRunAPIAction<T extends Job<?, ?> & Queue.Task>  implements Action {
     private static final String URL_NAME = "efrun";
     private final T project;
 
@@ -64,7 +65,7 @@ public class ElectricFlowEFRunAPIAction<T extends Job<?, ?> & ParameterizedJobMi
         // out.close();
     }
 
-    // TODO: Add CSRF protection here during implementation after PoC
+    @POST
     public void doBuild(
             StaplerRequest req,
             StaplerResponse rsp
@@ -82,9 +83,9 @@ public class ElectricFlowEFRunAPIAction<T extends Job<?, ?> & ParameterizedJobMi
         }
         JSONObject jsonObject = JSONObject.fromObject(sb.toString());
 
-        String flowRuntimeId = null;
-        String projectName = null;
-        String releaseName = null;
+        String flowRuntimeId = "";
+        String projectName = "";
+        String releaseName = "";
 
         try {
             flowRuntimeId = jsonObject.getString("flowRuntimeId");

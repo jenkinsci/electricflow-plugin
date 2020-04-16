@@ -6,11 +6,11 @@ import org.kohsuke.stapler.export.ExportedBean;
 @ExportedBean
 public class EFCause extends hudson.model.Cause {
     @Exported
-    public String flowRuntimeId;
+    public String flowRuntimeId = "";
     @Exported
-    public String projectName;
+    public String projectName = "";
     @Exported
-    public String releaseName;
+    public String releaseName = "";
 
     // @Exported
     public String getFlowRuntimeId() {
@@ -41,21 +41,24 @@ public class EFCause extends hudson.model.Cause {
         StringBuilder shortDescription = new StringBuilder();
         shortDescription.append("CloudBeesFlow Triggered this build:");
         // shortDescription.append(System.getProperty("<br/>"));
+        String flowRuntimeId = this.getFlowRuntimeId();
+        String projectName = this.getProjectName();
+        String releaseName = this.getReleaseName();
 
-        if (this.getFlowRuntimeId() != null) {
+        // String nullString = new String("null");
+        String nullString = "null";
+        // char[4] nullChars = "null";
+        if (!flowRuntimeId.isEmpty() || !flowRuntimeId.equals("null")) {
             shortDescription.append("<br/>");
-            shortDescription.append("Flow Runtime ID: " + this.getFlowRuntimeId());
-            // shortDescription.append(System.getProperty("line.separator"));
+            shortDescription.append("Flow Runtime ID: " + flowRuntimeId);
         }
-        if (this.getProjectName() != null) {
+        if (!projectName.equals(nullString)) {
             shortDescription.append("<br/>");
-            shortDescription.append("Release Project Name: " + this.getReleaseName());
-            // shortDescription.append(System.getProperty("line.separator"));
+            shortDescription.append("Release Project Name: " + projectName);
         }
-        if (this.getReleaseName() != null) {
-            shortDescription.append("<br/>");
-            shortDescription.append("Release Name: " + this.getReleaseName());
-            // shortDescription.append(System.getProperty("line.separator"));
+        if (!releaseName.equals(nullString)) {
+             shortDescription.append("<br/>");
+            shortDescription.append("Release Name: " + releaseName);
         }
 
         return shortDescription.toString();
