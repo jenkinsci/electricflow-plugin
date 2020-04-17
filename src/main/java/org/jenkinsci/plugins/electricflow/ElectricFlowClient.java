@@ -29,6 +29,9 @@ import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jenkinsci.plugins.electricflow.data.CloudBeesFlowBuildData;
+import org.jenkinsci.plugins.electricflow.models.JenkinsBuildDetail;
+import org.jenkinsci.plugins.electricflow.models.JenkinsBuildDetail.BuildTriggerSource;
+import org.jenkinsci.plugins.electricflow.models.JenkinsBuildDetail.JenkinsBuildAssociationType;
 
 public class ElectricFlowClient {
 
@@ -318,42 +321,50 @@ public class ElectricFlowClient {
   }
 
   // Flow Endpoint :: flowRuntimes​/{flowRuntimeId}​/jenkinsBuildDetails​/{buildName}
+  @Deprecated
   public String setJenkinsBuildDetailsRunPipeline(
       CloudBeesFlowBuildData cloudBeesFlowBuildData, String projectName, String flowRuntimeId)
       throws IOException {
-    String endpoint = "/jenkinsBuildDetails?request=setJenkinsBuildDetail";
-    JSONObject obj = new JSONObject();
-    obj.put("buildName", cloudBeesFlowBuildData.getDisplayName());
-    obj.put("projectName", projectName);
-    obj.put("flowRuntimeId", flowRuntimeId);
-    obj.put("jenkinsData", cloudBeesFlowBuildData.toJsonObject().toString());
-    obj.put("buildTriggerSource", BUILD_TRIGGER_SOURCE);
-    obj.put("jenkinsBuildAssociationType", JENKINS_BUILD_ASSOCIATION_TYPE);
-    String content = obj.toString();
-    return runRestAPI(endpoint, POST, content);
+
+    JenkinsBuildDetail details = new JenkinsBuildDetail()
+        .setBuildName(cloudBeesFlowBuildData.getDisplayName())
+        .setProjectName(projectName)
+        .setFlowRuntimeId(flowRuntimeId)
+        .setJenkinsData(cloudBeesFlowBuildData)
+        .setBuildTriggerSource(BuildTriggerSource.JENKINS)
+        .setAssociationType(JenkinsBuildAssociationType.TRIGGERED_BY_JENKINS);
+
+    JSONObject result = setJenkinsBuildDetails(details);
+
+    return result.toString();
   }
 
   // Flow Endpoint ::
   // projects​/{projectName}​/releases​/{releaseName}​/jenkinsBuildDetails​/{buildName}
+  @Deprecated
   public String setJenkinsBuildDetailsTriggerRelease(
       CloudBeesFlowBuildData cloudBeesFlowBuildData,
       String projectName,
       String releaseName)
       throws IOException {
 
+    JenkinsBuildDetail details = new JenkinsBuildDetail()
+        .setBuildName(cloudBeesFlowBuildData.getDisplayName())
+        .setJenkinsData(cloudBeesFlowBuildData)
+        .setProjectName(projectName)
+        .setReleaseName(releaseName)
+        .setBuildTriggerSource(BuildTriggerSource.JENKINS)
+        .setAssociationType(JenkinsBuildAssociationType.TRIGGERED_BY_JENKINS);
+
+    JSONObject result = setJenkinsBuildDetails(details);
+
+    return result.toString();
+  }
+
+  public JSONObject setJenkinsBuildDetails(JenkinsBuildDetail details) throws IOException {
     String endpoint = "/jenkinsBuildDetails?request=setJenkinsBuildDetail";
-
-    JSONObject obj = new JSONObject();
-    obj.put("buildName", cloudBeesFlowBuildData.getDisplayName());
-    obj.put("projectName", projectName);
-    obj.put("releaseName", releaseName);
-    obj.put("jenkinsData", cloudBeesFlowBuildData.toJsonObject().toString());
-    obj.put("buildTriggerSource", BUILD_TRIGGER_SOURCE);
-    obj.put("jenkinsBuildAssociationType", JENKINS_BUILD_ASSOCIATION_TYPE);
-
-    String content = obj.toString();
-
-    return runRestAPI(endpoint, POST, content);
+    String result = runRestAPI(endpoint, POST, details.toJsonObject().toString());
+    return JSONObject.fromObject(result);
   }
 
   public String uploadArtifact(

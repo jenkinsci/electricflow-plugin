@@ -68,7 +68,7 @@ public class ElectricFlowAssociateBuildToReleaseTest {
   }
 
   @Test
-  public void checkPBADryRun(){
+  public void checkPBAGettersAndSetters(){
     ElectricFlowAssociateBuildToRelease pba = new ElectricFlowAssociateBuildToRelease();
 
     String expectedConfigName = FLOW_CONFIG_NAME;

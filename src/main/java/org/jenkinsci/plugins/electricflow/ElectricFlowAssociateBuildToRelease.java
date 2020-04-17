@@ -28,6 +28,7 @@ import hudson.tasks.Publisher;
 import hudson.tasks.Recorder;
 import hudson.util.FormValidation;
 import hudson.util.ListBoxModel;
+import java.io.IOException;
 import java.io.PrintStream;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -41,6 +42,7 @@ import org.apache.commons.logging.LogFactory;
 import org.jenkinsci.Symbol;
 import org.jenkinsci.plugins.electricflow.data.CloudBeesFlowBuildData;
 import org.jenkinsci.plugins.electricflow.factories.ElectricFlowClientFactory;
+import org.jenkinsci.plugins.electricflow.models.JenkinsBuildDetail;
 import org.jenkinsci.plugins.electricflow.ui.HtmlUtils;
 import org.jenkinsci.plugins.electricflow.ui.SelectFieldUtils;
 import org.kohsuke.stapler.AncestorInPath;
@@ -70,55 +72,50 @@ public class ElectricFlowAssociateBuildToRelease extends Recorder implements Sim
       @Nonnull Launcher launcher,
       @Nonnull TaskListener taskListener) {
 
-    boolean isSuccess = setJenkinsBuildDetails(run, taskListener);
+    try {
+      CloudBeesFlowBuildData cloudBeesFlowBuildData = new CloudBeesFlowBuildData(run);
+      EnvReplacer env = new EnvReplacer(run, taskListener);
+      ElectricFlowClient efClient =
+          ElectricFlowClientFactory.getElectricFlowClient(configuration, overrideCredential, env);
+      PrintStream logger = taskListener.getLogger();
 
-    if (!isSuccess) {
+      String result = setJenkinsBuildDetails(efClient, cloudBeesFlowBuildData, logger);
+
+      Map<String, String> args = new LinkedHashMap<>();
+      args.put("projectName", projectName);
+      args.put("releaseName", releaseName);
+      args.put("buildName", cloudBeesFlowBuildData.getDisplayName());
+      SummaryTextAction action = new SummaryTextAction(
+          run, getSummaryHtml(efClient, result, args, logger)
+      );
+
+      run.addAction(action);
+      run.setResult(Result.SUCCESS);
+      run.save();
+    } catch (Exception ex) {
+      taskListener.getLogger().println("Failed to associate build to release: " + ex.toString());
       run.setResult(Result.FAILURE);
     }
   }
 
-  private boolean setJenkinsBuildDetails(@Nonnull Run<?, ?> run,
-      @Nonnull TaskListener taskListener) {
-    PrintStream logger = taskListener.getLogger();
+  private String setJenkinsBuildDetails(
+      ElectricFlowClient efClient,
+      CloudBeesFlowBuildData cloudBeesFlowBuildData,
+      PrintStream logger) throws IOException {
 
-    CloudBeesFlowBuildData cloudBeesFlowBuildData = new CloudBeesFlowBuildData(run);
     JSONObject json = cloudBeesFlowBuildData.toJsonObject();
 
     logger.println("JENKINS VERSION: " + Jenkins.VERSION);
     logger.println("Project name: " + projectName + ", Release name: " + releaseName);
     logger.println("JSON: " + json.toString());
 
-    try {
-      logger.println("Preparing to attach build...");
+    logger.println("Preparing to attach build...");
+    JSONObject result = efClient.setJenkinsBuildDetails(
+        new JenkinsBuildDetail()
+    );
 
-      EnvReplacer env = new EnvReplacer(run, taskListener);
-
-      ElectricFlowClient efClient =
-          ElectricFlowClientFactory.getElectricFlowClient(configuration, overrideCredential, env);
-
-      String result = efClient.setJenkinsBuildDetailsTriggerRelease(
-          cloudBeesFlowBuildData, projectName, releaseName
-      );
-
-      Map<String, String> args = new LinkedHashMap<>();
-      args.put("projectName", projectName);
-      args.put("releaseName", releaseName);
-      args.put("buildName", run.getDisplayName());
-
-      SummaryTextAction action = new SummaryTextAction(
-          run, getSummaryHtml(efClient, result, args, logger)
-      );
-
-      run.addAction(action);
-      run.save();
-      logger.println("Create jenkinsBuildDetails result: " + formatJsonOutput(result));
-    } catch (Exception e) {
-      logger.println(e.getMessage());
-      log.error(e.getMessage(), e);
-      return false;
-    }
-
-    return true;
+    logger.println("Create jenkinsBuildDetails result: " + formatJsonOutput(result.toString()));
+    return result.toString();
   }
 
   public String getConfiguration() {
