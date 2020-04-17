@@ -30,6 +30,7 @@ import hudson.util.FormValidation;
 import hudson.util.ListBoxModel;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -43,6 +44,8 @@ import org.jenkinsci.Symbol;
 import org.jenkinsci.plugins.electricflow.data.CloudBeesFlowBuildData;
 import org.jenkinsci.plugins.electricflow.factories.ElectricFlowClientFactory;
 import org.jenkinsci.plugins.electricflow.models.JenkinsBuildDetail;
+import org.jenkinsci.plugins.electricflow.models.JenkinsBuildDetail.BuildTriggerSource;
+import org.jenkinsci.plugins.electricflow.models.JenkinsBuildDetail.JenkinsBuildAssociationType;
 import org.jenkinsci.plugins.electricflow.ui.HtmlUtils;
 import org.jenkinsci.plugins.electricflow.ui.SelectFieldUtils;
 import org.kohsuke.stapler.AncestorInPath;
@@ -94,6 +97,7 @@ public class ElectricFlowAssociateBuildToRelease extends Recorder implements Sim
       run.save();
     } catch (Exception ex) {
       taskListener.getLogger().println("Failed to associate build to release: " + ex.toString());
+      ex.printStackTrace();
       run.setResult(Result.FAILURE);
     }
   }
@@ -103,16 +107,27 @@ public class ElectricFlowAssociateBuildToRelease extends Recorder implements Sim
       CloudBeesFlowBuildData cloudBeesFlowBuildData,
       PrintStream logger) throws IOException {
 
-    JSONObject json = cloudBeesFlowBuildData.toJsonObject();
-
     logger.println("JENKINS VERSION: " + Jenkins.VERSION);
     logger.println("Project name: " + projectName + ", Release name: " + releaseName);
-    logger.println("JSON: " + json.toString());
+
+    JenkinsBuildDetail detail = new JenkinsBuildDetail()
+        .setJenkinsData(cloudBeesFlowBuildData)
+        .setProjectName(projectName)
+        .setReleaseName(releaseName)
+        .setAssociationType(JenkinsBuildAssociationType.ATTACHED)
+        .setBuildTriggerSource(BuildTriggerSource.JENKINS);
+
+    try {
+      detail.validate();
+    } catch (RuntimeException ex){
+      logger.println("[ERROR] Can't fill the JenkinsBuildDetail: " + ex.getMessage());
+      logger.println(Arrays.toString(ex.getStackTrace()));
+    }
+
+    logger.println("JSON: " + formatJsonOutput(detail.toJsonObject().toString()));
 
     logger.println("Preparing to attach build...");
-    JSONObject result = efClient.setJenkinsBuildDetails(
-        new JenkinsBuildDetail()
-    );
+    JSONObject result = efClient.setJenkinsBuildDetails(detail);
 
     logger.println("Create jenkinsBuildDetails result: " + formatJsonOutput(result.toString()));
     return result.toString();

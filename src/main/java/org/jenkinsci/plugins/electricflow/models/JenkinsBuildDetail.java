@@ -27,12 +27,16 @@ public class JenkinsBuildDetail {
   }
 
   public JSONObject toJsonObject() {
+    this.validate();
 
     JSONObject jsonObject = new JSONObject();
 
+    if (buildName == null){
+      buildName = jenkinsData.getDisplayName();
+    }
+
     jsonObject.put("buildName", this.getBuildName());
     jsonObject.put("projectName", this.getProjectName());
-
     jsonObject.put("jenkinsData", this.getJenkinsData().toJsonObject().toString());
     jsonObject.put("buildTriggerSource", this.getBuildTriggerSource());
     jsonObject.put("jenkinsBuildAssociationType", this.getAssociationType());
@@ -44,6 +48,26 @@ public class JenkinsBuildDetail {
     }
 
     return jsonObject;
+  }
+
+  public void validate() throws RuntimeException{
+    if (jenkinsData == null){
+      throw new RuntimeException("Field 'CloudBeesFlowData jenkinsData' is not set up.");
+    }
+
+    boolean hasValuesForReleaseAttach = (projectName != null && releaseName != null);
+    boolean hasValuesForPipelineAttach = (flowRuntimeId != null);
+
+    if (hasValuesForPipelineAttach && hasValuesForReleaseAttach){
+      throw new RuntimeException(
+          "Only one of 'flowRuntimeId' or 'projectName and releaseName' can be specified."
+      );
+    }
+    else if (!hasValuesForPipelineAttach && !hasValuesForReleaseAttach){
+      throw new RuntimeException(
+          "One of 'flowRuntimeId' or 'projectName and releaseName' should be specified."
+      );
+    }
   }
 
   public String getBuildName() {
