@@ -82,14 +82,15 @@ public class ElectricFlowAssociateBuildToRelease extends Recorder implements Sim
           ElectricFlowClientFactory.getElectricFlowClient(configuration, overrideCredential, env);
       PrintStream logger = taskListener.getLogger();
 
-      String result = setJenkinsBuildDetails(efClient, cloudBeesFlowBuildData, logger);
+      JSONObject result = setJenkinsBuildDetails(efClient, cloudBeesFlowBuildData, logger);
 
       Map<String, String> args = new LinkedHashMap<>();
       args.put("projectName", projectName);
       args.put("releaseName", releaseName);
       args.put("buildName", cloudBeesFlowBuildData.getDisplayName());
+      args.put("releaseId", result.getJSONObject("jenkinsBuildDetailInfo").getString("releaseId"));
       SummaryTextAction action = new SummaryTextAction(
-          run, getSummaryHtml(efClient, result, args, logger)
+          run, getSummaryHtml(efClient, args, logger)
       );
 
       run.addAction(action);
@@ -102,7 +103,7 @@ public class ElectricFlowAssociateBuildToRelease extends Recorder implements Sim
     }
   }
 
-  private String setJenkinsBuildDetails(
+  private JSONObject setJenkinsBuildDetails(
       ElectricFlowClient efClient,
       CloudBeesFlowBuildData cloudBeesFlowBuildData,
       PrintStream logger) throws IOException {
@@ -130,7 +131,7 @@ public class ElectricFlowAssociateBuildToRelease extends Recorder implements Sim
     JSONObject result = efClient.setJenkinsBuildDetails(detail);
 
     logger.println("Create jenkinsBuildDetails result: " + formatJsonOutput(result.toString()));
-    return result.toString();
+    return result;
   }
 
   public String getConfiguration() {
@@ -186,42 +187,20 @@ public class ElectricFlowAssociateBuildToRelease extends Recorder implements Sim
     return BuildStepMonitor.NONE;
   }
 
-  private String getSummaryHtml(
-      ElectricFlowClient electricFlowClient, String jsonResult, Map<String, String> args,
-      PrintStream logger) {
+  private String getSummaryHtml( ElectricFlowClient electricFlowClient,
+      Map<String, String> args, PrintStream logger ) {
 
     String releaseName = args.get("releaseName");
-    String projectName = args.get("projectName");
-    String releaseRunLink = electricFlowClient.getElectricFlowUrl();
+    String releaseId = args.get("releaseId");
 
-    try {
-      Release release = electricFlowClient.getRelease(configuration, projectName, releaseName);
-      String path = String.format("/flow/#pipeline-run/%s", release.getReleaseId());
-      releaseRunLink += path;
-    } catch (Exception e) {
-      releaseRunLink += "/flow/#releases";
-      logger.println("WARN: Failed to determine release id. UL will point to the releases instead");
-    }
-
+    String path = String.format("/flow/#pipeline-run/%s", releaseId);
+    String releaseRunLink = electricFlowClient.getElectricFlowUrl() + path;
     logger.println(String.format("INFO: link to the release: %s", releaseRunLink));
-
-   /*
-   try {
-      String flowRuntimeId = fromObject(jsonResult)
-          .getJSONObject("jenkinsBuildDetailInfo")
-          .getString("flowRuntimeId");
-
-      String path = String.format("flow/#pipeline-run/%s", flowRuntimeId);
-      releaseRunLink += path;
-    } catch (JSONException ex) {
-      // CEV-24565 API version does not support returning flowRuntimeId.
-      releaseRunLink += "flow/#releases";
-    }*/
 
     return "<h3>CloudBees Flow - Associate Build To Release</h3>"
         + "<table cellspacing=\"2\" cellpadding=\"4\"> \n"
         + "  <tr>\n"
-        + "    <td>Flow release page:</td>\n"
+        + "    <td>Build details were attached to the release </td>\n"
         + "    <td>"
         + "<a target='_blank' href='"
         + HtmlUtils.encodeForHtml(releaseRunLink)
