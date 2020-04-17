@@ -277,17 +277,19 @@ public class ElectricFlowClient {
     successCodes.add(201);
 
     if (!successCodes.contains(conn.getResponseCode())) {
-      try (InputStream stream =
-              conn.getResponseCode() >= 200 && conn.getResponseCode() <= 299
-                  ? conn.getInputStream()
-                  : conn.getErrorStream();
-          BufferedReader br =
-              stream == null ? null : new BufferedReader(new InputStreamReader(stream, CHARSET))) {
-        if (br != null) {
+      try {
+        InputStream stream = (conn.getResponseCode() >= 200 && conn.getResponseCode() <= 299)
+            ? conn.getInputStream()
+            : conn.getErrorStream();
+
+        if (stream != null) {
+          BufferedReader br = new BufferedReader(new InputStreamReader(stream, CHARSET));
           String output;
           while ((output = br.readLine()) != null) {
             result.append(output);
           }
+        } else {
+          log.info("Connection input or error stream is null");
         }
       } catch (IOException e) {
         log.error("Error on reading response body. Error: " + e.getMessage());
