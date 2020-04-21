@@ -39,7 +39,7 @@ following attributes need to be specified:
 -   Configuration Name: Specify the name to store this configuration,
     which is used to connect to the CloudBees Flow Server.
 
--   Server URL: CloudBees Flow Server URL
+-   Server URL: CloudBees Flow Server URL.
 
 -   REST API Version: CloudBees Flow Server Rest API Version
 
