@@ -26,10 +26,7 @@ import org.apache.commons.logging.LogFactory;
 import org.jenkinsci.Symbol;
 import org.jenkinsci.plugins.electricflow.factories.ElectricFlowClientFactory;
 import org.jenkinsci.plugins.electricflow.ui.HtmlUtils;
-import org.kohsuke.stapler.AncestorInPath;
-import org.kohsuke.stapler.DataBoundConstructor;
-import org.kohsuke.stapler.QueryParameter;
-import org.kohsuke.stapler.StaplerRequest;
+import org.kohsuke.stapler.*;
 
 import net.sf.json.JSONObject;
 
@@ -72,15 +69,13 @@ public class ElectricFlowUploadArtifactPublisher
             String artifactName,
             String artifactVersion,
             String filePath,
-            String configuration,
-            Credential overrideCredential)
+            String configuration)
     {
         this.repositoryName  = repositoryName;
         this.artifactName    = artifactName;
         this.artifactVersion = artifactVersion;
         this.filePath        = filePath;
         this.configuration   = configuration;
-        this.overrideCredential = overrideCredential;
     }
 
     @Override
@@ -181,6 +176,11 @@ public class ElectricFlowUploadArtifactPublisher
 
     public Credential getOverrideCredential() {
         return overrideCredential;
+    }
+
+    @DataBoundSetter
+    public void setOverrideCredential(Credential overrideCredential) {
+        this.overrideCredential = overrideCredential;
     }
 
     // Overridden for better type safety.

@@ -30,10 +30,7 @@ import org.jenkinsci.Symbol;
 import org.jenkinsci.plugins.electricflow.exceptions.PluginException;
 import org.jenkinsci.plugins.electricflow.factories.ElectricFlowClientFactory;
 import org.jenkinsci.plugins.electricflow.ui.HtmlUtils;
-import org.kohsuke.stapler.AncestorInPath;
-import org.kohsuke.stapler.DataBoundConstructor;
-import org.kohsuke.stapler.QueryParameter;
-import org.kohsuke.stapler.StaplerRequest;
+import org.kohsuke.stapler.*;
 
 import net.sf.json.JSONObject;
 
@@ -75,10 +72,8 @@ public class ElectricFlowPublishApplication
     @DataBoundConstructor
     public ElectricFlowPublishApplication(
             String configuration,
-            Credential overrideCredential,
             String filePath) {
         this.configuration = configuration;
-        this.overrideCredential = overrideCredential;
         this.filePath = filePath;
     }
 
@@ -198,6 +193,11 @@ public class ElectricFlowPublishApplication
 
     public Credential getOverrideCredential() {
         return overrideCredential;
+    }
+
+    @DataBoundSetter
+    public void setOverrideCredential(Credential overrideCredential) {
+        this.overrideCredential = overrideCredential;
     }
 
     // Overridden for better type safety.
