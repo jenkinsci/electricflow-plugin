@@ -860,14 +860,21 @@ public class ElectricFlowClient {
       String gotReleaseName = releaseObject.getString("releaseName");
       String gotPipelineName = releaseObject.getString("pipelineName");
       String gotPipelineId = releaseObject.getString("pipelineId");
-      JSONObject stages = releaseObject.getJSONObject("stages");
+
+
 
       Release release = new Release(conf, projectName, gotReleaseName);
-
       release.setPipelineName(gotPipelineName);
+      release.setPipelineId(gotPipelineId);
       release.setPipelineParameters(getPipelineFormalParameters(gotPipelineId));
       release.setReleaseId(gotReleaseId);
 
+      // This can be missing if release wasn't run before
+      if (releaseObject.containsKey("flowRuntimeId")){
+        release.setFlowRuntimeId(releaseObject.getString("flowRuntimeId"));
+      }
+
+      JSONObject stages = releaseObject.getJSONObject("stages");
       if (!stages.isEmpty()) {
         JSONArray stagesArray = stages.getJSONArray("stage");
 

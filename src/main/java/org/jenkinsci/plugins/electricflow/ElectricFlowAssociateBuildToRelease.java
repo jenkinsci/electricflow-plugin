@@ -82,18 +82,23 @@ public class ElectricFlowAssociateBuildToRelease extends Recorder implements Sim
           ElectricFlowClientFactory.getElectricFlowClient(configuration, overrideCredential, env);
       PrintStream logger = taskListener.getLogger();
 
+      // Calling the actual logic and saving the result
       JSONObject result = setJenkinsBuildDetails(efClient, cloudBeesFlowBuildData, logger);
+      JSONObject resultBuildDetailInfo = result.getJSONObject("jenkinsBuildDetailInfo");
 
+      // Setting the summary
       Map<String, String> args = new LinkedHashMap<>();
+      args.put("configuration", configuration);
       args.put("projectName", projectName);
       args.put("releaseName", releaseName);
       args.put("buildName", cloudBeesFlowBuildData.getDisplayName());
-      args.put("releaseId", result.getJSONObject("jenkinsBuildDetailInfo").getString("releaseId"));
-      SummaryTextAction action = new SummaryTextAction(
-          run, getSummaryHtml(efClient, args, logger)
-      );
+      args.put("releaseId", resultBuildDetailInfo.getString("releaseId"));
 
-      run.addAction(action);
+      // Adding text to the summary page
+      run.addAction(new SummaryTextAction(
+          run, getSummaryHtml(efClient, args, logger)
+      ));
+
       run.setResult(Result.SUCCESS);
       run.save();
     } catch (Exception ex) {
@@ -132,6 +137,45 @@ public class ElectricFlowAssociateBuildToRelease extends Recorder implements Sim
 
     logger.println("Create jenkinsBuildDetails result: " + formatJsonOutput(result.toString()));
     return result;
+  }
+
+  private String getSummaryHtml( ElectricFlowClient electricFlowClient,
+      Map<String, String> args, PrintStream logger ) {
+
+    String config = args.get("configuration");
+    String projectName = args.get("projectName");
+    String releaseName = args.get("releaseName");
+    String releaseId = args.get("releaseId");
+    String flowRuntimeId = null;
+
+    try {
+      Release release = electricFlowClient.getRelease(config, projectName, releaseName);
+      flowRuntimeId = release.getFlowRuntimeId();
+
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+
+    String path = String.format(
+        "/flow/#pipeline-run/%s/%s/release/%s", releaseId, flowRuntimeId, releaseId
+    );
+
+    String releaseRunLink = electricFlowClient.getElectricFlowUrl() + path;
+    logger.println(String.format("INFO: link to the release: %s", releaseRunLink));
+
+    return "<h3>CloudBees Flow - Associate Build To Release</h3>"
+        + "<table cellspacing=\"2\" cellpadding=\"4\"> \n"
+        + "  <tr>\n"
+        + "    <td>Build details were attached to the release </td>\n"
+        + "    <td>"
+        + "<a target='_blank' href='"
+        + HtmlUtils.encodeForHtml(releaseRunLink)
+        + "'>"
+        + HtmlUtils.encodeForHtml(releaseName)
+        + "</a>"
+        + "</td>\n"
+        + "  </tr>"
+        + "</table>";
   }
 
   public String getConfiguration() {
@@ -185,31 +229,6 @@ public class ElectricFlowAssociateBuildToRelease extends Recorder implements Sim
   @Override
   public BuildStepMonitor getRequiredMonitorService() {
     return BuildStepMonitor.NONE;
-  }
-
-  private String getSummaryHtml( ElectricFlowClient electricFlowClient,
-      Map<String, String> args, PrintStream logger ) {
-
-    String releaseName = args.get("releaseName");
-    String releaseId = args.get("releaseId");
-
-    String path = String.format("/flow/#pipeline-run/%s", releaseId);
-    String releaseRunLink = electricFlowClient.getElectricFlowUrl() + path;
-    logger.println(String.format("INFO: link to the release: %s", releaseRunLink));
-
-    return "<h3>CloudBees Flow - Associate Build To Release</h3>"
-        + "<table cellspacing=\"2\" cellpadding=\"4\"> \n"
-        + "  <tr>\n"
-        + "    <td>Build details were attached to the release </td>\n"
-        + "    <td>"
-        + "<a target='_blank' href='"
-        + HtmlUtils.encodeForHtml(releaseRunLink)
-        + "'>"
-        + HtmlUtils.encodeForHtml(releaseName)
-        + "</a>"
-        + "</td>\n"
-        + "  </tr>"
-        + "</table>";
   }
 
   @Symbol("cloudBeesFlowAssociateBuildToRelease")
