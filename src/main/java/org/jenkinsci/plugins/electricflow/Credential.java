@@ -59,6 +59,10 @@ public class Credential
             if (item == null || !item.hasPermission(Item.CONFIGURE)) {
                 return new ListBoxModel();
             }
+            if (!item.hasPermission(Item.EXTENDED_READ)
+                    && !item.hasPermission(CredentialsProvider.USE_ITEM)) {
+                return new ListBoxModel();
+            }
 
             return new StandardUsernameListBoxModel()
                     .includeEmptyValue()
