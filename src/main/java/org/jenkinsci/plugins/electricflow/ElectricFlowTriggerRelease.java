@@ -13,10 +13,7 @@ import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
 import hudson.RelativePath;
-import hudson.model.AbstractProject;
-import hudson.model.Item;
-import hudson.model.Run;
-import hudson.model.TaskListener;
+import hudson.model.*;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.BuildStepMonitor;
 import hudson.tasks.Publisher;
@@ -135,6 +132,7 @@ public class ElectricFlowTriggerRelease
         catch (Exception e) {
             logger.println(e.getMessage());
             log.error(e.getMessage(), e);
+            run.setResult(Result.FAILURE);
         }
     }
 
