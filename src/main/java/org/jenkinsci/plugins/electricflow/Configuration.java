@@ -98,7 +98,7 @@ public class Configuration extends AbstractDescribableImpl<Configuration> {
     // ~ Methods ------------------------------------------------------------
 
     public FormValidation doCheckConfigurationName(@QueryParameter String value) {
-      if (!Jenkins.getActiveInstance().hasPermission(Jenkins.ADMINISTER)) {
+      if (!Jenkins.get().hasPermission(Jenkins.ADMINISTER)) {
         return FormValidation.ok();
       }
 
@@ -106,7 +106,7 @@ public class Configuration extends AbstractDescribableImpl<Configuration> {
     }
 
     public FormValidation doCheckElectricFlowApiVersion(@QueryParameter String value) {
-      if (!Jenkins.getActiveInstance().hasPermission(Jenkins.ADMINISTER)) {
+      if (!Jenkins.get().hasPermission(Jenkins.ADMINISTER)) {
         return FormValidation.ok();
       }
 
@@ -114,7 +114,7 @@ public class Configuration extends AbstractDescribableImpl<Configuration> {
     }
 
     public FormValidation doCheckElectricFlowPassword(@QueryParameter String value) {
-      if (!Jenkins.getActiveInstance().hasPermission(Jenkins.ADMINISTER)) {
+      if (!Jenkins.get().hasPermission(Jenkins.ADMINISTER)) {
         return FormValidation.ok();
       }
 
@@ -122,7 +122,7 @@ public class Configuration extends AbstractDescribableImpl<Configuration> {
     }
 
     public FormValidation doCheckElectricFlowUrl(@QueryParameter String value) {
-      if (!Jenkins.getActiveInstance().hasPermission(Jenkins.ADMINISTER)) {
+      if (!Jenkins.get().hasPermission(Jenkins.ADMINISTER)) {
         return FormValidation.ok();
       }
 
@@ -130,7 +130,7 @@ public class Configuration extends AbstractDescribableImpl<Configuration> {
     }
 
     public FormValidation doCheckElectricFlowUser(@QueryParameter String value) {
-      if (!Jenkins.getActiveInstance().hasPermission(Jenkins.ADMINISTER)) {
+      if (!Jenkins.get().hasPermission(Jenkins.ADMINISTER)) {
         return FormValidation.ok();
       }
 
@@ -138,7 +138,7 @@ public class Configuration extends AbstractDescribableImpl<Configuration> {
     }
 
     public ListBoxModel doFillElectricFlowApiVersionItems() {
-      if (!Jenkins.getActiveInstance().hasPermission(Jenkins.ADMINISTER)) {
+      if (!Jenkins.get().hasPermission(Jenkins.ADMINISTER)) {
         return new ListBoxModel();
       }
 
@@ -158,7 +158,7 @@ public class Configuration extends AbstractDescribableImpl<Configuration> {
         @QueryParameter("electricFlowApiVersion") final String electricFlowApiVersion,
         @QueryParameter("ignoreSslConnectionErrors") final boolean ignoreSslConnectionErrors)
         throws IOException {
-      if (!Jenkins.getActiveInstance().hasPermission(Jenkins.ADMINISTER)) {
+      if (!Jenkins.get().hasPermission(Jenkins.ADMINISTER)) {
         return FormValidation.ok();
       }
 
