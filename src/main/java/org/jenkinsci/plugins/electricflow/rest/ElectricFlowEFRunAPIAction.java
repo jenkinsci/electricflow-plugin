@@ -39,7 +39,9 @@ public class ElectricFlowEFRunAPIAction<T extends Job<?, ?> & Queue.Task>  imple
     // Interface methods
 
     public String getIconFileName() {
-        return null; // Invisible
+        // return "/plugin/electricflow-integration/img/flow-icon-white.svg";
+        return null;
+        //return null; // Invisible
     }
 
     public String getDisplayName() {
@@ -57,7 +59,7 @@ public class ElectricFlowEFRunAPIAction<T extends Job<?, ?> & Queue.Task>  imple
     public void doIndex(StaplerRequest req, StaplerResponse rsp) throws IOException, ServletException {
         rsp.setStatus(201);
         String responseString = "Hello World";
-        byte[] responseBytes = responseString.getBytes();
+        byte[] responseBytes = responseString.getBytes("UTF-8");
         rsp.setContentLength(responseBytes.length);
         OutputStream out = rsp.getOutputStream();
         out.write(responseBytes);
@@ -98,7 +100,7 @@ public class ElectricFlowEFRunAPIAction<T extends Job<?, ?> & Queue.Task>  imple
         } catch (JSONException e) {};
 
         JSONObject responseObject = new JSONObject();
-        responseObject.put("status", "ok");
+
 
 
 
@@ -113,13 +115,24 @@ public class ElectricFlowEFRunAPIAction<T extends Job<?, ?> & Queue.Task>  imple
             efcause.setReleaseName(releaseName);
         }
         CauseAction ca = new CauseAction(efcause);
-        Queue.WaitingItem schedule = Jenkins.get().getQueue().schedule(project, 0, ca);
-        rsp.setHeader("location", "queue/" + Long.toString(schedule.getId()));
+
+        Queue.WaitingItem schedule = null;
         OutputStream out = rsp.getOutputStream();
+        schedule = Jenkins.get().getQueue().schedule(project, 0, ca);
+        if (schedule == null) {
+            responseObject.put("status", "fail");
+            byte[] responseFailed = responseObject.toString().getBytes("UTF-8");
+            rsp.setContentLength(responseFailed.length);
+            out.write(responseFailed);
+            return;
+        }
+        responseObject.put("status", "ok");
+        rsp.setHeader("location", "queue/" + Long.toString(schedule.getId()));
+
 
         responseObject.put("queueId", schedule.getId());
         String responseString = responseObject.toString();
-        byte[] responseBytes = responseString.getBytes();
+        byte[] responseBytes = responseString.getBytes("UTF-8");
         rsp.setContentLength(responseBytes.length);
         out.write(responseBytes);
         out.flush();

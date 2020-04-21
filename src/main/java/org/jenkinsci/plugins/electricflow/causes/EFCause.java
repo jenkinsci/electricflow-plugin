@@ -60,7 +60,10 @@ public class EFCause extends hudson.model.Cause {
              shortDescription.append("<br/>");
             shortDescription.append("Release Name: " + releaseName);
         }
-
         return shortDescription.toString();
     }
+
+//    public String getIconFileName() {
+//
+//    }
 }
