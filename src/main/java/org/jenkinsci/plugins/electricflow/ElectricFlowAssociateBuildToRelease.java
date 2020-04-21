@@ -86,13 +86,17 @@ public class ElectricFlowAssociateBuildToRelease extends Recorder implements Sim
       JSONObject result = setJenkinsBuildDetails(efClient, cloudBeesFlowBuildData, logger);
       JSONObject resultBuildDetailInfo = result.getJSONObject("jenkinsBuildDetailInfo");
 
+
       // Setting the summary
+      Release release = efClient.getRelease(configuration, projectName, releaseName);
+
       Map<String, String> args = new LinkedHashMap<>();
       args.put("configuration", configuration);
       args.put("projectName", projectName);
       args.put("releaseName", releaseName);
       args.put("buildName", cloudBeesFlowBuildData.getDisplayName());
       args.put("releaseId", resultBuildDetailInfo.getString("releaseId"));
+      args.put("flowRuntimeId", release.getFlowRuntimeId());
 
       // Adding text to the summary page
       run.addAction(new SummaryTextAction(
@@ -142,19 +146,9 @@ public class ElectricFlowAssociateBuildToRelease extends Recorder implements Sim
   private String getSummaryHtml( ElectricFlowClient electricFlowClient,
       Map<String, String> args, PrintStream logger ) {
 
-    String config = args.get("configuration");
-    String projectName = args.get("projectName");
     String releaseName = args.get("releaseName");
     String releaseId = args.get("releaseId");
-    String flowRuntimeId = null;
-
-    try {
-      Release release = electricFlowClient.getRelease(config, projectName, releaseName);
-      flowRuntimeId = release.getFlowRuntimeId();
-
-    } catch (Exception e) {
-      e.printStackTrace();
-    }
+    String flowRuntimeId = args.get("flowRuntimeId");
 
     String path = String.format(
         "/flow/#pipeline-run/%s/%s/release/%s", releaseId, flowRuntimeId, releaseId

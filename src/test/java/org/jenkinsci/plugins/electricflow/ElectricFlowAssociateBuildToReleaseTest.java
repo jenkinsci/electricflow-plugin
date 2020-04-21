@@ -84,6 +84,9 @@ public class ElectricFlowAssociateBuildToReleaseTest {
     assertEquals(expectedReleaseName, pba.getReleaseName());
   }
 
+  @Test
+
+
   private void applyFlowConfiguration(String configName) {
     ElectricFlowGlobalConfiguration electricFlowGlobalConfiguration =
         (ElectricFlowGlobalConfiguration)
