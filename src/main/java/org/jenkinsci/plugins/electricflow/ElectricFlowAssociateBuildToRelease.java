@@ -91,8 +91,6 @@ public class ElectricFlowAssociateBuildToRelease extends Recorder implements Sim
       Release release = efClient.getRelease(configuration, projectName, releaseName);
 
       Map<String, String> args = new LinkedHashMap<>();
-      args.put("configuration", configuration);
-      args.put("projectName", projectName);
       args.put("releaseName", releaseName);
       args.put("buildName", cloudBeesFlowBuildData.getDisplayName());
       args.put("releaseId", resultBuildDetailInfo.getString("releaseId"));

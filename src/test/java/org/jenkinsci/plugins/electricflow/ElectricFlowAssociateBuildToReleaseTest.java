@@ -14,7 +14,6 @@ import java.io.InputStreamReader;
 import java.util.LinkedList;
 import org.junit.Assume;
 import org.junit.ClassRule;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.jvnet.hudson.test.BuildWatcher;
@@ -83,9 +82,6 @@ public class ElectricFlowAssociateBuildToReleaseTest {
     assertEquals(expectedProjectName, pba.getProjectName());
     assertEquals(expectedReleaseName, pba.getReleaseName());
   }
-
-  @Test
-
 
   private void applyFlowConfiguration(String configName) {
     ElectricFlowGlobalConfiguration electricFlowGlobalConfiguration =
