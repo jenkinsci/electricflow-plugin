@@ -1,3 +1,4 @@
+
 // ElectricFlowDeployApplication.java --
 //
 // ElectricFlowDeployApplication.java is part of ElectricCommander.
@@ -8,36 +9,17 @@
 
 package org.jenkinsci.plugins.electricflow;
 
-import static org.jenkinsci.plugins.electricflow.Utils.addParametersToJsonAndPreserveStored;
-import static org.jenkinsci.plugins.electricflow.Utils.expandParameters;
-import static org.jenkinsci.plugins.electricflow.Utils.formatJsonOutput;
-import static org.jenkinsci.plugins.electricflow.Utils.getParamsMap;
-import static org.jenkinsci.plugins.electricflow.Utils.getValidationComparisonHeaderRow;
-import static org.jenkinsci.plugins.electricflow.Utils.getValidationComparisonRow;
-import static org.jenkinsci.plugins.electricflow.Utils.getValidationComparisonRowsForExtraParameters;
-import static org.jenkinsci.plugins.electricflow.ui.SelectFieldUtils.getSelectItemValue;
-import static org.jenkinsci.plugins.electricflow.ui.SelectFieldUtils.isSelectItemValidationWrapper;
-
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
-import hudson.model.AbstractProject;
-import hudson.model.Item;
-import hudson.model.Result;
-import hudson.model.Run;
-import hudson.model.TaskListener;
+import hudson.RelativePath;
+import hudson.model.*;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.BuildStepMonitor;
 import hudson.tasks.Publisher;
 import hudson.tasks.Recorder;
 import hudson.util.FormValidation;
 import hudson.util.ListBoxModel;
-import java.io.IOException;
-import java.io.PrintStream;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import javax.annotation.Nonnull;
 import jenkins.tasks.SimpleBuildStep;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
@@ -54,637 +36,669 @@ import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.QueryParameter;
 
-public class ElectricFlowDeployApplication extends Recorder implements SimpleBuildStep {
+import javax.annotation.Nonnull;
+import java.io.IOException;
+import java.io.PrintStream;
+import java.util.*;
 
-  // ~ Static fields/initializers ---------------------------------------------
+import static org.jenkinsci.plugins.electricflow.Utils.*;
+import static org.jenkinsci.plugins.electricflow.ui.SelectFieldUtils.getSelectItemValue;
+import static org.jenkinsci.plugins.electricflow.ui.SelectFieldUtils.isSelectItemValidationWrapper;
 
-  private static final Log log = LogFactory.getLog(ElectricFlowDeployApplication.class);
+public class ElectricFlowDeployApplication
+    extends Recorder
+    implements SimpleBuildStep
+{
 
-  // ~ Instance fields --------------------------------------------------------
+    //~ Static fields/initializers ---------------------------------------------
 
-  private String configuration;
-  private Credential overrideCredential;
-  private String projectName;
-  private String applicationName;
-  private String applicationProcessName;
-  private String environmentName;
-  private String deployParameters;
+    private static final Log log = LogFactory.getLog(ElectricFlowDeployApplication.class);
 
-  // ~ Constructors -----------------------------------------------------------
+    //~ Instance fields --------------------------------------------------------
 
-  @DataBoundConstructor
-  public ElectricFlowDeployApplication() {}
+    private String configuration;
+    private Credential overrideCredential;
+    private String projectName;
+    private String applicationName;
+    private String applicationProcessName;
+    private String environmentName;
+    private String deployParameters;
 
-  // ~ Methods ----------------------------------------------------------------
+    //~ Constructors -----------------------------------------------------------
 
-  @Override
-  public void perform(
-      @Nonnull Run<?, ?> run,
-      @Nonnull FilePath filePath,
-      @Nonnull Launcher launcher,
-      @Nonnull TaskListener taskListener)
-      throws InterruptedException, IOException {
-    boolean isSuccess = runProcess(run, taskListener);
-    if (!isSuccess) {
-      run.setResult(Result.FAILURE);
-    }
-  }
+    @DataBoundConstructor public ElectricFlowDeployApplication() { }
 
-  private boolean runProcess(@Nonnull Run<?, ?> run, @Nonnull TaskListener taskListener) {
-    PrintStream logger = taskListener.getLogger();
+    //~ Methods ----------------------------------------------------------------
 
-    logger.println(
-        "Project name: "
-            + projectName
-            + ", Application name: "
-            + applicationName
-            + ", Application process name: "
-            + applicationProcessName
-            + ", Environment name: "
-            + environmentName);
-
-    JSONObject runProcess = JSONObject.fromObject(deployParameters).getJSONObject("runProcess");
-    JSONArray parameter = JSONArray.fromObject(runProcess.getString("parameter"));
-
-    try {
-      logger.println("Preparing to run process...");
-
-      EnvReplacer env = new EnvReplacer(run, taskListener);
-      ElectricFlowClient efClient =
-          ElectricFlowClientFactory.getElectricFlowClient(configuration, overrideCredential, env);
-      expandParameters(parameter, env, "value");
-
-      String result =
-          efClient.runProcess(
-              projectName, applicationName, applicationProcessName, environmentName, parameter);
-      JSONObject process =
-          efClient.getProcess(projectName, applicationName, applicationProcessName);
-
-      if (process == null || process.isEmpty()) {
-        return false;
-      }
-
-      String processId = process.getJSONObject("process").getString("processId");
-      Map<String, String> args = new HashMap<>();
-
-      args.put("applicationName", applicationName);
-      args.put("processName", applicationProcessName);
-      args.put("processId", processId);
-      args.put("result", result);
-
-      String summaryHtml = getSummaryHtml(efClient, parameter, args);
-      SummaryTextAction action = new SummaryTextAction(run, summaryHtml);
-
-      run.addAction(action);
-      run.save();
-      logger.println("Deploy application result: " + formatJsonOutput(result));
-    } catch (Exception e) {
-      logger.println(e.getMessage());
-      log.error(e.getMessage(), e);
-
-      return false;
+    @Override public void perform(
+            @Nonnull Run<?, ?>    run,
+            @Nonnull FilePath     filePath,
+            @Nonnull Launcher     launcher,
+            @Nonnull TaskListener taskListener)
+        throws InterruptedException, IOException
+    {
+        boolean isSuccess = runProcess(run, taskListener);
+        if (!isSuccess) {
+            run.setResult(Result.FAILURE);
+        }
     }
 
-    return true;
-  }
+    private boolean runProcess(
+            @Nonnull Run<?, ?>    run,
+            @Nonnull TaskListener taskListener)
+    {
+        PrintStream        logger   = taskListener.getLogger();
 
-  public String getApplicationName() {
-    return applicationName;
-  }
+        logger.println("Project name: "
+                + projectName
+                + ", Application name: " + applicationName
+                + ", Application process name: " + applicationProcessName
+                + ", Environment name: " + environmentName);
 
-  @DataBoundSetter
-  public void setApplicationName(String applicationName) {
-    this.applicationName = getSelectItemValue(applicationName);
-  }
+        JSONObject runProcess = JSONObject.fromObject(deployParameters)
+                                          .getJSONObject("runProcess");
+        JSONArray  parameter  = JSONArray.fromObject(runProcess.getString(
+                    "parameter"));
 
-  public String getStoredApplicationName() {
-    return applicationName;
-  }
+        try {
+            logger.println("Preparing to run process...");
 
-  public String getApplicationProcessName() {
-    return applicationProcessName;
-  }
+            EnvReplacer env = new EnvReplacer(run, taskListener);
+            ElectricFlowClient efClient = ElectricFlowClientFactory
+                    .getElectricFlowClient(
+                            configuration,
+                            overrideCredential,
+                            run,
+                            env,
+                            false);
+            expandParameters(parameter, env, "value");
 
-  @DataBoundSetter
-  public void setApplicationProcessName(String applicationProcessName) {
-    this.applicationProcessName = getSelectItemValue(applicationProcessName);
-  }
+            String     result  = efClient.runProcess(projectName,
+                    applicationName, applicationProcessName, environmentName,
+                    parameter);
+            JSONObject process = efClient.getProcess(projectName,
+                    applicationName, applicationProcessName);
 
-  public String getStoredApplicationProcessName() {
-    return applicationProcessName;
-  }
+            if (process == null || process.isEmpty()) {
+                return false;
+            }
 
-  public String getConfiguration() {
-    return configuration;
-  }
+            String              processId = process.getJSONObject("process")
+                                                   .getString("processId");
+            Map<String, String> args      = new HashMap<>();
 
-  @DataBoundSetter
-  public void setConfiguration(String configuration) {
-    this.configuration = configuration;
-  }
+            args.put("applicationName", applicationName);
+            args.put("processName", applicationProcessName);
+            args.put("processId", processId);
+            args.put("result", result);
 
-  public String getStoredConfiguration() {
-    return configuration;
-  }
+            String            summaryHtml = getSummaryHtml(efClient, parameter,
+                    args);
+            SummaryTextAction action      = new SummaryTextAction(run,
+                    summaryHtml);
 
-  public Credential getOverrideCredential() {
-    return overrideCredential;
-  }
+            run.addAction(action);
+            run.save();
+            logger.println("Deploy application result: "
+                    + formatJsonOutput(result));
+        }
+        catch (Exception e) {
+            logger.println(e.getMessage());
+            log.error(e.getMessage(), e);
 
-  @DataBoundSetter
-  public void setOverrideCredential(Credential overrideCredential) {
-    this.overrideCredential = overrideCredential;
-  }
-
-  public String getDeployParameters() {
-    return deployParameters;
-  }
-
-  @DataBoundSetter
-  public void setDeployParameters(String deployParameters) {
-    this.deployParameters = getSelectItemValue(deployParameters);
-  }
-
-  public String getStoredDeployParameters() {
-    return deployParameters;
-  }
-
-  public String getEnvironmentName() {
-    return environmentName;
-  }
-
-  @DataBoundSetter
-  public void setEnvironmentName(String environmentName) {
-    this.environmentName = getSelectItemValue(environmentName);
-  }
-
-  public String getStoredEnvironmentName() {
-    return environmentName;
-  }
-
-  public String getProjectName() {
-    return projectName;
-  }
-
-  @DataBoundSetter
-  public void setProjectName(String projectName) {
-    this.projectName = getSelectItemValue(projectName);
-  }
-
-  public String getStoredProjectName() {
-    return projectName;
-  }
-
-  public boolean getValidationTrigger() {
-    return true;
-  }
-
-  @DataBoundSetter
-  public void setValidationTrigger(String validationTrigger) {}
-
-  @Override
-  public BuildStepMonitor getRequiredMonitorService() {
-    return BuildStepMonitor.NONE;
-  }
-
-  private String getSummaryHtml(
-      ElectricFlowClient configuration, JSONArray parameters, Map<String, String> args) {
-    String result = args.get("result");
-    String applicationName = args.get("applicationName");
-    String processId = args.get("processId");
-    String jobId = JSONObject.fromObject(result).getString("jobId");
-    String applicationUrl = configuration.getElectricFlowUrl() + "/flow/#applications/applications";
-    String deployRunUrl =
-        configuration.getElectricFlowUrl()
-            + "/flow/#applications/"
-            + processId
-            + "/"
-            + jobId
-            + "/runningProcess";
-    String summaryText =
-        "<h3>CloudBees Flow Deploy Application</h3>"
-            + "<table cellspacing=\"2\" cellpadding=\"4\"> \n"
-            + "  <tr>\n"
-            + "    <td>Application Name:</td>\n"
-            + "    <td><a href='"
-            + HtmlUtils.encodeForHtml(applicationUrl)
-            + "'>"
-            + HtmlUtils.encodeForHtml(applicationName)
-            + "</a></td>   \n"
-            + "  </tr>\n"
-            + "  <tr>\n"
-            + "    <td>Deploy run URL:</td>\n"
-            + "    <td><a href='"
-            + HtmlUtils.encodeForHtml(deployRunUrl)
-            + "'>"
-            + HtmlUtils.encodeForHtml(deployRunUrl)
-            + "</a></td>   \n"
-            + "  </tr>";
-
-    summaryText = Utils.getParametersHTML(parameters, summaryText, "actualParameterName", "value");
-    summaryText = summaryText + "</table>";
-
-    return summaryText;
-  }
-
-  @Symbol("cloudBeesFlowDeployApplication")
-  @Extension
-  public static final class DescriptorImpl extends BuildStepDescriptor<Publisher> {
-
-    // ~ Instance fields ----------------------------------------------------
-
-    // ~ Constructors -------------------------------------------------------
-
-    public DescriptorImpl() {
-      load();
-    }
-
-    // ~ Methods ------------------------------------------------------------
-
-    static Map<String, String> getParamsMapFromDeployParams(String deployParameters) {
-      Map<String, String> paramsMap = new HashMap<>();
-
-      if (deployParameters == null || deployParameters.isEmpty() || deployParameters.equals("{}")) {
-        return paramsMap;
-      }
-
-      JSONObject json = JSONObject.fromObject(deployParameters);
-
-      if (!json.containsKey("runProcess")
-          || !json.getJSONObject("runProcess").containsKey("parameter")) {
-        return paramsMap;
-      }
-
-      return getParamsMap(
-          JSONArray.fromObject(json.getJSONObject("runProcess").getString("parameter")),
-          "actualParameterName",
-          "value");
-    }
-
-    public FormValidation doCheckConfiguration(
-        @QueryParameter String value,
-        @QueryParameter boolean validationTrigger,
-        @AncestorInPath Item item) {
-      if (item == null || !item.hasPermission(Item.CONFIGURE)) {
-        return FormValidation.ok();
-      }
-      return Utils.validateConfiguration(value);
-    }
-
-    public FormValidation doCheckDeployParameters(
-        @QueryParameter String value,
-        @QueryParameter boolean validationTrigger,
-        @AncestorInPath Item item) {
-      if (item == null || !item.hasPermission(Item.CONFIGURE)) {
-        return FormValidation.ok();
-      }
-      if (isSelectItemValidationWrapper(value)) {
-        return SelectFieldUtils.getFormValidationBasedOnSelectItemValidationWrapper(value);
-      }
-      return FormValidation.ok();
-    }
-
-    public FormValidation doCheckProjectName(
-        @QueryParameter String value,
-        @QueryParameter boolean validationTrigger,
-        @AncestorInPath Item item) {
-      if (item == null || !item.hasPermission(Item.CONFIGURE)) {
-        return FormValidation.ok();
-      }
-      if (isSelectItemValidationWrapper(value)) {
-        return SelectFieldUtils.getFormValidationBasedOnSelectItemValidationWrapper(value);
-      }
-      return Utils.validateValueOnEmpty(value, "Project name");
-    }
-
-    public FormValidation doCheckApplicationName(
-        @QueryParameter String value,
-        @QueryParameter boolean validationTrigger,
-        @AncestorInPath Item item) {
-      if (item == null || !item.hasPermission(Item.CONFIGURE)) {
-        return FormValidation.ok();
-      }
-      if (isSelectItemValidationWrapper(value)) {
-        return SelectFieldUtils.getFormValidationBasedOnSelectItemValidationWrapper(value);
-      }
-      return Utils.validateValueOnEmpty(value, "Application name");
-    }
-
-    public FormValidation doCheckApplicationProcessName(
-        @QueryParameter String value,
-        @QueryParameter boolean validationTrigger,
-        @AncestorInPath Item item) {
-      if (item == null || !item.hasPermission(Item.CONFIGURE)) {
-        return FormValidation.ok();
-      }
-      if (isSelectItemValidationWrapper(value)) {
-        return SelectFieldUtils.getFormValidationBasedOnSelectItemValidationWrapper(value);
-      }
-      return Utils.validateValueOnEmpty(value, "Application process name");
-    }
-
-    public FormValidation doCheckEnvironmentName(
-        @QueryParameter String value,
-        @QueryParameter boolean validationTrigger,
-        @AncestorInPath Item item) {
-      if (item == null || !item.hasPermission(Item.CONFIGURE)) {
-        return FormValidation.ok();
-      }
-      if (isSelectItemValidationWrapper(value)) {
-        return SelectFieldUtils.getFormValidationBasedOnSelectItemValidationWrapper(value);
-      }
-      return Utils.validateValueOnEmpty(value, "Environment name");
-    }
-
-    public ListBoxModel doFillApplicationNameItems(
-        @QueryParameter String projectName,
-        @QueryParameter String configuration,
-        @AncestorInPath Item item) {
-      if (item == null || !item.hasPermission(Item.CONFIGURE)) {
-        return new ListBoxModel();
-      }
-      try {
-        ListBoxModel m = new ListBoxModel();
-
-        m.add("Select application", "");
-
-        if (!configuration.isEmpty()
-            && !projectName.isEmpty()
-            && SelectFieldUtils.checkAllSelectItemsAreNotValidationWrappers(projectName)) {
-          ElectricFlowClient client = new ElectricFlowClient(configuration);
-
-          List<String> applications = client.getApplications(projectName);
-
-          for (String application : applications) {
-            m.add(application);
-          }
+            return false;
         }
 
-        return m;
-      } catch (Exception e) {
-        if (Utils.isEflowAvailable(configuration)) {
-          log.error(
-              "Error when fetching values for this parameter - application. Error message: "
-                  + e.getMessage(),
-              e);
-          return SelectFieldUtils.getListBoxModelOnException("Select application");
-        } else {
-          return SelectFieldUtils.getListBoxModelOnWrongConf("Select application");
-        }
-      }
+        return true;
     }
 
-    public ListBoxModel doFillApplicationProcessNameItems(
-        @QueryParameter String configuration,
-        @QueryParameter String projectName,
-        @QueryParameter String applicationName,
-        @AncestorInPath Item item) {
-      if (item == null || !item.hasPermission(Item.CONFIGURE)) {
-        return new ListBoxModel();
-      }
-      try {
-        ListBoxModel m = new ListBoxModel();
-
-        m.add("Select application process", "");
-
-        if (!configuration.isEmpty()
-            && !projectName.isEmpty()
-            && !applicationName.isEmpty()
-            && SelectFieldUtils.checkAllSelectItemsAreNotValidationWrappers(
-                projectName, applicationName)) {
-          ElectricFlowClient client = new ElectricFlowClient(configuration);
-          List<String> processes = client.getProcesses(projectName, applicationName);
-
-          for (String process : processes) {
-            m.add(process);
-          }
-        }
-
-        return m;
-      } catch (Exception e) {
-        if (Utils.isEflowAvailable(configuration)) {
-          log.error(
-              "Error when fetching values for this parameter - application process. Error message: "
-                  + e.getMessage(),
-              e);
-          return SelectFieldUtils.getListBoxModelOnException("Select application process");
-        } else {
-          return SelectFieldUtils.getListBoxModelOnWrongConf("Select application process");
-        }
-      }
+    public String getApplicationName()
+    {
+        return applicationName;
     }
 
-    public ListBoxModel doFillConfigurationItems(@AncestorInPath Item item) {
-      if (item == null || !item.hasPermission(Item.CONFIGURE)) {
-        return new ListBoxModel();
-      }
-      return Utils.fillConfigurationItems();
+    public String getStoredApplicationName() {
+        return applicationName;
     }
 
-    public ListBoxModel doFillCredentialIdItems(@AncestorInPath Item item) {
-      return Credential.DescriptorImpl.doFillCredentialIdItems(item);
+    public String getApplicationProcessName()
+    {
+        return applicationProcessName;
     }
 
-    public ListBoxModel doFillDeployParametersItems(
-        @QueryParameter String configuration,
-        @QueryParameter String projectName,
-        @QueryParameter String applicationName,
-        @QueryParameter String applicationProcessName,
-        @QueryParameter String deployParameters,
-        @AncestorInPath Item item) {
-      if (item == null || !item.hasPermission(Item.CONFIGURE)) {
-        return new ListBoxModel();
-      }
-      try {
-        ListBoxModel m = new ListBoxModel();
-
-        if (configuration.isEmpty()
-            || projectName.isEmpty()
-            || applicationName.isEmpty()
-            || applicationProcessName.isEmpty()
-            || !SelectFieldUtils.checkAllSelectItemsAreNotValidationWrappers(
-                projectName, applicationName, applicationProcessName)) {
-          m.add("{}");
-
-          return m;
-        }
-
-        ElectricFlowClient client = new ElectricFlowClient(configuration);
-
-        Map<String, String> storedParams = new HashMap<>();
-
-        String deployParametersValue = getSelectItemValue(deployParameters);
-
-        // During reload if at least one value filled, return old values
-        if (!deployParametersValue.isEmpty() && !"{}".equals(deployParametersValue)) {
-          JSONObject json = JSONObject.fromObject(deployParametersValue);
-          JSONObject jsonArray = json.getJSONObject("runProcess");
-
-          if (applicationName.equals(jsonArray.get("applicationName"))
-              && applicationProcessName.equals(jsonArray.get("applicationProcessName"))) {
-            storedParams = getParamsMapFromDeployParams(deployParametersValue);
-          }
-        }
-
-        List<String> parameters =
-            client.getFormalParameters(projectName, applicationName, applicationProcessName);
-        JSONObject main =
-            JSONObject.fromObject(
-                "{'runProcess':{'applicationName':'"
-                    + applicationName
-                    + "', 'applicationProcessName':'"
-                    + applicationProcessName
-                    + "',   'parameter':[]}}");
-        JSONArray ja = main.getJSONObject("runProcess").getJSONArray("parameter");
-
-        addParametersToJsonAndPreserveStored(
-            parameters, ja, "actualParameterName", "value", storedParams);
-        m.add(main.toString());
-
-        if (m.isEmpty()) {
-          m.add("{}");
-        }
-
-        return m;
-      } catch (Exception e) {
-        ListBoxModel m = new ListBoxModel();
-        SelectItemValidationWrapper selectItemValidationWrapper;
-
-        if (Utils.isEflowAvailable(configuration)) {
-          log.error(
-              "Error when fetching set of deploy parameters. Error message: " + e.getMessage(), e);
-          selectItemValidationWrapper =
-              new SelectItemValidationWrapper(
-                  FieldValidationStatus.ERROR,
-                  "Error when fetching set of deploy parameters. Check the Jenkins logs for more details.",
-                  "{}");
-        } else {
-          selectItemValidationWrapper =
-              new SelectItemValidationWrapper(
-                  FieldValidationStatus.ERROR,
-                  "Error when fetching set of deploy parameters. Connection to CloudBees Flow Server Failed. Please fix connection information and reload this page.",
-                  "{}");
-        }
-        m.add(selectItemValidationWrapper.getJsonStr());
-        return m;
-      }
+    public String getStoredApplicationProcessName() {
+        return applicationProcessName;
     }
 
-    public ListBoxModel doFillEnvironmentNameItems(
-        @QueryParameter String configuration,
-        @QueryParameter String projectName,
-        @AncestorInPath Item item) {
-      if (item == null || !item.hasPermission(Item.CONFIGURE)) {
-        return new ListBoxModel();
-      }
-      try {
-        ListBoxModel m = new ListBoxModel();
+    public String getConfiguration()
+    {
+        return configuration;
+    }
 
-        m.add("Select environment", "");
+    public String getStoredConfiguration()
+    {
+        return configuration;
+    }
 
-        if (!configuration.isEmpty()
-            && !projectName.isEmpty()
-            && SelectFieldUtils.checkAllSelectItemsAreNotValidationWrappers(projectName)) {
-          ElectricFlowClient client = new ElectricFlowClient(configuration);
-          List<String> environments = client.getEnvironments(projectName);
+    public Credential getOverrideCredential() {
+        return overrideCredential;
+    }
 
-          for (String environment : environments) {
-            m.add(environment);
-          }
+    public String getDeployParameters()
+    {
+        return deployParameters;
+    }
+
+    public String getStoredDeployParameters()
+    {
+        return deployParameters;
+    }
+
+    public String getEnvironmentName()
+    {
+        return environmentName;
+    }
+
+    public String getStoredEnvironmentName() {
+        return environmentName;
+    }
+
+    public String getProjectName()
+    {
+        return projectName;
+    }
+
+    public String getStoredProjectName() {
+        return projectName;
+    }
+
+    public boolean getValidationTrigger() {
+        return true;
+    }
+
+    @Override public BuildStepMonitor getRequiredMonitorService()
+    {
+        return BuildStepMonitor.NONE;
+    }
+
+    private String getSummaryHtml(
+            ElectricFlowClient  configuration,
+            JSONArray           parameters,
+            Map<String, String> args)
+    {
+        String result          = args.get("result");
+        String applicationName = args.get("applicationName");
+        String processId       = args.get("processId");
+        String jobId           = JSONObject.fromObject(result)
+                                           .getString("jobId");
+        String applicationUrl  = configuration.getElectricFlowUrl()
+                + "/flow/#applications/applications";
+        String deployRunUrl    = configuration.getElectricFlowUrl()
+                + "/flow/#applications/" + processId + "/" + jobId
+                + "/runningProcess";
+        String summaryText     = "<h3>CloudBees Flow Deploy Application</h3>"
+                + "<table cellspacing=\"2\" cellpadding=\"4\"> \n"
+                + "  <tr>\n"
+                + "    <td>Application Name:</td>\n"
+                + "    <td><a href='" + HtmlUtils.encodeForHtml(applicationUrl) + "'>" + HtmlUtils.encodeForHtml(applicationName)
+                + "</a></td>   \n"
+                + "  </tr>\n"
+                + "  <tr>\n"
+                + "    <td>Deploy run URL:</td>\n"
+                + "    <td><a href='" + HtmlUtils.encodeForHtml(deployRunUrl) + "'>" + HtmlUtils.encodeForHtml(deployRunUrl)
+                + "</a></td>   \n"
+                + "  </tr>";
+
+        summaryText = Utils.getParametersHTML(parameters, summaryText,
+                "actualParameterName", "value");
+        summaryText = summaryText + "</table>";
+
+        return summaryText;
+    }
+
+    @DataBoundSetter public void setApplicationName(String applicationName)
+    {
+        this.applicationName = getSelectItemValue(applicationName);
+    }
+
+    @DataBoundSetter public void setApplicationProcessName(
+            String applicationProcessName)
+    {
+        this.applicationProcessName = getSelectItemValue(applicationProcessName);
+    }
+
+    @DataBoundSetter public void setConfiguration(String configuration)
+    {
+        this.configuration = configuration;
+    }
+
+    @DataBoundSetter
+    public void setOverrideCredential(Credential overrideCredential) {
+        this.overrideCredential = overrideCredential;
+    }
+
+    @DataBoundSetter public void setDeployParameters(String deployParameters)
+    {
+        this.deployParameters = getSelectItemValue(deployParameters);
+    }
+
+    @DataBoundSetter public void setEnvironmentName(String environmentName)
+    {
+        this.environmentName = getSelectItemValue(environmentName);
+    }
+
+    @DataBoundSetter public void setProjectName(String projectName)
+    {
+        this.projectName = getSelectItemValue(projectName);
+    }
+
+    @DataBoundSetter public void setValidationTrigger(String validationTrigger) {
+
+    }
+
+    @Symbol("cloudBeesFlowDeployApplication")
+    @Extension
+    public static final class DescriptorImpl
+        extends BuildStepDescriptor<Publisher>
+    {
+
+        //~ Instance fields ----------------------------------------------------
+
+        //~ Constructors -------------------------------------------------------
+
+        public DescriptorImpl()
+        {
+            load();
         }
 
-        return m;
-      } catch (Exception e) {
-        if (Utils.isEflowAvailable(configuration)) {
-          log.error(
-              "Error when fetching values for this parameter - environment. Error message: "
-                  + e.getMessage(),
-              e);
-          return SelectFieldUtils.getListBoxModelOnException("Select environment");
-        } else {
-          return SelectFieldUtils.getListBoxModelOnWrongConf("Select environment");
+        //~ Methods ------------------------------------------------------------
+
+        public FormValidation doCheckConfiguration(@QueryParameter String value,
+                                                   @QueryParameter boolean validationTrigger,
+                                                   @AncestorInPath Item item) {
+            if (item == null || !item.hasPermission(Item.CONFIGURE)) {
+                return FormValidation.ok();
+            }
+            return Utils.validateConfiguration(value);
         }
-      }
+
+        public FormValidation doCheckDeployParameters(@QueryParameter String value,
+                                                      @QueryParameter boolean validationTrigger,
+                                                      @AncestorInPath Item item
+                                                      ) {
+            if (item == null || !item.hasPermission(Item.CONFIGURE)) {
+                return FormValidation.ok();
+            }
+            if (isSelectItemValidationWrapper(value)) {
+                return SelectFieldUtils.getFormValidationBasedOnSelectItemValidationWrapper(value);
+            }
+            return FormValidation.ok();
+        }
+
+        public FormValidation doCheckProjectName(@QueryParameter String value,
+                                                 @QueryParameter boolean validationTrigger,
+                                                 @AncestorInPath Item item) {
+            if (item == null || !item.hasPermission(Item.CONFIGURE)) {
+                return FormValidation.ok();
+            }
+            if (isSelectItemValidationWrapper(value)) {
+                return SelectFieldUtils.getFormValidationBasedOnSelectItemValidationWrapper(value);
+            }
+            return Utils.validateValueOnEmpty(value, "Project name");
+        }
+
+        public FormValidation doCheckApplicationName(@QueryParameter String value,
+                                                     @QueryParameter boolean validationTrigger,
+                                                     @AncestorInPath Item item) {
+            if (item == null || !item.hasPermission(Item.CONFIGURE)) {
+                return FormValidation.ok();
+            }
+            if (isSelectItemValidationWrapper(value)) {
+                return SelectFieldUtils.getFormValidationBasedOnSelectItemValidationWrapper(value);
+            }
+            return Utils.validateValueOnEmpty(value, "Application name");
+        }
+
+        public FormValidation doCheckApplicationProcessName(@QueryParameter String value,
+                                                            @QueryParameter boolean validationTrigger,
+                                                            @AncestorInPath Item item) {
+            if (item == null || !item.hasPermission(Item.CONFIGURE)) {
+                return FormValidation.ok();
+            }
+            if (isSelectItemValidationWrapper(value)) {
+                return SelectFieldUtils.getFormValidationBasedOnSelectItemValidationWrapper(value);
+            }
+            return Utils.validateValueOnEmpty(value, "Application process name");
+        }
+
+        public FormValidation doCheckEnvironmentName(@QueryParameter String value,
+                                                     @QueryParameter boolean validationTrigger,
+                                                     @AncestorInPath Item item) {
+            if (item == null || !item.hasPermission(Item.CONFIGURE)) {
+                return FormValidation.ok();
+            }
+            if (isSelectItemValidationWrapper(value)) {
+                return SelectFieldUtils.getFormValidationBasedOnSelectItemValidationWrapper(value);
+            }
+            return Utils.validateValueOnEmpty(value, "Environment name");
+        }
+
+        public ListBoxModel doFillApplicationNameItems(
+                @QueryParameter String projectName,
+                @QueryParameter String configuration,
+                @QueryParameter boolean overrideCredential,
+                @QueryParameter @RelativePath("overrideCredential") String credentialId,
+                @AncestorInPath Item item) {
+            if (item == null || !item.hasPermission(Item.CONFIGURE)) {
+                return new ListBoxModel();
+            }
+            try {
+                ListBoxModel m = new ListBoxModel();
+
+                m.add("Select application", "");
+
+                if (!configuration.isEmpty()
+                        && !projectName.isEmpty()
+                        && SelectFieldUtils.checkAllSelectItemsAreNotValidationWrappers(projectName)) {
+                    Credential overrideCredentialObj = overrideCredential ? new Credential(credentialId) : null;
+                    ElectricFlowClient client = ElectricFlowClientFactory.getElectricFlowClient(configuration, overrideCredentialObj, null, true);
+
+                    List<String> applications = client.getApplications(projectName);
+
+                    for (String application : applications) {
+                        m.add(application);
+                    }
+                }
+
+                return m;
+            } catch (Exception e) {
+                Credential overrideCredentialObj = overrideCredential ? new Credential(credentialId) : null;
+                if (Utils.isEflowAvailable(configuration, overrideCredentialObj)) {
+                    log.error("Error when fetching values for this parameter - application. Error message: " + e.getMessage(), e);
+                    return SelectFieldUtils.getListBoxModelOnException("Select application");
+                } else {
+                    return SelectFieldUtils.getListBoxModelOnWrongConf("Select application");
+
+                }
+            }
+        }
+
+        public ListBoxModel doFillApplicationProcessNameItems(
+                @QueryParameter String configuration,
+                @QueryParameter boolean overrideCredential,
+                @QueryParameter @RelativePath("overrideCredential") String credentialId,
+                @QueryParameter String projectName,
+                @QueryParameter String applicationName,
+                @AncestorInPath Item item) {
+            if (item == null || !item.hasPermission(Item.CONFIGURE)) {
+                return new ListBoxModel();
+            }
+            try {
+                ListBoxModel m = new ListBoxModel();
+
+                m.add("Select application process", "");
+
+                if (!configuration.isEmpty()
+                        && !projectName.isEmpty()
+                        && !applicationName.isEmpty()
+                        && SelectFieldUtils.checkAllSelectItemsAreNotValidationWrappers(projectName, applicationName)) {
+                    Credential overrideCredentialObj = overrideCredential ? new Credential(credentialId) : null;
+                    ElectricFlowClient client = ElectricFlowClientFactory.getElectricFlowClient(configuration, overrideCredentialObj, null, true);
+                    List<String> processes = client.getProcesses(projectName,
+                            applicationName);
+
+                    for (String process : processes) {
+                        m.add(process);
+                    }
+                }
+
+                return m;
+            } catch (Exception e) {
+                Credential overrideCredentialObj = overrideCredential ? new Credential(credentialId) : null;
+                if (Utils.isEflowAvailable(configuration, overrideCredentialObj)) {
+                    log.error("Error when fetching values for this parameter - application process. Error message: " + e.getMessage(), e);
+                    return SelectFieldUtils.getListBoxModelOnException("Select application process");
+                } else {
+                    return SelectFieldUtils.getListBoxModelOnWrongConf("Select application process");
+
+                }
+            }
+        }
+
+        public ListBoxModel doFillConfigurationItems(@AncestorInPath Item item)
+        {
+            if (item == null || !item.hasPermission(Item.CONFIGURE)) {
+                return new ListBoxModel();
+            }
+            return Utils.fillConfigurationItems();
+        }
+
+        public ListBoxModel doFillCredentialIdItems(@AncestorInPath Item item) {
+            return Credential.DescriptorImpl.doFillCredentialIdItems(item);
+        }
+
+        public ListBoxModel doFillDeployParametersItems(
+                @QueryParameter String configuration,
+                @QueryParameter boolean overrideCredential,
+                @QueryParameter @RelativePath("overrideCredential") String credentialId,
+                @QueryParameter String projectName,
+                @QueryParameter String applicationName,
+                @QueryParameter String applicationProcessName,
+                @QueryParameter String deployParameters,
+                @AncestorInPath Item item) {
+            if (item == null || !item.hasPermission(Item.CONFIGURE)) {
+                return new ListBoxModel();
+            }
+            try {
+                ListBoxModel m = new ListBoxModel();
+
+                if (configuration.isEmpty()
+                        || projectName.isEmpty()
+                        || applicationName.isEmpty()
+                        || applicationProcessName.isEmpty()
+                        || !SelectFieldUtils.checkAllSelectItemsAreNotValidationWrappers(projectName, applicationName, applicationProcessName)) {
+                    m.add("{}");
+
+                    return m;
+                }
+
+                Credential overrideCredentialObj = overrideCredential ? new Credential(credentialId) : null;
+                ElectricFlowClient client = ElectricFlowClientFactory.getElectricFlowClient(configuration, overrideCredentialObj, null, true);
+
+                Map<String, String> storedParams = new HashMap<>();
+
+                String deployParametersValue = getSelectItemValue(deployParameters);
+
+                // During reload if at least one value filled, return old values
+                if (!deployParametersValue.isEmpty() && !"{}".equals(deployParametersValue)) {
+                    JSONObject json      = JSONObject.fromObject(deployParametersValue);
+                    JSONObject jsonArray = json.getJSONObject("runProcess");
+
+                    if (applicationName.equals(jsonArray.get("applicationName"))
+                            && applicationProcessName.equals(
+                            jsonArray.get("applicationProcessName"))) {
+                        storedParams = getParamsMapFromDeployParams(deployParametersValue);
+                    }
+                }
+
+                List<String> parameters = client.getFormalParameters(projectName,
+                        applicationName, applicationProcessName);
+                JSONObject   main       = JSONObject.fromObject(
+                        "{'runProcess':{'applicationName':'" + applicationName
+                                + "', 'applicationProcessName':'"
+                                + applicationProcessName
+                                + "',   'parameter':[]}}");
+                JSONArray    ja         = main.getJSONObject("runProcess")
+                        .getJSONArray("parameter");
+
+                addParametersToJsonAndPreserveStored(parameters, ja, "actualParameterName", "value", storedParams);
+                m.add(main.toString());
+
+                if (m.isEmpty()) {
+                    m.add("{}");
+                }
+
+                return m;
+            } catch (Exception e) {
+                ListBoxModel m = new ListBoxModel();
+                SelectItemValidationWrapper selectItemValidationWrapper;
+
+                Credential overrideCredentialObj = overrideCredential ? new Credential(credentialId) : null;
+                if (Utils.isEflowAvailable(configuration, overrideCredentialObj)) {
+                    log.error("Error when fetching set of deploy parameters. Error message: " + e.getMessage(), e);
+                    selectItemValidationWrapper = new SelectItemValidationWrapper(
+                            FieldValidationStatus.ERROR,
+                            "Error when fetching set of deploy parameters. Check the Jenkins logs for more details.",
+                            "{}"
+                    );
+                } else {
+                    selectItemValidationWrapper = new SelectItemValidationWrapper(
+                            FieldValidationStatus.ERROR,
+                            "Error when fetching set of deploy parameters. Connection to CloudBees Flow Server Failed. Please fix connection information and reload this page.",
+                            "{}"
+                    );
+                }
+                m.add(selectItemValidationWrapper.getJsonStr());
+                return m;
+            }
+        }
+
+        public ListBoxModel doFillEnvironmentNameItems(
+                @QueryParameter String configuration,
+                @QueryParameter boolean overrideCredential,
+                @QueryParameter @RelativePath("overrideCredential") String credentialId,
+                @QueryParameter String projectName,
+                @AncestorInPath Item item) {
+            if (item == null || !item.hasPermission(Item.CONFIGURE)) {
+                return new ListBoxModel();
+            }
+            try {
+                ListBoxModel m = new ListBoxModel();
+
+                m.add("Select environment", "");
+
+                if (!configuration.isEmpty()
+                        && !projectName.isEmpty()
+                        && SelectFieldUtils.checkAllSelectItemsAreNotValidationWrappers(projectName)) {
+                    Credential overrideCredentialObj = overrideCredential ? new Credential(credentialId) : null;
+                    ElectricFlowClient client = ElectricFlowClientFactory.getElectricFlowClient(configuration, overrideCredentialObj, null, true);
+                    List<String> environments = client.getEnvironments(projectName);
+
+                    for (String environment : environments) {
+                        m.add(environment);
+                    }
+                }
+
+                return m;
+            } catch (Exception e) {
+                Credential overrideCredentialObj = overrideCredential ? new Credential(credentialId) : null;
+                if (Utils.isEflowAvailable(configuration, overrideCredentialObj)) {
+                    log.error("Error when fetching values for this parameter - environment. Error message: " + e.getMessage(), e);
+                    return SelectFieldUtils.getListBoxModelOnException("Select environment");
+                } else {
+                    return SelectFieldUtils.getListBoxModelOnWrongConf("Select environment");
+
+                }
+            }
+        }
+
+        public ListBoxModel doFillProjectNameItems(
+                @QueryParameter String configuration,
+                @QueryParameter boolean overrideCredential,
+                @QueryParameter @RelativePath("overrideCredential") String credentialId,
+                @AncestorInPath Item item) {
+            if (item == null || !item.hasPermission(Item.CONFIGURE)) {
+                return new ListBoxModel();
+            }
+            Credential overrideCredentialObj = overrideCredential ? new Credential(credentialId) : null;
+            return Utils.getProjects(configuration, overrideCredentialObj);
+        }
+
+        @Override public String getDisplayName()
+        {
+            return "CloudBees Flow - Deploy Application";
+        }
+
+        @Override public String getId()
+        {
+            return "electricFlowDeployApplication";
+        }
+
+        @Override public boolean isApplicable(
+                Class<? extends AbstractProject> aClass)
+        {
+            return true;
+        }
+
+        public FormValidation doShowOldValues(
+                @QueryParameter("configuration") final String configuration,
+                @QueryParameter("projectName") final String projectName,
+                @QueryParameter("applicationName") final String applicationName,
+                @QueryParameter("applicationProcessName") final String applicationProcessName,
+                @QueryParameter("environmentName") final String environmentName,
+                @QueryParameter("deployParameters") final String deployParameters,
+                @QueryParameter("storedConfiguration") final String storedConfiguration,
+                @QueryParameter("storedProjectName") final String storedProjectName,
+                @QueryParameter("storedApplicationName") final String storedApplicationName,
+                @QueryParameter("storedApplicationProcessName") final String storedApplicationProcessName,
+                @QueryParameter("storedEnvironmentName") final String storedEnvironmentName,
+                @QueryParameter("storedDeployParameters") final String storedDeployParameters,
+                @AncestorInPath Item item
+        ) {
+            if (item == null || !item.hasPermission(Item.CONFIGURE)) {
+                return FormValidation.ok();
+            }
+            String configurationValue = configuration;
+            String projectNameValue = getSelectItemValue(projectName);
+            String applicationNameValue = getSelectItemValue(applicationName);
+            String applicationProcessNameValue = getSelectItemValue(applicationProcessName);
+            String environmentNameValue = getSelectItemValue(environmentName);
+            String deployParametersValue = getSelectItemValue(deployParameters);
+
+            Map<String, String> deployParamsMap = getParamsMapFromDeployParams(deployParametersValue);
+            Map<String, String> storedDeployParamsMap = getParamsMapFromDeployParams(storedDeployParameters);
+
+            String comparisonTable = "<table>"
+                    + getValidationComparisonHeaderRow()
+                    + getValidationComparisonRow("Configuration", storedConfiguration, configurationValue)
+                    + getValidationComparisonRow("Project Name", storedProjectName, projectNameValue)
+                    + getValidationComparisonRow("Application Name", storedApplicationName, applicationNameValue)
+                    + getValidationComparisonRow("Application Process Name", storedApplicationProcessName, applicationProcessNameValue)
+                    + getValidationComparisonRow("Environment Name", storedEnvironmentName, environmentNameValue)
+                    + getValidationComparisonRowsForExtraParameters("Deploy Parameters", storedDeployParamsMap, deployParamsMap)
+                    + "</table>";
+
+            if (configurationValue.equals(storedConfiguration)
+                    && projectNameValue.equals(storedProjectName)
+                    && applicationNameValue.equals(storedApplicationName)
+                    && applicationProcessNameValue.equals(storedApplicationProcessName)
+                    && environmentNameValue.equals(storedEnvironmentName)
+                    && deployParamsMap.equals(storedDeployParamsMap)) {
+                return FormValidation.okWithMarkup("No changes detected:<br>" + comparisonTable);
+            } else {
+                return FormValidation.warningWithMarkup("Changes detected:<br>" + comparisonTable);
+            }
+        }
+
+        static Map<String, String> getParamsMapFromDeployParams(String deployParameters) {
+            Map<String, String> paramsMap = new HashMap<>();
+
+            if (deployParameters == null
+                    || deployParameters.isEmpty()
+                    || deployParameters.equals("{}")) {
+                return paramsMap;
+            }
+
+            JSONObject json = JSONObject.fromObject(deployParameters);
+
+            if (!json.containsKey("runProcess")
+                    || !json.getJSONObject("runProcess").containsKey("parameter")) {
+                return paramsMap;
+            }
+
+            return getParamsMap(JSONArray.fromObject(json.getJSONObject("runProcess").getString("parameter")),
+                    "actualParameterName",
+                    "value");
+        }
     }
-
-    public ListBoxModel doFillProjectNameItems(
-        @QueryParameter String configuration, @AncestorInPath Item item) {
-      if (item == null || !item.hasPermission(Item.CONFIGURE)) {
-        return new ListBoxModel();
-      }
-      return Utils.getProjects(configuration);
-    }
-
-    @Override
-    public String getDisplayName() {
-      return "CloudBees Flow - Deploy Application";
-    }
-
-    @Override
-    public String getId() {
-      return "electricFlowDeployApplication";
-    }
-
-    @Override
-    public boolean isApplicable(Class<? extends AbstractProject> aClass) {
-      return true;
-    }
-
-    public FormValidation doShowOldValues(
-        @QueryParameter("configuration") final String configuration,
-        @QueryParameter("projectName") final String projectName,
-        @QueryParameter("applicationName") final String applicationName,
-        @QueryParameter("applicationProcessName") final String applicationProcessName,
-        @QueryParameter("environmentName") final String environmentName,
-        @QueryParameter("deployParameters") final String deployParameters,
-        @QueryParameter("storedConfiguration") final String storedConfiguration,
-        @QueryParameter("storedProjectName") final String storedProjectName,
-        @QueryParameter("storedApplicationName") final String storedApplicationName,
-        @QueryParameter("storedApplicationProcessName") final String storedApplicationProcessName,
-        @QueryParameter("storedEnvironmentName") final String storedEnvironmentName,
-        @QueryParameter("storedDeployParameters") final String storedDeployParameters,
-        @AncestorInPath Item item) {
-      if (item == null || !item.hasPermission(Item.CONFIGURE)) {
-        return FormValidation.ok();
-      }
-      String configurationValue = configuration;
-      String projectNameValue = getSelectItemValue(projectName);
-      String applicationNameValue = getSelectItemValue(applicationName);
-      String applicationProcessNameValue = getSelectItemValue(applicationProcessName);
-      String environmentNameValue = getSelectItemValue(environmentName);
-      String deployParametersValue = getSelectItemValue(deployParameters);
-
-      Map<String, String> deployParamsMap = getParamsMapFromDeployParams(deployParametersValue);
-      Map<String, String> storedDeployParamsMap =
-          getParamsMapFromDeployParams(storedDeployParameters);
-
-      String comparisonTable =
-          "<table>"
-              + getValidationComparisonHeaderRow()
-              + getValidationComparisonRow("Configuration", storedConfiguration, configurationValue)
-              + getValidationComparisonRow("Project Name", storedProjectName, projectNameValue)
-              + getValidationComparisonRow(
-                  "Application Name", storedApplicationName, applicationNameValue)
-              + getValidationComparisonRow(
-                  "Application Process Name",
-                  storedApplicationProcessName,
-                  applicationProcessNameValue)
-              + getValidationComparisonRow(
-                  "Environment Name", storedEnvironmentName, environmentNameValue)
-              + getValidationComparisonRowsForExtraParameters(
-                  "Deploy Parameters", storedDeployParamsMap, deployParamsMap)
-              + "</table>";
-
-      if (configurationValue.equals(storedConfiguration)
-          && projectNameValue.equals(storedProjectName)
-          && applicationNameValue.equals(storedApplicationName)
-          && applicationProcessNameValue.equals(storedApplicationProcessName)
-          && environmentNameValue.equals(storedEnvironmentName)
-          && deployParamsMap.equals(storedDeployParamsMap)) {
-        return FormValidation.okWithMarkup("No changes detected:<br>" + comparisonTable);
-      } else {
-        return FormValidation.warningWithMarkup("Changes detected:<br>" + comparisonTable);
-      }
-    }
-  }
 }
