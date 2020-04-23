@@ -48,6 +48,7 @@ import org.apache.commons.logging.LogFactory;
 import org.jenkinsci.Symbol;
 import org.jenkinsci.plugins.electricflow.data.CloudBeesFlowBuildData;
 import org.jenkinsci.plugins.electricflow.factories.ElectricFlowClientFactory;
+import org.jenkinsci.plugins.electricflow.models.JenkinsBuildDetail;
 import org.jenkinsci.plugins.electricflow.ui.FieldValidationStatus;
 import org.jenkinsci.plugins.electricflow.ui.HtmlUtils;
 import org.jenkinsci.plugins.electricflow.ui.SelectFieldUtils;
@@ -131,9 +132,13 @@ public class ElectricFlowTriggerRelease extends Recorder implements SimpleBuildS
       taskListener
           .getLogger()
           .println("About to call setJenkinsBuildDetails after triggering a Flow Release");
-      String associateResult =
-          efClient.setJenkinsBuildDetailsTriggerRelease(cbfdb, projectName, releaseName);
-      taskListener.getLogger().println("Return from efClient: " + associateResult);
+
+      JSONObject associateResult = efClient.setJenkinsBuildDetails(
+          new JenkinsBuildDetail(cbfdb, projectName)
+              .setReleaseName(releaseName)
+      );
+
+      taskListener.getLogger().println("Return from efClient: " + associateResult.toString());
       taskListener.getLogger().println("++++++++++++++++++++++++++++++++++++++++++++");
 
       run.addAction(action);

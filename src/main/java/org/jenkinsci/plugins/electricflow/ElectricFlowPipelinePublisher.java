@@ -49,6 +49,8 @@ import org.apache.commons.logging.LogFactory;
 import org.jenkinsci.Symbol;
 import org.jenkinsci.plugins.electricflow.data.CloudBeesFlowBuildData;
 import org.jenkinsci.plugins.electricflow.factories.ElectricFlowClientFactory;
+import org.jenkinsci.plugins.electricflow.models.JenkinsBuildDetail;
+import org.jenkinsci.plugins.electricflow.models.JenkinsBuildDetail.JenkinsBuildAssociationType;
 import org.jenkinsci.plugins.electricflow.ui.FieldValidationStatus;
 import org.jenkinsci.plugins.electricflow.ui.HtmlUtils;
 import org.jenkinsci.plugins.electricflow.ui.SelectFieldUtils;
@@ -172,9 +174,14 @@ public class ElectricFlowPipelinePublisher extends Recorder implements SimpleBui
       taskListener
           .getLogger()
           .println("About to call setJenkinsBuildDetails after running a Pipeline");
-      String associateResult =
-          efClient.setJenkinsBuildDetailsRunPipeline(cbfdb, projectName, flowRuntimeId);
-      taskListener.getLogger().println("Return from efClient: " + associateResult);
+
+      JSONObject associateResult = efClient.setJenkinsBuildDetails(
+          new JenkinsBuildDetail(cbfdb, projectName)
+              .setFlowRuntimeId(flowRuntimeId)
+              .setAssociationType(JenkinsBuildAssociationType.TRIGGERED_BY_JENKINS)
+      );
+
+      taskListener.getLogger().println("Return from efClient: " + associateResult.toString());
       taskListener.getLogger().println("++++++++++++++++++++++++++++++++++++++++++++");
 
       run.addAction(action);
@@ -301,15 +308,6 @@ public class ElectricFlowPipelinePublisher extends Recorder implements SimpleBui
 
     String projectName = (String) flowRuntime.get("projectName");
     return projectName;
-  }
-
-  private String getSetJenkinsBuildDetailsUrlBase(String pipelineResult) {
-    JSONObject flowRuntime = JSONObject.fromObject(pipelineResult).getJSONObject("flowRuntime");
-    String flowRuntimeId = (String) flowRuntime.get("flowRuntimeId");
-    // VJN :: This got caught by DLS_DEAD_LOCAL_STORE warning. Removing it.
-    // String projectName = (String) flowRuntime.get("projectName");
-    String retval = "/flowRuntimes/" + flowRuntimeId + "/jenkinsBuildDetails";
-    return retval;
   }
 
   private String getSummaryHtml(

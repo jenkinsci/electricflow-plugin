@@ -322,47 +322,6 @@ public class ElectricFlowClient {
     }
   }
 
-  // Flow Endpoint :: flowRuntimes​/{flowRuntimeId}​/jenkinsBuildDetails​/{buildName}
-  @Deprecated
-  public String setJenkinsBuildDetailsRunPipeline(
-      CloudBeesFlowBuildData cloudBeesFlowBuildData, String projectName, String flowRuntimeId)
-      throws IOException {
-
-    JenkinsBuildDetail details = new JenkinsBuildDetail()
-        .setBuildName(cloudBeesFlowBuildData.getDisplayName())
-        .setProjectName(projectName)
-        .setFlowRuntimeId(flowRuntimeId)
-        .setJenkinsData(cloudBeesFlowBuildData)
-        .setBuildTriggerSource(BuildTriggerSource.JENKINS)
-        .setAssociationType(JenkinsBuildAssociationType.TRIGGERED_BY_JENKINS);
-
-    JSONObject result = setJenkinsBuildDetails(details);
-
-    return result.toString();
-  }
-
-  // Flow Endpoint ::
-  // projects​/{projectName}​/releases​/{releaseName}​/jenkinsBuildDetails​/{buildName}
-  @Deprecated
-  public String setJenkinsBuildDetailsTriggerRelease(
-      CloudBeesFlowBuildData cloudBeesFlowBuildData,
-      String projectName,
-      String releaseName)
-      throws IOException {
-
-    JenkinsBuildDetail details = new JenkinsBuildDetail()
-        .setBuildName(cloudBeesFlowBuildData.getDisplayName())
-        .setJenkinsData(cloudBeesFlowBuildData)
-        .setProjectName(projectName)
-        .setReleaseName(releaseName)
-        .setBuildTriggerSource(BuildTriggerSource.JENKINS)
-        .setAssociationType(JenkinsBuildAssociationType.TRIGGERED_BY_JENKINS);
-
-    JSONObject result = setJenkinsBuildDetails(details);
-
-    return result.toString();
-  }
-
   public JSONObject setJenkinsBuildDetails(JenkinsBuildDetail details) throws IOException {
     String endpoint = "/jenkinsBuildDetails?request=setJenkinsBuildDetail";
     String result = runRestAPI(endpoint, POST, details.toJsonObject().toString());

@@ -12,8 +12,8 @@ public class JenkinsBuildDetail {
 
   private CloudBeesFlowBuildData jenkinsData;
 
-  private BuildTriggerSource buildTriggerSource;
-  private JenkinsBuildAssociationType associationType;
+  private BuildTriggerSource buildTriggerSource = BuildTriggerSource.JENKINS;
+  private JenkinsBuildAssociationType associationType = JenkinsBuildAssociationType.ATTACHED;
 
   public enum BuildTriggerSource {
     JENKINS,
@@ -24,6 +24,12 @@ public class JenkinsBuildDetail {
     ATTACHED,
     TRIGGERED_BY_FLOW,
     TRIGGERED_BY_JENKINS,
+  }
+
+  public JenkinsBuildDetail(CloudBeesFlowBuildData jenkinsData, String projectName){
+    this.jenkinsData = jenkinsData;
+    this.buildName = jenkinsData.getDisplayName();
+    this.projectName = projectName;
   }
 
   public JSONObject toJsonObject() {

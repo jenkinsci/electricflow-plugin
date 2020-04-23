@@ -118,9 +118,7 @@ public class ElectricFlowAssociateBuildToRelease extends Recorder implements Sim
     logger.println("JENKINS VERSION: " + Jenkins.VERSION);
     logger.println("Project name: " + projectName + ", Release name: " + releaseName);
 
-    JenkinsBuildDetail detail = new JenkinsBuildDetail()
-        .setJenkinsData(cloudBeesFlowBuildData)
-        .setProjectName(projectName)
+    JenkinsBuildDetail detail = new JenkinsBuildDetail(cloudBeesFlowBuildData, projectName)
         .setReleaseName(releaseName)
         .setAssociationType(JenkinsBuildAssociationType.ATTACHED)
         .setBuildTriggerSource(BuildTriggerSource.JENKINS);
