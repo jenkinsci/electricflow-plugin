@@ -12,6 +12,7 @@ import org.jvnet.hudson.test.BuildWatcher;
 import org.jvnet.hudson.test.JenkinsRule;
 
 import java.io.File;
+import java.io.Reader;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.LinkedList;
@@ -37,7 +38,7 @@ public class BasicUnitTestsWithJenkins {
     public void getConfigurationByDescriptor() {
         ElectricFlowGlobalConfiguration electricFlowGlobalConfiguration = (ElectricFlowGlobalConfiguration) jenkinsRule.getInstance().getDescriptorByName("org.jenkinsci.plugins.electricflow.ElectricFlowGlobalConfiguration");
 
-        electricFlowGlobalConfiguration.efConfigurations = new LinkedList<>();
+        electricFlowGlobalConfiguration.configurations = new LinkedList<>();
 
         Configuration configuration = new Configuration(FLOW_CONFIG_NAME,
                 FLOW_ENDPOINT,
@@ -46,7 +47,7 @@ public class BasicUnitTestsWithJenkins {
                 FLOW_REST_API_URI_PATH,
                 true);
 
-        electricFlowGlobalConfiguration.efConfigurations.add(configuration);
+        electricFlowGlobalConfiguration.configurations.add(configuration);
         electricFlowGlobalConfiguration.save();
 
         assertTrue(electricFlowGlobalConfiguration.getConfigurations().size() == 1);

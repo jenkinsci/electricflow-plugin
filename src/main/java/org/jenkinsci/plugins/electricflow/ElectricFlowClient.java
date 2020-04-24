@@ -77,8 +77,7 @@ public class ElectricFlowClient
         if (cred != null) {
             electricFlowUrl = cred.getElectricFlowUrl();
             userName        = cred.getElectricFlowUser();
-            password        = Secret.fromString(cred.getElectricFlowPassword())
-                                    .getPlainText();
+            password        = cred.getElectricFlowPassword().getPlainText();
             ignoreSslConnectionErrors = cred.getIgnoreSslConnectionErrors();
 
             String electricFlowApiVersion = cred.getElectricFlowApiVersion();
