@@ -117,7 +117,7 @@ public class Configuration
         public FormValidation doCheckConfigurationName(
                 @QueryParameter String value)
         {
-            if (!Jenkins.getActiveInstance().hasPermission(Jenkins.ADMINISTER)) {
+            if (!Jenkins.get().hasPermission(Jenkins.ADMINISTER)) {
                 return FormValidation.ok();
             }
 
@@ -127,7 +127,7 @@ public class Configuration
         public FormValidation doCheckElectricFlowApiVersion(
                 @QueryParameter String value)
         {
-            if (!Jenkins.getActiveInstance().hasPermission(Jenkins.ADMINISTER)) {
+            if (!Jenkins.get().hasPermission(Jenkins.ADMINISTER)) {
                 return FormValidation.ok();
             }
 
@@ -138,7 +138,7 @@ public class Configuration
         public FormValidation doCheckElectricFlowPassword(
                 @QueryParameter String value)
         {
-            if (!Jenkins.getActiveInstance().hasPermission(Jenkins.ADMINISTER)) {
+            if (!Jenkins.get().hasPermission(Jenkins.ADMINISTER)) {
                 return FormValidation.ok();
             }
 
@@ -148,7 +148,7 @@ public class Configuration
         public FormValidation doCheckElectricFlowUrl(
                 @QueryParameter String value)
         {
-            if (!Jenkins.getActiveInstance().hasPermission(Jenkins.ADMINISTER)) {
+            if (!Jenkins.get().hasPermission(Jenkins.ADMINISTER)) {
                 return FormValidation.ok();
             }
 
@@ -158,7 +158,7 @@ public class Configuration
         public FormValidation doCheckElectricFlowUser(
                 @QueryParameter String value)
         {
-            if (!Jenkins.getActiveInstance().hasPermission(Jenkins.ADMINISTER)) {
+            if (!Jenkins.get().hasPermission(Jenkins.ADMINISTER)) {
                 return FormValidation.ok();
             }
 
@@ -167,7 +167,7 @@ public class Configuration
 
         public ListBoxModel doFillElectricFlowApiVersionItems()
         {
-            if (!Jenkins.getActiveInstance().hasPermission(Jenkins.ADMINISTER)) {
+            if (!Jenkins.get().hasPermission(Jenkins.ADMINISTER)) {
                 return new ListBoxModel();
             }
 
@@ -188,7 +188,7 @@ public class Configuration
                 @QueryParameter("ignoreSslConnectionErrors") final boolean ignoreSslConnectionErrors)
             throws IOException
         {
-            if (!Jenkins.getActiveInstance().hasPermission(Jenkins.ADMINISTER)) {
+            if (!Jenkins.get().hasPermission(Jenkins.ADMINISTER)) {
                 return FormValidation.ok();
             }
 
