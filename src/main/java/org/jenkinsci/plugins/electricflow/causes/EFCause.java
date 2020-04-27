@@ -11,6 +11,10 @@ public class EFCause extends hudson.model.Cause {
     public String projectName = "";
     @Exported
     public String releaseName = "";
+    @Exported
+    public String flowRuntimeStateId;
+    @Exported
+    public String stageName;
 
     // @Exported
     public String getFlowRuntimeId() {
@@ -29,13 +33,16 @@ public class EFCause extends hudson.model.Cause {
     }
 
     //@Exported
-    public String getReleaseName() {
-        return releaseName;
-    }
+    public String getReleaseName() { return releaseName; }
     public void setReleaseName(String releaseName) {
         this.releaseName = releaseName;
     }
 
+    public String getFlowRuntimeStateId() { return flowRuntimeStateId; }
+    public void setFlowRuntimeStateId(String flowRuntimeStateId) { this.flowRuntimeStateId = flowRuntimeStateId; }
+
+    public String getStageName() { return stageName; }
+    public void setStageName(String stageName) { this.stageName = stageName; }
 
     public String getShortDescription() {
         StringBuilder shortDescription = new StringBuilder();
@@ -48,7 +55,8 @@ public class EFCause extends hudson.model.Cause {
         // String nullString = new String("null");
         String nullString = "null";
         // char[4] nullChars = "null";
-        if (!flowRuntimeId.isEmpty() || !flowRuntimeId.equals("null")) {
+        // TODO: Convert flowRuntimeId, projectName and releaseName retrieval to getters
+        if (!flowRuntimeId.equals(nullString)) {
             shortDescription.append("<br/>");
             shortDescription.append("Flow Runtime ID: " + flowRuntimeId);
         }
@@ -57,8 +65,16 @@ public class EFCause extends hudson.model.Cause {
             shortDescription.append("Release Project Name: " + projectName);
         }
         if (!releaseName.equals(nullString)) {
-             shortDescription.append("<br/>");
+            shortDescription.append("<br/>");
             shortDescription.append("Release Name: " + releaseName);
+        }
+        if (!this.getFlowRuntimeStateId().equals(nullString)) {
+            shortDescription.append("<br/>");
+            shortDescription.append("Flow Runtime State ID: " + this.getFlowRuntimeStateId());
+        }
+        if (!this.getStageName().equals(nullString)) {
+            shortDescription.append("<br/>");
+            shortDescription.append("Stage Name: " + this.getStageName());
         }
         return shortDescription.toString();
     }
