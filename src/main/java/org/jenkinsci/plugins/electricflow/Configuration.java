@@ -45,18 +45,6 @@ public class Configuration
 
     //~ Constructors -----------------------------------------------------------
 
-    @Deprecated
-    public Configuration(
-          String configurationName,
-          String electricFlowUrl,
-          String electricFlowUser,
-          String electricFlowPassword,
-          String electricFlowApiVersion,
-          boolean ignoreSslConnectionErrors)
-    {
-        this(configurationName, electricFlowUrl, electricFlowUser, Secret.fromString(electricFlowPassword), electricFlowApiVersion, ignoreSslConnectionErrors);
-    }
-
     @DataBoundConstructor public Configuration(
             String configurationName,
             String electricFlowUrl,

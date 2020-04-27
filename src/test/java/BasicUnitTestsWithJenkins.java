@@ -3,6 +3,7 @@ import hudson.model.FreeStyleBuild;
 import hudson.model.FreeStyleProject;
 import hudson.tasks.BatchFile;
 import hudson.tasks.Shell;
+import hudson.util.Secret;
 import org.jenkinsci.plugins.electricflow.Configuration;
 import org.jenkinsci.plugins.electricflow.ElectricFlowGlobalConfiguration;
 import org.junit.ClassRule;
@@ -43,7 +44,7 @@ public class BasicUnitTestsWithJenkins {
         Configuration configuration = new Configuration(FLOW_CONFIG_NAME,
                 FLOW_ENDPOINT,
                 FLOW_USER,
-                FLOW_PASSWORD,
+                Secret.fromString(FLOW_PASSWORD),
                 FLOW_REST_API_URI_PATH,
                 true);
 
