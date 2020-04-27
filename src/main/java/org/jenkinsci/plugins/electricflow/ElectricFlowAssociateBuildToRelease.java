@@ -90,6 +90,7 @@ public class ElectricFlowAssociateBuildToRelease extends Recorder implements Sim
       // Setting the summary
       Release release = efClient.getRelease(configuration, projectName, releaseName);
 
+      // Preparing arguments for the SummaryHTML call
       Map<String, String> args = new LinkedHashMap<>();
       args.put("releaseName", releaseName);
       args.put("buildName", cloudBeesFlowBuildData.getDisplayName());
