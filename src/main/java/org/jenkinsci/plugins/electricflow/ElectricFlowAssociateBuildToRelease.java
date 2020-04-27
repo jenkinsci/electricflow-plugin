@@ -43,9 +43,9 @@ import org.apache.commons.logging.LogFactory;
 import org.jenkinsci.Symbol;
 import org.jenkinsci.plugins.electricflow.data.CloudBeesFlowBuildData;
 import org.jenkinsci.plugins.electricflow.factories.ElectricFlowClientFactory;
-import org.jenkinsci.plugins.electricflow.models.JenkinsBuildDetail;
-import org.jenkinsci.plugins.electricflow.models.JenkinsBuildDetail.BuildTriggerSource;
-import org.jenkinsci.plugins.electricflow.models.JenkinsBuildDetail.JenkinsBuildAssociationType;
+import org.jenkinsci.plugins.electricflow.models.CIBuildDetail;
+import org.jenkinsci.plugins.electricflow.models.CIBuildDetail.BuildTriggerSource;
+import org.jenkinsci.plugins.electricflow.models.CIBuildDetail.BuildAssociationType;
 import org.jenkinsci.plugins.electricflow.ui.HtmlUtils;
 import org.jenkinsci.plugins.electricflow.ui.SelectFieldUtils;
 import org.kohsuke.stapler.AncestorInPath;
@@ -84,7 +84,7 @@ public class ElectricFlowAssociateBuildToRelease extends Recorder implements Sim
 
       // Calling the actual logic and saving the result
       JSONObject result = setJenkinsBuildDetails(efClient, cloudBeesFlowBuildData, logger);
-      JSONObject resultBuildDetailInfo = result.getJSONObject("jenkinsBuildDetailInfo");
+      JSONObject resultBuildDetailInfo = result.getJSONObject("ciBuildDetailInfo");
 
 
       // Setting the summary
@@ -118,22 +118,22 @@ public class ElectricFlowAssociateBuildToRelease extends Recorder implements Sim
     logger.println("JENKINS VERSION: " + Jenkins.VERSION);
     logger.println("Project name: " + projectName + ", Release name: " + releaseName);
 
-    JenkinsBuildDetail detail = new JenkinsBuildDetail(cloudBeesFlowBuildData, projectName)
+    CIBuildDetail detail = new CIBuildDetail(cloudBeesFlowBuildData, projectName)
         .setReleaseName(releaseName)
-        .setAssociationType(JenkinsBuildAssociationType.ATTACHED)
-        .setBuildTriggerSource(BuildTriggerSource.JENKINS);
+        .setAssociationType(BuildAssociationType.ATTACHED)
+        .setBuildTriggerSource(BuildTriggerSource.CI);
 
     try {
       detail.validate();
     } catch (RuntimeException ex){
-      logger.println("[ERROR] Can't fill the JenkinsBuildDetail: " + ex.getMessage());
+      logger.println("[ERROR] Can't fill the CIBuildDetail: " + ex.getMessage());
       logger.println(Arrays.toString(ex.getStackTrace()));
     }
 
     logger.println("JSON: " + formatJsonOutput(detail.toJsonObject().toString()));
 
     logger.println("Preparing to attach build...");
-    JSONObject result = efClient.setJenkinsBuildDetails(detail);
+    JSONObject result = efClient.setCIBuildDetails(detail);
 
     logger.println("Create jenkinsBuildDetails result: " + formatJsonOutput(result.toString()));
     return result;

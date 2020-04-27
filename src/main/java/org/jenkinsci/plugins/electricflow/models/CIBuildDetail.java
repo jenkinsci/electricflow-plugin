@@ -3,32 +3,32 @@ package org.jenkinsci.plugins.electricflow.models;
 import net.sf.json.JSONObject;
 import org.jenkinsci.plugins.electricflow.data.CloudBeesFlowBuildData;
 
-public class JenkinsBuildDetail {
+public class CIBuildDetail {
 
   private String buildName;
   private String projectName;
   private String releaseName;
   private String flowRuntimeId;
 
-  private CloudBeesFlowBuildData jenkinsData;
+  private CloudBeesFlowBuildData buildData;
 
-  private BuildTriggerSource buildTriggerSource = BuildTriggerSource.JENKINS;
-  private JenkinsBuildAssociationType associationType = JenkinsBuildAssociationType.ATTACHED;
+  private BuildTriggerSource buildTriggerSource = BuildTriggerSource.CI;
+  private BuildAssociationType associationType = BuildAssociationType.ATTACHED;
 
   public enum BuildTriggerSource {
-    JENKINS,
+    CI,
     FLOW
   }
 
-  public enum JenkinsBuildAssociationType {
+  public enum BuildAssociationType {
     ATTACHED,
     TRIGGERED_BY_FLOW,
-    TRIGGERED_BY_JENKINS,
+    TRIGGERED_BY_CI,
   }
 
-  public JenkinsBuildDetail(CloudBeesFlowBuildData jenkinsData, String projectName){
-    this.jenkinsData = jenkinsData;
-    this.buildName = jenkinsData.getDisplayName();
+  public CIBuildDetail(CloudBeesFlowBuildData buildData, String projectName){
+    this.buildData = buildData;
+    this.buildName = buildData.getDisplayName();
     this.projectName = projectName;
   }
 
@@ -38,14 +38,14 @@ public class JenkinsBuildDetail {
     JSONObject jsonObject = new JSONObject();
 
     if (buildName == null){
-      buildName = jenkinsData.getDisplayName();
+      buildName = buildData.getDisplayName();
     }
 
-    jsonObject.put("buildName", this.getBuildName());
+    jsonObject.put("ciBuildDetailName", this.getBuildName());
     jsonObject.put("projectName", this.getProjectName());
-    jsonObject.put("jenkinsData", this.getJenkinsData().toJsonObject().toString());
+    jsonObject.put("buildData", this.getBuildData().toJsonObject().toString());
     jsonObject.put("buildTriggerSource", this.getBuildTriggerSource());
-    jsonObject.put("jenkinsBuildAssociationType", this.getAssociationType());
+    jsonObject.put("ciBuildAssociationType", this.getAssociationType());
 
     if (this.flowRuntimeId != null) {
       jsonObject.put("flowRuntimeId", this.getFlowRuntimeId());
@@ -57,8 +57,8 @@ public class JenkinsBuildDetail {
   }
 
   public void validate() throws RuntimeException{
-    if (jenkinsData == null){
-      throw new RuntimeException("Field 'CloudBeesFlowData jenkinsData' is not set up.");
+    if (buildData == null){
+      throw new RuntimeException("Field 'CloudBeesFlowData buildData' is not set up.");
     }
 
     boolean hasValuesForReleaseAttach = (projectName != null && releaseName != null);
@@ -80,7 +80,7 @@ public class JenkinsBuildDetail {
     return buildName;
   }
 
-  public JenkinsBuildDetail setBuildName(String buildName) {
+  public CIBuildDetail setBuildName(String buildName) {
     this.buildName = buildName;
     return this;
   }
@@ -89,7 +89,7 @@ public class JenkinsBuildDetail {
     return projectName;
   }
 
-  public JenkinsBuildDetail setProjectName(String projectName) {
+  public CIBuildDetail setProjectName(String projectName) {
     this.projectName = projectName;
     return this;
   }
@@ -98,18 +98,18 @@ public class JenkinsBuildDetail {
     return releaseName;
   }
 
-  public JenkinsBuildDetail setReleaseName(String releaseName) {
+  public CIBuildDetail setReleaseName(String releaseName) {
     this.releaseName = releaseName;
     return this;
   }
 
-  public CloudBeesFlowBuildData getJenkinsData() {
-    return jenkinsData;
+  public CloudBeesFlowBuildData getBuildData() {
+    return buildData;
   }
 
-  public JenkinsBuildDetail setJenkinsData(
-      CloudBeesFlowBuildData jenkinsData) {
-    this.jenkinsData = jenkinsData;
+  public CIBuildDetail setBuildData(
+      CloudBeesFlowBuildData buildData) {
+    this.buildData = buildData;
     return this;
   }
 
@@ -117,13 +117,13 @@ public class JenkinsBuildDetail {
     switch (this.buildTriggerSource) {
       case FLOW:
         return "Flow";
-      case JENKINS:
-        return "Jenkins";
+      case CI:
+        return "CI";
     }
     return null;
   }
 
-  public JenkinsBuildDetail setBuildTriggerSource(
+  public CIBuildDetail setBuildTriggerSource(
       BuildTriggerSource buildTriggerSource) {
     this.buildTriggerSource = buildTriggerSource;
     return this;
@@ -135,14 +135,14 @@ public class JenkinsBuildDetail {
         return "attached";
       case TRIGGERED_BY_FLOW:
         return "triggeredByFlow";
-      case TRIGGERED_BY_JENKINS:
-        return "triggeredByJenkins";
+      case TRIGGERED_BY_CI:
+        return "triggeredByCI";
     }
     return null;
   }
 
-  public JenkinsBuildDetail setAssociationType(
-      JenkinsBuildAssociationType associationType) {
+  public CIBuildDetail setAssociationType(
+      BuildAssociationType associationType) {
     this.associationType = associationType;
     return this;
   }
@@ -151,7 +151,7 @@ public class JenkinsBuildDetail {
     return flowRuntimeId;
   }
 
-  public JenkinsBuildDetail setFlowRuntimeId(String flowRuntimeId) {
+  public CIBuildDetail setFlowRuntimeId(String flowRuntimeId) {
     this.flowRuntimeId = flowRuntimeId;
     return this;
   }

@@ -28,10 +28,7 @@ import net.sf.json.JSONObject;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.jenkinsci.plugins.electricflow.data.CloudBeesFlowBuildData;
-import org.jenkinsci.plugins.electricflow.models.JenkinsBuildDetail;
-import org.jenkinsci.plugins.electricflow.models.JenkinsBuildDetail.BuildTriggerSource;
-import org.jenkinsci.plugins.electricflow.models.JenkinsBuildDetail.JenkinsBuildAssociationType;
+import org.jenkinsci.plugins.electricflow.models.CIBuildDetail;
 
 public class ElectricFlowClient {
 
@@ -322,8 +319,8 @@ public class ElectricFlowClient {
     }
   }
 
-  public JSONObject setJenkinsBuildDetails(JenkinsBuildDetail details) throws IOException {
-    String endpoint = "/jenkinsBuildDetails?request=setJenkinsBuildDetail";
+  public JSONObject setCIBuildDetails(CIBuildDetail details) throws IOException {
+    String endpoint = "/ciBuildDetails?request=setCiBuildDetail";
     String result = runRestAPI(endpoint, POST, details.toJsonObject().toString());
     return JSONObject.fromObject(result);
   }

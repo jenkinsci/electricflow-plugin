@@ -49,8 +49,8 @@ import org.apache.commons.logging.LogFactory;
 import org.jenkinsci.Symbol;
 import org.jenkinsci.plugins.electricflow.data.CloudBeesFlowBuildData;
 import org.jenkinsci.plugins.electricflow.factories.ElectricFlowClientFactory;
-import org.jenkinsci.plugins.electricflow.models.JenkinsBuildDetail;
-import org.jenkinsci.plugins.electricflow.models.JenkinsBuildDetail.JenkinsBuildAssociationType;
+import org.jenkinsci.plugins.electricflow.models.CIBuildDetail;
+import org.jenkinsci.plugins.electricflow.models.CIBuildDetail.BuildAssociationType;
 import org.jenkinsci.plugins.electricflow.ui.FieldValidationStatus;
 import org.jenkinsci.plugins.electricflow.ui.HtmlUtils;
 import org.jenkinsci.plugins.electricflow.ui.SelectFieldUtils;
@@ -175,10 +175,10 @@ public class ElectricFlowPipelinePublisher extends Recorder implements SimpleBui
           .getLogger()
           .println("About to call setJenkinsBuildDetails after running a Pipeline");
 
-      JSONObject associateResult = efClient.setJenkinsBuildDetails(
-          new JenkinsBuildDetail(cbfdb, projectName)
+      JSONObject associateResult = efClient.setCIBuildDetails(
+          new CIBuildDetail(cbfdb, projectName)
               .setFlowRuntimeId(flowRuntimeId)
-              .setAssociationType(JenkinsBuildAssociationType.TRIGGERED_BY_JENKINS)
+              .setAssociationType(BuildAssociationType.TRIGGERED_BY_CI)
       );
 
       taskListener.getLogger().println("Return from efClient: " + associateResult.toString());
