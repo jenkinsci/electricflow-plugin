@@ -106,7 +106,7 @@ public class ElectricFlowTriggerRelease
         try {
             logger.println("Preparing to triggerRelease...");
 
-            EnvReplacer        env      = new EnvReplacer(run, taskListener);
+            EnvReplacer env = new EnvReplacer(run, taskListener);
             ElectricFlowClient efClient = ElectricFlowClientFactory
                     .getElectricFlowClient(
                             configuration,
@@ -117,12 +117,12 @@ public class ElectricFlowTriggerRelease
 
             expandParameters(pipelineParameters, env);
 
-            String            releaseResult = efClient.runRelease(projectName,
+            String releaseResult = efClient.runRelease(projectName,
                     releaseName, stagesToRun, startingStage,
                     pipelineParameters);
-            String            summaryHtml   = getSummaryHtml(efClient,
+            String summaryHtml = getSummaryHtml(efClient,
                     releaseResult, pipelineParameters, stagesToRun);
-            SummaryTextAction action        = new SummaryTextAction(run, summaryHtml);
+            SummaryTextAction action = new SummaryTextAction(run, summaryHtml);
 
             CloudBeesFlowBuildData cbfdb = new CloudBeesFlowBuildData(run);
             taskListener.getLogger().println("++++++++++++++++++++++++++++++++++++++++++++");
@@ -134,13 +134,16 @@ public class ElectricFlowTriggerRelease
             String associateResult = efClient.setJenkinsBuildDetailsTriggerRelease(cbfdb, projectName, releaseName, "");
             taskListener.getLogger().println("Return from efClient: " + associateResult);
             taskListener.getLogger().println("++++++++++++++++++++++++++++++++++++++++++++");
-            
+
             run.addAction(action);
             run.save();
             logger.println("TriggerRelease  result: "
                     + formatJsonOutput(releaseResult));
-        }
-        catch (Exception e) {
+        } catch (IOException e) {
+            logger.println(e.getMessage());
+            log.error(e.getMessage(), e);
+            run.setResult(Result.FAILURE);
+        } catch (InterruptedException e) {
             logger.println(e.getMessage());
             log.error(e.getMessage(), e);
             run.setResult(Result.FAILURE);
