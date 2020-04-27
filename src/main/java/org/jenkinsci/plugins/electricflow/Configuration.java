@@ -26,7 +26,6 @@ import hudson.util.FormValidation;
 import hudson.util.ListBoxModel;
 import hudson.util.Secret;
 import org.kohsuke.stapler.interceptor.RequirePOST;
-import sun.nio.ch.Secrets;
 
 /**
  * Configuration to access ElectricFlow server.

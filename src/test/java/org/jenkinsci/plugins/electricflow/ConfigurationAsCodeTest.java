@@ -1,18 +1,12 @@
 package org.jenkinsci.plugins.electricflow;
 
 import hudson.ExtensionList;
-import io.jenkins.plugins.casc.ConfigurationContext;
-import io.jenkins.plugins.casc.ConfiguratorRegistry;
 import io.jenkins.plugins.casc.misc.ConfiguredWithCode;
 import io.jenkins.plugins.casc.misc.JenkinsConfiguredWithCodeRule;
-import io.jenkins.plugins.casc.misc.Util;
-import io.jenkins.plugins.casc.model.CNode;
-import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
 import org.junit.Rule;
 import org.junit.Test;
 
-import java.util.Collections;
 import java.util.List;
 
 import static org.hamcrest.MatcherAssert.assertThat;
