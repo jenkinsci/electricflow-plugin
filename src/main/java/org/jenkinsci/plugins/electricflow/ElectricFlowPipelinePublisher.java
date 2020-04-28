@@ -10,6 +10,7 @@
 package org.jenkinsci.plugins.electricflow;
 
 import java.io.IOException;
+import java.io.PrintStream;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -115,6 +116,19 @@ public class ElectricFlowPipelinePublisher
                         .println(log);
         }
     }
+    private PrintStream getLoggerFromListeners(BuildListener bl, TaskListener tl) {
+        PrintStream logger;
+
+        if (bl != null) {
+            logger = bl.getLogger();
+            return logger;
+        }
+        if (tl != null) {
+            logger = tl.getLogger();
+            return logger;
+        }
+        return null;
+    }
 
     private boolean runPipeline(
             Run           run,
@@ -125,6 +139,7 @@ public class ElectricFlowPipelinePublisher
             "Project name: " + projectName
                 + ", Pipeline name: " + pipelineName);
 
+        PrintStream logger = getLoggerFromListeners(buildListener, taskListener);
         EnvReplacer env = null;
         ElectricFlowClient efClient;
         try {
@@ -190,13 +205,13 @@ public class ElectricFlowPipelinePublisher
             String projectName = getProjectNameFromResponse(pipelineResult);
 
             CloudBeesFlowBuildData cbfdb = new CloudBeesFlowBuildData(run);
-            taskListener.getLogger().println("++++++++++++++++++++++++++++++++++++++++++++");
-            taskListener.getLogger().println("CBF Data: " + cbfdb.toJsonObject().toString());
-            taskListener.getLogger().println("++++++++++++++++++++++++++++++++++++++++++++");
-            taskListener.getLogger().println("About to call setJenkinsBuildDetails after running a Pipeline");
+            logger.println("++++++++++++++++++++++++++++++++++++++++++++");
+            logger.println("CBF Data: " + cbfdb.toJsonObject().toString());
+            logger.println("++++++++++++++++++++++++++++++++++++++++++++");
+            logger.println("About to call setJenkinsBuildDetails after running a Pipeline");
             String associateResult = efClient.setJenkinsBuildDetailsRunPipeline(cbfdb, projectName, flowRuntimeId);
-            taskListener.getLogger().println("Return from efClient: " + associateResult);
-            taskListener.getLogger().println("++++++++++++++++++++++++++++++++++++++++++++");
+            logger.println("Return from efClient: " + associateResult);
+            logger.println("++++++++++++++++++++++++++++++++++++++++++++");
 
             run.addAction(action);
             run.save();

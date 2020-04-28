@@ -89,7 +89,12 @@ public class ElectricFlowBuildWatcher extends RunListener<Run> {
             // 4. Creating CloudBeesFlowBuildData object out of run:
             CloudBeesFlowBuildData cbf = new CloudBeesFlowBuildData(run);
             try {
-                electricFlowClient.setJenkinsBuildDetailsRunPipeline(cbf, efCause.getProjectName(), efCause.getFlowRuntimeId());
+                electricFlowClient.setJenkinsBuildDetailsRunPipeline(
+                        cbf,
+                        efCause.getProjectName(),
+                        efCause.getFlowRuntimeId(),
+                        efCause.getStageName(),
+                        efCause.getFlowRuntimeStateId());
             } catch (IOException e) {
                 return false;
             }

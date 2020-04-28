@@ -319,7 +319,18 @@ public class ElectricFlowClient {
 
   // Flow Endpoint :: flowRuntimes​/{flowRuntimeId}​/jenkinsBuildDetails​/{buildName}
   public String setJenkinsBuildDetailsRunPipeline(
-      CloudBeesFlowBuildData cloudBeesFlowBuildData, String projectName, String flowRuntimeId)
+          CloudBeesFlowBuildData cloudBeesFlowBuildData,
+          String projectName,
+          String flowRuntimeId
+  ) throws  IOException {
+       return setJenkinsBuildDetailsRunPipeline(cloudBeesFlowBuildData, projectName, flowRuntimeId, "", "");
+  }
+  public String setJenkinsBuildDetailsRunPipeline(
+      CloudBeesFlowBuildData cloudBeesFlowBuildData,
+      String projectName,
+      String flowRuntimeId,
+      String stageName,
+      String flowRuntimeStateId)
       throws IOException {
     String endpoint = "/ciBuildDetails?request=setCiBuildDetail";
     JSONObject obj = new JSONObject();
@@ -336,8 +347,16 @@ public class ElectricFlowClient {
     // renaming jenkinsBuildAssociationType to ciBuildAssociationType due to re-branding
     obj.put("ciBuildAssociationType", JENKINS_BUILD_ASSOCIATION_TYPE);
     // obj.put("jenkinsBuildAssociationType", JENKINS_BUILD_ASSOCIATION_TYPE);
+
+    if (!stageName.equals("null") && !stageName.equals("")) {
+      obj.put("stageName", stageName);
+    }
+    if (!flowRuntimeStateId.equals("null") && !flowRuntimeStateId.equals("")) {
+      obj.put("flowRuntimeStateId", flowRuntimeStateId);
+    }
     String content = obj.toString();
-    return runRestAPI(endpoint, POST, content);
+    String resp = runRestAPI(endpoint, POST, content);
+    return resp;
   }
 
   // Flow Endpoint ::
