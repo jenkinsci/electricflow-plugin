@@ -36,8 +36,8 @@ public class ElectricFlowClient {
 
   private static final Log log = LogFactory.getLog(ElectricFlowClient.class);
   private static final String CHARSET = "UTF-8";
-  public static final String JENKINS_BUILD_ASSOCIATION_TYPE = "triggeredByJenkins";
-  public static final String BUILD_TRIGGER_SOURCE = "Jenkins";
+  public static final String JENKINS_BUILD_ASSOCIATION_TYPE = "triggeredByCI";
+  public static final String BUILD_TRIGGER_SOURCE = "CI";
 
   // ~ Instance fields --------------------------------------------------------
 
@@ -321,14 +321,21 @@ public class ElectricFlowClient {
   public String setJenkinsBuildDetailsRunPipeline(
       CloudBeesFlowBuildData cloudBeesFlowBuildData, String projectName, String flowRuntimeId)
       throws IOException {
-    String endpoint = "/jenkinsBuildDetails?request=setJenkinsBuildDetail";
+    String endpoint = "/ciBuildDetails?request=setCiBuildDetail";
     JSONObject obj = new JSONObject();
-    obj.put("buildName", cloudBeesFlowBuildData.getDisplayName());
+
+    // renaming buildName to ciBuildDetailName due to re-branding.
+    obj.put("ciBuildDetailName", cloudBeesFlowBuildData.getDisplayName());
+    // obj.put("buildName", cloudBeesFlowBuildData.getDisplayName());
     obj.put("projectName", projectName);
     obj.put("flowRuntimeId", flowRuntimeId);
-    obj.put("jenkinsData", cloudBeesFlowBuildData.toJsonObject().toString());
+    // renaming jenkinsData to buildData due to re-branding.
+    obj.put("buildData", cloudBeesFlowBuildData.toJsonObject().toString());
+    // obj.put("jenkinsData", cloudBeesFlowBuildData.toJsonObject().toString());
     obj.put("buildTriggerSource", BUILD_TRIGGER_SOURCE);
-    obj.put("jenkinsBuildAssociationType", JENKINS_BUILD_ASSOCIATION_TYPE);
+    // renaming jenkinsBuildAssociationType to ciBuildAssociationType due to re-branding
+    obj.put("ciBuildAssociationType", JENKINS_BUILD_ASSOCIATION_TYPE);
+    // obj.put("jenkinsBuildAssociationType", JENKINS_BUILD_ASSOCIATION_TYPE);
     String content = obj.toString();
     return runRestAPI(endpoint, POST, content);
   }
@@ -341,14 +348,21 @@ public class ElectricFlowClient {
       String releaseName,
       String releaseProjectName)
       throws IOException {
-    String endpoint = "/jenkinsBuildDetails?request=setJenkinsBuildDetail";
+    String endpoint = "/ciBuildDetails?request=setCiBuildDetail";
     JSONObject obj = new JSONObject();
-    obj.put("buildName", cloudBeesFlowBuildData.getDisplayName());
+
+    // renaming buildName to ciBuildDetailName due to re-branding.
+    obj.put("ciBuildDetailName", cloudBeesFlowBuildData.getDisplayName());
+    // obj.put("buildName", cloudBeesFlowBuildData.getDisplayName());
     obj.put("projectName", projectName);
     obj.put("releaseName", releaseName);
-    obj.put("jenkinsData", cloudBeesFlowBuildData.toJsonObject().toString());
+    // renaming jenkinsData to buildData due to re-branding.
+    obj.put("buildData", cloudBeesFlowBuildData.toJsonObject().toString());
+    // obj.put("jenkinsData", cloudBeesFlowBuildData.toJsonObject().toString());
     obj.put("buildTriggerSource", BUILD_TRIGGER_SOURCE);
-    obj.put("jenkinsBuildAssociationType", JENKINS_BUILD_ASSOCIATION_TYPE);
+    // renaming jenkinsBuildAssociationType to ciBuildAssociationType due to re-branding
+    obj.put("ciBuildAssociationType", JENKINS_BUILD_ASSOCIATION_TYPE);
+    // obj.put("jenkinsBuildAssociationType", JENKINS_BUILD_ASSOCIATION_TYPE);
     String content = obj.toString();
     return runRestAPI(endpoint, POST, content);
   }
