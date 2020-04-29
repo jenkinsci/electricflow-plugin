@@ -36,6 +36,7 @@ import hudson.tasks.Recorder;
 import hudson.util.FormValidation;
 import hudson.util.ListBoxModel;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -104,21 +105,25 @@ public class ElectricFlowPipelinePublisher extends Recorder implements SimpleBui
     }
   }
 
-  private void logListener(BuildListener buildListener, TaskListener taskListener, String log) {
+  private PrintStream getLoggerFromListeners(BuildListener bl, TaskListener tl) {
+    PrintStream logger;
 
-    if (buildListener != null) {
-      buildListener.getLogger().println(log);
-    } else if (taskListener != null) {
-      taskListener.getLogger().println(log);
+    if (bl != null) {
+      logger = bl.getLogger();
+      return logger;
     }
+    if (tl != null) {
+      logger = tl.getLogger();
+      return logger;
+    }
+    return null;
   }
 
   private boolean runPipeline(Run<?, ?> run, BuildListener buildListener,
       TaskListener taskListener) {
-    logListener(
-        buildListener,
-        taskListener,
-        "Project name: " + projectName + ", Pipeline name: " + pipelineName);
+    PrintStream logger = getLoggerFromListeners(buildListener, taskListener);
+
+    logger.println("Project name: " + projectName + ", Pipeline name: " + pipelineName);
 
     EnvReplacer env = null;
     ElectricFlowClient efClient;
@@ -127,9 +132,7 @@ public class ElectricFlowPipelinePublisher extends Recorder implements SimpleBui
       efClient =
           ElectricFlowClientFactory.getElectricFlowClient(configuration, overrideCredential, env);
     } catch (Exception e) {
-      taskListener
-          .getLogger()
-          .println("Cannot create CloudBees Flow client. Error: " + e.getMessage());
+      logger.println("Cannot create CloudBees Flow client. Error: " + e.getMessage());
       log.error("Cannot create CloudBees Flow client. Error: " + e.getMessage(), e);
 
       return false;
@@ -142,16 +145,14 @@ public class ElectricFlowPipelinePublisher extends Recorder implements SimpleBui
         log.debug("FormalParameters are: " + paramsResponse.toString());
       }
     } catch (Exception e) {
-      taskListener
-          .getLogger()
-          .println("Error occurred during formal parameters fetch: " + e.getMessage());
+      logger.println("Error occurred during formal parameters fetch: " + e.getMessage());
       log.error("Error occurred during formal parameters fetch: " + e.getMessage(), e);
 
       return false;
     }
 
     try {
-      logListener(buildListener, taskListener, "Preparing to run pipeline...");
+      logger.println("Preparing to run pipeline...");
 
       String pipelineResult;
       JSONArray parameters = getPipelineParameters();
@@ -170,12 +171,13 @@ public class ElectricFlowPipelinePublisher extends Recorder implements SimpleBui
 
       // PrintStream logger = taskListener.getLogger();
       CloudBeesFlowBuildData cbfdb = new CloudBeesFlowBuildData(run);
-      taskListener.getLogger().println("++++++++++++++++++++++++++++++++++++++++++++");
-      taskListener.getLogger().println("CBF Data: " + cbfdb.toJsonObject().toString());
-      taskListener.getLogger().println("++++++++++++++++++++++++++++++++++++++++++++");
-      taskListener
-          .getLogger()
-          .println("About to call setJenkinsBuildDetails after running a Pipeline");
+
+
+
+      logger.println("++++++++++++++++++++++++++++++++++++++++++++");
+      logger.println("CBF Data: " + cbfdb.toJsonObject().toString());
+      logger.println("++++++++++++++++++++++++++++++++++++++++++++");
+      logger.println("About to call setJenkinsBuildDetails after running a Pipeline");
 
       JSONObject associateResult = efClient.setCIBuildDetails(
           new CIBuildDetail(cbfdb, projectName)
@@ -183,15 +185,14 @@ public class ElectricFlowPipelinePublisher extends Recorder implements SimpleBui
               .setAssociationType(BuildAssociationType.TRIGGERED_BY_CI)
       );
 
-      taskListener.getLogger().println("Return from efClient: " + associateResult.toString());
-      taskListener.getLogger().println("++++++++++++++++++++++++++++++++++++++++++++");
+      logger.println("Return from efClient: " + associateResult.toString());
+      logger.println("++++++++++++++++++++++++++++++++++++++++++++");
 
       run.addAction(action);
       run.save();
-      logListener(
-          buildListener, taskListener, "Pipeline result: " + formatJsonOutput(pipelineResult));
+      logger.println("Pipeline result: " + formatJsonOutput(pipelineResult));
     } catch (Exception e) {
-      logListener(buildListener, taskListener, e.getMessage());
+      logger.println(e.getMessage());
       log.error(e.getMessage(), e);
 
       return false;
