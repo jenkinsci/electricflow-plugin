@@ -7,7 +7,7 @@ import org.jenkinsci.plugins.electricflow.extension.CloudBeesFlowPipeline;
 public class CloudBeesFlowPipelineData {
   private List<CloudBeesFlowPipeline> pipelineData;
 
-  public CloudBeesFlowPipelineData(Run<?,?> run) {
+  public CloudBeesFlowPipelineData(Run<?, ?> run) {
     this.pipelineData = CloudBeesFlowPipeline.build(run);
   }
 

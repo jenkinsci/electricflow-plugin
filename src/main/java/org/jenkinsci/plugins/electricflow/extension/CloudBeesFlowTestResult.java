@@ -71,7 +71,7 @@ public class CloudBeesFlowTestResult implements ExtensionPoint {
     return false;
   }
 
-  public boolean populate(Run<?,?> run) {
+  public boolean populate(Run<?, ?> run) {
     return false;
   }
 

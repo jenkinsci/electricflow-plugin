@@ -30,10 +30,8 @@ public class ElectricFlowAssociateBuildToReleaseTest {
   public static final String FLOW_PASSWORD = System.getenv("COMMANDER_PASSWORD");
   public static final String FLOW_REST_API_URI_PATH = "/rest/v1.0";
 
-  @ClassRule
-  public static BuildWatcher buildWatcher = new BuildWatcher();
-  @Rule
-  public JenkinsRule jenkinsRule = new JenkinsRule();
+  @ClassRule public static BuildWatcher buildWatcher = new BuildWatcher();
+  @Rule public JenkinsRule jenkinsRule = new JenkinsRule();
 
   @Test
   public void runPbaWithFreestyleProject() throws Exception {
@@ -41,9 +39,9 @@ public class ElectricFlowAssociateBuildToReleaseTest {
     String command = "echo hello";
     FreeStyleProject project = jenkinsRule.createFreeStyleProject();
 
-    project.getBuildersList().add(
-        Functions.isWindows() ? new BatchFile(command) : new Shell(command)
-    );
+    project
+        .getBuildersList()
+        .add(Functions.isWindows() ? new BatchFile(command) : new Shell(command));
 
     ElectricFlowAssociateBuildToRelease pba = new ElectricFlowAssociateBuildToRelease();
     pba.setConfiguration(FLOW_CONFIG_NAME);
@@ -67,7 +65,7 @@ public class ElectricFlowAssociateBuildToReleaseTest {
   }
 
   @Test
-  public void checkPBAGettersAndSetters(){
+  public void checkPBAGettersAndSetters() {
     ElectricFlowAssociateBuildToRelease pba = new ElectricFlowAssociateBuildToRelease();
 
     String expectedConfigName = FLOW_CONFIG_NAME;
@@ -95,12 +93,7 @@ public class ElectricFlowAssociateBuildToReleaseTest {
 
     Configuration configuration =
         new Configuration(
-            configName,
-            FLOW_ENDPOINT,
-            FLOW_USER,
-            FLOW_PASSWORD,
-            FLOW_REST_API_URI_PATH,
-            true);
+            configName, FLOW_ENDPOINT, FLOW_USER, FLOW_PASSWORD, FLOW_REST_API_URI_PATH, true);
 
     electricFlowGlobalConfiguration.efConfigurations.add(configuration);
     electricFlowGlobalConfiguration.save();

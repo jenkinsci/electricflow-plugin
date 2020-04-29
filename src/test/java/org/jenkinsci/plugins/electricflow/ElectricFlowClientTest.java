@@ -56,11 +56,8 @@ public class ElectricFlowClientTest {
     assertNull(release.getFlowRuntimeId());
   }
 
-  public static ElectricFlowClient getClient(){
+  public static ElectricFlowClient getClient() {
     return new ElectricFlowClient(
-        FLOW_ENDPOINT, FLOW_USER, FLOW_PASSWORD,
-        FLOW_REST_API_URI_PATH, true
-    );
+        FLOW_ENDPOINT, FLOW_USER, FLOW_PASSWORD, FLOW_REST_API_URI_PATH, true);
   }
-
 }
