@@ -4,12 +4,14 @@ import hudson.ExtensionList;
 import hudson.ExtensionPoint;
 
 public class ElectricFlowChangeSet implements ExtensionPoint {
+
   protected String authorName;
   protected String authorEmail;
   protected String commitId;
   protected String comments;
 
-  public ElectricFlowChangeSet() {}
+  public ElectricFlowChangeSet() {
+  }
 
   public static ElectricFlowChangeSet getChangeset(Object obj) {
     return null;
@@ -67,5 +69,6 @@ public class ElectricFlowChangeSet implements ExtensionPoint {
     return false;
   }
 
-  public void populate(Object object) {}
+  public void populate(Object object) {
+  }
 }

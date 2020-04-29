@@ -86,7 +86,6 @@ public class ElectricFlowAssociateBuildToRelease extends Recorder implements Sim
       JSONObject result = setJenkinsBuildDetails(efClient, cloudBeesFlowBuildData, logger);
       JSONObject resultBuildDetailInfo = result.getJSONObject("ciBuildDetailInfo");
 
-
       // Setting the summary
       Release release = efClient.getRelease(configuration, projectName, releaseName);
 
@@ -126,7 +125,7 @@ public class ElectricFlowAssociateBuildToRelease extends Recorder implements Sim
 
     try {
       detail.validate();
-    } catch (RuntimeException ex){
+    } catch (RuntimeException ex) {
       logger.println("[ERROR] Can't fill the CIBuildDetail: " + ex.getMessage());
       logger.println(Arrays.toString(ex.getStackTrace()));
     }
@@ -140,8 +139,8 @@ public class ElectricFlowAssociateBuildToRelease extends Recorder implements Sim
     return result;
   }
 
-  private String getSummaryHtml( ElectricFlowClient electricFlowClient,
-      Map<String, String> args, PrintStream logger ) {
+  private String getSummaryHtml(ElectricFlowClient electricFlowClient,
+      Map<String, String> args, PrintStream logger) {
 
     String releaseName = args.get("releaseName");
     String releaseId = args.get("releaseId");

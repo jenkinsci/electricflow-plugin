@@ -4,4 +4,6 @@ package org.jenkinsci.plugins.electricflow.extension;
 // It has implemented logic of extension implementation lookup in runtime
 // to avoid code duplication.
 // TODO: Implement it later.
-public class CloudBeesFlowBaseExtension {}
+public class CloudBeesFlowBaseExtension {
+
+}

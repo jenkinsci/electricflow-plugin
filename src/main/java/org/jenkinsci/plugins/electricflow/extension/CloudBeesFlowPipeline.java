@@ -8,6 +8,7 @@ import java.util.List;
 import net.sf.json.JSONObject;
 
 public class CloudBeesFlowPipeline implements ExtensionPoint {
+
   protected String stageName;
   protected String result;
   protected String reason;
@@ -15,7 +16,8 @@ public class CloudBeesFlowPipeline implements ExtensionPoint {
   protected long timestamp;
   protected String logs;
 
-  public CloudBeesFlowPipeline() {}
+  public CloudBeesFlowPipeline() {
+  }
 
   public static List<CloudBeesFlowPipeline> build(Run<?, ?> run) {
     List<CloudBeesFlowPipeline> result = new ArrayList<>();
@@ -49,7 +51,7 @@ public class CloudBeesFlowPipeline implements ExtensionPoint {
     return json;
   }
 
-  public List<CloudBeesFlowPipeline> generate(Run<?,?> run) {
+  public List<CloudBeesFlowPipeline> generate(Run<?, ?> run) {
     return new ArrayList<>();
   }
 

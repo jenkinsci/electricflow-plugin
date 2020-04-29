@@ -37,12 +37,10 @@ public class ElectricFlowUploadArtifactPublisher extends Recorder implements Sim
 
   // ~ Static fields/initializers ---------------------------------------------
 
+  public static final String FLOW_ARTIFACT_REPOSITORY = "Flow Artifact Repository";
   private static final Log log = LogFactory.getLog(ElectricFlowUploadArtifactPublisher.class);
 
-  public static final String FLOW_ARTIFACT_REPOSITORY = "Flow Artifact Repository";
-
   // ~ Instance fields --------------------------------------------------------
-
   private final String configuration;
   private final String repositoryName;
   private Credential overrideCredential;
@@ -273,7 +271,9 @@ public class ElectricFlowUploadArtifactPublisher extends Recorder implements Sim
 
   // ~ Inner Classes ----------------------------------------------------------
 
-  /** The class is marked as public so that it can be accessed from views. */
+  /**
+   * The class is marked as public so that it can be accessed from views.
+   */
   @Symbol("cloudBeesFlowPublishArtifact")
   @Extension // This indicates to Jenkins that this is an implementation of
   // an extension point.

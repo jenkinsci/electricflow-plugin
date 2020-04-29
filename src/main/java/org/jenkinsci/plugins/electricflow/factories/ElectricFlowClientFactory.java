@@ -9,6 +9,7 @@ import org.jenkinsci.plugins.electricflow.EnvReplacer;
 import org.jenkinsci.plugins.electricflow.Utils;
 
 public class ElectricFlowClientFactory {
+
   public static ElectricFlowClient getElectricFlowClient(
       String configurationName, Credential overrideCredential, EnvReplacer envReplacer) {
     Configuration cred = Utils.getConfigurationByName(configurationName);

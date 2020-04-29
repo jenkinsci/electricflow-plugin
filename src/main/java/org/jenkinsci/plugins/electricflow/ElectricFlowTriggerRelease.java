@@ -78,7 +78,8 @@ public class ElectricFlowTriggerRelease extends Recorder implements SimpleBuildS
   // ~ Constructors -----------------------------------------------------------
 
   @DataBoundConstructor
-  public ElectricFlowTriggerRelease() {}
+  public ElectricFlowTriggerRelease() {
+  }
 
   // ~ Methods ----------------------------------------------------------------
 
@@ -171,7 +172,7 @@ public class ElectricFlowTriggerRelease extends Recorder implements SimpleBuildS
   private String getSetJenkinsBuildDetailsUrlBase(String releaseResult) {
     JSONObject releaseJSON = JSONObject.fromObject(releaseResult).getJSONObject("release");
     String retval =
-        "/flowRuntimes/" + (String) releaseJSON.get("releaseName") + "/jenkinsBuildDetails";
+        "/flowRuntimes/" + releaseJSON.get("releaseName") + "/jenkinsBuildDetails";
     return retval;
   }
 
@@ -222,7 +223,6 @@ public class ElectricFlowTriggerRelease extends Recorder implements SimpleBuildS
   @DataBoundSetter
   public void setProjectName(String projectName) {
     this.projectName = getSelectItemValue(projectName);
-    ;
   }
 
   public String getStoredProjectName() {
@@ -265,7 +265,8 @@ public class ElectricFlowTriggerRelease extends Recorder implements SimpleBuildS
   }
 
   @DataBoundSetter
-  public void setValidationTrigger(String validationTrigger) {}
+  public void setValidationTrigger(String validationTrigger) {
+  }
 
   private String getSummaryHtml(
       ElectricFlowClient efClient,
@@ -695,11 +696,11 @@ public class ElectricFlowTriggerRelease extends Recorder implements SimpleBuildS
               + getValidationComparisonRow("Project Name", storedProjectName, projectNameValue)
               + getValidationComparisonRow("Release Name", storedReleaseName, releaseNameValue)
               + getValidationComparisonRow(
-                  "Starting Stage", storedStartingStage, startingStageValue)
+              "Starting Stage", storedStartingStage, startingStageValue)
               + getValidationComparisonRowsForExtraParameters(
-                  "Stages to run", storedStagesToRunMap, stagesToRunMap)
+              "Stages to run", storedStagesToRunMap, stagesToRunMap)
               + getValidationComparisonRowsForExtraParameters(
-                  "Pipeline parameters", storedPipelineParamsMap, pipelineParamsMap)
+              "Pipeline parameters", storedPipelineParamsMap, pipelineParamsMap)
               + "</table>";
 
       if (configurationValue.equals(storedConfiguration)

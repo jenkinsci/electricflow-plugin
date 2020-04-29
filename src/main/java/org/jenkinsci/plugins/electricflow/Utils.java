@@ -296,7 +296,7 @@ public class Utils {
       m.add(
           "Select project",
           new SelectItemValidationWrapper(
-                  FieldValidationStatus.WARN, "Project name field should not be empty.", "")
+              FieldValidationStatus.WARN, "Project name field should not be empty.", "")
               .getJsonStr());
 
       if (!configuration.isEmpty()) {

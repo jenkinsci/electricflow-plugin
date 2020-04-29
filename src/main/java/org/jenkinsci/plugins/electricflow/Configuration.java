@@ -22,7 +22,9 @@ import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.interceptor.RequirePOST;
 
-/** Configuration to access ElectricFlow server. */
+/**
+ * Configuration to access ElectricFlow server.
+ */
 public class Configuration extends AbstractDescribableImpl<Configuration> {
 
   private static final Log log = LogFactory.getLog(Configuration.class);

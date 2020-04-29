@@ -68,7 +68,7 @@ public class CloudBeesFlowBuildData {
 
     //resolve the launchedBy
     List<Cause> causes = run.getCauses();
-    if(!causes.isEmpty()){
+    if (!causes.isEmpty()) {
       Cause cause = causes.stream().findFirst().get();
       this.setLaunchedBy(cause.getShortDescription());
     }
@@ -76,7 +76,7 @@ public class CloudBeesFlowBuildData {
     // todo: Improve reason handling
     long duration = run.getDuration();
     if (duration == 0) {
-        duration = Math.max(System.currentTimeMillis() - run.getStartTimeInMillis(), 0);
+      duration = Math.max(System.currentTimeMillis() - run.getStartTimeInMillis(), 0);
     }
     this.setDuration(duration);
     this.setEstimatedDuration(run.getEstimatedDuration());

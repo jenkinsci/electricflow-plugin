@@ -69,7 +69,7 @@ public class Credential extends AbstractDescribableImpl<Credential> {
               ACL.SYSTEM,
               Jenkins.get(),
               StandardUsernamePasswordCredentials.class,
-              Collections.<DomainRequirement>emptyList(),
+              Collections.emptyList(),
               CredentialsMatchers.always());
     }
 

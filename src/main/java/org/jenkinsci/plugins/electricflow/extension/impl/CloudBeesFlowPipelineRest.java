@@ -11,6 +11,7 @@ import org.jenkinsci.plugins.workflow.job.WorkflowRun;
 
 @OptionalExtension(requirePlugins = "pipeline-rest-api")
 public class CloudBeesFlowPipelineRest extends CloudBeesFlowPipeline {
+
   @Override
   public List<CloudBeesFlowPipeline> generate(Run run) {
     List<CloudBeesFlowPipeline> result = new ArrayList<>();

@@ -80,7 +80,8 @@ public class ElectricFlowPipelinePublisher extends Recorder implements SimpleBui
   // ~ Constructors -----------------------------------------------------------
 
   @DataBoundConstructor
-  public ElectricFlowPipelinePublisher() {}
+  public ElectricFlowPipelinePublisher() {
+  }
 
   // ~ Methods ----------------------------------------------------------------
 
@@ -112,7 +113,8 @@ public class ElectricFlowPipelinePublisher extends Recorder implements SimpleBui
     }
   }
 
-  private boolean runPipeline(Run<?,?> run, BuildListener buildListener, TaskListener taskListener) {
+  private boolean runPipeline(Run<?, ?> run, BuildListener buildListener,
+      TaskListener taskListener) {
     logListener(
         buildListener,
         taskListener,
@@ -615,7 +617,7 @@ public class ElectricFlowPipelinePublisher extends Recorder implements SimpleBui
               + getValidationComparisonRow("Project Name", storedProjectName, projectNameValue)
               + getValidationComparisonRow("Pipeline Name", storedPipelineName, pipelineNameValue)
               + getValidationComparisonRowsForExtraParameters(
-                  "Pipeline Parameters", storedPipelineParamsMap, pipelineParamsMap)
+              "Pipeline Parameters", storedPipelineParamsMap, pipelineParamsMap)
               + "</table>";
 
       if (configurationValue.equals(storedConfiguration)

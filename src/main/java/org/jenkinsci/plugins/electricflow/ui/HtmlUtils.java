@@ -5,6 +5,7 @@ import org.owasp.html.HtmlPolicyBuilder;
 import org.owasp.html.PolicyFactory;
 
 public class HtmlUtils {
+
   public static PolicyFactory getHtmlPolicy() {
     return new HtmlPolicyBuilder()
         .allowElements("h3", "table", "tr", "td", "a", "b", "pre")

@@ -73,7 +73,8 @@ public class ElectricFlowDeployApplication extends Recorder implements SimpleBui
   // ~ Constructors -----------------------------------------------------------
 
   @DataBoundConstructor
-  public ElectricFlowDeployApplication() {}
+  public ElectricFlowDeployApplication() {
+  }
 
   // ~ Methods ----------------------------------------------------------------
 
@@ -240,7 +241,8 @@ public class ElectricFlowDeployApplication extends Recorder implements SimpleBui
   }
 
   @DataBoundSetter
-  public void setValidationTrigger(String validationTrigger) {}
+  public void setValidationTrigger(String validationTrigger) {
+  }
 
   @Override
   public BuildStepMonitor getRequiredMonitorService() {
@@ -451,7 +453,7 @@ public class ElectricFlowDeployApplication extends Recorder implements SimpleBui
             && !projectName.isEmpty()
             && !applicationName.isEmpty()
             && SelectFieldUtils.checkAllSelectItemsAreNotValidationWrappers(
-                projectName, applicationName)) {
+            projectName, applicationName)) {
           ElectricFlowClient client = new ElectricFlowClient(configuration);
           List<String> processes = client.getProcesses(projectName, applicationName);
 
@@ -503,7 +505,7 @@ public class ElectricFlowDeployApplication extends Recorder implements SimpleBui
             || applicationName.isEmpty()
             || applicationProcessName.isEmpty()
             || !SelectFieldUtils.checkAllSelectItemsAreNotValidationWrappers(
-                projectName, applicationName, applicationProcessName)) {
+            projectName, applicationName, applicationProcessName)) {
           m.add("{}");
 
           return m;
@@ -664,15 +666,15 @@ public class ElectricFlowDeployApplication extends Recorder implements SimpleBui
               + getValidationComparisonRow("Configuration", storedConfiguration, configurationValue)
               + getValidationComparisonRow("Project Name", storedProjectName, projectNameValue)
               + getValidationComparisonRow(
-                  "Application Name", storedApplicationName, applicationNameValue)
+              "Application Name", storedApplicationName, applicationNameValue)
               + getValidationComparisonRow(
-                  "Application Process Name",
-                  storedApplicationProcessName,
-                  applicationProcessNameValue)
+              "Application Process Name",
+              storedApplicationProcessName,
+              applicationProcessNameValue)
               + getValidationComparisonRow(
-                  "Environment Name", storedEnvironmentName, environmentNameValue)
+              "Environment Name", storedEnvironmentName, environmentNameValue)
               + getValidationComparisonRowsForExtraParameters(
-                  "Deploy Parameters", storedDeployParamsMap, deployParamsMap)
+              "Deploy Parameters", storedDeployParamsMap, deployParamsMap)
               + "</table>";
 
       if (configurationValue.equals(storedConfiguration)
