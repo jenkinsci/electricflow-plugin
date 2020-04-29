@@ -193,8 +193,8 @@ public class Utils
                                                                   .get(
                                                                       ElectricFlowGlobalConfiguration.class);
 
-        if (cred != null && cred.efConfigurations != null) {
-            return cred.efConfigurations;
+        if (cred != null && cred.configurations != null) {
+            return cred.configurations;
         }
 
         return new ArrayList<>();

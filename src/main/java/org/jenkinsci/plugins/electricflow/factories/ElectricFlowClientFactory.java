@@ -56,14 +56,13 @@ public class ElectricFlowClientFactory {
         String password;
         if (overrideCredential == null) {
             username = cred.getElectricFlowUser();
-            password = Secret.fromString(cred.getElectricFlowPassword())
-                    .getPlainText();
+            password = cred.getElectricFlowPassword().getPlainText();
         } else {
             StandardUsernamePasswordCredentials creds = overrideCredential.getUsernamePasswordBasedOnCredentialId(envReplacer, run);
             if (creds == null) {
                 if (ignoreUnresolvedOverrideCredential) {
                     username = cred.getElectricFlowUser();
-                    password = Secret.fromString(cred.getElectricFlowPassword())
+                    password = cred.getElectricFlowPassword()
                             .getPlainText();
                 } else {
                     throw new RuntimeException("Override credentials are not found by provided credential id");

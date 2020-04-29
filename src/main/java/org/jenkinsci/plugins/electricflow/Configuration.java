@@ -38,7 +38,7 @@ public class Configuration
 
     private final String configurationName;
     private final String electricFlowUser;
-    private final String electricFlowPassword;
+    private final Secret electricFlowPassword;
     private final String electricFlowUrl;
     private final String electricFlowApiVersion;
     private final boolean ignoreSslConnectionErrors;
@@ -49,28 +49,15 @@ public class Configuration
             String configurationName,
             String electricFlowUrl,
             String electricFlowUser,
-            String electricFlowPassword,
+            Secret electricFlowPassword,
             String electricFlowApiVersion,
             boolean ignoreSslConnectionErrors)
     {
         this.configurationName = configurationName;
         this.electricFlowUrl   = electricFlowUrl;
         this.electricFlowUser  = electricFlowUser;
-
-        if (!electricFlowPassword.equals(this.getElectricFlowPassword())) {
-
-            // encrypted one
-            Secret secret = Secret.fromString(electricFlowPassword);
-
-            this.electricFlowPassword = secret.getEncryptedValue();
-        }
-        else {
-            this.electricFlowPassword = electricFlowPassword;
-        }
-
-        // end
+        this.electricFlowPassword = electricFlowPassword;
         this.electricFlowApiVersion = electricFlowApiVersion;
-
         this.ignoreSslConnectionErrors = ignoreSslConnectionErrors;
     }
 
@@ -91,7 +78,7 @@ public class Configuration
         return this.ignoreSslConnectionErrors;
     }
 
-    public String getElectricFlowPassword()
+    public Secret getElectricFlowPassword()
     {
         return this.electricFlowPassword;
     }
@@ -117,7 +104,7 @@ public class Configuration
         public FormValidation doCheckConfigurationName(
                 @QueryParameter String value)
         {
-            if (!Jenkins.getActiveInstance().hasPermission(Jenkins.ADMINISTER)) {
+            if (!Jenkins.get().hasPermission(Jenkins.ADMINISTER)) {
                 return FormValidation.ok();
             }
 
@@ -127,7 +114,7 @@ public class Configuration
         public FormValidation doCheckElectricFlowApiVersion(
                 @QueryParameter String value)
         {
-            if (!Jenkins.getActiveInstance().hasPermission(Jenkins.ADMINISTER)) {
+            if (!Jenkins.get().hasPermission(Jenkins.ADMINISTER)) {
                 return FormValidation.ok();
             }
 
@@ -138,7 +125,7 @@ public class Configuration
         public FormValidation doCheckElectricFlowPassword(
                 @QueryParameter String value)
         {
-            if (!Jenkins.getActiveInstance().hasPermission(Jenkins.ADMINISTER)) {
+            if (!Jenkins.get().hasPermission(Jenkins.ADMINISTER)) {
                 return FormValidation.ok();
             }
 
@@ -148,7 +135,7 @@ public class Configuration
         public FormValidation doCheckElectricFlowUrl(
                 @QueryParameter String value)
         {
-            if (!Jenkins.getActiveInstance().hasPermission(Jenkins.ADMINISTER)) {
+            if (!Jenkins.get().hasPermission(Jenkins.ADMINISTER)) {
                 return FormValidation.ok();
             }
 
@@ -158,7 +145,7 @@ public class Configuration
         public FormValidation doCheckElectricFlowUser(
                 @QueryParameter String value)
         {
-            if (!Jenkins.getActiveInstance().hasPermission(Jenkins.ADMINISTER)) {
+            if (!Jenkins.get().hasPermission(Jenkins.ADMINISTER)) {
                 return FormValidation.ok();
             }
 
@@ -167,7 +154,7 @@ public class Configuration
 
         public ListBoxModel doFillElectricFlowApiVersionItems()
         {
-            if (!Jenkins.getActiveInstance().hasPermission(Jenkins.ADMINISTER)) {
+            if (!Jenkins.get().hasPermission(Jenkins.ADMINISTER)) {
                 return new ListBoxModel();
             }
 
@@ -188,7 +175,7 @@ public class Configuration
                 @QueryParameter("ignoreSslConnectionErrors") final boolean ignoreSslConnectionErrors)
             throws IOException
         {
-            if (!Jenkins.getActiveInstance().hasPermission(Jenkins.ADMINISTER)) {
+            if (!Jenkins.get().hasPermission(Jenkins.ADMINISTER)) {
                 return FormValidation.ok();
             }
 
