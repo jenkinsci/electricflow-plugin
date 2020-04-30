@@ -44,8 +44,8 @@ import org.jenkinsci.Symbol;
 import org.jenkinsci.plugins.electricflow.data.CloudBeesFlowBuildData;
 import org.jenkinsci.plugins.electricflow.factories.ElectricFlowClientFactory;
 import org.jenkinsci.plugins.electricflow.models.CIBuildDetail;
-import org.jenkinsci.plugins.electricflow.models.CIBuildDetail.BuildTriggerSource;
 import org.jenkinsci.plugins.electricflow.models.CIBuildDetail.BuildAssociationType;
+import org.jenkinsci.plugins.electricflow.models.CIBuildDetail.BuildTriggerSource;
 import org.jenkinsci.plugins.electricflow.ui.HtmlUtils;
 import org.jenkinsci.plugins.electricflow.ui.SelectFieldUtils;
 import org.kohsuke.stapler.AncestorInPath;
@@ -65,8 +65,7 @@ public class ElectricFlowAssociateBuildToRelease extends Recorder implements Sim
   private String releaseName;
 
   @DataBoundConstructor
-  public ElectricFlowAssociateBuildToRelease() {
-  }
+  public ElectricFlowAssociateBuildToRelease() {}
 
   @Override
   public void perform(
@@ -86,7 +85,6 @@ public class ElectricFlowAssociateBuildToRelease extends Recorder implements Sim
       JSONObject result = setJenkinsBuildDetails(efClient, cloudBeesFlowBuildData, logger);
       JSONObject resultBuildDetailInfo = result.getJSONObject("ciBuildDetailInfo");
 
-
       // Setting the summary
       Release release = efClient.getRelease(configuration, projectName, releaseName);
 
@@ -98,9 +96,7 @@ public class ElectricFlowAssociateBuildToRelease extends Recorder implements Sim
       args.put("flowRuntimeId", release.getFlowRuntimeId());
 
       // Adding text to the summary page
-      run.addAction(new SummaryTextAction(
-          run, getSummaryHtml(efClient, args, logger)
-      ));
+      run.addAction(new SummaryTextAction(run, getSummaryHtml(efClient, args, logger)));
 
       run.setResult(Result.SUCCESS);
       run.save();
@@ -114,19 +110,21 @@ public class ElectricFlowAssociateBuildToRelease extends Recorder implements Sim
   private JSONObject setJenkinsBuildDetails(
       ElectricFlowClient efClient,
       CloudBeesFlowBuildData cloudBeesFlowBuildData,
-      PrintStream logger) throws IOException {
+      PrintStream logger)
+      throws IOException {
 
     logger.println("JENKINS VERSION: " + Jenkins.VERSION);
     logger.println("Project name: " + projectName + ", Release name: " + releaseName);
 
-    CIBuildDetail detail = new CIBuildDetail(cloudBeesFlowBuildData, projectName)
-        .setReleaseName(releaseName)
-        .setAssociationType(BuildAssociationType.ATTACHED)
-        .setBuildTriggerSource(BuildTriggerSource.CI);
+    CIBuildDetail detail =
+        new CIBuildDetail(cloudBeesFlowBuildData, projectName)
+            .setReleaseName(releaseName)
+            .setAssociationType(BuildAssociationType.ATTACHED)
+            .setBuildTriggerSource(BuildTriggerSource.CI);
 
     try {
       detail.validate();
-    } catch (RuntimeException ex){
+    } catch (RuntimeException ex) {
       logger.println("[ERROR] Can't fill the CIBuildDetail: " + ex.getMessage());
       logger.println(Arrays.toString(ex.getStackTrace()));
     }
@@ -140,16 +138,15 @@ public class ElectricFlowAssociateBuildToRelease extends Recorder implements Sim
     return result;
   }
 
-  private String getSummaryHtml( ElectricFlowClient electricFlowClient,
-      Map<String, String> args, PrintStream logger ) {
+  private String getSummaryHtml(
+      ElectricFlowClient electricFlowClient, Map<String, String> args, PrintStream logger) {
 
     String releaseName = args.get("releaseName");
     String releaseId = args.get("releaseId");
     String flowRuntimeId = args.get("flowRuntimeId");
 
-    String path = String.format(
-        "/flow/#pipeline-run/%s/%s/release/%s", releaseId, flowRuntimeId, releaseId
-    );
+    String path =
+        String.format("/flow/#pipeline-run/%s/%s/release/%s", releaseId, flowRuntimeId, releaseId);
 
     String releaseRunLink = electricFlowClient.getElectricFlowUrl() + path;
     logger.println(String.format("INFO: link to the release: %s", releaseRunLink));

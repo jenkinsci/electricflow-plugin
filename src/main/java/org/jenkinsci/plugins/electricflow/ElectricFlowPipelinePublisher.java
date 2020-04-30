@@ -112,7 +112,8 @@ public class ElectricFlowPipelinePublisher extends Recorder implements SimpleBui
     }
   }
 
-  private boolean runPipeline(Run<?,?> run, BuildListener buildListener, TaskListener taskListener) {
+  private boolean runPipeline(
+      Run<?, ?> run, BuildListener buildListener, TaskListener taskListener) {
     logListener(
         buildListener,
         taskListener,
@@ -175,11 +176,11 @@ public class ElectricFlowPipelinePublisher extends Recorder implements SimpleBui
           .getLogger()
           .println("About to call setJenkinsBuildDetails after running a Pipeline");
 
-      JSONObject associateResult = efClient.setCIBuildDetails(
-          new CIBuildDetail(cbfdb, projectName)
-              .setFlowRuntimeId(flowRuntimeId)
-              .setAssociationType(BuildAssociationType.TRIGGERED_BY_CI)
-      );
+      JSONObject associateResult =
+          efClient.setCIBuildDetails(
+              new CIBuildDetail(cbfdb, projectName)
+                  .setFlowRuntimeId(flowRuntimeId)
+                  .setAssociationType(BuildAssociationType.TRIGGERED_BY_CI));
 
       taskListener.getLogger().println("Return from efClient: " + associateResult.toString());
       taskListener.getLogger().println("++++++++++++++++++++++++++++++++++++++++++++");

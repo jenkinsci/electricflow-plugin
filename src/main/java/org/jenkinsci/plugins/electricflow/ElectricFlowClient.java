@@ -34,13 +34,12 @@ public class ElectricFlowClient {
 
   // ~ Static fields/initializers ---------------------------------------------
 
-  private static final Log log = LogFactory.getLog(ElectricFlowClient.class);
-  private static final String CHARSET = "UTF-8";
   public static final String JENKINS_BUILD_ASSOCIATION_TYPE = "triggeredByJenkins";
   public static final String BUILD_TRIGGER_SOURCE = "Jenkins";
+  private static final Log log = LogFactory.getLog(ElectricFlowClient.class);
+  private static final String CHARSET = "UTF-8";
 
   // ~ Instance fields --------------------------------------------------------
-
   private String electricFlowUrl;
   private String userName;
   private String password;
@@ -275,9 +274,10 @@ public class ElectricFlowClient {
 
     if (!successCodes.contains(conn.getResponseCode())) {
       try {
-        InputStream stream = (conn.getResponseCode() >= 200 && conn.getResponseCode() <= 299)
-            ? conn.getInputStream()
-            : conn.getErrorStream();
+        InputStream stream =
+            (conn.getResponseCode() >= 200 && conn.getResponseCode() <= 299)
+                ? conn.getInputStream()
+                : conn.getErrorStream();
 
         if (stream != null) {
           BufferedReader br = new BufferedReader(new InputStreamReader(stream, CHARSET));
@@ -817,8 +817,6 @@ public class ElectricFlowClient {
       String gotPipelineName = releaseObject.getString("pipelineName");
       String gotPipelineId = releaseObject.getString("pipelineId");
 
-
-
       Release release = new Release(conf, projectName, gotReleaseName);
       release.setPipelineName(gotPipelineName);
       release.setPipelineId(gotPipelineId);
@@ -826,7 +824,7 @@ public class ElectricFlowClient {
       release.setReleaseId(gotReleaseId);
 
       // This can be missing if release wasn't run before
-      if (releaseObject.containsKey("flowRuntimeId")){
+      if (releaseObject.containsKey("flowRuntimeId")) {
         release.setFlowRuntimeId(releaseObject.getString("flowRuntimeId"));
       }
 

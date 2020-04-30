@@ -15,18 +15,7 @@ public class CIBuildDetail {
   private BuildTriggerSource buildTriggerSource = BuildTriggerSource.CI;
   private BuildAssociationType associationType = BuildAssociationType.ATTACHED;
 
-  public enum BuildTriggerSource {
-    CI,
-    FLOW
-  }
-
-  public enum BuildAssociationType {
-    ATTACHED,
-    TRIGGERED_BY_FLOW,
-    TRIGGERED_BY_CI,
-  }
-
-  public CIBuildDetail(CloudBeesFlowBuildData buildData, String projectName){
+  public CIBuildDetail(CloudBeesFlowBuildData buildData, String projectName) {
     this.buildData = buildData;
     this.buildName = buildData.getDisplayName();
     this.projectName = projectName;
@@ -37,7 +26,7 @@ public class CIBuildDetail {
 
     JSONObject jsonObject = new JSONObject();
 
-    if (buildName == null){
+    if (buildName == null) {
       buildName = buildData.getDisplayName();
     }
 
@@ -56,23 +45,20 @@ public class CIBuildDetail {
     return jsonObject;
   }
 
-  public void validate() throws RuntimeException{
-    if (buildData == null){
+  public void validate() throws RuntimeException {
+    if (buildData == null) {
       throw new RuntimeException("Field 'CloudBeesFlowData buildData' is not set up.");
     }
 
     boolean hasValuesForReleaseAttach = (projectName != null && releaseName != null);
     boolean hasValuesForPipelineAttach = (flowRuntimeId != null);
 
-    if (hasValuesForPipelineAttach && hasValuesForReleaseAttach){
+    if (hasValuesForPipelineAttach && hasValuesForReleaseAttach) {
       throw new RuntimeException(
-          "Only one of 'flowRuntimeId' or 'projectName and releaseName' can be specified."
-      );
-    }
-    else if (!hasValuesForPipelineAttach && !hasValuesForReleaseAttach){
+          "Only one of 'flowRuntimeId' or 'projectName and releaseName' can be specified.");
+    } else if (!hasValuesForPipelineAttach && !hasValuesForReleaseAttach) {
       throw new RuntimeException(
-          "One of 'flowRuntimeId' or 'projectName and releaseName' should be specified."
-      );
+          "One of 'flowRuntimeId' or 'projectName and releaseName' should be specified.");
     }
   }
 
@@ -107,8 +93,7 @@ public class CIBuildDetail {
     return buildData;
   }
 
-  public CIBuildDetail setBuildData(
-      CloudBeesFlowBuildData buildData) {
+  public CIBuildDetail setBuildData(CloudBeesFlowBuildData buildData) {
     this.buildData = buildData;
     return this;
   }
@@ -123,8 +108,7 @@ public class CIBuildDetail {
     return null;
   }
 
-  public CIBuildDetail setBuildTriggerSource(
-      BuildTriggerSource buildTriggerSource) {
+  public CIBuildDetail setBuildTriggerSource(BuildTriggerSource buildTriggerSource) {
     this.buildTriggerSource = buildTriggerSource;
     return this;
   }
@@ -141,8 +125,7 @@ public class CIBuildDetail {
     return null;
   }
 
-  public CIBuildDetail setAssociationType(
-      BuildAssociationType associationType) {
+  public CIBuildDetail setAssociationType(BuildAssociationType associationType) {
     this.associationType = associationType;
     return this;
   }
@@ -154,5 +137,16 @@ public class CIBuildDetail {
   public CIBuildDetail setFlowRuntimeId(String flowRuntimeId) {
     this.flowRuntimeId = flowRuntimeId;
     return this;
+  }
+
+  public enum BuildTriggerSource {
+    CI,
+    FLOW
+  }
+
+  public enum BuildAssociationType {
+    ATTACHED,
+    TRIGGERED_BY_FLOW,
+    TRIGGERED_BY_CI,
   }
 }

@@ -20,7 +20,8 @@ public class CloudBeesFlowArtifact {
 
   public CloudBeesFlowArtifact() {}
 
-  public static CloudBeesFlowArtifact build(Artifact artifact, ArtifactUploadData artifactUploadData) {
+  public static CloudBeesFlowArtifact build(
+      Artifact artifact, ArtifactUploadData artifactUploadData) {
     CloudBeesFlowArtifact cloudBeesFlowArtifact = new CloudBeesFlowArtifact();
 
     cloudBeesFlowArtifact.setRelativePath(artifact.relativePath);

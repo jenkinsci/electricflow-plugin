@@ -135,12 +135,12 @@ public class ElectricFlowTriggerRelease extends Recorder implements SimpleBuildS
           .getLogger()
           .println("About to call setJenkinsBuildDetails after triggering a Flow Release");
 
-      JSONObject associateResult = efClient.setCIBuildDetails(
-          new CIBuildDetail(cbfdb, projectName)
-              .setReleaseName(releaseName)
-              .setAssociationType(BuildAssociationType.TRIGGERED_BY_CI)
-              .setBuildTriggerSource(BuildTriggerSource.CI)
-      );
+      JSONObject associateResult =
+          efClient.setCIBuildDetails(
+              new CIBuildDetail(cbfdb, projectName)
+                  .setReleaseName(releaseName)
+                  .setAssociationType(BuildAssociationType.TRIGGERED_BY_CI)
+                  .setBuildTriggerSource(BuildTriggerSource.CI));
 
       taskListener.getLogger().println("Return from efClient: " + associateResult.toString());
       taskListener.getLogger().println("++++++++++++++++++++++++++++++++++++++++++++");

@@ -37,12 +37,10 @@ public class ElectricFlowUploadArtifactPublisher extends Recorder implements Sim
 
   // ~ Static fields/initializers ---------------------------------------------
 
+  public static final String FLOW_ARTIFACT_REPOSITORY = "Flow Artifact Repository";
   private static final Log log = LogFactory.getLog(ElectricFlowUploadArtifactPublisher.class);
 
-  public static final String FLOW_ARTIFACT_REPOSITORY = "Flow Artifact Repository";
-
   // ~ Instance fields --------------------------------------------------------
-
   private final String configuration;
   private final String repositoryName;
   private Credential overrideCredential;
