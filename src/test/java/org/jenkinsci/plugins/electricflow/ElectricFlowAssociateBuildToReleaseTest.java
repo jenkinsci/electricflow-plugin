@@ -8,6 +8,7 @@ import hudson.model.FreeStyleBuild;
 import hudson.model.FreeStyleProject;
 import hudson.tasks.BatchFile;
 import hudson.tasks.Shell;
+import hudson.util.Secret;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -102,13 +103,18 @@ public class ElectricFlowAssociateBuildToReleaseTest {
                 .getDescriptorByName(
                     "org.jenkinsci.plugins.electricflow.ElectricFlowGlobalConfiguration");
 
-    electricFlowGlobalConfiguration.efConfigurations = new LinkedList<>();
+    electricFlowGlobalConfiguration.configurations = new LinkedList<>();
 
     Configuration configuration =
         new Configuration(
-            configName, FLOW_ENDPOINT, FLOW_USER, FLOW_PASSWORD, FLOW_REST_API_URI_PATH, true);
+            configName,
+            FLOW_ENDPOINT,
+            FLOW_USER,
+            Secret.fromString(FLOW_PASSWORD),
+            FLOW_REST_API_URI_PATH,
+            true);
 
-    electricFlowGlobalConfiguration.efConfigurations.add(configuration);
+    electricFlowGlobalConfiguration.configurations.add(configuration);
     electricFlowGlobalConfiguration.save();
 
     assertEquals(1, electricFlowGlobalConfiguration.getConfigurations().size());

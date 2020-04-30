@@ -89,8 +89,7 @@ public class ElectricFlowTriggerRelease extends Recorder implements SimpleBuildS
       @Nonnull Run<?, ?> run,
       @Nonnull FilePath filePath,
       @Nonnull Launcher launcher,
-      @Nonnull TaskListener taskListener)
-      throws InterruptedException, IOException {
+      @Nonnull TaskListener taskListener) {
     JSONObject release = JSONObject.fromObject(parameters).getJSONObject("release");
     JSONArray stages = JSONArray.fromObject(release.getString("stages"));
     JSONArray pipelineParameters = JSONArray.fromObject(release.getString("parameters"));
@@ -151,7 +150,7 @@ public class ElectricFlowTriggerRelease extends Recorder implements SimpleBuildS
       run.addAction(action);
       run.save();
       logger.println("TriggerRelease  result: " + formatJsonOutput(releaseResult));
-    } catch (Exception e) {
+    } catch (IOException | InterruptedException e) {
       logger.println(e.getMessage());
       log.error(e.getMessage(), e);
       run.setResult(Result.FAILURE);
