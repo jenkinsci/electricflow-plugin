@@ -1,4 +1,3 @@
-
 // HttpMethod.java --
 //
 // HttpMethod.java is part of ElectricCommander.
@@ -9,13 +8,12 @@
 
 package org.jenkinsci.plugins.electricflow;
 
-public enum HttpMethod
-{
+public enum HttpMethod {
 
-    //~ Enum constants ---------------------------------------------------------
+  // ~ Enum constants ---------------------------------------------------------
 
-    GET,
-    POST,
-    PUT,
-    DELETE
+  GET,
+  POST,
+  PUT,
+  DELETE
 }
