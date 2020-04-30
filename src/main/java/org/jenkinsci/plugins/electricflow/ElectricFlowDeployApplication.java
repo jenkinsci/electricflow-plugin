@@ -21,6 +21,7 @@ import static org.jenkinsci.plugins.electricflow.ui.SelectFieldUtils.isSelectIte
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
+import hudson.RelativePath;
 import hudson.model.AbstractProject;
 import hudson.model.Item;
 import hudson.model.Result;
@@ -111,7 +112,8 @@ public class ElectricFlowDeployApplication extends Recorder implements SimpleBui
 
       EnvReplacer env = new EnvReplacer(run, taskListener);
       ElectricFlowClient efClient =
-          ElectricFlowClientFactory.getElectricFlowClient(configuration, overrideCredential, env);
+          ElectricFlowClientFactory.getElectricFlowClient(
+              configuration, overrideCredential, run, env, false);
       expandParameters(parameter, env, "value");
 
       String result =
@@ -399,6 +401,8 @@ public class ElectricFlowDeployApplication extends Recorder implements SimpleBui
     public ListBoxModel doFillApplicationNameItems(
         @QueryParameter String projectName,
         @QueryParameter String configuration,
+        @QueryParameter boolean overrideCredential,
+        @QueryParameter @RelativePath("overrideCredential") String credentialId,
         @AncestorInPath Item item) {
       if (item == null || !item.hasPermission(Item.CONFIGURE)) {
         return new ListBoxModel();
@@ -411,7 +415,11 @@ public class ElectricFlowDeployApplication extends Recorder implements SimpleBui
         if (!configuration.isEmpty()
             && !projectName.isEmpty()
             && SelectFieldUtils.checkAllSelectItemsAreNotValidationWrappers(projectName)) {
-          ElectricFlowClient client = new ElectricFlowClient(configuration);
+          Credential overrideCredentialObj =
+              overrideCredential ? new Credential(credentialId) : null;
+          ElectricFlowClient client =
+              ElectricFlowClientFactory.getElectricFlowClient(
+                  configuration, overrideCredentialObj, null, true);
 
           List<String> applications = client.getApplications(projectName);
 
@@ -422,7 +430,8 @@ public class ElectricFlowDeployApplication extends Recorder implements SimpleBui
 
         return m;
       } catch (Exception e) {
-        if (Utils.isEflowAvailable(configuration)) {
+        Credential overrideCredentialObj = overrideCredential ? new Credential(credentialId) : null;
+        if (Utils.isEflowAvailable(configuration, overrideCredentialObj)) {
           log.error(
               "Error when fetching values for this parameter - application. Error message: "
                   + e.getMessage(),
@@ -436,6 +445,8 @@ public class ElectricFlowDeployApplication extends Recorder implements SimpleBui
 
     public ListBoxModel doFillApplicationProcessNameItems(
         @QueryParameter String configuration,
+        @QueryParameter boolean overrideCredential,
+        @QueryParameter @RelativePath("overrideCredential") String credentialId,
         @QueryParameter String projectName,
         @QueryParameter String applicationName,
         @AncestorInPath Item item) {
@@ -452,7 +463,11 @@ public class ElectricFlowDeployApplication extends Recorder implements SimpleBui
             && !applicationName.isEmpty()
             && SelectFieldUtils.checkAllSelectItemsAreNotValidationWrappers(
                 projectName, applicationName)) {
-          ElectricFlowClient client = new ElectricFlowClient(configuration);
+          Credential overrideCredentialObj =
+              overrideCredential ? new Credential(credentialId) : null;
+          ElectricFlowClient client =
+              ElectricFlowClientFactory.getElectricFlowClient(
+                  configuration, overrideCredentialObj, null, true);
           List<String> processes = client.getProcesses(projectName, applicationName);
 
           for (String process : processes) {
@@ -462,7 +477,8 @@ public class ElectricFlowDeployApplication extends Recorder implements SimpleBui
 
         return m;
       } catch (Exception e) {
-        if (Utils.isEflowAvailable(configuration)) {
+        Credential overrideCredentialObj = overrideCredential ? new Credential(credentialId) : null;
+        if (Utils.isEflowAvailable(configuration, overrideCredentialObj)) {
           log.error(
               "Error when fetching values for this parameter - application process. Error message: "
                   + e.getMessage(),
@@ -487,6 +503,8 @@ public class ElectricFlowDeployApplication extends Recorder implements SimpleBui
 
     public ListBoxModel doFillDeployParametersItems(
         @QueryParameter String configuration,
+        @QueryParameter boolean overrideCredential,
+        @QueryParameter @RelativePath("overrideCredential") String credentialId,
         @QueryParameter String projectName,
         @QueryParameter String applicationName,
         @QueryParameter String applicationProcessName,
@@ -509,7 +527,10 @@ public class ElectricFlowDeployApplication extends Recorder implements SimpleBui
           return m;
         }
 
-        ElectricFlowClient client = new ElectricFlowClient(configuration);
+        Credential overrideCredentialObj = overrideCredential ? new Credential(credentialId) : null;
+        ElectricFlowClient client =
+            ElectricFlowClientFactory.getElectricFlowClient(
+                configuration, overrideCredentialObj, null, true);
 
         Map<String, String> storedParams = new HashMap<>();
 
@@ -550,7 +571,8 @@ public class ElectricFlowDeployApplication extends Recorder implements SimpleBui
         ListBoxModel m = new ListBoxModel();
         SelectItemValidationWrapper selectItemValidationWrapper;
 
-        if (Utils.isEflowAvailable(configuration)) {
+        Credential overrideCredentialObj = overrideCredential ? new Credential(credentialId) : null;
+        if (Utils.isEflowAvailable(configuration, overrideCredentialObj)) {
           log.error(
               "Error when fetching set of deploy parameters. Error message: " + e.getMessage(), e);
           selectItemValidationWrapper =
@@ -572,6 +594,8 @@ public class ElectricFlowDeployApplication extends Recorder implements SimpleBui
 
     public ListBoxModel doFillEnvironmentNameItems(
         @QueryParameter String configuration,
+        @QueryParameter boolean overrideCredential,
+        @QueryParameter @RelativePath("overrideCredential") String credentialId,
         @QueryParameter String projectName,
         @AncestorInPath Item item) {
       if (item == null || !item.hasPermission(Item.CONFIGURE)) {
@@ -585,7 +609,11 @@ public class ElectricFlowDeployApplication extends Recorder implements SimpleBui
         if (!configuration.isEmpty()
             && !projectName.isEmpty()
             && SelectFieldUtils.checkAllSelectItemsAreNotValidationWrappers(projectName)) {
-          ElectricFlowClient client = new ElectricFlowClient(configuration);
+          Credential overrideCredentialObj =
+              overrideCredential ? new Credential(credentialId) : null;
+          ElectricFlowClient client =
+              ElectricFlowClientFactory.getElectricFlowClient(
+                  configuration, overrideCredentialObj, null, true);
           List<String> environments = client.getEnvironments(projectName);
 
           for (String environment : environments) {
@@ -595,7 +623,8 @@ public class ElectricFlowDeployApplication extends Recorder implements SimpleBui
 
         return m;
       } catch (Exception e) {
-        if (Utils.isEflowAvailable(configuration)) {
+        Credential overrideCredentialObj = overrideCredential ? new Credential(credentialId) : null;
+        if (Utils.isEflowAvailable(configuration, overrideCredentialObj)) {
           log.error(
               "Error when fetching values for this parameter - environment. Error message: "
                   + e.getMessage(),
@@ -608,11 +637,15 @@ public class ElectricFlowDeployApplication extends Recorder implements SimpleBui
     }
 
     public ListBoxModel doFillProjectNameItems(
-        @QueryParameter String configuration, @AncestorInPath Item item) {
+        @QueryParameter String configuration,
+        @QueryParameter boolean overrideCredential,
+        @QueryParameter @RelativePath("overrideCredential") String credentialId,
+        @AncestorInPath Item item) {
       if (item == null || !item.hasPermission(Item.CONFIGURE)) {
         return new ListBoxModel();
       }
-      return Utils.getProjects(configuration);
+      Credential overrideCredentialObj = overrideCredential ? new Credential(credentialId) : null;
+      return Utils.getProjects(configuration, overrideCredentialObj);
     }
 
     @Override

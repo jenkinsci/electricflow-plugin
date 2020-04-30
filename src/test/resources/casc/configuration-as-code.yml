@@ -1,0 +1,9 @@
+unclassified:
+  electricflow:
+    configurations:
+      - configurationName: "this is the first configuration"
+        electricFlowUser: "test"
+        electricFlowPassword: "{THIS_IS_NOT_A_CORRECT_PASSWORD}"
+        electricFlowUrl: "https://test-url/"
+        electricFlowApiVersion: "/rest/v1.0"
+        ignoreSslConnectionErrors: true

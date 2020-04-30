@@ -8,7 +8,6 @@ import static org.jenkinsci.plugins.electricflow.HttpMethod.PUT;
 import hudson.FilePath;
 import hudson.model.Run;
 import hudson.model.TaskListener;
-import hudson.util.Secret;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
@@ -40,6 +39,7 @@ public class ElectricFlowClient {
   private static final String CHARSET = "UTF-8";
 
   // ~ Instance fields --------------------------------------------------------
+
   private String electricFlowUrl;
   private String userName;
   private String password;
@@ -64,7 +64,7 @@ public class ElectricFlowClient {
     if (cred != null) {
       electricFlowUrl = cred.getElectricFlowUrl();
       userName = cred.getElectricFlowUser();
-      password = Secret.fromString(cred.getElectricFlowPassword()).getPlainText();
+      password = cred.getElectricFlowPassword().getPlainText();
       ignoreSslConnectionErrors = cred.getIgnoreSslConnectionErrors();
 
       String electricFlowApiVersion = cred.getElectricFlowApiVersion();

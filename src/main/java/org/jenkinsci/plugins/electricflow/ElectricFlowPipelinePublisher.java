@@ -22,6 +22,7 @@ import static org.jenkinsci.plugins.electricflow.ui.SelectFieldUtils.isSelectIte
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
+import hudson.RelativePath;
 import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
 import hudson.model.BuildListener;
@@ -124,7 +125,8 @@ public class ElectricFlowPipelinePublisher extends Recorder implements SimpleBui
     try {
       env = new EnvReplacer(run, taskListener);
       efClient =
-          ElectricFlowClientFactory.getElectricFlowClient(configuration, overrideCredential, env);
+          ElectricFlowClientFactory.getElectricFlowClient(
+              configuration, overrideCredential, run, env, false);
     } catch (Exception e) {
       taskListener
           .getLogger()
@@ -446,6 +448,8 @@ public class ElectricFlowPipelinePublisher extends Recorder implements SimpleBui
 
     public ListBoxModel doFillAddParamItems(
         @QueryParameter String configuration,
+        @QueryParameter boolean overrideCredential,
+        @QueryParameter @RelativePath("overrideCredential") String credentialId,
         @QueryParameter String projectName,
         @QueryParameter String pipelineName,
         @QueryParameter String addParam,
@@ -477,7 +481,10 @@ public class ElectricFlowPipelinePublisher extends Recorder implements SimpleBui
           }
         }
 
-        ElectricFlowClient efClient = new ElectricFlowClient(configuration);
+        Credential overrideCredentialObj = overrideCredential ? new Credential(credentialId) : null;
+        ElectricFlowClient efClient =
+            ElectricFlowClientFactory.getElectricFlowClient(
+                configuration, overrideCredentialObj, null, true);
         List<String> parameters = efClient.getPipelineFormalParameters(projectName, pipelineName);
         JSONObject main =
             JSONObject.fromObject(
@@ -497,7 +504,8 @@ public class ElectricFlowPipelinePublisher extends Recorder implements SimpleBui
         ListBoxModel m = new ListBoxModel();
         SelectItemValidationWrapper selectItemValidationWrapper;
 
-        if (Utils.isEflowAvailable(configuration)) {
+        Credential overrideCredentialObj = overrideCredential ? new Credential(credentialId) : null;
+        if (Utils.isEflowAvailable(configuration, overrideCredentialObj)) {
           log.error(
               "Error when fetching set of pipeline parameters. Error message: " + e.getMessage(),
               e);
@@ -532,19 +540,26 @@ public class ElectricFlowPipelinePublisher extends Recorder implements SimpleBui
     public ListBoxModel doFillPipelineNameItems(
         @QueryParameter String projectName,
         @QueryParameter String configuration,
+        @QueryParameter boolean overrideCredential,
+        @QueryParameter @RelativePath("overrideCredential") String credentialId,
         @AncestorInPath Item item) {
       if (item == null || !item.hasPermission(Item.CONFIGURE)) {
         return new ListBoxModel();
       }
-      return Utils.getPipelines(configuration, projectName);
+      Credential overrideCredentialObj = overrideCredential ? new Credential(credentialId) : null;
+      return Utils.getPipelines(configuration, overrideCredentialObj, projectName);
     }
 
     public ListBoxModel doFillProjectNameItems(
-        @QueryParameter String configuration, @AncestorInPath Item item) {
+        @QueryParameter String configuration,
+        @QueryParameter boolean overrideCredential,
+        @QueryParameter @RelativePath("overrideCredential") String credentialId,
+        @AncestorInPath Item item) {
       if (item == null || !item.hasPermission(Item.CONFIGURE)) {
         return new ListBoxModel();
       }
-      return Utils.getProjects(configuration);
+      Credential overrideCredentialObj = overrideCredential ? new Credential(credentialId) : null;
+      return Utils.getProjects(configuration, overrideCredentialObj);
     }
 
     @Override

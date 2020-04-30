@@ -39,7 +39,9 @@ public class CallRestApiUtils {
           ElectricFlowClientFactory.getElectricFlowClient(
               callRestApiModel.getConfiguration(),
               callRestApiModel.getOverrideCredential(),
-              envReplacer);
+              run,
+              envReplacer,
+              false);
 
       String result =
           efClient.runRestAPI(

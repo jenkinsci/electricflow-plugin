@@ -3,6 +3,7 @@ package org.jenkinsci.plugins.electricflow;
 import static com.cloudbees.plugins.credentials.CredentialsProvider.lookupCredentials;
 
 import com.cloudbees.plugins.credentials.CredentialsMatchers;
+import com.cloudbees.plugins.credentials.CredentialsProvider;
 import com.cloudbees.plugins.credentials.common.StandardUsernameListBoxModel;
 import com.cloudbees.plugins.credentials.common.StandardUsernamePasswordCredentials;
 import com.cloudbees.plugins.credentials.domains.DomainRequirement;
@@ -11,6 +12,7 @@ import hudson.Extension;
 import hudson.model.AbstractDescribableImpl;
 import hudson.model.Descriptor;
 import hudson.model.Item;
+import hudson.model.Run;
 import hudson.security.ACL;
 import hudson.util.ListBoxModel;
 import java.util.Collections;
@@ -19,7 +21,7 @@ import org.kohsuke.stapler.DataBoundConstructor;
 
 public class Credential extends AbstractDescribableImpl<Credential> {
 
-  private final String credentialId;
+  private String credentialId;
 
   @DataBoundConstructor
   public Credential(String credentialId) {
@@ -42,6 +44,16 @@ public class Credential extends AbstractDescribableImpl<Credential> {
         CredentialsMatchers.withId(credentialsId));
   }
 
+  private static StandardUsernamePasswordCredentials
+      getStandardUsernamePasswordCredentialsByIdAndRun(String credentialsId, Run run) {
+    if (credentialsId == null) {
+      return null;
+    }
+
+    return CredentialsProvider.findCredentialById(
+        credentialsId, StandardUsernamePasswordCredentials.class, run, Collections.emptyList());
+  }
+
   public String getCredentialId(EnvReplacer envReplacer) {
     return envReplacer == null ? getCredentialId() : envReplacer.expandEnv(getCredentialId());
   }
@@ -51,8 +63,11 @@ public class Credential extends AbstractDescribableImpl<Credential> {
   }
 
   public StandardUsernamePasswordCredentials getUsernamePasswordBasedOnCredentialId(
-      EnvReplacer envReplacer) {
-    return getStandardUsernamePasswordCredentialsById(getCredentialId(envReplacer));
+      EnvReplacer envReplacer, Run run) {
+    String credentialIdResolved = getCredentialId(envReplacer);
+    return run == null
+        ? getStandardUsernamePasswordCredentialsById(credentialIdResolved)
+        : getStandardUsernamePasswordCredentialsByIdAndRun(credentialIdResolved, run);
   }
 
   @Extension
@@ -60,6 +75,10 @@ public class Credential extends AbstractDescribableImpl<Credential> {
 
     public static ListBoxModel doFillCredentialIdItems(Item item) {
       if (item == null || !item.hasPermission(Item.CONFIGURE)) {
+        return new ListBoxModel();
+      }
+      if (!item.hasPermission(Item.EXTENDED_READ)
+          && !item.hasPermission(CredentialsProvider.USE_ITEM)) {
         return new ListBoxModel();
       }
 
