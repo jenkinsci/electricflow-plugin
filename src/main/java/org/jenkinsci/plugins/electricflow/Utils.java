@@ -8,7 +8,17 @@
 
 package org.jenkinsci.plugins.electricflow;
 
+import java.io.IOException;
+import java.io.PrintStream;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import java.util.*;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 import hudson.EnvVars;
+import hudson.model.BuildListener;
+import hudson.model.Run;
+import hudson.model.TaskListener;
 import hudson.slaves.EnvironmentVariablesNodeProperty;
 import hudson.slaves.NodeProperty;
 import hudson.slaves.NodePropertyDescriptor;
@@ -422,4 +432,18 @@ public class Utils {
       return envVarsNodePropertyList.get(0).getEnvVars();
     }
   }
+
+    public static PrintStream getLogger(BuildListener bl, TaskListener tl) {
+        PrintStream logger = null;
+
+        if (bl != null) {
+            logger = bl.getLogger();
+            return logger;
+        }
+        if (tl != null) {
+            logger = tl.getLogger();
+            return logger;
+        }
+        return logger;
+    }
 }
