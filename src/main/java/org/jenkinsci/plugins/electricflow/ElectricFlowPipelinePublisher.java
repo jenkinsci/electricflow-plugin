@@ -96,8 +96,7 @@ public class ElectricFlowPipelinePublisher extends Recorder implements SimpleBui
       @Nonnull Run<?, ?> run,
       @Nonnull FilePath filePath,
       @Nonnull Launcher launcher,
-      @Nonnull TaskListener taskListener)
-      throws InterruptedException, IOException {
+      @Nonnull TaskListener taskListener) {
     boolean result = runPipeline(run, null, taskListener);
 
     if (!result) {
@@ -105,25 +104,11 @@ public class ElectricFlowPipelinePublisher extends Recorder implements SimpleBui
     }
   }
 
-  private PrintStream getLoggerFromListeners(BuildListener bl, TaskListener tl) {
-    PrintStream logger;
-
-    if (bl != null) {
-      logger = bl.getLogger();
-      return logger;
-    }
-    if (tl != null) {
-      logger = tl.getLogger();
-      return logger;
-    }
-    return null;
-  }
-
   private boolean runPipeline(Run<?, ?> run, BuildListener buildListener,
       TaskListener taskListener) {
 
     // We should be sure that logger is not null
-    PrintStream logger = getLoggerFromListeners(buildListener, taskListener);
+    PrintStream logger = Utils.getLogger(buildListener, taskListener);
 
     logger.println("Project name: " + projectName + ", Pipeline name: " + pipelineName);
 
