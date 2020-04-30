@@ -121,6 +121,8 @@ public class ElectricFlowPipelinePublisher extends Recorder implements SimpleBui
 
   private boolean runPipeline(Run<?, ?> run, BuildListener buildListener,
       TaskListener taskListener) {
+
+    // We should be sure that logger is not null
     PrintStream logger = getLoggerFromListeners(buildListener, taskListener);
 
     logger.println("Project name: " + projectName + ", Pipeline name: " + pipelineName);
