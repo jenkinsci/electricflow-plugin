@@ -166,7 +166,7 @@ public class ElectricFlowPipelinePublisher extends Recorder implements SimpleBui
       logger.println("About to call setJenkinsBuildDetails after running a Pipeline");
 
       JSONObject associateResult =
-          efClient.setCIBuildDetails(
+          efClient.attachCIBuildDetails(
               new CIBuildDetail(cbfdb, projectName)
                   .setFlowRuntimeId(flowRuntimeId)
                   .setAssociationType(BuildAssociationType.TRIGGERED_BY_CI));
