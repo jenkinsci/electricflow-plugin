@@ -48,7 +48,10 @@ import net.sf.json.JSONObject;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jenkinsci.Symbol;
+import org.jenkinsci.plugins.electricflow.data.CloudBeesFlowBuildData;
 import org.jenkinsci.plugins.electricflow.factories.ElectricFlowClientFactory;
+import org.jenkinsci.plugins.electricflow.models.CIBuildDetail;
+import org.jenkinsci.plugins.electricflow.models.CIBuildDetail.BuildAssociationType;
 import org.jenkinsci.plugins.electricflow.ui.FieldValidationStatus;
 import org.jenkinsci.plugins.electricflow.ui.HtmlUtils;
 import org.jenkinsci.plugins.electricflow.ui.SelectFieldUtils;
@@ -110,7 +113,8 @@ public class ElectricFlowPipelinePublisher extends Recorder implements SimpleBui
     }
   }
 
-  private boolean runPipeline(Run run, BuildListener buildListener, TaskListener taskListener) {
+  private boolean runPipeline(
+      Run<?, ?> run, BuildListener buildListener, TaskListener taskListener) {
     logListener(
         buildListener,
         taskListener,
@@ -162,6 +166,26 @@ public class ElectricFlowPipelinePublisher extends Recorder implements SimpleBui
 
       String summaryHtml = getSummaryHtml(efClient, pipelineResult, parameters);
       SummaryTextAction action = new SummaryTextAction(run, summaryHtml);
+      String flowRuntimeId = getFlowRuntimeIdFromResponse(pipelineResult);
+      String projectName = getProjectNameFromResponse(pipelineResult);
+
+      // PrintStream logger = taskListener.getLogger();
+      CloudBeesFlowBuildData cbfdb = new CloudBeesFlowBuildData(run);
+      taskListener.getLogger().println("++++++++++++++++++++++++++++++++++++++++++++");
+      taskListener.getLogger().println("CBF Data: " + cbfdb.toJsonObject().toString());
+      taskListener.getLogger().println("++++++++++++++++++++++++++++++++++++++++++++");
+      taskListener
+          .getLogger()
+          .println("About to call setJenkinsBuildDetails after running a Pipeline");
+
+      JSONObject associateResult =
+          efClient.setCIBuildDetails(
+              new CIBuildDetail(cbfdb, projectName)
+                  .setFlowRuntimeId(flowRuntimeId)
+                  .setAssociationType(BuildAssociationType.TRIGGERED_BY_CI));
+
+      taskListener.getLogger().println("Return from efClient: " + associateResult.toString());
+      taskListener.getLogger().println("++++++++++++++++++++++++++++++++++++++++++++");
 
       run.addAction(action);
       run.save();
@@ -244,7 +268,7 @@ public class ElectricFlowPipelinePublisher extends Recorder implements SimpleBui
 
   private JSONArray getPipelineParameters() {
 
-    if (addParam != null) {
+    if (addParam != null && !addParam.isEmpty() && !"{}".equals(addParam)) {
       JSONObject pipelineJsonObject = JSONObject.fromObject(addParam).getJSONObject("pipeline");
       JSONArray pipelineParameters =
           JSONArray.fromObject(pipelineJsonObject.getString("parameters"));
@@ -273,6 +297,20 @@ public class ElectricFlowPipelinePublisher extends Recorder implements SimpleBui
   @Override
   public BuildStepMonitor getRequiredMonitorService() {
     return BuildStepMonitor.NONE;
+  }
+
+  private String getFlowRuntimeIdFromResponse(String pipelineResult) {
+    JSONObject flowRuntime = JSONObject.fromObject(pipelineResult).getJSONObject("flowRuntime");
+    // String     pipelineId    = (String) flowRuntime.get("pipelineId");
+    String flowRuntimeId = (String) flowRuntime.get("flowRuntimeId");
+    return flowRuntimeId;
+  }
+
+  private String getProjectNameFromResponse(String pipelineResult) {
+    JSONObject flowRuntime = JSONObject.fromObject(pipelineResult).getJSONObject("flowRuntime");
+
+    String projectName = (String) flowRuntime.get("projectName");
+    return projectName;
   }
 
   private String getSummaryHtml(

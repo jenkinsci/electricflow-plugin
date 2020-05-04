@@ -21,9 +21,9 @@ public class SummaryTextAction implements Action, SimpleBuildStep.LastBuildActio
 
   // ~ Instance fields --------------------------------------------------------
 
-  private final Run<?, ?> run;
-  private final String summaryText;
-  private List<SummaryTextAction> projectActions;
+  protected final Run<?, ?> run;
+  protected final String summaryText;
+  protected List<SummaryTextAction> projectActions;
 
   // ~ Constructors -----------------------------------------------------------
 

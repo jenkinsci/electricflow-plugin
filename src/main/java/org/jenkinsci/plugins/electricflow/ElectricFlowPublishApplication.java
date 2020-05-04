@@ -78,7 +78,7 @@ public class ElectricFlowPublishApplication extends Recorder implements SimpleBu
   // ~ Methods ----------------------------------------------------------------
 
   public static FilePath makeApplicationArchive(
-      Run build, TaskListener listener, FilePath workspace, String filePath)
+      Run<?, ?> build, TaskListener listener, FilePath workspace, String filePath)
       throws IOException, InterruptedException, PluginException {
     FilePath source = new FilePath(workspace, filePath);
     String sourcePatternRelative = filePath;
@@ -146,6 +146,7 @@ public class ElectricFlowPublishApplication extends Recorder implements SimpleBu
       @Nonnull Run<?, ?> run, @Nonnull TaskListener taskListener, @Nonnull FilePath workspace) {
     PrintStream logger = taskListener.getLogger();
 
+    @SuppressWarnings("WrapperTypeMayBePrimitive")
     Integer buildNumber = run.getNumber();
 
     // do replace
@@ -213,7 +214,6 @@ public class ElectricFlowPublishApplication extends Recorder implements SimpleBu
     } catch (Exception e) {
       logger.println("Warning: Error occurred during application creation: " + e.getMessage());
       log.warn("Error occurred during application creation: " + e.getMessage(), e);
-
       return false;
     }
 

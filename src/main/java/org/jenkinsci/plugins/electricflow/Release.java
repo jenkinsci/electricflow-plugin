@@ -16,11 +16,14 @@ public class Release {
   // ~ Instance fields --------------------------------------------------------
 
   private String configuration;
-  private List<String> startStages;
   private String releaseName;
+  private String projectName;
+  private String releaseId;
+  private String flowRuntimeId;
+  private List<String> startStages;
+  private String pipelineId;
   private String pipelineName;
   private List<String> pipelineParameters;
-  private String projectName;
 
   public Release(String configuration, String projectName, String releaseName) {
     this.configuration = configuration;
@@ -36,8 +39,24 @@ public class Release {
 
   // ~ Methods ----------------------------------------------------------------
 
+  public String getReleaseId() {
+    return releaseId;
+  }
+
+  public void setReleaseId(String releaseId) {
+    this.releaseId = releaseId;
+  }
+
   public String getConfiguration() {
     return configuration;
+  }
+
+  public String getPipelineId() {
+    return pipelineId;
+  }
+
+  public void setPipelineId(String pipelineId) {
+    this.pipelineId = pipelineId;
   }
 
   public String getPipelineName() {
@@ -54,6 +73,14 @@ public class Release {
 
   public void setReleaseName(String releaseName) {
     this.releaseName = releaseName;
+  }
+
+  public String getFlowRuntimeId() {
+    return flowRuntimeId;
+  }
+
+  public void setFlowRuntimeId(String flowRuntimeId) {
+    this.flowRuntimeId = flowRuntimeId;
   }
 
   public List<String> getPipelineParameters() {

@@ -1,11 +1,3 @@
-// ElectricFlowClient.java --
-//
-// ElectricFlowClient.java is part of ElectricCommander.
-//
-// Copyright (c) 2005-2017 Electric Cloud, Inc.
-// All rights reserved.
-//
-
 package org.jenkinsci.plugins.electricflow;
 
 import static org.jenkinsci.plugins.electricflow.FileHelper.getPublishArtifactWorkspaceOnMaster;
@@ -35,11 +27,14 @@ import net.sf.json.JSONObject;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jenkinsci.plugins.electricflow.models.CIBuildDetail;
 
 public class ElectricFlowClient {
 
   // ~ Static fields/initializers ---------------------------------------------
 
+  public static final String JENKINS_BUILD_ASSOCIATION_TYPE = "triggeredByJenkins";
+  public static final String BUILD_TRIGGER_SOURCE = "Jenkins";
   private static final Log log = LogFactory.getLog(ElectricFlowClient.class);
   private static final String CHARSET = "UTF-8";
 
@@ -278,17 +273,20 @@ public class ElectricFlowClient {
     successCodes.add(201);
 
     if (!successCodes.contains(conn.getResponseCode())) {
-      try (InputStream stream =
-              conn.getResponseCode() >= 200 && conn.getResponseCode() <= 299
-                  ? conn.getInputStream()
-                  : conn.getErrorStream();
-          BufferedReader br =
-              stream == null ? null : new BufferedReader(new InputStreamReader(stream, CHARSET))) {
-        if (br != null) {
+      try {
+        InputStream stream =
+            (conn.getResponseCode() >= 200 && conn.getResponseCode() <= 299)
+                ? conn.getInputStream()
+                : conn.getErrorStream();
+
+        if (stream != null) {
+          BufferedReader br = new BufferedReader(new InputStreamReader(stream, CHARSET));
           String output;
           while ((output = br.readLine()) != null) {
             result.append(output);
           }
+        } else {
+          log.info("Connection input or error stream is null");
         }
       } catch (IOException e) {
         log.error("Error on reading response body. Error: " + e.getMessage());
@@ -321,8 +319,14 @@ public class ElectricFlowClient {
     }
   }
 
+  public JSONObject setCIBuildDetails(CIBuildDetail details) throws IOException {
+    String endpoint = "/ciBuildDetails?request=setCiBuildDetail";
+    String result = runRestAPI(endpoint, POST, details.toJsonObject().toString());
+    return JSONObject.fromObject(result);
+  }
+
   public String uploadArtifact(
-      Run build,
+      Run<?, ?> build,
       TaskListener listener,
       String repo,
       String name,
@@ -807,15 +811,24 @@ public class ElectricFlowClient {
 
     for (int i = 0; i < releases.size(); i++) {
       JSONObject releaseObject = releases.getJSONObject(i);
+
+      String gotReleaseId = releaseObject.getString("releaseId");
       String gotReleaseName = releaseObject.getString("releaseName");
       String gotPipelineName = releaseObject.getString("pipelineName");
       String gotPipelineId = releaseObject.getString("pipelineId");
-      JSONObject stages = releaseObject.getJSONObject("stages");
+
       Release release = new Release(conf, projectName, gotReleaseName);
-
       release.setPipelineName(gotPipelineName);
+      release.setPipelineId(gotPipelineId);
       release.setPipelineParameters(getPipelineFormalParameters(gotPipelineId));
+      release.setReleaseId(gotReleaseId);
 
+      // This can be missing if release wasn't run before
+      if (releaseObject.containsKey("flowRuntimeId")) {
+        release.setFlowRuntimeId(releaseObject.getString("flowRuntimeId"));
+      }
+
+      JSONObject stages = releaseObject.getJSONObject("stages");
       if (!stages.isEmpty()) {
         JSONArray stagesArray = stages.getJSONArray("stage");
 

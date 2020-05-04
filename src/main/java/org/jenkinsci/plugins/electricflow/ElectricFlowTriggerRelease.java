@@ -48,7 +48,11 @@ import net.sf.json.JSONObject;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jenkinsci.Symbol;
+import org.jenkinsci.plugins.electricflow.data.CloudBeesFlowBuildData;
 import org.jenkinsci.plugins.electricflow.factories.ElectricFlowClientFactory;
+import org.jenkinsci.plugins.electricflow.models.CIBuildDetail;
+import org.jenkinsci.plugins.electricflow.models.CIBuildDetail.BuildAssociationType;
+import org.jenkinsci.plugins.electricflow.models.CIBuildDetail.BuildTriggerSource;
 import org.jenkinsci.plugins.electricflow.ui.FieldValidationStatus;
 import org.jenkinsci.plugins.electricflow.ui.HtmlUtils;
 import org.jenkinsci.plugins.electricflow.ui.SelectFieldUtils;
@@ -85,19 +89,16 @@ public class ElectricFlowTriggerRelease extends Recorder implements SimpleBuildS
       @Nonnull Run<?, ?> run,
       @Nonnull FilePath filePath,
       @Nonnull Launcher launcher,
-      @Nonnull TaskListener taskListener)
-      throws InterruptedException, IOException {
+      @Nonnull TaskListener taskListener) {
     JSONObject release = JSONObject.fromObject(parameters).getJSONObject("release");
     JSONArray stages = JSONArray.fromObject(release.getString("stages"));
     JSONArray pipelineParameters = JSONArray.fromObject(release.getString("parameters"));
     List<String> stagesToRun = new ArrayList<>();
 
     if (startingStage.isEmpty()) {
-
       for (int i = 0; i < stages.size(); i++) {
         JSONObject stage = stages.getJSONObject(i);
-
-        if (stage.getBoolean("stageValue")) {
+        if (stage.getString("stageName").length() > 0) {
           stagesToRun.add(stage.getString("stageName"));
         }
       }
@@ -121,14 +122,56 @@ public class ElectricFlowTriggerRelease extends Recorder implements SimpleBuildS
       String summaryHtml = getSummaryHtml(efClient, releaseResult, pipelineParameters, stagesToRun);
       SummaryTextAction action = new SummaryTextAction(run, summaryHtml);
 
+      // String releaseName = getReleaseNameFromResponse(releaseResult);
+      // String projectName = getProjectNameFromResponse(releaseResult);
+
+      // PrintStream logger = taskListener.getLogger();
+      CloudBeesFlowBuildData cbfdb = new CloudBeesFlowBuildData(run);
+
+      taskListener.getLogger().println("++++++++++++++++++++++++++++++++++++++++++++");
+      taskListener.getLogger().println("Release Name is " + releaseName);
+      taskListener.getLogger().println("Project Name is " + projectName);
+      taskListener.getLogger().println("CBF Data: " + cbfdb.toJsonObject().toString());
+      taskListener.getLogger().println("++++++++++++++++++++++++");
+      taskListener
+          .getLogger()
+          .println("About to call setJenkinsBuildDetails after triggering a Flow Release");
+
+      JSONObject associateResult =
+          efClient.setCIBuildDetails(
+              new CIBuildDetail(cbfdb, projectName)
+                  .setReleaseName(releaseName)
+                  .setAssociationType(BuildAssociationType.TRIGGERED_BY_CI)
+                  .setBuildTriggerSource(BuildTriggerSource.CI));
+
+      taskListener.getLogger().println("Return from efClient: " + associateResult.toString());
+      taskListener.getLogger().println("++++++++++++++++++++++++++++++++++++++++++++");
+
       run.addAction(action);
       run.save();
       logger.println("TriggerRelease  result: " + formatJsonOutput(releaseResult));
-    } catch (Exception e) {
+    } catch (IOException | InterruptedException e) {
       logger.println(e.getMessage());
       log.error(e.getMessage(), e);
       run.setResult(Result.FAILURE);
     }
+  }
+
+  private String getReleaseNameFromResponse(String releaseResult) {
+    JSONObject releaseJSON = JSONObject.fromObject(releaseResult).getJSONObject("release");
+    return (String) releaseJSON.get("releaseName");
+  }
+
+  private String getProjectNameFromResponse(String releaseResult) {
+    JSONObject releaseJSON = JSONObject.fromObject(releaseResult).getJSONObject("release");
+    return (String) releaseJSON.get("projectName");
+  }
+
+  private String getSetJenkinsBuildDetailsUrlBase(String releaseResult) {
+    JSONObject releaseJSON = JSONObject.fromObject(releaseResult).getJSONObject("release");
+    String retval =
+        "/flowRuntimes/" + (String) releaseJSON.get("releaseName") + "/jenkinsBuildDetails";
+    return retval;
   }
 
   public String getConfiguration() {
