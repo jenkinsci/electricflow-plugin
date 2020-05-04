@@ -5,6 +5,7 @@ import hudson.model.FreeStyleBuild;
 import hudson.model.FreeStyleProject;
 import hudson.tasks.BatchFile;
 import hudson.tasks.Shell;
+import hudson.util.Secret;
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -38,18 +39,18 @@ public class BasicUnitTestsWithJenkins {
                 .getDescriptorByName(
                     "org.jenkinsci.plugins.electricflow.ElectricFlowGlobalConfiguration");
 
-    electricFlowGlobalConfiguration.efConfigurations = new LinkedList<>();
+    electricFlowGlobalConfiguration.configurations = new LinkedList<>();
 
     Configuration configuration =
         new Configuration(
             FLOW_CONFIG_NAME,
             FLOW_ENDPOINT,
             FLOW_USER,
-            FLOW_PASSWORD,
+            Secret.fromString(FLOW_PASSWORD),
             FLOW_REST_API_URI_PATH,
             true, false);
 
-    electricFlowGlobalConfiguration.efConfigurations.add(configuration);
+    electricFlowGlobalConfiguration.configurations.add(configuration);
     electricFlowGlobalConfiguration.save();
 
     assertTrue(electricFlowGlobalConfiguration.getConfigurations().size() == 1);

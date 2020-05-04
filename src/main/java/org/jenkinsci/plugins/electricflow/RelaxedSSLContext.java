@@ -4,14 +4,18 @@ import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSession;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 
 public class RelaxedSSLContext {
-
   // hostname verifier for which all hosts valid
-  public static final HostnameVerifier allHostsValid = (hostname, session) -> true;
-
+  public static final HostnameVerifier allHostsValid =
+      new HostnameVerifier() {
+        public boolean verify(String hostname, SSLSession session) {
+          return true;
+        }
+      };
   // trust manager that does not validate certificate
   static final TrustManager[] trustAllCerts =
       new TrustManager[] {

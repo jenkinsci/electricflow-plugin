@@ -29,7 +29,7 @@ public class Configuration extends AbstractDescribableImpl<Configuration> {
 
   private final String configurationName;
   private final String electricFlowUser;
-  private final String electricFlowPassword;
+  private final Secret electricFlowPassword;
   private final String electricFlowUrl;
   private final String electricFlowApiVersion;
   private final boolean ignoreSslConnectionErrors;
@@ -42,27 +42,15 @@ public class Configuration extends AbstractDescribableImpl<Configuration> {
       String configurationName,
       String electricFlowUrl,
       String electricFlowUser,
-      String electricFlowPassword,
+      Secret electricFlowPassword,
       String electricFlowApiVersion,
       boolean ignoreSslConnectionErrors,
       boolean doNotSendBuildDetails) {
     this.configurationName = configurationName;
     this.electricFlowUrl = electricFlowUrl;
     this.electricFlowUser = electricFlowUser;
-
-    if (!electricFlowPassword.equals(this.getElectricFlowPassword())) {
-
-      // encrypted one
-      Secret secret = Secret.fromString(electricFlowPassword);
-
-      this.electricFlowPassword = secret.getEncryptedValue();
-    } else {
-      this.electricFlowPassword = electricFlowPassword;
-    }
-
-    // end
+    this.electricFlowPassword = electricFlowPassword;
     this.electricFlowApiVersion = electricFlowApiVersion;
-
     this.ignoreSslConnectionErrors = ignoreSslConnectionErrors;
     this.doNotSendBuildDetails = doNotSendBuildDetails;
   }
@@ -85,7 +73,7 @@ public class Configuration extends AbstractDescribableImpl<Configuration> {
     return this.doNotSendBuildDetails;
   }
 
-  public String getElectricFlowPassword() {
+  public Secret getElectricFlowPassword() {
     return this.electricFlowPassword;
   }
 
@@ -105,7 +93,7 @@ public class Configuration extends AbstractDescribableImpl<Configuration> {
     // ~ Methods ------------------------------------------------------------
 
     public FormValidation doCheckConfigurationName(@QueryParameter String value) {
-      if (!Jenkins.getActiveInstance().hasPermission(Jenkins.ADMINISTER)) {
+      if (!Jenkins.get().hasPermission(Jenkins.ADMINISTER)) {
         return FormValidation.ok();
       }
 
@@ -113,7 +101,7 @@ public class Configuration extends AbstractDescribableImpl<Configuration> {
     }
 
     public FormValidation doCheckElectricFlowApiVersion(@QueryParameter String value) {
-      if (!Jenkins.getActiveInstance().hasPermission(Jenkins.ADMINISTER)) {
+      if (!Jenkins.get().hasPermission(Jenkins.ADMINISTER)) {
         return FormValidation.ok();
       }
 
@@ -121,7 +109,7 @@ public class Configuration extends AbstractDescribableImpl<Configuration> {
     }
 
     public FormValidation doCheckElectricFlowPassword(@QueryParameter String value) {
-      if (!Jenkins.getActiveInstance().hasPermission(Jenkins.ADMINISTER)) {
+      if (!Jenkins.get().hasPermission(Jenkins.ADMINISTER)) {
         return FormValidation.ok();
       }
 
@@ -129,7 +117,7 @@ public class Configuration extends AbstractDescribableImpl<Configuration> {
     }
 
     public FormValidation doCheckElectricFlowUrl(@QueryParameter String value) {
-      if (!Jenkins.getActiveInstance().hasPermission(Jenkins.ADMINISTER)) {
+      if (!Jenkins.get().hasPermission(Jenkins.ADMINISTER)) {
         return FormValidation.ok();
       }
 
@@ -137,7 +125,7 @@ public class Configuration extends AbstractDescribableImpl<Configuration> {
     }
 
     public FormValidation doCheckElectricFlowUser(@QueryParameter String value) {
-      if (!Jenkins.getActiveInstance().hasPermission(Jenkins.ADMINISTER)) {
+      if (!Jenkins.get().hasPermission(Jenkins.ADMINISTER)) {
         return FormValidation.ok();
       }
 
@@ -145,7 +133,7 @@ public class Configuration extends AbstractDescribableImpl<Configuration> {
     }
 
     public ListBoxModel doFillElectricFlowApiVersionItems() {
-      if (!Jenkins.getActiveInstance().hasPermission(Jenkins.ADMINISTER)) {
+      if (!Jenkins.get().hasPermission(Jenkins.ADMINISTER)) {
         return new ListBoxModel();
       }
 
@@ -165,7 +153,7 @@ public class Configuration extends AbstractDescribableImpl<Configuration> {
         @QueryParameter("electricFlowApiVersion") final String electricFlowApiVersion,
         @QueryParameter("ignoreSslConnectionErrors") final boolean ignoreSslConnectionErrors)
         throws IOException {
-      if (!Jenkins.getActiveInstance().hasPermission(Jenkins.ADMINISTER)) {
+      if (!Jenkins.get().hasPermission(Jenkins.ADMINISTER)) {
         return FormValidation.ok();
       }
 

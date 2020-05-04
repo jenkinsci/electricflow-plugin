@@ -50,6 +50,9 @@ import org.apache.commons.logging.LogFactory;
 import org.jenkinsci.Symbol;
 import org.jenkinsci.plugins.electricflow.data.CloudBeesFlowBuildData;
 import org.jenkinsci.plugins.electricflow.factories.ElectricFlowClientFactory;
+import org.jenkinsci.plugins.electricflow.models.CIBuildDetail;
+import org.jenkinsci.plugins.electricflow.models.CIBuildDetail.BuildAssociationType;
+import org.jenkinsci.plugins.electricflow.models.CIBuildDetail.BuildTriggerSource;
 import org.jenkinsci.plugins.electricflow.ui.FieldValidationStatus;
 import org.jenkinsci.plugins.electricflow.ui.HtmlUtils;
 import org.jenkinsci.plugins.electricflow.ui.SelectFieldUtils;
@@ -86,8 +89,7 @@ public class ElectricFlowTriggerRelease extends Recorder implements SimpleBuildS
       @Nonnull Run<?, ?> run,
       @Nonnull FilePath filePath,
       @Nonnull Launcher launcher,
-      @Nonnull TaskListener taskListener)
-      throws InterruptedException, IOException {
+      @Nonnull TaskListener taskListener) {
     JSONObject release = JSONObject.fromObject(parameters).getJSONObject("release");
     JSONArray stages = JSONArray.fromObject(release.getString("stages"));
     JSONArray pipelineParameters = JSONArray.fromObject(release.getString("parameters"));
@@ -97,8 +99,7 @@ public class ElectricFlowTriggerRelease extends Recorder implements SimpleBuildS
 
       for (int i = 0; i < stages.size(); i++) {
         JSONObject stage = stages.getJSONObject(i);
-
-        if (stage.getBoolean("stageValue")) {
+        if (stage.getString("stageName").length() > 0) {
           stagesToRun.add(stage.getString("stageName"));
         }
       }
@@ -131,9 +132,15 @@ public class ElectricFlowTriggerRelease extends Recorder implements SimpleBuildS
       taskListener
           .getLogger()
           .println("About to call setJenkinsBuildDetails after triggering a Flow Release");
-      String associateResult =
-          efClient.setJenkinsBuildDetailsTriggerRelease(cbfdb, projectName, releaseName, "");
-      taskListener.getLogger().println("Return from efClient: " + associateResult);
+
+      JSONObject associateResult =
+          efClient.setCIBuildDetails(
+              new CIBuildDetail(cbfdb, projectName)
+                  .setReleaseName(releaseName)
+                  .setAssociationType(BuildAssociationType.TRIGGERED_BY_CI)
+                  .setBuildTriggerSource(BuildTriggerSource.CI));
+
+      taskListener.getLogger().println("Return from efClient: " + associateResult.toString());
       taskListener.getLogger().println("++++++++++++++++++++++++++++++++++++++++++++");
 
       run.addAction(action);

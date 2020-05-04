@@ -51,6 +51,8 @@ import org.apache.commons.logging.LogFactory;
 import org.jenkinsci.Symbol;
 import org.jenkinsci.plugins.electricflow.data.CloudBeesFlowBuildData;
 import org.jenkinsci.plugins.electricflow.factories.ElectricFlowClientFactory;
+import org.jenkinsci.plugins.electricflow.models.CIBuildDetail;
+import org.jenkinsci.plugins.electricflow.models.CIBuildDetail.BuildAssociationType;
 import org.jenkinsci.plugins.electricflow.ui.FieldValidationStatus;
 import org.jenkinsci.plugins.electricflow.ui.HtmlUtils;
 import org.jenkinsci.plugins.electricflow.ui.SelectFieldUtils;
@@ -112,27 +114,14 @@ public class ElectricFlowPipelinePublisher extends Recorder implements SimpleBui
     }
   }
 
-  private PrintStream getLoggerFromListeners(BuildListener bl, TaskListener tl) {
-    PrintStream logger;
-
-    if (bl != null) {
-      logger = bl.getLogger();
-      return logger;
-    }
-    if (tl != null) {
-      logger = tl.getLogger();
-      return logger;
-    }
-    return null;
-  }
-
-  private boolean runPipeline(Run run, BuildListener buildListener, TaskListener taskListener) {
+  private boolean runPipeline(
+      Run<?, ?> run, BuildListener buildListener, TaskListener taskListener) {
     logListener(
         buildListener,
         taskListener,
         "Project name: " + projectName + ", Pipeline name: " + pipelineName);
 
-    PrintStream logger = getLoggerFromListeners(buildListener, taskListener);
+    PrintStream logger = Utils.getLogger(buildListener, taskListener);
     EnvReplacer env = null;
     ElectricFlowClient efClient;
     try {
@@ -141,9 +130,7 @@ public class ElectricFlowPipelinePublisher extends Recorder implements SimpleBui
           ElectricFlowClientFactory.getElectricFlowClient(
               configuration, overrideCredential, run, env, false);
     } catch (Exception e) {
-      taskListener
-          .getLogger()
-          .println("Cannot create CloudBees Flow client. Error: " + e.getMessage());
+      logger.println("Cannot create CloudBees Flow client. Error: " + e.getMessage());
       log.error("Cannot create CloudBees Flow client. Error: " + e.getMessage(), e);
 
       return false;
@@ -184,14 +171,21 @@ public class ElectricFlowPipelinePublisher extends Recorder implements SimpleBui
       String projectName = getProjectNameFromResponse(pipelineResult);
 
       CloudBeesFlowBuildData cbfdb = new CloudBeesFlowBuildData(run);
-      logger.println("++++++++++++++++++++++++++++++++++++++++++++");
-      logger.println("CBF Data: " + cbfdb.toJsonObject().toString());
-      logger.println("++++++++++++++++++++++++++++++++++++++++++++");
-      logger.println("About to call setJenkinsBuildDetails after running a Pipeline");
-      String associateResult =
-          efClient.setJenkinsBuildDetailsRunPipeline(cbfdb, projectName, flowRuntimeId);
-      logger.println("Return from efClient: " + associateResult);
-      logger.println("++++++++++++++++++++++++++++++++++++++++++++");
+      taskListener.getLogger().println("++++++++++++++++++++++++++++++++++++++++++++");
+      taskListener.getLogger().println("CBF Data: " + cbfdb.toJsonObject().toString());
+      taskListener.getLogger().println("++++++++++++++++++++++++++++++++++++++++++++");
+      taskListener
+          .getLogger()
+          .println("About to call setJenkinsBuildDetails after running a Pipeline");
+
+      JSONObject associateResult =
+          efClient.setCIBuildDetails(
+              new CIBuildDetail(cbfdb, projectName)
+                  .setFlowRuntimeId(flowRuntimeId)
+                  .setAssociationType(BuildAssociationType.TRIGGERED_BY_CI));
+
+      taskListener.getLogger().println("Return from efClient: " + associateResult.toString());
+      taskListener.getLogger().println("++++++++++++++++++++++++++++++++++++++++++++");
 
       run.addAction(action);
       run.save();
@@ -316,15 +310,6 @@ public class ElectricFlowPipelinePublisher extends Recorder implements SimpleBui
     JSONObject flowRuntime = JSONObject.fromObject(pipelineResult).getJSONObject("flowRuntime");
     String projectName = (String) flowRuntime.get("projectName");
     return projectName;
-  }
-
-  private String getSetJenkinsBuildDetailsUrlBase(String pipelineResult) {
-    JSONObject flowRuntime = JSONObject.fromObject(pipelineResult).getJSONObject("flowRuntime");
-    String flowRuntimeId = (String) flowRuntime.get("flowRuntimeId");
-    // VJN :: This got caught by DLS_DEAD_LOCAL_STORE warning. Removing it.
-    // String projectName = (String) flowRuntime.get("projectName");
-    String retval = "/flowRuntimes/" + flowRuntimeId + "/jenkinsBuildDetails";
-    return retval;
   }
 
   private String getSummaryHtml(
