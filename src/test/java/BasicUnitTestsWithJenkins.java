@@ -1,4 +1,3 @@
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import hudson.Functions;
@@ -6,7 +5,10 @@ import hudson.model.FreeStyleBuild;
 import hudson.model.FreeStyleProject;
 import hudson.tasks.BatchFile;
 import hudson.tasks.Shell;
-import java.io.InputStreamReader;
+import hudson.util.Secret;
+import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.LinkedList;
 import org.jenkinsci.plugins.electricflow.Configuration;
 import org.jenkinsci.plugins.electricflow.ElectricFlowGlobalConfiguration;
@@ -37,21 +39,21 @@ public class BasicUnitTestsWithJenkins {
                 .getDescriptorByName(
                     "org.jenkinsci.plugins.electricflow.ElectricFlowGlobalConfiguration");
 
-    electricFlowGlobalConfiguration.efConfigurations = new LinkedList<>();
+    electricFlowGlobalConfiguration.configurations = new LinkedList<>();
 
     Configuration configuration =
         new Configuration(
             FLOW_CONFIG_NAME,
             FLOW_ENDPOINT,
             FLOW_USER,
-            FLOW_PASSWORD,
+            Secret.fromString(FLOW_PASSWORD),
             FLOW_REST_API_URI_PATH,
             true);
 
-    electricFlowGlobalConfiguration.efConfigurations.add(configuration);
+    electricFlowGlobalConfiguration.configurations.add(configuration);
     electricFlowGlobalConfiguration.save();
 
-    assertEquals(1, electricFlowGlobalConfiguration.getConfigurations().size());
+    assertTrue(electricFlowGlobalConfiguration.getConfigurations().size() == 1);
   }
 
   @Test
@@ -63,16 +65,9 @@ public class BasicUnitTestsWithJenkins {
         .add(Functions.isWindows() ? new BatchFile(command) : new Shell(command));
     FreeStyleBuild build = project.scheduleBuild2(0).get();
     System.out.println(build.getDisplayName() + " completed");
-
-    InputStreamReader logFile = new InputStreamReader(build.getLogInputStream());
+    File logFile = build.getLogFile();
     StringBuilder log = new StringBuilder();
-
-    final char[] buffer = new char[1024];
-    int charsRead;
-    while ((charsRead = logFile.read(buffer, 0, buffer.length)) > 0) {
-      log.append(buffer, 0, charsRead);
-    }
-
+    Files.lines(Paths.get(logFile.getPath())).forEachOrdered(log::append);
     assertTrue(log.toString().contains("echo hello"));
   }
 }

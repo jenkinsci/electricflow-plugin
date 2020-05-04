@@ -23,8 +23,10 @@ import static org.jenkinsci.plugins.electricflow.ui.SelectFieldUtils.isSelectIte
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
+import hudson.RelativePath;
 import hudson.model.AbstractProject;
 import hudson.model.Item;
+import hudson.model.Result;
 import hudson.model.Run;
 import hudson.model.TaskListener;
 import hudson.tasks.BuildStepDescriptor;
@@ -87,8 +89,7 @@ public class ElectricFlowTriggerRelease extends Recorder implements SimpleBuildS
       @Nonnull Run<?, ?> run,
       @Nonnull FilePath filePath,
       @Nonnull Launcher launcher,
-      @Nonnull TaskListener taskListener)
-      throws InterruptedException, IOException {
+      @Nonnull TaskListener taskListener) {
     JSONObject release = JSONObject.fromObject(parameters).getJSONObject("release");
     JSONArray stages = JSONArray.fromObject(release.getString("stages"));
     JSONArray pipelineParameters = JSONArray.fromObject(release.getString("parameters"));
@@ -110,7 +111,8 @@ public class ElectricFlowTriggerRelease extends Recorder implements SimpleBuildS
 
       EnvReplacer env = new EnvReplacer(run, taskListener);
       ElectricFlowClient efClient =
-          ElectricFlowClientFactory.getElectricFlowClient(configuration, overrideCredential, env);
+          ElectricFlowClientFactory.getElectricFlowClient(
+              configuration, overrideCredential, run, env, false);
 
       expandParameters(pipelineParameters, env);
 
@@ -148,13 +150,10 @@ public class ElectricFlowTriggerRelease extends Recorder implements SimpleBuildS
       run.addAction(action);
       run.save();
       logger.println("TriggerRelease  result: " + formatJsonOutput(releaseResult));
-    }
-    // This was found by REC_CATCH_EXCEPTION thrown by Maven
-    catch (RuntimeException e) {
-      throw e;
-    } catch (Exception e) {
+    } catch (IOException | InterruptedException e) {
       logger.println(e.getMessage());
       log.error(e.getMessage(), e);
+      run.setResult(Result.FAILURE);
     }
   }
 
@@ -456,6 +455,8 @@ public class ElectricFlowTriggerRelease extends Recorder implements SimpleBuildS
 
     public ListBoxModel doFillParametersItems(
         @QueryParameter String configuration,
+        @QueryParameter boolean overrideCredential,
+        @QueryParameter @RelativePath("overrideCredential") String credentialId,
         @QueryParameter String projectName,
         @QueryParameter String releaseName,
         @QueryParameter String parameters,
@@ -492,7 +493,11 @@ public class ElectricFlowTriggerRelease extends Recorder implements SimpleBuildS
         }
 
         if (!configuration.isEmpty() && !releaseName.isEmpty()) {
-          ElectricFlowClient client = new ElectricFlowClient(configuration);
+          Credential overrideCredentialObj =
+              overrideCredential ? new Credential(credentialId) : null;
+          ElectricFlowClient client =
+              ElectricFlowClientFactory.getElectricFlowClient(
+                  configuration, overrideCredentialObj, null, true);
           Release release = client.getRelease(configuration, projectName, releaseName);
           List<String> stages = release.getStartStages();
           List<String> pipelineParameters = release.getPipelineParameters();
@@ -528,7 +533,8 @@ public class ElectricFlowTriggerRelease extends Recorder implements SimpleBuildS
         ListBoxModel m = new ListBoxModel();
         SelectItemValidationWrapper selectItemValidationWrapper;
 
-        if (Utils.isEflowAvailable(configuration)) {
+        Credential overrideCredentialObj = overrideCredential ? new Credential(credentialId) : null;
+        if (Utils.isEflowAvailable(configuration, overrideCredentialObj)) {
           log.error("Error when fetching set of parameters. Error message: " + e.getMessage(), e);
           selectItemValidationWrapper =
               new SelectItemValidationWrapper(
@@ -548,16 +554,22 @@ public class ElectricFlowTriggerRelease extends Recorder implements SimpleBuildS
     }
 
     public ListBoxModel doFillProjectNameItems(
-        @QueryParameter String configuration, @AncestorInPath Item item) {
+        @QueryParameter String configuration,
+        @QueryParameter boolean overrideCredential,
+        @QueryParameter @RelativePath("overrideCredential") String credentialId,
+        @AncestorInPath Item item) {
       if (item == null || !item.hasPermission(Item.CONFIGURE)) {
         return new ListBoxModel();
       }
-      return Utils.getProjects(configuration);
+      Credential overrideCredentialObj = overrideCredential ? new Credential(credentialId) : null;
+      return Utils.getProjects(configuration, overrideCredentialObj);
     }
 
     public ListBoxModel doFillReleaseNameItems(
         @QueryParameter String projectName,
         @QueryParameter String configuration,
+        @QueryParameter boolean overrideCredential,
+        @QueryParameter @RelativePath("overrideCredential") String credentialId,
         @AncestorInPath Item item) {
       if (item == null || !item.hasPermission(Item.CONFIGURE)) {
         return new ListBoxModel();
@@ -571,7 +583,11 @@ public class ElectricFlowTriggerRelease extends Recorder implements SimpleBuildS
             && !projectName.isEmpty()
             && SelectFieldUtils.checkAllSelectItemsAreNotValidationWrappers(projectName)) {
 
-          ElectricFlowClient client = new ElectricFlowClient(configuration);
+          Credential overrideCredentialObj =
+              overrideCredential ? new Credential(credentialId) : null;
+          ElectricFlowClient client =
+              ElectricFlowClientFactory.getElectricFlowClient(
+                  configuration, overrideCredentialObj, null, true);
 
           List<String> releasesList = client.getReleases(configuration, projectName);
 
@@ -582,7 +598,8 @@ public class ElectricFlowTriggerRelease extends Recorder implements SimpleBuildS
 
         return m;
       } catch (Exception e) {
-        if (Utils.isEflowAvailable(configuration)) {
+        Credential overrideCredentialObj = overrideCredential ? new Credential(credentialId) : null;
+        if (Utils.isEflowAvailable(configuration, overrideCredentialObj)) {
           log.error(
               "Error when fetching values for this parameter - release. Error message: "
                   + e.getMessage(),
@@ -596,6 +613,8 @@ public class ElectricFlowTriggerRelease extends Recorder implements SimpleBuildS
 
     public ListBoxModel doFillStartingStageItems(
         @QueryParameter String configuration,
+        @QueryParameter boolean overrideCredential,
+        @QueryParameter @RelativePath("overrideCredential") String credentialId,
         @QueryParameter String projectName,
         @QueryParameter String releaseName,
         @AncestorInPath Item item)
@@ -615,7 +634,10 @@ public class ElectricFlowTriggerRelease extends Recorder implements SimpleBuildS
           return m;
         }
 
-        ElectricFlowClient client = new ElectricFlowClient(configuration);
+        Credential overrideCredentialObj = overrideCredential ? new Credential(credentialId) : null;
+        ElectricFlowClient client =
+            ElectricFlowClientFactory.getElectricFlowClient(
+                configuration, overrideCredentialObj, null, true);
 
         Release release = client.getRelease(configuration, projectName, releaseName);
 
@@ -631,7 +653,8 @@ public class ElectricFlowTriggerRelease extends Recorder implements SimpleBuildS
 
         return m;
       } catch (Exception e) {
-        if (Utils.isEflowAvailable(configuration)) {
+        Credential overrideCredentialObj = overrideCredential ? new Credential(credentialId) : null;
+        if (Utils.isEflowAvailable(configuration, overrideCredentialObj)) {
           log.error(
               "Error when fetching values for this parameter - starting stage. Error message: "
                   + e.getMessage(),

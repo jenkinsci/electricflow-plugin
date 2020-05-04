@@ -8,6 +8,7 @@
 
 package org.jenkinsci.plugins.electricflow;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import hudson.EnvVars;
 import hudson.model.BuildListener;
 import hudson.model.TaskListener;
@@ -33,7 +34,7 @@ import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.codehaus.jackson.map.ObjectMapper;
+import org.jenkinsci.plugins.electricflow.factories.ElectricFlowClientFactory;
 import org.jenkinsci.plugins.electricflow.ui.FieldValidationStatus;
 import org.jenkinsci.plugins.electricflow.ui.HtmlUtils;
 import org.jenkinsci.plugins.electricflow.ui.SelectFieldUtils;
@@ -174,8 +175,8 @@ public class Utils {
     ElectricFlowGlobalConfiguration cred =
         GlobalConfiguration.all().get(ElectricFlowGlobalConfiguration.class);
 
-    if (cred != null && cred.efConfigurations != null) {
-      return cred.efConfigurations;
+    if (cred != null && cred.configurations != null) {
+      return cred.configurations;
     }
 
     return new ArrayList<>();
@@ -236,7 +237,8 @@ public class Utils {
     return summaryText;
   }
 
-  public static ListBoxModel getPipelines(String configuration, String projectName) {
+  public static ListBoxModel getPipelines(
+      String configuration, Credential overrideCredential, String projectName) {
     try {
       ListBoxModel m = new ListBoxModel();
 
@@ -245,7 +247,9 @@ public class Utils {
       if (!projectName.isEmpty()
           && !configuration.isEmpty()
           && SelectFieldUtils.checkAllSelectItemsAreNotValidationWrappers(projectName)) {
-        ElectricFlowClient efClient = new ElectricFlowClient(configuration);
+        ElectricFlowClient efClient =
+            ElectricFlowClientFactory.getElectricFlowClient(
+                configuration, overrideCredential, null, true);
         String pipelinesString = efClient.getPipelines(projectName);
 
         if (log.isDebugEnabled()) {
@@ -271,7 +275,7 @@ public class Utils {
 
       return m;
     } catch (Exception e) {
-      if (Utils.isEflowAvailable(configuration)) {
+      if (Utils.isEflowAvailable(configuration, overrideCredential)) {
         log.error(
             "Error when fetching values for this parameter - pipeline. Error message: "
                 + e.getMessage(),
@@ -283,16 +287,17 @@ public class Utils {
     }
   }
 
-  public static boolean isEflowAvailable(String configuration) {
+  public static boolean isEflowAvailable(String configuration, Credential overrideCredential) {
     try {
-      new ElectricFlowClient(configuration).testConnection();
+      ElectricFlowClientFactory.getElectricFlowClient(configuration, overrideCredential, null, true)
+          .testConnection();
       return true;
     } catch (Exception e) {
       return false;
     }
   }
 
-  public static ListBoxModel getProjects(String configuration) {
+  public static ListBoxModel getProjects(String configuration, Credential overrideCredential) {
     try {
       ListBoxModel m = new ListBoxModel();
 
@@ -303,7 +308,9 @@ public class Utils {
               .getJsonStr());
 
       if (!configuration.isEmpty()) {
-        ElectricFlowClient efClient = new ElectricFlowClient(configuration);
+        ElectricFlowClient efClient =
+            ElectricFlowClientFactory.getElectricFlowClient(
+                configuration, overrideCredential, null, true);
         String projectsString = efClient.getProjects();
         JSONObject jsonObject = JSONObject.fromObject(projectsString);
         JSONArray projects = jsonObject.getJSONArray("project");
@@ -322,7 +329,7 @@ public class Utils {
 
       return m;
     } catch (Exception e) {
-      if (Utils.isEflowAvailable(configuration)) {
+      if (Utils.isEflowAvailable(configuration, overrideCredential)) {
         log.error(
             "Error when fetching values for this parameter - project. Error message: "
                 + e.getMessage(),

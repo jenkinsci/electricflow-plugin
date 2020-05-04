@@ -29,7 +29,7 @@ public class Configuration extends AbstractDescribableImpl<Configuration> {
 
   private final String configurationName;
   private final String electricFlowUser;
-  private final String electricFlowPassword;
+  private final Secret electricFlowPassword;
   private final String electricFlowUrl;
   private final String electricFlowApiVersion;
   private final boolean ignoreSslConnectionErrors;
@@ -41,26 +41,14 @@ public class Configuration extends AbstractDescribableImpl<Configuration> {
       String configurationName,
       String electricFlowUrl,
       String electricFlowUser,
-      String electricFlowPassword,
+      Secret electricFlowPassword,
       String electricFlowApiVersion,
       boolean ignoreSslConnectionErrors) {
     this.configurationName = configurationName;
     this.electricFlowUrl = electricFlowUrl;
     this.electricFlowUser = electricFlowUser;
-
-    if (!electricFlowPassword.equals(this.getElectricFlowPassword())) {
-
-      // encrypted one
-      Secret secret = Secret.fromString(electricFlowPassword);
-
-      this.electricFlowPassword = secret.getEncryptedValue();
-    } else {
-      this.electricFlowPassword = electricFlowPassword;
-    }
-
-    // end
+    this.electricFlowPassword = electricFlowPassword;
     this.electricFlowApiVersion = electricFlowApiVersion;
-
     this.ignoreSslConnectionErrors = ignoreSslConnectionErrors;
   }
 
@@ -78,7 +66,7 @@ public class Configuration extends AbstractDescribableImpl<Configuration> {
     return this.ignoreSslConnectionErrors;
   }
 
-  public String getElectricFlowPassword() {
+  public Secret getElectricFlowPassword() {
     return this.electricFlowPassword;
   }
 

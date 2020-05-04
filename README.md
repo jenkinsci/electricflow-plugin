@@ -75,6 +75,8 @@ This build action has following parameters:
 
 -   Configuration: Name of the CloudBees Flow configuration
 
+-   Override Credential: Connect to CloudBees Flow as a User other than the one mentioned in the electricflow Plugin Connection Configuration
+
 -   Deployment Package Path: Location or path for the deployment package
     to be published to CloudBees Flow. For e.g., MyProject/target
 
@@ -97,6 +99,8 @@ Jenkins CI build. 
 This build action takes the following parameters:
 
 -   Configuration: Name of the CloudBees Flow configuration
+
+-   Override Credential: Connect to CloudBees Flow as a User other than the one mentioned in the electricflow Plugin Connection Configuration
 
 -   Artifact Path: Location or path for the artifact files to be
     published to CloudBees Flow. For
@@ -129,6 +133,8 @@ This integration allows you to run a pipeline in CloudBees Flow.
 This build action takes the following parameters:
 
 - Configuration: Name of the CloudBees Flow configuration
+
+- Override Credential: Connect to CloudBees Flow as a User other than the one mentioned in the electricflow Plugin Connection Configuration
 
 - Project Name: Name of the CloudBees Flow project
 
@@ -164,6 +170,8 @@ pipeline step is available.
 This build action takes the following parameters:
 
 -   Configuration: Specify the name of the CloudBees Flow configuration.
+
+-   Override Credential: Connect to CloudBees Flow as a User other than the one mentioned in the electricflow Plugin Connection Configuration
 
 -   URL Path: Specify the URL Path for the REST API
 
@@ -229,6 +237,8 @@ This build action takes the following parameters:
 
 - Configuration: Specify the name of the CloudBees Flow configuration
 
+- Override Credential: Connect to CloudBees Flow as a User other than the one mentioned in the electricflow Plugin Connection Configuration
+
 - Project Name: Specify the CloudBees Flow project name
 
 - Application Name: Specify the CloudBees Flow application name
@@ -269,6 +279,8 @@ This Integration allows you to trigger a release in CloudBees Flow.
 This build action has following parameters:
 
 - Configuration: Specify the name of the CloudBees Flow configuration
+
+- Override Credential: Connect to CloudBees Flow as a User other than the one mentioned in the electricflow Plugin Connection Configuration
 
 - Project Name: Specify the CloudBees Flow project name
 
@@ -315,6 +327,8 @@ This build action has following parameters:
 
 - Configuration: Specify the name of the CloudBees Flow configuration
 
+- Override Credential: Connect to CloudBees Flow as a User other than the one mentioned in the electricflow Plugin Connection Configuration
+
 - Project Name: Specify the CloudBees Flow project name
 
 - Procedure Name: Specify the CloudBees Flow procedure name
@@ -355,6 +369,8 @@ Function name: cloudBeesFlowCallRestApi
 This pipeline step takes the following parameters:
 
 -   Configuration: Specify the name of the CloudBees Flow configuration.
+
+-   Override Credential: Connect to CloudBees Flow as a User other than the one mentioned in the electricflow Plugin Connection Configuration
 
 -   URL Path: Specify the URL Path for the REST API
 
@@ -407,6 +423,13 @@ pipeline{
 ```
 
 # Release Notes
+
+## Version 1.1.13 (Apr 21, 2020)
+
+  - All Post Build Actions now have the ability to connect to CloudBees Flow as a user other than the one mentioned in the electricflow Plugin configuration, under "Manage Jenkins".  These credentials which are used to override the connection credential at the level of the PBA only supports global credentials at this time.
+  - Fixed parameters collision for pipelines with the same name in the following Post Build Actions: Trigger Release, Run Pipeline
+  - Fixed corrupted artifact uploading in the following Post Build Actions: Publish Artifact
+  - Updated plugin dependencies
 
 ## Version 1.1.12 (Dec 17, 2019)
 

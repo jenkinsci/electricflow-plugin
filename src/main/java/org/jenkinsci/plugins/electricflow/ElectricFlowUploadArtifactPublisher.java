@@ -1,8 +1,17 @@
+// ElectricFlowUploadArtifactPublisher.java --
+//
+// ElectricFlowUploadArtifactPublisher.java is part of ElectricCommander.
+//
+// Copyright (c) 2005-2017 Electric Cloud, Inc.
+// All rights reserved.
+//
+
 package org.jenkinsci.plugins.electricflow;
 
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
+import hudson.RelativePath;
 import hudson.model.AbstractProject;
 import hudson.model.Item;
 import hudson.model.Result;
@@ -30,6 +39,7 @@ import org.jenkinsci.plugins.electricflow.factories.ElectricFlowClientFactory;
 import org.jenkinsci.plugins.electricflow.ui.HtmlUtils;
 import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.DataBoundConstructor;
+import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
 
@@ -58,14 +68,12 @@ public class ElectricFlowUploadArtifactPublisher extends Recorder implements Sim
       String artifactName,
       String artifactVersion,
       String filePath,
-      String configuration,
-      Credential overrideCredential) {
+      String configuration) {
     this.repositoryName = repositoryName;
     this.artifactName = artifactName;
     this.artifactVersion = artifactVersion;
     this.filePath = filePath;
     this.configuration = configuration;
-    this.overrideCredential = overrideCredential;
   }
 
   @Override
@@ -108,8 +116,8 @@ public class ElectricFlowUploadArtifactPublisher extends Recorder implements Sim
 
       // end of replacements
       ElectricFlowClient efClient =
-          ElectricFlowClientFactory.getElectricFlowClient(configuration, overrideCredential, env);
-
+          ElectricFlowClientFactory.getElectricFlowClient(
+              configuration, overrideCredential, run, env, false);
       String result =
           efClient.uploadArtifact(
               run,
@@ -171,14 +179,7 @@ public class ElectricFlowUploadArtifactPublisher extends Recorder implements Sim
 
       run.addAction(action);
       run.save();
-
       logger.println("Upload result: " + result);
-    }
-
-    // This was found by REC_CATCH_EXCEPTION spot check from Maven
-    catch (RuntimeException e) {
-      log.error(e.getMessage(), e);
-      throw e;
     } catch (NoSuchAlgorithmException
         | KeyManagementException
         | InterruptedException
@@ -211,6 +212,11 @@ public class ElectricFlowUploadArtifactPublisher extends Recorder implements Sim
 
   public Credential getOverrideCredential() {
     return overrideCredential;
+  }
+
+  @DataBoundSetter
+  public void setOverrideCredential(Credential overrideCredential) {
+    this.overrideCredential = overrideCredential;
   }
 
   // Overridden for better type safety.
@@ -367,7 +373,10 @@ public class ElectricFlowUploadArtifactPublisher extends Recorder implements Sim
     }
 
     public ListBoxModel doFillRepositoryNameItems(
-        @QueryParameter String configuration, @AncestorInPath Item item) {
+        @QueryParameter String configuration,
+        @QueryParameter boolean overrideCredential,
+        @QueryParameter @RelativePath("overrideCredential") String credentialId,
+        @AncestorInPath Item item) {
       if (item == null || !item.hasPermission(Item.CONFIGURE)) {
         return new ListBoxModel();
       }
@@ -380,7 +389,10 @@ public class ElectricFlowUploadArtifactPublisher extends Recorder implements Sim
       }
 
       try {
-        ElectricFlowClient efClient = new ElectricFlowClient(configuration);
+        Credential overrideCredentialObj = overrideCredential ? new Credential(credentialId) : null;
+        ElectricFlowClient efClient =
+            ElectricFlowClientFactory.getElectricFlowClient(
+                configuration, overrideCredentialObj, null, true);
         List<String> repositories;
 
         repositories = efClient.getArtifactRepositories();

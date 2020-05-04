@@ -8,7 +8,6 @@
 
 package org.jenkinsci.plugins.electricflow;
 
-import static net.sf.json.JSONObject.fromObject;
 import static org.jenkinsci.plugins.electricflow.Utils.addParametersToJsonAndPreserveStored;
 import static org.jenkinsci.plugins.electricflow.Utils.expandParameters;
 import static org.jenkinsci.plugins.electricflow.Utils.formatJsonOutput;
@@ -23,6 +22,7 @@ import static org.jenkinsci.plugins.electricflow.ui.SelectFieldUtils.isSelectIte
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
+import hudson.RelativePath;
 import hudson.model.AbstractProject;
 import hudson.model.Item;
 import hudson.model.Result;
@@ -56,8 +56,6 @@ import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.QueryParameter;
-
-// import hudson.model.Run.ArtifactList
 
 public class ElectricFlowRunProcedure extends Recorder implements SimpleBuildStep {
 
@@ -96,7 +94,7 @@ public class ElectricFlowRunProcedure extends Recorder implements SimpleBuildSte
     logger.println("JENKINS VERSION: " + Jenkins.VERSION);
     logger.println("Project name: " + projectName + ", Procedure name: " + procedureName);
 
-    JSONObject procedure = fromObject(procedureParameters).getJSONObject("procedure");
+    JSONObject procedure = JSONObject.fromObject(procedureParameters).getJSONObject("procedure");
     JSONArray parameter = JSONArray.fromObject(procedure.getString("parameters"));
 
     try {
@@ -106,7 +104,8 @@ public class ElectricFlowRunProcedure extends Recorder implements SimpleBuildSte
       expandParameters(parameter, env, "value");
 
       ElectricFlowClient efClient =
-          ElectricFlowClientFactory.getElectricFlowClient(configuration, overrideCredential, env);
+          ElectricFlowClientFactory.getElectricFlowClient(
+              configuration, overrideCredential, run, env, false);
 
       String result = efClient.runProcedure(projectName, procedureName, parameter);
 
@@ -200,7 +199,7 @@ public class ElectricFlowRunProcedure extends Recorder implements SimpleBuildSte
       ElectricFlowClient configuration, JSONArray parameters, Map<String, String> args) {
     String result = args.get("result");
     String procedureName = args.get("procedureName");
-    String jobId = fromObject(result).getString("jobId");
+    String jobId = JSONObject.fromObject(result).getString("jobId");
     String jobUrl = configuration.getElectricFlowUrl() + "/commander/link/jobDetails/jobs/" + jobId;
     String summaryText =
         "<h3>CloudBees Flow Run Procedure</h3>"
@@ -237,7 +236,7 @@ public class ElectricFlowRunProcedure extends Recorder implements SimpleBuildSte
         return paramsMap;
       }
 
-      JSONObject json = fromObject(procedureParameters);
+      JSONObject json = JSONObject.fromObject(procedureParameters);
 
       if (!json.containsKey("procedure")
           || !json.getJSONObject("procedure").containsKey("parameters")) {
@@ -311,16 +310,22 @@ public class ElectricFlowRunProcedure extends Recorder implements SimpleBuildSte
     }
 
     public ListBoxModel doFillProjectNameItems(
-        @QueryParameter String configuration, @AncestorInPath Item item) {
+        @QueryParameter String configuration,
+        @QueryParameter boolean overrideCredential,
+        @QueryParameter @RelativePath("overrideCredential") String credentialId,
+        @AncestorInPath Item item) {
       if (item == null || !item.hasPermission(Item.CONFIGURE)) {
         return new ListBoxModel();
       }
-      return Utils.getProjects(configuration);
+      Credential overrideCredentialObj = overrideCredential ? new Credential(credentialId) : null;
+      return Utils.getProjects(configuration, overrideCredentialObj);
     }
 
     public ListBoxModel doFillProcedureNameItems(
         @QueryParameter String projectName,
         @QueryParameter String configuration,
+        @QueryParameter boolean overrideCredential,
+        @QueryParameter @RelativePath("overrideCredential") String credentialId,
         @AncestorInPath Item item) {
       if (item == null || !item.hasPermission(Item.CONFIGURE)) {
         return new ListBoxModel();
@@ -334,7 +339,11 @@ public class ElectricFlowRunProcedure extends Recorder implements SimpleBuildSte
             && !projectName.isEmpty()
             && SelectFieldUtils.checkAllSelectItemsAreNotValidationWrappers(projectName)) {
 
-          ElectricFlowClient client = new ElectricFlowClient(configuration);
+          Credential overrideCredentialObj =
+              overrideCredential ? new Credential(credentialId) : null;
+          ElectricFlowClient client =
+              ElectricFlowClientFactory.getElectricFlowClient(
+                  configuration, overrideCredentialObj, null, true);
 
           List<String> procedures = client.getProcedures(projectName);
 
@@ -345,7 +354,8 @@ public class ElectricFlowRunProcedure extends Recorder implements SimpleBuildSte
 
         return m;
       } catch (Exception e) {
-        if (Utils.isEflowAvailable(configuration)) {
+        Credential overrideCredentialObj = overrideCredential ? new Credential(credentialId) : null;
+        if (Utils.isEflowAvailable(configuration, overrideCredentialObj)) {
           log.error(
               "Error when fetching values for this parameter - procedure. Error message: "
                   + e.getMessage(),
@@ -359,6 +369,8 @@ public class ElectricFlowRunProcedure extends Recorder implements SimpleBuildSte
 
     public ListBoxModel doFillProcedureParametersItems(
         @QueryParameter String configuration,
+        @QueryParameter boolean overrideCredential,
+        @QueryParameter @RelativePath("overrideCredential") String credentialId,
         @QueryParameter String projectName,
         @QueryParameter String procedureName,
         @QueryParameter String procedureParameters,
@@ -378,14 +390,17 @@ public class ElectricFlowRunProcedure extends Recorder implements SimpleBuildSte
           return m;
         }
 
-        ElectricFlowClient client = new ElectricFlowClient(configuration);
+        Credential overrideCredentialObj = overrideCredential ? new Credential(credentialId) : null;
+        ElectricFlowClient client =
+            ElectricFlowClientFactory.getElectricFlowClient(
+                configuration, overrideCredentialObj, null, true);
 
         Map<String, String> storedParams = new HashMap<>();
 
         String deployParametersValue = getSelectItemValue(procedureParameters);
 
         if (!deployParametersValue.isEmpty() && !"{}".equals(deployParametersValue)) {
-          JSONObject json = fromObject(deployParametersValue);
+          JSONObject json = JSONObject.fromObject(deployParametersValue);
           JSONObject jsonArray = json.getJSONObject("procedure");
 
           if (procedureName.equals(jsonArray.get("procedureName"))) {
@@ -395,7 +410,7 @@ public class ElectricFlowRunProcedure extends Recorder implements SimpleBuildSte
 
         List<String> parameters = client.getProcedureFormalParameters(projectName, procedureName);
         JSONObject main =
-            fromObject(
+            JSONObject.fromObject(
                 "{'procedure':{'procedureName':'" + procedureName + "',   'parameters':[]}}");
         JSONArray ja = main.getJSONObject("procedure").getJSONArray("parameters");
 
@@ -412,7 +427,8 @@ public class ElectricFlowRunProcedure extends Recorder implements SimpleBuildSte
         ListBoxModel m = new ListBoxModel();
         SelectItemValidationWrapper selectItemValidationWrapper;
 
-        if (Utils.isEflowAvailable(configuration)) {
+        Credential overrideCredentialObj = overrideCredential ? new Credential(credentialId) : null;
+        if (Utils.isEflowAvailable(configuration, overrideCredentialObj)) {
           log.error(
               "Error when fetching set of procedure parameters. Error message: " + e.getMessage(),
               e);

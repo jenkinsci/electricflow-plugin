@@ -48,6 +48,7 @@ import org.jenkinsci.plugins.electricflow.factories.ElectricFlowClientFactory;
 import org.jenkinsci.plugins.electricflow.ui.HtmlUtils;
 import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.DataBoundConstructor;
+import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
 
@@ -70,10 +71,8 @@ public class ElectricFlowPublishApplication extends Recorder implements SimpleBu
   // ~ Constructors -----------------------------------------------------------
 
   @DataBoundConstructor
-  public ElectricFlowPublishApplication(
-      String configuration, Credential overrideCredential, String filePath) {
+  public ElectricFlowPublishApplication(String configuration, String filePath) {
     this.configuration = configuration;
-    this.overrideCredential = overrideCredential;
     this.filePath = filePath;
   }
 
@@ -192,7 +191,8 @@ public class ElectricFlowPublishApplication extends Recorder implements SimpleBu
 
     try {
       ElectricFlowClient efClient =
-          ElectricFlowClientFactory.getElectricFlowClient(configuration, overrideCredential, env);
+          ElectricFlowClientFactory.getElectricFlowClient(
+              configuration, overrideCredential, run, env, false);
       List<File> fileList = new ArrayList<>();
       fileList.add(archive);
 
@@ -232,6 +232,11 @@ public class ElectricFlowPublishApplication extends Recorder implements SimpleBu
 
   public Credential getOverrideCredential() {
     return overrideCredential;
+  }
+
+  @DataBoundSetter
+  public void setOverrideCredential(Credential overrideCredential) {
+    this.overrideCredential = overrideCredential;
   }
 
   // Overridden for better type safety.

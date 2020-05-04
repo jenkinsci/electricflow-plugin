@@ -17,6 +17,7 @@ import static org.jenkinsci.plugins.electricflow.ui.SelectFieldUtils.isSelectIte
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
+import hudson.RelativePath;
 import hudson.model.AbstractProject;
 import hudson.model.Item;
 import hudson.model.Result;
@@ -290,16 +291,22 @@ public class ElectricFlowAssociateBuildToRelease extends Recorder implements Sim
     }
 
     public ListBoxModel doFillProjectNameItems(
-        @QueryParameter String configuration, @AncestorInPath Item item) {
+        @QueryParameter String configuration,
+        @QueryParameter boolean overrideCredential,
+        @QueryParameter @RelativePath("overrideCredential") String credentialId,
+        @AncestorInPath Item item) {
       if (item == null || !item.hasPermission(Item.CONFIGURE)) {
         return new ListBoxModel();
       }
-      return Utils.getProjects(configuration);
+      Credential overrideCredentialObj = overrideCredential ? new Credential(credentialId) : null;
+      return Utils.getProjects(configuration, overrideCredentialObj);
     }
 
     public ListBoxModel doFillReleaseNameItems(
         @QueryParameter String projectName,
         @QueryParameter String configuration,
+        @QueryParameter boolean overrideCredential,
+        @QueryParameter @RelativePath("overrideCredential") String credentialId,
         @AncestorInPath Item item) {
       if (item == null || !item.hasPermission(Item.CONFIGURE)) {
         return new ListBoxModel();
@@ -313,7 +320,11 @@ public class ElectricFlowAssociateBuildToRelease extends Recorder implements Sim
             && !projectName.isEmpty()
             && SelectFieldUtils.checkAllSelectItemsAreNotValidationWrappers(projectName)) {
 
-          ElectricFlowClient client = new ElectricFlowClient(configuration);
+          Credential overrideCredentialObj =
+              overrideCredential ? new Credential(credentialId) : null;
+          ElectricFlowClient client =
+              ElectricFlowClientFactory.getElectricFlowClient(
+                  configuration, overrideCredentialObj, null, true);
 
           List<String> releasesList = client.getReleases(configuration, projectName);
 
@@ -324,7 +335,8 @@ public class ElectricFlowAssociateBuildToRelease extends Recorder implements Sim
 
         return m;
       } catch (Exception e) {
-        if (Utils.isEflowAvailable(configuration)) {
+        Credential overrideCredentialObj = overrideCredential ? new Credential(credentialId) : null;
+        if (Utils.isEflowAvailable(configuration, overrideCredentialObj)) {
           log.error(
               "Error when fetching values for this parameter - release. Error message: "
                   + e.getMessage(),
