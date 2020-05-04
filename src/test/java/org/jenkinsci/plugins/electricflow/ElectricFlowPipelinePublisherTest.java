@@ -31,7 +31,7 @@ public class ElectricFlowPipelinePublisherTest {
     // Configuration should exist to be listed in a form
     createConfigurationInJenkinsRule(jenkinsRule, configurationName);
 
-    // All fields
+    // All fields (with override)
     doConfigRoundTrip(configurationName, overrideCredential, projectName, pipelineName);
 
     // No override
