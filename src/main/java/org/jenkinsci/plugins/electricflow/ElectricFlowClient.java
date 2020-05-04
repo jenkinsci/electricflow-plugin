@@ -387,6 +387,7 @@ public class ElectricFlowClient {
     String content = obj.toString();
     return runRestAPI(endpoint, POST, content);
   }
+
   public JSONObject setCIBuildDetails(CIBuildDetail details) throws IOException {
     String endpoint = "/ciBuildDetails?request=setCiBuildDetail";
     String result = runRestAPI(endpoint, POST, details.toJsonObject().toString());
