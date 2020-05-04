@@ -144,6 +144,10 @@ public class Utils {
       return FormValidation.warning("Configuration field should not be empty.");
     }
 
+    if (configuration.equals("__SKIP_CHECK_CONNECTION__")){
+      return FormValidation.ok();
+    }
+
     try {
       new ElectricFlowClient(configuration).testConnection();
     } catch (Exception e) {
