@@ -80,7 +80,10 @@ public class Configuration extends AbstractDescribableImpl<Configuration> {
   public boolean getIgnoreSslConnectionErrors() {
     return this.ignoreSslConnectionErrors;
   }
-  public boolean getDoNotSendBuildDetails() { return this.doNotSendBuildDetails; }
+
+  public boolean getDoNotSendBuildDetails() {
+    return this.doNotSendBuildDetails;
+  }
 
   public String getElectricFlowPassword() {
     return this.electricFlowPassword;

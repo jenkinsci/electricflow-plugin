@@ -34,13 +34,12 @@ public class ElectricFlowClient {
 
   // ~ Static fields/initializers ---------------------------------------------
 
-  private static final Log log = LogFactory.getLog(ElectricFlowClient.class);
-  private static final String CHARSET = "UTF-8";
   public static final String JENKINS_BUILD_ASSOCIATION_TYPE = "triggeredByCI";
   public static final String BUILD_TRIGGER_SOURCE = "CI";
+  private static final Log log = LogFactory.getLog(ElectricFlowClient.class);
+  private static final String CHARSET = "UTF-8";
 
   // ~ Instance fields --------------------------------------------------------
-
   private String electricFlowUrl;
   private String userName;
   private String password;
@@ -319,12 +318,12 @@ public class ElectricFlowClient {
 
   // Flow Endpoint :: flowRuntimes​/{flowRuntimeId}​/jenkinsBuildDetails​/{buildName}
   public String setJenkinsBuildDetailsRunPipeline(
-          CloudBeesFlowBuildData cloudBeesFlowBuildData,
-          String projectName,
-          String flowRuntimeId
-  ) throws  IOException {
-       return setJenkinsBuildDetailsRunPipeline(cloudBeesFlowBuildData, projectName, flowRuntimeId, "", "");
+      CloudBeesFlowBuildData cloudBeesFlowBuildData, String projectName, String flowRuntimeId)
+      throws IOException {
+    return setJenkinsBuildDetailsRunPipeline(
+        cloudBeesFlowBuildData, projectName, flowRuntimeId, "", "");
   }
+
   public String setJenkinsBuildDetailsRunPipeline(
       CloudBeesFlowBuildData cloudBeesFlowBuildData,
       String projectName,

@@ -49,7 +49,7 @@ public class CloudBeesFlowPipeline implements ExtensionPoint {
     return json;
   }
 
-  public List<CloudBeesFlowPipeline> generate(Run<?,?> run) {
+  public List<CloudBeesFlowPipeline> generate(Run<?, ?> run) {
     return new ArrayList<>();
   }
 
