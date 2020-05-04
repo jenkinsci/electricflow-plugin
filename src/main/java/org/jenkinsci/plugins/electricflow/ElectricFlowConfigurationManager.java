@@ -1,4 +1,3 @@
-
 // ElectricFlowConfigurationManager.java --
 //
 // ElectricFlowConfigurationManager.java is part of ElectricCommander.
@@ -11,33 +10,29 @@ package org.jenkinsci.plugins.electricflow;
 
 import java.util.List;
 
-public class ElectricFlowConfigurationManager
-{
+public class ElectricFlowConfigurationManager {
 
-    //~ Instance fields --------------------------------------------------------
+  // ~ Instance fields --------------------------------------------------------
 
-    public List<Configuration> efConfigurations;
+  public List<Configuration> efConfigurations;
 
-    //~ Constructors -----------------------------------------------------------
+  // ~ Constructors -----------------------------------------------------------
 
-    public ElectricFlowConfigurationManager()
-    {
-        efConfigurations = Utils.getConfigurations();
+  public ElectricFlowConfigurationManager() {
+    efConfigurations = Utils.getConfigurations();
+  }
+
+  // ~ Methods ----------------------------------------------------------------
+
+  public Configuration getConfigurationByName(String name) {
+
+    for (Configuration cred : this.efConfigurations) {
+
+      if (cred.getConfigurationName().equals(name)) {
+        return cred;
+      }
     }
 
-    //~ Methods ----------------------------------------------------------------
-
-    public Configuration getConfigurationByName(String name)
-    {
-
-        for (Configuration cred : this.efConfigurations) {
-
-            if (cred.getConfigurationName()
-                    .equals(name)) {
-                return cred;
-            }
-        }
-
-        return null;
-    }
+    return null;
+  }
 }
