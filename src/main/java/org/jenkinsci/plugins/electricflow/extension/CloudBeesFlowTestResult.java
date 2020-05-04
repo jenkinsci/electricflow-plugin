@@ -3,7 +3,6 @@ package org.jenkinsci.plugins.electricflow.extension;
 import hudson.ExtensionList;
 import hudson.ExtensionPoint;
 import hudson.model.Run;
-import jenkins.model.Jenkins;
 import net.sf.json.JSONObject;
 
 public class CloudBeesFlowTestResult implements ExtensionPoint {
@@ -19,8 +18,7 @@ public class CloudBeesFlowTestResult implements ExtensionPoint {
   protected String url;
   protected String displayName;
 
-  public CloudBeesFlowTestResult() {
-  }
+  public CloudBeesFlowTestResult() {}
 
   public static CloudBeesFlowTestResult build(Run run) {
     ExtensionList.lookup(CloudBeesFlowTestResult.class);

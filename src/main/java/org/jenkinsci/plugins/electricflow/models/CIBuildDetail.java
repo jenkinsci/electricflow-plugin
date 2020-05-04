@@ -55,12 +55,10 @@ public class CIBuildDetail {
 
     if (hasValuesForPipelineAttach && hasValuesForReleaseAttach) {
       throw new RuntimeException(
-          "Only one of 'flowRuntimeId' or 'projectName and releaseName' can be specified."
-      );
+          "Only one of 'flowRuntimeId' or 'projectName and releaseName' can be specified.");
     } else if (!hasValuesForPipelineAttach && !hasValuesForReleaseAttach) {
       throw new RuntimeException(
-          "One of 'flowRuntimeId' or 'projectName and releaseName' should be specified."
-      );
+          "One of 'flowRuntimeId' or 'projectName and releaseName' should be specified.");
     }
   }
 
@@ -95,8 +93,7 @@ public class CIBuildDetail {
     return buildData;
   }
 
-  public CIBuildDetail setBuildData(
-      CloudBeesFlowBuildData buildData) {
+  public CIBuildDetail setBuildData(CloudBeesFlowBuildData buildData) {
     this.buildData = buildData;
     return this;
   }
@@ -111,8 +108,7 @@ public class CIBuildDetail {
     return null;
   }
 
-  public CIBuildDetail setBuildTriggerSource(
-      BuildTriggerSource buildTriggerSource) {
+  public CIBuildDetail setBuildTriggerSource(BuildTriggerSource buildTriggerSource) {
     this.buildTriggerSource = buildTriggerSource;
     return this;
   }
@@ -129,8 +125,7 @@ public class CIBuildDetail {
     return null;
   }
 
-  public CIBuildDetail setAssociationType(
-      BuildAssociationType associationType) {
+  public CIBuildDetail setAssociationType(BuildAssociationType associationType) {
     this.associationType = associationType;
     return this;
   }

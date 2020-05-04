@@ -11,8 +11,7 @@ public class SelectItemValidationWrapper {
   private String validationMessage;
   private String value;
 
-  SelectItemValidationWrapper() {
-  }
+  SelectItemValidationWrapper() {}
 
   public SelectItemValidationWrapper(
       FieldValidationStatus validationStatus, String validationMessage, String value) {

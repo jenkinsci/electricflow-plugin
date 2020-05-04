@@ -20,8 +20,7 @@ public class CloudBeesFlowSCM implements ExtensionPoint {
   protected String commitMessage;
 
   // constructor
-  public CloudBeesFlowSCM() {
-  }
+  public CloudBeesFlowSCM() {}
 
   public static CloudBeesFlowSCM build(Object obj) {
     final Jenkins jenkins = Jenkins.get();
@@ -86,8 +85,7 @@ public class CloudBeesFlowSCM implements ExtensionPoint {
   }
 
   // populate
-  public void populate(Object object) {
-  }
+  public void populate(Object object) {}
 
   /* getters and setters */
   public String getScmReportUrl() {

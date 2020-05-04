@@ -8,11 +8,6 @@
 
 package org.jenkinsci.plugins.electricflow;
 
-import java.io.IOException;
-import java.io.PrintStream;
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
-
 import hudson.EnvVars;
 import hudson.model.BuildListener;
 import hudson.model.TaskListener;
@@ -22,6 +17,10 @@ import hudson.slaves.NodePropertyDescriptor;
 import hudson.util.DescribableList;
 import hudson.util.FormValidation;
 import hudson.util.ListBoxModel;
+import java.io.IOException;
+import java.io.PrintStream;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -300,7 +299,7 @@ public class Utils {
       m.add(
           "Select project",
           new SelectItemValidationWrapper(
-              FieldValidationStatus.WARN, "Project name field should not be empty.", "")
+                  FieldValidationStatus.WARN, "Project name field should not be empty.", "")
               .getJsonStr());
 
       if (!configuration.isEmpty()) {

@@ -70,8 +70,7 @@ public class ElectricFlowRunProcedure extends Recorder implements SimpleBuildSte
   private String procedureParameters;
 
   @DataBoundConstructor
-  public ElectricFlowRunProcedure() {
-  }
+  public ElectricFlowRunProcedure() {}
 
   @Override
   public void perform(
@@ -478,9 +477,9 @@ public class ElectricFlowRunProcedure extends Recorder implements SimpleBuildSte
               + getValidationComparisonRow("Configuration", storedConfiguration, configurationValue)
               + getValidationComparisonRow("Project Name", storedProjectName, projectNameValue)
               + getValidationComparisonRow(
-              "Procedure Name", storedProcedureName, procedureNameValue)
+                  "Procedure Name", storedProcedureName, procedureNameValue)
               + getValidationComparisonRowsForExtraParameters(
-              "Procedure Parameters", storedProcedureParamsMap, procedureParamsMap)
+                  "Procedure Parameters", storedProcedureParamsMap, procedureParamsMap)
               + "</table>";
 
       if (configurationValue.equals(storedConfiguration)

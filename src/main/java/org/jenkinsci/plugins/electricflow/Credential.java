@@ -5,7 +5,6 @@ import static com.cloudbees.plugins.credentials.CredentialsProvider.lookupCreden
 import com.cloudbees.plugins.credentials.CredentialsMatchers;
 import com.cloudbees.plugins.credentials.common.StandardUsernameListBoxModel;
 import com.cloudbees.plugins.credentials.common.StandardUsernamePasswordCredentials;
-import com.cloudbees.plugins.credentials.domains.DomainRequirement;
 import com.cloudbees.plugins.credentials.domains.SchemeRequirement;
 import hudson.Extension;
 import hudson.model.AbstractDescribableImpl;

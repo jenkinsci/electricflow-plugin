@@ -10,8 +10,7 @@ public class ElectricFlowChangeSet implements ExtensionPoint {
   protected String commitId;
   protected String comments;
 
-  public ElectricFlowChangeSet() {
-  }
+  public ElectricFlowChangeSet() {}
 
   public static ElectricFlowChangeSet getChangeset(Object obj) {
     return null;
@@ -69,6 +68,5 @@ public class ElectricFlowChangeSet implements ExtensionPoint {
     return false;
   }
 
-  public void populate(Object object) {
-  }
+  public void populate(Object object) {}
 }

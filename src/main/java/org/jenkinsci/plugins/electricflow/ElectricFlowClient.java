@@ -274,9 +274,10 @@ public class ElectricFlowClient {
 
     if (!successCodes.contains(conn.getResponseCode())) {
       try {
-        InputStream stream = (conn.getResponseCode() >= 200 && conn.getResponseCode() <= 299)
-            ? conn.getInputStream()
-            : conn.getErrorStream();
+        InputStream stream =
+            (conn.getResponseCode() >= 200 && conn.getResponseCode() <= 299)
+                ? conn.getInputStream()
+                : conn.getErrorStream();
 
         if (stream != null) {
           BufferedReader br = new BufferedReader(new InputStreamReader(stream, CHARSET));

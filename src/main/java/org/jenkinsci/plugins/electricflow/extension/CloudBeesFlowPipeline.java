@@ -16,8 +16,7 @@ public class CloudBeesFlowPipeline implements ExtensionPoint {
   protected long timestamp;
   protected String logs;
 
-  public CloudBeesFlowPipeline() {
-  }
+  public CloudBeesFlowPipeline() {}
 
   public static List<CloudBeesFlowPipeline> build(Run<?, ?> run) {
     List<CloudBeesFlowPipeline> result = new ArrayList<>();

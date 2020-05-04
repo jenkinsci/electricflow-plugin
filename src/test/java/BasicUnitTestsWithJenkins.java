@@ -6,10 +6,7 @@ import hudson.model.FreeStyleBuild;
 import hudson.model.FreeStyleProject;
 import hudson.tasks.BatchFile;
 import hudson.tasks.Shell;
-
-import java.io.*;
-import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.io.InputStreamReader;
 import java.util.LinkedList;
 import org.jenkinsci.plugins.electricflow.Configuration;
 import org.jenkinsci.plugins.electricflow.ElectricFlowGlobalConfiguration;
@@ -72,7 +69,7 @@ public class BasicUnitTestsWithJenkins {
 
     final char[] buffer = new char[1024];
     int charsRead;
-    while((charsRead = logFile.read(buffer, 0, buffer.length)) > 0){
+    while ((charsRead = logFile.read(buffer, 0, buffer.length)) > 0) {
       log.append(buffer, 0, charsRead);
     }
 

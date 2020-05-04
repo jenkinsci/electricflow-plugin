@@ -81,8 +81,7 @@ public class ElectricFlowPipelinePublisher extends Recorder implements SimpleBui
   // ~ Constructors -----------------------------------------------------------
 
   @DataBoundConstructor
-  public ElectricFlowPipelinePublisher() {
-  }
+  public ElectricFlowPipelinePublisher() {}
 
   // ~ Methods ----------------------------------------------------------------
 
@@ -104,8 +103,8 @@ public class ElectricFlowPipelinePublisher extends Recorder implements SimpleBui
     }
   }
 
-  private boolean runPipeline(Run<?, ?> run, BuildListener buildListener,
-      TaskListener taskListener) {
+  private boolean runPipeline(
+      Run<?, ?> run, BuildListener buildListener, TaskListener taskListener) {
 
     // We should be sure that logger is not null
     PrintStream logger = Utils.getLogger(buildListener, taskListener);
@@ -159,18 +158,16 @@ public class ElectricFlowPipelinePublisher extends Recorder implements SimpleBui
       // PrintStream logger = taskListener.getLogger();
       CloudBeesFlowBuildData cbfdb = new CloudBeesFlowBuildData(run);
 
-
-
       logger.println("++++++++++++++++++++++++++++++++++++++++++++");
       logger.println("CBF Data: " + cbfdb.toJsonObject().toString());
       logger.println("++++++++++++++++++++++++++++++++++++++++++++");
       logger.println("About to call setJenkinsBuildDetails after running a Pipeline");
 
-      JSONObject associateResult = efClient.setCIBuildDetails(
-          new CIBuildDetail(cbfdb, projectName)
-              .setFlowRuntimeId(flowRuntimeId)
-              .setAssociationType(BuildAssociationType.TRIGGERED_BY_CI)
-      );
+      JSONObject associateResult =
+          efClient.setCIBuildDetails(
+              new CIBuildDetail(cbfdb, projectName)
+                  .setFlowRuntimeId(flowRuntimeId)
+                  .setAssociationType(BuildAssociationType.TRIGGERED_BY_CI));
 
       logger.println("Return from efClient: " + associateResult.toString());
       logger.println("++++++++++++++++++++++++++++++++++++++++++++");
@@ -605,7 +602,7 @@ public class ElectricFlowPipelinePublisher extends Recorder implements SimpleBui
               + getValidationComparisonRow("Project Name", storedProjectName, projectNameValue)
               + getValidationComparisonRow("Pipeline Name", storedPipelineName, pipelineNameValue)
               + getValidationComparisonRowsForExtraParameters(
-              "Pipeline Parameters", storedPipelineParamsMap, pipelineParamsMap)
+                  "Pipeline Parameters", storedPipelineParamsMap, pipelineParamsMap)
               + "</table>";
 
       if (configurationValue.equals(storedConfiguration)

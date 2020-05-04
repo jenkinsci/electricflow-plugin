@@ -68,8 +68,8 @@ public class FileHelper {
   static void modifyFile(String filePath, String oldString, String newString) throws IOException {
     StringBuilder oldContent = new StringBuilder();
     BufferedReader reader =
-        new BufferedReader(new InputStreamReader(new FileInputStream(filePath),
-            StandardCharsets.UTF_8));
+        new BufferedReader(
+            new InputStreamReader(new FileInputStream(filePath), StandardCharsets.UTF_8));
 
     // Reading all the lines of input text file into oldContent
     String line;
@@ -83,8 +83,8 @@ public class FileHelper {
 
     // Rewriting the input text file with newContent
     Writer out =
-        new BufferedWriter(new OutputStreamWriter(new FileOutputStream(filePath),
-            StandardCharsets.UTF_8));
+        new BufferedWriter(
+            new OutputStreamWriter(new FileOutputStream(filePath), StandardCharsets.UTF_8));
 
     out.append(newContent);
     out.flush();

@@ -1,7 +1,6 @@
 package org.jenkinsci.plugins.electricflow.data;
 
 import hudson.model.Cause;
-import hudson.model.Cause.UserIdCause;
 import hudson.model.Result;
 import hudson.model.Run;
 import hudson.scm.ChangeLogSet;
@@ -66,7 +65,7 @@ public class CloudBeesFlowBuildData {
       this.setResult(result.toString());
     }
 
-    //resolve the launchedBy
+    // resolve the launchedBy
     List<Cause> causes = run.getCauses();
     if (!causes.isEmpty()) {
       Cause cause = causes.stream().findFirst().get();

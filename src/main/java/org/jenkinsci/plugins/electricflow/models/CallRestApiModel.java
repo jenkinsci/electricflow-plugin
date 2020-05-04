@@ -46,14 +46,14 @@ public interface CallRestApiModel {
         + "; "
         + "Parameters: ["
         + getParameters().stream()
-        .map(it -> it.getKey() + ": " + it.getValue())
-        .collect(Collectors.joining(";"))
+            .map(it -> it.getKey() + ": " + it.getValue())
+            .collect(Collectors.joining(";"))
         + "]; "
         + "Body: "
         + getBody()
         + "; "
         + (isEnvVarNameForResultSet()
-        ? ""
-        : "Environment variable name for storing result: " + getEnvVarNameForResult());
+            ? ""
+            : "Environment variable name for storing result: " + getEnvVarNameForResult());
   }
 }

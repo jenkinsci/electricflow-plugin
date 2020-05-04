@@ -25,7 +25,6 @@ public class Release {
   private String pipelineName;
   private List<String> pipelineParameters;
 
-
   public Release(String configuration, String projectName, String releaseName) {
     this.configuration = configuration;
     this.releaseName = releaseName;
@@ -39,7 +38,6 @@ public class Release {
   }
 
   // ~ Methods ----------------------------------------------------------------
-
 
   public String getReleaseId() {
     return releaseId;
