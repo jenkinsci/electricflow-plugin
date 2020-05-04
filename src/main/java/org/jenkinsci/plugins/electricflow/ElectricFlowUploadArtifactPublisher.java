@@ -91,7 +91,7 @@ public class ElectricFlowUploadArtifactPublisher extends Recorder implements Sim
 
   private boolean runProcess(
       @Nonnull Run<?, ?> run, @Nonnull TaskListener taskListener, @Nonnull FilePath workspace) {
-    PrintStream logger = taskListener.getLogger();
+    PrintStream logger = Utils.getLogger(null, taskListener);
 
     try {
 
@@ -159,23 +159,15 @@ public class ElectricFlowUploadArtifactPublisher extends Recorder implements Sim
 
       action.setArtifactUploadData(artifactUploadData);
 
-      taskListener.getLogger().println("++++++++++++++++++++++++++++++++++++++++++++");
-      taskListener.getLogger().println("Artifact Name: " + artifactUploadData.getArtifactName());
-      taskListener
-          .getLogger()
-          .println("Artifact Version: " + artifactUploadData.getArtifactVersion());
-      taskListener
-          .getLogger()
-          .println("Artifact Version Name: " + artifactUploadData.getArtifactVersionName());
-      taskListener.getLogger().println("Artifact Url: " + artifactUploadData.getArtifactUrl());
-      taskListener
-          .getLogger()
-          .println("Repository Name: " + artifactUploadData.getRepositoryName());
-      taskListener
-          .getLogger()
-          .println("Repository Type: " + artifactUploadData.getRepositoryType());
-      taskListener.getLogger().println("File path: " + artifactUploadData.getFilePath());
-      taskListener.getLogger().println("++++++++++++++++++++++++++++++++++++++++++++");
+      logger.println("++++++++++++++++++++++++++++++++++++++++++++");
+      logger.println("Artifact Name: " + artifactUploadData.getArtifactName());
+      logger.println("Artifact Version: " + artifactUploadData.getArtifactVersion());
+      logger.println("Artifact Version Name: " + artifactUploadData.getArtifactVersionName());
+      logger.println("Artifact Url: " + artifactUploadData.getArtifactUrl());
+      logger.println("Repository Name: " + artifactUploadData.getRepositoryName());
+      logger.println("Repository Type: " + artifactUploadData.getRepositoryType());
+      logger.println("File path: " + artifactUploadData.getFilePath());
+      logger.println("++++++++++++++++++++++++++++++++++++++++++++");
 
       run.addAction(action);
       run.save();
