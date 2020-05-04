@@ -9,11 +9,11 @@ import org.junit.ClassRule;
 import org.junit.Test;
 import org.jvnet.hudson.test.JenkinsRule;
 
-public class ElectricFlowAssociateBuildToReleaseTest {
+public class ElectricFlowTriggerReleaseTest {
 
   @ClassRule public static JenkinsRule jenkinsRule = new JenkinsRule();
 
-  @Inject ElectricFlowAssociateBuildToRelease.DescriptorImpl descriptor;
+  @Inject ElectricFlowTriggerRelease.DescriptorImpl descriptor;
 
   @Before
   public void setUp() {
@@ -42,14 +42,13 @@ public class ElectricFlowAssociateBuildToReleaseTest {
       String configName, Credential overrideCredential, String projectName, String releaseName)
       throws Exception {
 
-    ElectricFlowAssociateBuildToRelease testPba = new ElectricFlowAssociateBuildToRelease();
+    ElectricFlowTriggerRelease testPba = new ElectricFlowTriggerRelease();
     testPba.setConfiguration(configName);
     testPba.setProjectName(projectName);
     testPba.setReleaseName(releaseName);
     testPba.setOverrideCredential(overrideCredential);
 
-    ElectricFlowAssociateBuildToRelease configRoundTripResult =
-        jenkinsRule.configRoundtrip(testPba);
+    ElectricFlowTriggerRelease configRoundTripResult = jenkinsRule.configRoundtrip(testPba);
 
     assertEquals(testPba.getConfiguration(), configRoundTripResult.getConfiguration());
     //    assertEquals(testPba.getProjectName(), configRoundTripResult.getProjectName());
