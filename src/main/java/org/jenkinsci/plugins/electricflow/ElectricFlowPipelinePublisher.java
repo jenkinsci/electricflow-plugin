@@ -267,7 +267,6 @@ public class ElectricFlowPipelinePublisher extends Recorder implements SimpleBui
   }
 
   private JSONArray getPipelineParameters() {
-    
     if (addParam != null && !addParam.isEmpty() && !"{}".equals(addParam)) {
       JSONObject pipelineJsonObject = JSONObject.fromObject(addParam).getJSONObject("pipeline");
       JSONArray pipelineParameters =
