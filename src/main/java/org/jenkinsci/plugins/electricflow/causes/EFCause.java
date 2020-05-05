@@ -8,8 +8,8 @@ public class EFCause extends hudson.model.Cause {
   @Exported public String flowRuntimeId = "";
   @Exported public String projectName = "";
   @Exported public String releaseName = "";
-  @Exported public String flowRuntimeStateId;
-  @Exported public String stageName;
+  @Exported public String flowRuntimeStateId = "";
+  @Exported public String stageName = "";
 
   // @Exported
   public String getFlowRuntimeId() {
@@ -61,35 +61,38 @@ public class EFCause extends hudson.model.Cause {
     String flowRuntimeId = this.getFlowRuntimeId();
     String projectName = this.getProjectName();
     String releaseName = this.getReleaseName();
+    String flowRuntimeStateId = this.getFlowRuntimeStateId();
+    String stageName = this.getStageName();
 
-    // String nullString = new String("null");
-    String nullString = "null";
-    // char[4] nullChars = "null";
-    // TODO: Convert flowRuntimeId, projectName and releaseName retrieval to getters
-    if (!flowRuntimeId.equals(nullString)) {
+    if (!isEmptyOrNullString(flowRuntimeId)) {
       shortDescription.append("<br/>");
-      shortDescription.append("Flow Runtime ID: " + flowRuntimeId);
+      shortDescription.append("Flow Runtime ID: ").append(flowRuntimeId);
     }
-    if (!projectName.equals(nullString)) {
+    if (!isEmptyOrNullString(projectName)) {
       shortDescription.append("<br/>");
-      shortDescription.append("Release Project Name: " + projectName);
+      shortDescription.append("Release Project Name: ").append(projectName);
     }
-    if (!releaseName.equals(nullString)) {
+    if (!isEmptyOrNullString(releaseName)) {
       shortDescription.append("<br/>");
-      shortDescription.append("Release Name: " + releaseName);
+      shortDescription.append("Release Name: ").append(releaseName);
     }
-    if (!this.getFlowRuntimeStateId().equals(nullString)) {
+    if (!isEmptyOrNullString(flowRuntimeStateId)) {
       shortDescription.append("<br/>");
-      shortDescription.append("Flow Runtime State ID: " + this.getFlowRuntimeStateId());
+      shortDescription.append("Flow Runtime State ID: ").append(flowRuntimeStateId);
     }
-    if (!this.getStageName().equals(nullString)) {
+    if (!isEmptyOrNullString(stageName)) {
       shortDescription.append("<br/>");
-      shortDescription.append("Stage Name: " + this.getStageName());
+      shortDescription.append("Stage Name: ").append(stageName);
     }
     return shortDescription.toString();
   }
-
-  //    public String getIconFileName() {
-  //
-  //    }
+  private static boolean isEmptyOrNullString(String str) {
+    if (str == null) {
+      return true;
+    }
+    if (str.equals("")) {
+      return true;
+    }
+    return false;
+  }
 }

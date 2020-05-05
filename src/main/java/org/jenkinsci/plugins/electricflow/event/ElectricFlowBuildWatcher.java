@@ -22,26 +22,12 @@ public class ElectricFlowBuildWatcher extends RunListener<Run> {
 
   @Override
   public void onStarted(Run run, TaskListener listener) {
-    System.out.println("Got onStarted event...");
-    System.out.println("Sending details");
     this.sendBuildDetailsToInstance(run);
-    System.out.println("Got onStarted build data object");
-    //        StringBuilder buf = new StringBuilder(100);
-    //        for (CauseAction action : run.getActions(CauseAction.class)) {
-    //            for (Cause cause : action.getCauses()) {
-    //                if (buf.length() > 0) buf.append(", ");
-    //                buf.append(cause.getShortDescription());
-    //            }
-    //        }
   }
 
   @Override
   public void onCompleted(Run run, TaskListener listener) {
-    System.out.println("Got onCompleted event...");
-    System.out.println("Sending details");
-    // CloudBeesFlowBuildData cbf = new CloudBeesFlowBuildData(run);
     this.sendBuildDetailsToInstance(run);
-    System.out.println("Got onCompleted build data object");
   }
 
   public List<Configuration> getConfigurations() {
@@ -63,9 +49,7 @@ public class ElectricFlowBuildWatcher extends RunListener<Run> {
     EFCause efCause = null;
     try {
       efCause = (EFCause) run.getCause(EFCause.class);
-    } catch (ClassCastException ignored) {
-    }
-    ;
+    } catch (ClassCastException ignored) { };
 
     // No EFCause object. It means that it has been started not by efrun. We can't continue.
     if (efCause == null) {
@@ -79,10 +63,8 @@ public class ElectricFlowBuildWatcher extends RunListener<Run> {
     }
 
     // 2. Getting iterator out of configs.
-    Iterator<Configuration> configurationIterator = cfgs.iterator();
-    while (configurationIterator.hasNext()) {
+    for (Configuration tc : cfgs) {
       // 3. Getting configuration from iterator to create efclient out of it later.
-      Configuration tc = configurationIterator.next();
       ElectricFlowClient electricFlowClient = new ElectricFlowClient(tc.getConfigurationName());
       // 4. Creating CloudBeesFlowBuildData object out of run:
       CloudBeesFlowBuildData cbf = new CloudBeesFlowBuildData(run);
