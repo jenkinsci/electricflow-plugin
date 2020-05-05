@@ -90,9 +90,6 @@ public class EFCause extends hudson.model.Cause {
     if (str == null) {
       return true;
     }
-    if (str.equals("")) {
-      return true;
-    }
-    return false;
+    return str.equals("");
   }
 }
