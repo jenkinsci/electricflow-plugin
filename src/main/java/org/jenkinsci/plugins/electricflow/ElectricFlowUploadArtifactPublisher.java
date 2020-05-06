@@ -103,7 +103,7 @@ public class ElectricFlowUploadArtifactPublisher extends Recorder implements Sim
         log.debug("Workspace directory: " + workspace);
       }
 
-      // let's do a expand variables
+      // Expanding the variables
       EnvReplacer env = new EnvReplacer(run, taskListener);
       String newFilePath = env.expandEnv(filePath);
       String newArtifactVersion = env.expandEnv(artifactVersion);
