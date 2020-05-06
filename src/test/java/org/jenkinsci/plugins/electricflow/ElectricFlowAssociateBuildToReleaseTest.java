@@ -23,7 +23,8 @@ public class ElectricFlowAssociateBuildToReleaseTest {
   @Test
   public void doConfigRoundTrip() throws Exception {
     // Name is defined in the Utils.checkConfiguration() to skip the checkConnection
-    String configurationName = "__SKIP_CHECK_CONNECTION__";
+    String configurationName =
+        org.jenkinsci.plugins.electricflow.Utils.CONFIG_SKIP_CHECK_CONNECTION;
     Credential overrideCredential = new Credential("credential");
     String projectName = "Project name";
     String releaseName = "Release name";
