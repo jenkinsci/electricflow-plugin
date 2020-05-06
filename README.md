@@ -426,7 +426,7 @@ pipeline{
 
 ## Version 1.1.14 (May 6, 2020)
 
-  - Add support of Configuration as Code
+  - Added support of Configuration as Code
   - Updated plugin dependencies
 
 ## Version 1.1.13 (Apr 21, 2020)
