@@ -10,6 +10,8 @@ package org.jenkinsci.plugins.electricflow;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import hudson.EnvVars;
+import hudson.model.BuildListener;
+import hudson.model.TaskListener;
 import hudson.slaves.EnvironmentVariablesNodeProperty;
 import hudson.slaves.NodeProperty;
 import hudson.slaves.NodePropertyDescriptor;
@@ -17,6 +19,7 @@ import hudson.util.DescribableList;
 import hudson.util.FormValidation;
 import hudson.util.ListBoxModel;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
@@ -39,6 +42,7 @@ import org.jenkinsci.plugins.electricflow.ui.SelectItemValidationWrapper;
 
 public class Utils {
 
+  public static final String CONFIG_SKIP_CHECK_CONNECTION = "__SKIP_CHECK_CONNECTION__";
   private static final Log log = LogFactory.getLog(Utils.class);
 
   public static void addParametersToJson(
@@ -139,6 +143,10 @@ public class Utils {
   public static FormValidation validateConfiguration(String configuration) {
     if (configuration == null || configuration.isEmpty()) {
       return FormValidation.warning("Configuration field should not be empty.");
+    }
+
+    if (configuration.equals(CONFIG_SKIP_CHECK_CONNECTION)) {
+      return FormValidation.ok();
     }
 
     try {
@@ -428,5 +436,19 @@ public class Utils {
     } else {
       return envVarsNodePropertyList.get(0).getEnvVars();
     }
+  }
+
+  public static PrintStream getLogger(BuildListener bl, TaskListener tl) {
+    PrintStream logger = null;
+
+    if (bl != null) {
+      logger = bl.getLogger();
+      return logger;
+    }
+    if (tl != null) {
+      logger = tl.getLogger();
+      return logger;
+    }
+    return logger;
   }
 }

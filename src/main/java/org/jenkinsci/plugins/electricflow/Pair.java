@@ -14,6 +14,7 @@ import hudson.model.Descriptor;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 public class Pair extends AbstractDescribableImpl<Pair> {
+
   private String key;
   private String value;
 

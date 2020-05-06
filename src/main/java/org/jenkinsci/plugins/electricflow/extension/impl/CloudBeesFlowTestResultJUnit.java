@@ -9,6 +9,7 @@ import org.jenkinsci.plugins.variant.OptionalExtension;
 
 @OptionalExtension(requirePlugins = "junit")
 public class CloudBeesFlowTestResultJUnit extends CloudBeesFlowTestResult {
+
   public boolean populate(Run<?, ?> run) {
     TestResultAction testResultAction = run.getAction(TestResultAction.class);
 

@@ -6,6 +6,7 @@ import java.util.List;
 import org.jenkinsci.plugins.electricflow.extension.CloudBeesFlowTestResult;
 
 public class CloudBeesFlowTestResultData {
+
   private List<CloudBeesFlowTestResult> testResultData;
 
   public CloudBeesFlowTestResultData(Run<?, ?> run) {

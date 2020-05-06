@@ -18,7 +18,7 @@ public class CloudBeesFlowTestResult implements ExtensionPoint {
   protected String url;
   protected String displayName;
 
-  public CloudBeesFlowTestResult() {};
+  public CloudBeesFlowTestResult() {}
 
   public static CloudBeesFlowTestResult build(Run run) {
     ExtensionList.lookup(CloudBeesFlowTestResult.class);

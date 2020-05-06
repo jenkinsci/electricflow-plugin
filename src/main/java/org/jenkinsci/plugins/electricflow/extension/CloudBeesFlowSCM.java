@@ -8,6 +8,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 public class CloudBeesFlowSCM implements ExtensionPoint {
+
   private static final Log log = LogFactory.getLog(CloudBeesFlowSCM.class);
 
   protected String scmReportUrl;
@@ -76,11 +77,13 @@ public class CloudBeesFlowSCM implements ExtensionPoint {
 
     return json;
   }
+
   // service methods
   // isApplicable() returns false because it will be implemented in subclasses
   public boolean isApplicable(Object object) {
     return false;
   }
+
   // populate
   public void populate(Object object) {}
 

@@ -32,14 +32,10 @@ import org.jenkinsci.plugins.electricflow.models.CIBuildDetail;
 public class ElectricFlowClient {
 
   // ~ Static fields/initializers ---------------------------------------------
-
-  public static final String JENKINS_BUILD_ASSOCIATION_TYPE = "triggeredByJenkins";
-  public static final String BUILD_TRIGGER_SOURCE = "Jenkins";
   private static final Log log = LogFactory.getLog(ElectricFlowClient.class);
   private static final String CHARSET = "UTF-8";
 
   // ~ Instance fields --------------------------------------------------------
-
   private String electricFlowUrl;
   private String userName;
   private String password;
@@ -319,7 +315,7 @@ public class ElectricFlowClient {
     }
   }
 
-  public JSONObject setCIBuildDetails(CIBuildDetail details) throws IOException {
+  public JSONObject attachCIBuildDetails(CIBuildDetail details) throws IOException {
     String endpoint = "/ciBuildDetails?request=setCiBuildDetail";
     String result = runRestAPI(endpoint, POST, details.toJsonObject().toString());
     return JSONObject.fromObject(result);

@@ -30,6 +30,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
@@ -277,7 +278,6 @@ public class ElectricFlowPublishApplication extends Recorder implements SimpleBu
             + HtmlUtils.encodeForHtml(jobUrl)
             + "'>link to createApplicationFromDeploymentPackage job</a></td>   \n"
             + "  </tr>\n";
-    ;
 
     if (!zipFiles.isEmpty()) {
       StringBuilder strBuilder = new StringBuilder(summaryText);
@@ -303,7 +303,7 @@ public class ElectricFlowPublishApplication extends Recorder implements SimpleBu
           try {
             byte[] encoded = Files.readAllBytes(Paths.get(manifestPath));
 
-            jsonContent = new String(encoded, "UTF-8");
+            jsonContent = new String(encoded, StandardCharsets.UTF_8);
           } catch (IOException e) {
             logger.println("Warning: Error occurred during read manifest file. " + e.getMessage());
             log.warn(e.getMessage(), e);
