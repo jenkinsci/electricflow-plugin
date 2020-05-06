@@ -42,8 +42,8 @@ import org.jenkinsci.plugins.electricflow.ui.SelectItemValidationWrapper;
 
 public class Utils {
 
-  private static final Log log = LogFactory.getLog(Utils.class);
   public static final String CONFIG_SKIP_CHECK_CONNECTION = "__SKIP_CHECK_CONNECTION__";
+  private static final Log log = LogFactory.getLog(Utils.class);
 
   public static void addParametersToJson(
       List<String> pipelineParameters,
@@ -145,7 +145,7 @@ public class Utils {
       return FormValidation.warning("Configuration field should not be empty.");
     }
 
-    if (configuration.equals(CONFIG_SKIP_CHECK_CONNECTION)){
+    if (configuration.equals(CONFIG_SKIP_CHECK_CONNECTION)) {
       return FormValidation.ok();
     }
 
