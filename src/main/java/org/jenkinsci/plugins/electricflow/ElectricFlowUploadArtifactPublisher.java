@@ -114,7 +114,7 @@ public class ElectricFlowUploadArtifactPublisher extends Recorder implements Sim
         log.debug("Workspace directory: " + newFilePath);
       }
 
-      // end of replacements
+      // Uploading artifact
       ElectricFlowClient efClient =
           ElectricFlowClientFactory.getElectricFlowClient(
               configuration, overrideCredential, run, env, false);
