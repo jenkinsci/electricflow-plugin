@@ -1,4 +1,3 @@
-
 // Release.java --
 //
 // Release.java is part of ElectricCommander.
@@ -12,79 +11,92 @@ package org.jenkinsci.plugins.electricflow;
 import java.util.Collections;
 import java.util.List;
 
-public class Release
-{
+public class Release {
 
-    //~ Instance fields --------------------------------------------------------
+  // ~ Instance fields --------------------------------------------------------
 
-    private String       configuration;
-    private List<String> startStages;
-    private String       releaseName;
-    private String       pipelineName;
-    private List<String> pipelineParameters;
+  private String configuration;
+  private String releaseName;
+  private String projectName;
+  private String releaseId;
+  private String flowRuntimeId;
+  private List<String> startStages;
+  private String pipelineId;
+  private String pipelineName;
+  private List<String> pipelineParameters;
 
-    public String getProjectName() {
-        return projectName;
-    }
+  public Release(String configuration, String projectName, String releaseName) {
+    this.configuration = configuration;
+    this.releaseName = releaseName;
+    this.projectName = projectName;
+  }
 
-    private String projectName;
+  // ~ Constructors -----------------------------------------------------------
 
-    //~ Constructors -----------------------------------------------------------
+  public String getProjectName() {
+    return projectName;
+  }
 
-    public Release(
-            String configuration,
-            String projectName,
-            String releaseName)
-    {
-        this.configuration = configuration;
-        this.releaseName   = releaseName;
-        this.projectName = projectName;
-    }
+  // ~ Methods ----------------------------------------------------------------
 
-    //~ Methods ----------------------------------------------------------------
+  public String getReleaseId() {
+    return releaseId;
+  }
 
-    public String getConfiguration()
-    {
-        return configuration;
-    }
+  public void setReleaseId(String releaseId) {
+    this.releaseId = releaseId;
+  }
 
-    public String getPipelineName()
-    {
-        return pipelineName;
-    }
+  public String getConfiguration() {
+    return configuration;
+  }
 
-    public String getReleaseName() {
-        return releaseName;
-    }
+  public String getPipelineId() {
+    return pipelineId;
+  }
 
-    public List<String> getPipelineParameters()
-    {
-        return pipelineParameters;
-    }
+  public void setPipelineId(String pipelineId) {
+    this.pipelineId = pipelineId;
+  }
 
-    public List<String> getStartStages()
-    {
-        return startStages;
-    }
+  public String getPipelineName() {
+    return pipelineName;
+  }
 
-    public void setPipelineName(String pipelineName)
-    {
-        this.pipelineName = pipelineName;
-    }
+  public void setPipelineName(String pipelineName) {
+    this.pipelineName = pipelineName;
+  }
 
-    public void setPipelineParameters(List<String> pipelineParameters)
-    {
-        this.pipelineParameters = pipelineParameters;
-    }
+  public String getReleaseName() {
+    return releaseName;
+  }
 
-    public void setReleaseName(String releaseName)
-    {
-        this.releaseName = releaseName;
-    }
+  public void setReleaseName(String releaseName) {
+    this.releaseName = releaseName;
+  }
 
-    public void setStartStages(List<String> startStages)
-    {
-        Collections.sort(startStages, String::compareTo);
-        this.startStages = startStages;
-    }
+  public String getFlowRuntimeId() {
+    return flowRuntimeId;
+  }
+
+  public void setFlowRuntimeId(String flowRuntimeId) {
+    this.flowRuntimeId = flowRuntimeId;
+  }
+
+  public List<String> getPipelineParameters() {
+    return pipelineParameters;
+  }
+
+  public void setPipelineParameters(List<String> pipelineParameters) {
+    this.pipelineParameters = pipelineParameters;
+  }
+
+  public List<String> getStartStages() {
+    return startStages;
+  }
+
+  public void setStartStages(List<String> startStages) {
+    Collections.sort(startStages, String::compareTo);
+    this.startStages = startStages;
+  }
 }

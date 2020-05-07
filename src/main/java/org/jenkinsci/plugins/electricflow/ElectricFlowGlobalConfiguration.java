@@ -1,4 +1,3 @@
-
 // ElectricFlowGlobalConfiguration.java --
 //
 // ElectricFlowGlobalConfiguration.java is part of ElectricCommander.
@@ -9,67 +8,56 @@
 
 package org.jenkinsci.plugins.electricflow;
 
+import hudson.Extension;
 import java.util.List;
-
+import jenkins.model.GlobalConfiguration;
+import net.sf.json.JSONObject;
 import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.StaplerRequest;
 
-import net.sf.json.JSONObject;
+@Extension
+@Symbol("electricflow")
+public class ElectricFlowGlobalConfiguration extends GlobalConfiguration {
 
-import hudson.Extension;
+  // ~ Instance fields --------------------------------------------------------
 
-import jenkins.model.GlobalConfiguration;
+  public List<Configuration> configurations;
+  @Deprecated private transient List<Configuration> efConfigurations;
 
-@Extension @Symbol("electricflow") public class ElectricFlowGlobalConfiguration
-    extends GlobalConfiguration
-{
+  // ~ Constructors -----------------------------------------------------------
 
-    //~ Instance fields --------------------------------------------------------
+  public ElectricFlowGlobalConfiguration() {
+    load();
+  }
 
-    @Deprecated private transient List<Configuration> efConfigurations;
-    public List<Configuration> configurations;
+  // ~ Methods ----------------------------------------------------------------
 
-    //~ Constructors -----------------------------------------------------------
+  @Override
+  public boolean configure(StaplerRequest req, JSONObject formData) throws FormException {
+    this.configurations = null;
+    req.bindJSON(this, formData);
+    save();
 
-    public ElectricFlowGlobalConfiguration()
-    {
-        load();
+    return true;
+  }
+
+  public List<Configuration> getConfigurations() {
+    return this.configurations;
+  }
+
+  @DataBoundSetter
+  public void setConfigurations(List<Configuration> configurations) {
+    this.configurations = configurations;
+  }
+
+  /*
+   * This is required to transform the old efConfigurations to the new configurations
+   */
+  private Object readResolve() {
+    if (efConfigurations != null) {
+      this.configurations = efConfigurations;
     }
-
-    //~ Methods ----------------------------------------------------------------
-
-    @Override public boolean configure(
-            StaplerRequest req,
-            JSONObject     formData)
-        throws FormException
-    {
-        this.configurations = null;
-        req.bindJSON(this, formData);
-        save();
-
-        return true;
-    }
-
-    public List<Configuration> getConfigurations()
-    {
-        return this.configurations;
-    }
-
-    @DataBoundSetter public void setConfigurations(List<Configuration> configurations)
-    {
-        this.configurations = configurations;
-    }
-
-    /*
-    * This is required to transform the old efConfigurations to the new configurations
-    */
-    private Object readResolve()
-    {
-        if (efConfigurations != null)
-        {
-            this.configurations = efConfigurations;
-        }
-        return this;
-    }
+    return this;
+  }
 }
