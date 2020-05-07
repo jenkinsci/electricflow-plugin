@@ -6,7 +6,6 @@ import com.cloudbees.plugins.credentials.CredentialsMatchers;
 import com.cloudbees.plugins.credentials.CredentialsProvider;
 import com.cloudbees.plugins.credentials.common.StandardUsernameListBoxModel;
 import com.cloudbees.plugins.credentials.common.StandardUsernamePasswordCredentials;
-import com.cloudbees.plugins.credentials.domains.DomainRequirement;
 import com.cloudbees.plugins.credentials.domains.SchemeRequirement;
 import hudson.Extension;
 import hudson.model.AbstractDescribableImpl;
@@ -88,7 +87,7 @@ public class Credential extends AbstractDescribableImpl<Credential> {
               ACL.SYSTEM,
               Jenkins.get(),
               StandardUsernamePasswordCredentials.class,
-              Collections.<DomainRequirement>emptyList(),
+              Collections.emptyList(),
               CredentialsMatchers.always());
     }
 

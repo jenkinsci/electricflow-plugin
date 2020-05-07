@@ -8,6 +8,7 @@ import java.util.List;
 import net.sf.json.JSONObject;
 
 public class CloudBeesFlowPipeline implements ExtensionPoint {
+
   protected String stageName;
   protected String result;
   protected String reason;

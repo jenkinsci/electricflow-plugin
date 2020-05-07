@@ -96,8 +96,7 @@ public class ElectricFlowPipelinePublisher extends Recorder implements SimpleBui
       @Nonnull Run<?, ?> run,
       @Nonnull FilePath filePath,
       @Nonnull Launcher launcher,
-      @Nonnull TaskListener taskListener)
-      throws InterruptedException, IOException {
+      @Nonnull TaskListener taskListener) {
     boolean result = runPipeline(run, null, taskListener);
 
     if (!result) {
@@ -105,23 +104,13 @@ public class ElectricFlowPipelinePublisher extends Recorder implements SimpleBui
     }
   }
 
-  private void logListener(BuildListener buildListener, TaskListener taskListener, String log) {
-
-    if (buildListener != null) {
-      buildListener.getLogger().println(log);
-    } else if (taskListener != null) {
-      taskListener.getLogger().println(log);
-    }
-  }
-
   private boolean runPipeline(
       Run<?, ?> run, BuildListener buildListener, TaskListener taskListener) {
-    logListener(
-        buildListener,
-        taskListener,
-        "Project name: " + projectName + ", Pipeline name: " + pipelineName);
 
+    // We should be sure that logger is not null
     PrintStream logger = Utils.getLogger(buildListener, taskListener);
+
+    logger.println("Project name: " + projectName + ", Pipeline name: " + pipelineName);
     EnvReplacer env = null;
     ElectricFlowClient efClient;
     try {
@@ -143,16 +132,14 @@ public class ElectricFlowPipelinePublisher extends Recorder implements SimpleBui
         log.debug("FormalParameters are: " + paramsResponse.toString());
       }
     } catch (Exception e) {
-      taskListener
-          .getLogger()
-          .println("Error occurred during formal parameters fetch: " + e.getMessage());
+      logger.println("Error occurred during formal parameters fetch: " + e.getMessage());
       log.error("Error occurred during formal parameters fetch: " + e.getMessage(), e);
 
       return false;
     }
 
     try {
-      logListener(buildListener, taskListener, "Preparing to run pipeline...");
+      logger.println("Preparing to run pipeline...");
 
       String pipelineResult;
       JSONArray parameters = getPipelineParameters();
@@ -171,28 +158,26 @@ public class ElectricFlowPipelinePublisher extends Recorder implements SimpleBui
       String projectName = getProjectNameFromResponse(pipelineResult);
 
       CloudBeesFlowBuildData cbfdb = new CloudBeesFlowBuildData(run);
-      taskListener.getLogger().println("++++++++++++++++++++++++++++++++++++++++++++");
-      taskListener.getLogger().println("CBF Data: " + cbfdb.toJsonObject().toString());
-      taskListener.getLogger().println("++++++++++++++++++++++++++++++++++++++++++++");
-      taskListener
-          .getLogger()
-          .println("About to call setJenkinsBuildDetails after running a Pipeline");
+
+      logger.println("++++++++++++++++++++++++++++++++++++++++++++");
+      logger.println("CBF Data: " + cbfdb.toJsonObject().toString());
+      logger.println("++++++++++++++++++++++++++++++++++++++++++++");
+      logger.println("About to call setJenkinsBuildDetails after running a Pipeline");
 
       JSONObject associateResult =
-          efClient.setCIBuildDetails(
+          efClient.attachCIBuildDetails(
               new CIBuildDetail(cbfdb, projectName)
                   .setFlowRuntimeId(flowRuntimeId)
                   .setAssociationType(BuildAssociationType.TRIGGERED_BY_CI));
 
-      taskListener.getLogger().println("Return from efClient: " + associateResult.toString());
-      taskListener.getLogger().println("++++++++++++++++++++++++++++++++++++++++++++");
+      logger.println("Return from efClient: " + associateResult.toString());
+      logger.println("++++++++++++++++++++++++++++++++++++++++++++");
 
       run.addAction(action);
       run.save();
-      logListener(
-          buildListener, taskListener, "Pipeline result: " + formatJsonOutput(pipelineResult));
+      logger.println("Pipeline result: " + formatJsonOutput(pipelineResult));
     } catch (Exception e) {
-      logListener(buildListener, taskListener, e.getMessage());
+      logger.println(e.getMessage());
       log.error(e.getMessage(), e);
 
       return false;

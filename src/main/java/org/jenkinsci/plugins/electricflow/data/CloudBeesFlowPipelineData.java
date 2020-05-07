@@ -5,6 +5,7 @@ import java.util.List;
 import org.jenkinsci.plugins.electricflow.extension.CloudBeesFlowPipeline;
 
 public class CloudBeesFlowPipelineData {
+
   private List<CloudBeesFlowPipeline> pipelineData;
 
   public CloudBeesFlowPipelineData(Run<?, ?> run) {

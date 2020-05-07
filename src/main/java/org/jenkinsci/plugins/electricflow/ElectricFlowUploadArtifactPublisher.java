@@ -25,7 +25,6 @@ import hudson.util.FormValidation;
 import hudson.util.ListBoxModel;
 import java.io.IOException;
 import java.io.PrintStream;
-import java.io.UnsupportedEncodingException;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
@@ -35,6 +34,7 @@ import net.sf.json.JSONObject;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jenkinsci.Symbol;
+import org.jenkinsci.plugins.electricflow.extension.ArtifactUploadData;
 import org.jenkinsci.plugins.electricflow.factories.ElectricFlowClientFactory;
 import org.jenkinsci.plugins.electricflow.ui.HtmlUtils;
 import org.kohsuke.stapler.AncestorInPath;
@@ -51,7 +51,6 @@ public class ElectricFlowUploadArtifactPublisher extends Recorder implements Sim
   private static final Log log = LogFactory.getLog(ElectricFlowUploadArtifactPublisher.class);
 
   // ~ Instance fields --------------------------------------------------------
-
   private final String configuration;
   private final String repositoryName;
   private Credential overrideCredential;
@@ -92,7 +91,7 @@ public class ElectricFlowUploadArtifactPublisher extends Recorder implements Sim
 
   private boolean runProcess(
       @Nonnull Run<?, ?> run, @Nonnull TaskListener taskListener, @Nonnull FilePath workspace) {
-    PrintStream logger = taskListener.getLogger();
+    PrintStream logger = Utils.getLogger(null, taskListener);
 
     try {
 
@@ -104,17 +103,18 @@ public class ElectricFlowUploadArtifactPublisher extends Recorder implements Sim
         log.debug("Workspace directory: " + workspace);
       }
 
-      // let's do a expand variables
+      // Expanding the variables
       EnvReplacer env = new EnvReplacer(run, taskListener);
       String newFilePath = env.expandEnv(filePath);
       String newArtifactVersion = env.expandEnv(artifactVersion);
       String newArtifactName = env.expandEnv(artifactName);
+      String artifactVersionName = newArtifactName + ":" + newArtifactVersion;
 
       if (log.isDebugEnabled()) {
         log.debug("Workspace directory: " + newFilePath);
       }
 
-      // end of replacements
+      // Uploading artifact
       ElectricFlowClient efClient =
           ElectricFlowClientFactory.getElectricFlowClient(
               configuration, overrideCredential, run, env, false);
@@ -135,8 +135,39 @@ public class ElectricFlowUploadArtifactPublisher extends Recorder implements Sim
         return false;
       }
 
-      String summaryHtml = getSummaryHtml(newArtifactVersion, newArtifactName, efClient);
-      SummaryTextAction action = new SummaryTextAction(run, summaryHtml);
+      String efArtifactUrl =
+          efClient.getElectricFlowUrl()
+              + "/commander/link/artifactVersionDetails/artifactVersions/"
+              + Utils.encodeURL(newArtifactName + ":" + newArtifactVersion)
+              + "?s=Artifacts&ss=Artifacts";
+
+      String repository = repositoryName.isEmpty() ? "default" : repositoryName;
+
+      String summaryHtml = getSummaryHtml(newArtifactVersion, repository, efArtifactUrl);
+
+      ArtifactUploadSummaryTextAction action =
+          new ArtifactUploadSummaryTextAction(run, summaryHtml);
+
+      ArtifactUploadData artifactUploadData = new ArtifactUploadData();
+      artifactUploadData.setArtifactName(newArtifactName);
+      artifactUploadData.setArtifactUrl(efArtifactUrl);
+      artifactUploadData.setArtifactVersion(newArtifactVersion);
+      artifactUploadData.setArtifactVersionName(artifactVersionName);
+      artifactUploadData.setRepositoryName(repository);
+      artifactUploadData.setRepositoryType(FLOW_ARTIFACT_REPOSITORY);
+      artifactUploadData.setFilePath(newFilePath);
+
+      action.setArtifactUploadData(artifactUploadData);
+
+      logger.println("++++++++++++++++++++++++++++++++++++++++++++");
+      logger.println("Artifact Name: " + artifactUploadData.getArtifactName());
+      logger.println("Artifact Version: " + artifactUploadData.getArtifactVersion());
+      logger.println("Artifact Version Name: " + artifactUploadData.getArtifactVersionName());
+      logger.println("Artifact Url: " + artifactUploadData.getArtifactUrl());
+      logger.println("Repository Name: " + artifactUploadData.getRepositoryName());
+      logger.println("Repository Type: " + artifactUploadData.getRepositoryType());
+      logger.println("File path: " + artifactUploadData.getFilePath());
+      logger.println("++++++++++++++++++++++++++++++++++++++++++++");
 
       run.addAction(action);
       run.save();
@@ -201,30 +232,22 @@ public class ElectricFlowUploadArtifactPublisher extends Recorder implements Sim
     return BuildStepMonitor.NONE;
   }
 
-  private String getSummaryHtml(
-      String newArtifactVersion, String newArtifactName, ElectricFlowClient efClient)
-      throws UnsupportedEncodingException {
-    String url =
-        efClient.getElectricFlowUrl()
-            + "/commander/link/artifactVersionDetails/artifactVersions/"
-            + Utils.encodeURL(newArtifactName + ":" + newArtifactVersion)
-            + "?s=Artifacts&ss=Artifacts";
-    String repository = repositoryName.isEmpty() ? "default" : repositoryName;
+  private String getSummaryHtml(String newArtifactVersion, String repository, String efUrl) {
 
     return "<h3>CloudBees Flow Publish Artifact</h3>"
         + "<table cellspacing=\"2\" cellpadding=\"4\">\n"
         + "  <tr>\n"
         + "    <td>Artifact URL:</td>\n"
         + "    <td><a href ='"
-        + HtmlUtils.encodeForHtml(url)
+        + HtmlUtils.encodeForHtml(efUrl)
         + "'>"
-        + HtmlUtils.encodeForHtml(url)
+        + HtmlUtils.encodeForHtml(efUrl)
         + "</a></td> \n"
         + "  </tr>\n"
         + "  <tr>\n"
         + "    <td>Artifact Name:</td>\n"
         + "    <td><a href ='"
-        + HtmlUtils.encodeForHtml(url)
+        + HtmlUtils.encodeForHtml(efUrl)
         + "'>"
         + HtmlUtils.encodeForHtml(artifactName)
         + "</a></td> \n"

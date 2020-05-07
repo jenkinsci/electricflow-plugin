@@ -21,6 +21,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintStream;
 import java.io.Writer;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
@@ -67,7 +68,8 @@ public class FileHelper {
   static void modifyFile(String filePath, String oldString, String newString) throws IOException {
     StringBuilder oldContent = new StringBuilder();
     BufferedReader reader =
-        new BufferedReader(new InputStreamReader(new FileInputStream(filePath), "UTF-8"));
+        new BufferedReader(
+            new InputStreamReader(new FileInputStream(filePath), StandardCharsets.UTF_8));
 
     // Reading all the lines of input text file into oldContent
     String line;
@@ -81,7 +83,8 @@ public class FileHelper {
 
     // Rewriting the input text file with newContent
     Writer out =
-        new BufferedWriter(new OutputStreamWriter(new FileOutputStream(filePath), "UTF-8"));
+        new BufferedWriter(
+            new OutputStreamWriter(new FileOutputStream(filePath), StandardCharsets.UTF_8));
 
     out.append(newContent);
     out.flush();

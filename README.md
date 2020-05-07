@@ -424,6 +424,11 @@ pipeline{
 
 # Release Notes
 
+## Version 1.1.14 (May 6, 2020)
+
+  - Added support of Configuration as Code
+  - Updated plugin dependencies
+
 ## Version 1.1.13 (Apr 21, 2020)
 
   - All Post Build Actions now have the ability to connect to CloudBees Flow as a user other than the one mentioned in the electricflow Plugin configuration, under "Manage Jenkins".  These credentials which are used to override the connection credential at the level of the PBA only supports global credentials at this time.

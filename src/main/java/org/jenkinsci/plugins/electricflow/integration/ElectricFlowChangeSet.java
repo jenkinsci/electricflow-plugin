@@ -4,6 +4,7 @@ import hudson.ExtensionList;
 import hudson.ExtensionPoint;
 
 public class ElectricFlowChangeSet implements ExtensionPoint {
+
   protected String authorName;
   protected String authorEmail;
   protected String commitId;

@@ -8,33 +8,33 @@ import org.jenkinsci.plugins.electricflow.Pair;
 
 public interface CallRestApiModel {
 
-  public String getConfiguration();
+  String getConfiguration();
 
-  public Credential getOverrideCredential();
+  Credential getOverrideCredential();
 
-  public String getUrlPath();
+  String getUrlPath();
 
-  public String getHttpMethod();
+  String getHttpMethod();
 
-  public List<Pair> getParameters();
+  List<Pair> getParameters();
 
-  public default List<Pair> getParameters(EnvReplacer envReplacer) {
+  default List<Pair> getParameters(EnvReplacer envReplacer) {
     return getParameters().stream()
         .map(it -> new Pair(it.getKey(), envReplacer.expandEnv(it.getValue())))
         .collect(Collectors.toList());
   }
 
-  public String getBody();
+  String getBody();
 
-  public default String getEnvVarNameForResult() {
+  default String getEnvVarNameForResult() {
     return "";
   }
 
-  public default boolean isEnvVarNameForResultSet() {
+  default boolean isEnvVarNameForResultSet() {
     return getEnvVarNameForResult() != null && !getEnvVarNameForResult().isEmpty();
   }
 
-  public default String getSummary() {
+  default String getSummary() {
     return "Configuration: "
         + getConfiguration()
         + "; "

@@ -216,6 +216,7 @@ public class ElectricFlowRunProcedure extends Recorder implements SimpleBuildSte
   @Symbol("cloudBeesFlowRunProcedure")
   @Extension
   public static final class DescriptorImpl extends BuildStepDescriptor<Publisher> {
+
     public DescriptorImpl() {
       load();
     }

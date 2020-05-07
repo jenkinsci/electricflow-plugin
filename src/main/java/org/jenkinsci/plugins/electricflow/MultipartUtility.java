@@ -18,6 +18,7 @@ import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.net.URL;
 import java.net.URLConnection;
+import java.nio.charset.StandardCharsets;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
@@ -96,7 +97,7 @@ public class MultipartUtility {
   public void addFilePart(String fieldName, File uploadFile, String workspaceDir)
       throws IOException {
     String absolutePath = uploadFile.getAbsolutePath();
-    String fileName = absolutePath.substring(workspaceDir.length(), absolutePath.length());
+    String fileName = absolutePath.substring(workspaceDir.length());
 
     fileName = fileName.replaceAll("\\\\", "/");
 
@@ -183,7 +184,8 @@ public class MultipartUtility {
 
       if (status == HttpsURLConnection.HTTP_OK) {
         BufferedReader reader =
-            new BufferedReader(new InputStreamReader(httpConn.getInputStream(), "UTF-8"));
+            new BufferedReader(
+                new InputStreamReader(httpConn.getInputStream(), StandardCharsets.UTF_8));
         String line;
 
         while ((line = reader.readLine()) != null) {

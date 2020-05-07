@@ -134,7 +134,7 @@ public class ElectricFlowTriggerRelease extends Recorder implements SimpleBuildS
           .println("About to call setJenkinsBuildDetails after triggering a Flow Release");
 
       JSONObject associateResult =
-          efClient.setCIBuildDetails(
+          efClient.attachCIBuildDetails(
               new CIBuildDetail(cbfdb, projectName)
                   .setReleaseName(releaseName)
                   .setAssociationType(BuildAssociationType.TRIGGERED_BY_CI)
@@ -155,6 +155,22 @@ public class ElectricFlowTriggerRelease extends Recorder implements SimpleBuildS
       log.error(e.getMessage(), e);
       run.setResult(Result.FAILURE);
     }
+  }
+
+  private String getReleaseNameFromResponse(String releaseResult) {
+    JSONObject releaseJSON = JSONObject.fromObject(releaseResult).getJSONObject("release");
+    return (String) releaseJSON.get("releaseName");
+  }
+
+  private String getProjectNameFromResponse(String releaseResult) {
+    JSONObject releaseJSON = JSONObject.fromObject(releaseResult).getJSONObject("release");
+    return (String) releaseJSON.get("projectName");
+  }
+
+  private String getSetJenkinsBuildDetailsUrlBase(String releaseResult) {
+    JSONObject releaseJSON = JSONObject.fromObject(releaseResult).getJSONObject("release");
+    String retval = "/flowRuntimes/" + releaseJSON.get("releaseName") + "/jenkinsBuildDetails";
+    return retval;
   }
 
   public String getConfiguration() {
@@ -204,7 +220,6 @@ public class ElectricFlowTriggerRelease extends Recorder implements SimpleBuildS
   @DataBoundSetter
   public void setProjectName(String projectName) {
     this.projectName = getSelectItemValue(projectName);
-    ;
   }
 
   public String getStoredProjectName() {
