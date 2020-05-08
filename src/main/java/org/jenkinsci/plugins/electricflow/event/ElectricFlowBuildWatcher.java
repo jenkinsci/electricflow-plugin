@@ -22,12 +22,12 @@ public class ElectricFlowBuildWatcher extends RunListener<Run> {
 
   @Override
   public void onStarted(Run run, TaskListener listener) {
-    this.sendBuildDetailsToInstance(run);
+    this.sendBuildDetailsToInstance(run, listener);
   }
 
   @Override
   public void onCompleted(Run run, TaskListener listener) {
-    this.sendBuildDetailsToInstance(run);
+    this.sendBuildDetailsToInstance(run, listener);
   }
 
   public List<Configuration> getConfigurations() {
@@ -44,7 +44,7 @@ public class ElectricFlowBuildWatcher extends RunListener<Run> {
     return retval;
   }
 
-  public boolean sendBuildDetailsToInstance(Run run) {
+  public boolean sendBuildDetailsToInstance(Run<?, ?> run, TaskListener taskListener) {
     // 0. Getting EFCause
     EFCause efCause = null;
     try {
@@ -76,6 +76,13 @@ public class ElectricFlowBuildWatcher extends RunListener<Run> {
             efCause.getStageName(),
             efCause.getFlowRuntimeStateId());
       } catch (IOException e) {
+        return false;
+      } catch (RuntimeException ex){
+        taskListener.getLogger().printf(
+            "[Configuration %s] Can't attach CiBuildData:\n",
+            tc.getConfigurationName(),
+            ex.getMessage()
+        );
         return false;
       }
     }
