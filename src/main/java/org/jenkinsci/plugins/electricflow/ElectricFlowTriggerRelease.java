@@ -96,6 +96,7 @@ public class ElectricFlowTriggerRelease extends Recorder implements SimpleBuildS
     List<String> stagesToRun = new ArrayList<>();
 
     if (startingStage.isEmpty()) {
+
       for (int i = 0; i < stages.size(); i++) {
         JSONObject stage = stages.getJSONObject(i);
         if (stage.getString("stageName").length() > 0) {
@@ -122,12 +123,7 @@ public class ElectricFlowTriggerRelease extends Recorder implements SimpleBuildS
       String summaryHtml = getSummaryHtml(efClient, releaseResult, pipelineParameters, stagesToRun);
       SummaryTextAction action = new SummaryTextAction(run, summaryHtml);
 
-      // String releaseName = getReleaseNameFromResponse(releaseResult);
-      // String projectName = getProjectNameFromResponse(releaseResult);
-
-      // PrintStream logger = taskListener.getLogger();
       CloudBeesFlowBuildData cbfdb = new CloudBeesFlowBuildData(run);
-
       taskListener.getLogger().println("++++++++++++++++++++++++++++++++++++++++++++");
       taskListener.getLogger().println("Release Name is " + releaseName);
       taskListener.getLogger().println("Project Name is " + projectName);
@@ -150,7 +146,11 @@ public class ElectricFlowTriggerRelease extends Recorder implements SimpleBuildS
       run.addAction(action);
       run.save();
       logger.println("TriggerRelease  result: " + formatJsonOutput(releaseResult));
-    } catch (IOException | InterruptedException e) {
+    } catch (IOException e) {
+      logger.println(e.getMessage());
+      log.error(e.getMessage(), e);
+      run.setResult(Result.FAILURE);
+    } catch (InterruptedException e) {
       logger.println(e.getMessage());
       log.error(e.getMessage(), e);
       run.setResult(Result.FAILURE);

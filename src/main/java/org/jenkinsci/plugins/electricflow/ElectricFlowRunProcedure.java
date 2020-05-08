@@ -34,19 +34,18 @@ import hudson.tasks.Publisher;
 import hudson.tasks.Recorder;
 import hudson.util.FormValidation;
 import hudson.util.ListBoxModel;
+import java.io.IOException;
 import java.io.PrintStream;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import javax.annotation.Nonnull;
-import jenkins.model.Jenkins;
 import jenkins.tasks.SimpleBuildStep;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jenkinsci.Symbol;
-import org.jenkinsci.plugins.electricflow.data.CloudBeesFlowBuildData;
 import org.jenkinsci.plugins.electricflow.factories.ElectricFlowClientFactory;
 import org.jenkinsci.plugins.electricflow.ui.FieldValidationStatus;
 import org.jenkinsci.plugins.electricflow.ui.HtmlUtils;
@@ -75,10 +74,9 @@ public class ElectricFlowRunProcedure extends Recorder implements SimpleBuildSte
       @Nonnull Run<?, ?> run,
       @Nonnull FilePath filePath,
       @Nonnull Launcher launcher,
-      @Nonnull TaskListener taskListener) {
-
+      @Nonnull TaskListener taskListener)
+      throws InterruptedException, IOException {
     boolean isSuccess = runProcedure(run, taskListener);
-
     if (!isSuccess) {
       run.setResult(Result.FAILURE);
     }
@@ -87,11 +85,6 @@ public class ElectricFlowRunProcedure extends Recorder implements SimpleBuildSte
   private boolean runProcedure(@Nonnull Run<?, ?> run, @Nonnull TaskListener taskListener) {
     PrintStream logger = taskListener.getLogger();
 
-    CloudBeesFlowBuildData cloudBeesFlowBuildData = new CloudBeesFlowBuildData(run);
-    JSONObject json = cloudBeesFlowBuildData.toJsonObject();
-
-    logger.println("JSON: " + json.toString());
-    logger.println("JENKINS VERSION: " + Jenkins.VERSION);
     logger.println("Project name: " + projectName + ", Procedure name: " + procedureName);
 
     JSONObject procedure = JSONObject.fromObject(procedureParameters).getJSONObject("procedure");
@@ -123,6 +116,7 @@ public class ElectricFlowRunProcedure extends Recorder implements SimpleBuildSte
     } catch (Exception e) {
       logger.println(e.getMessage());
       log.error(e.getMessage(), e);
+
       return false;
     }
 

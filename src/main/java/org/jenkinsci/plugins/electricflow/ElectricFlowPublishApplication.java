@@ -215,6 +215,7 @@ public class ElectricFlowPublishApplication extends Recorder implements SimpleBu
     } catch (Exception e) {
       logger.println("Warning: Error occurred during application creation: " + e.getMessage());
       log.warn("Error occurred during application creation: " + e.getMessage(), e);
+
       return false;
     }
 

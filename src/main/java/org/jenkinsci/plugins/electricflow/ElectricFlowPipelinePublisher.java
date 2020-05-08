@@ -111,7 +111,6 @@ public class ElectricFlowPipelinePublisher extends Recorder implements SimpleBui
     PrintStream logger = Utils.getLogger(buildListener, taskListener);
 
     logger.println("Project name: " + projectName + ", Pipeline name: " + pipelineName);
-
     EnvReplacer env = null;
     ElectricFlowClient efClient;
     try {
@@ -154,10 +153,10 @@ public class ElectricFlowPipelinePublisher extends Recorder implements SimpleBui
 
       String summaryHtml = getSummaryHtml(efClient, pipelineResult, parameters);
       SummaryTextAction action = new SummaryTextAction(run, summaryHtml);
+
       String flowRuntimeId = getFlowRuntimeIdFromResponse(pipelineResult);
       String projectName = getProjectNameFromResponse(pipelineResult);
 
-      // PrintStream logger = taskListener.getLogger();
       CloudBeesFlowBuildData cbfdb = new CloudBeesFlowBuildData(run);
 
       logger.println("++++++++++++++++++++++++++++++++++++++++++++");
@@ -253,7 +252,6 @@ public class ElectricFlowPipelinePublisher extends Recorder implements SimpleBui
   }
 
   private JSONArray getPipelineParameters() {
-
     if (addParam != null && !addParam.isEmpty() && !"{}".equals(addParam)) {
       JSONObject pipelineJsonObject = JSONObject.fromObject(addParam).getJSONObject("pipeline");
       JSONArray pipelineParameters =
@@ -294,7 +292,6 @@ public class ElectricFlowPipelinePublisher extends Recorder implements SimpleBui
 
   private String getProjectNameFromResponse(String pipelineResult) {
     JSONObject flowRuntime = JSONObject.fromObject(pipelineResult).getJSONObject("flowRuntime");
-
     String projectName = (String) flowRuntime.get("projectName");
     return projectName;
   }

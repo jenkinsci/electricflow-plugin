@@ -33,6 +33,7 @@ public class Configuration extends AbstractDescribableImpl<Configuration> {
   private final String electricFlowUrl;
   private final String electricFlowApiVersion;
   private final boolean ignoreSslConnectionErrors;
+  private final boolean doNotSendBuildDetails;
 
   // ~ Constructors -----------------------------------------------------------
 
@@ -43,13 +44,15 @@ public class Configuration extends AbstractDescribableImpl<Configuration> {
       String electricFlowUser,
       Secret electricFlowPassword,
       String electricFlowApiVersion,
-      boolean ignoreSslConnectionErrors) {
+      boolean ignoreSslConnectionErrors,
+      boolean doNotSendBuildDetails) {
     this.configurationName = configurationName;
     this.electricFlowUrl = electricFlowUrl;
     this.electricFlowUser = electricFlowUser;
     this.electricFlowPassword = electricFlowPassword;
     this.electricFlowApiVersion = electricFlowApiVersion;
     this.ignoreSslConnectionErrors = ignoreSslConnectionErrors;
+    this.doNotSendBuildDetails = doNotSendBuildDetails;
   }
 
   // ~ Methods ----------------------------------------------------------------
@@ -64,6 +67,10 @@ public class Configuration extends AbstractDescribableImpl<Configuration> {
 
   public boolean getIgnoreSslConnectionErrors() {
     return this.ignoreSslConnectionErrors;
+  }
+
+  public boolean getDoNotSendBuildDetails() {
+    return this.doNotSendBuildDetails;
   }
 
   public Secret getElectricFlowPassword() {

@@ -34,6 +34,10 @@ All rights reserved.
                   <f:password />
               </f:entry>
 
+              <f:entry title="Do not send build details to flow" field="doNotSendBuildDetails">
+              <f:checkbox />
+              </f:entry>
+
               <f:entry title="Override CloudBees Flow SSL Validation Check" field="ignoreSslConnectionErrors">
               <f:checkbox />
               </f:entry>
