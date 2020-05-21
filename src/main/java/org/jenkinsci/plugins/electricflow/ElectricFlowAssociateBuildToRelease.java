@@ -64,6 +64,7 @@ public class ElectricFlowAssociateBuildToRelease extends Recorder implements Sim
   private Credential overrideCredential;
   private String projectName;
   private String releaseName;
+  private String flowRuntimeId;
 
   @DataBoundConstructor
   public ElectricFlowAssociateBuildToRelease() {}
@@ -117,11 +118,16 @@ public class ElectricFlowAssociateBuildToRelease extends Recorder implements Sim
     logger.println("JENKINS VERSION: " + Jenkins.VERSION);
     logger.println("Project name: " + projectName + ", Release name: " + releaseName);
 
-    CIBuildDetail detail =
-        new CIBuildDetail(cloudBeesFlowBuildData, projectName)
-            .setReleaseName(releaseName)
+    CIBuildDetail detail = new CIBuildDetail(cloudBeesFlowBuildData, projectName)
             .setAssociationType(BuildAssociationType.ATTACHED)
             .setBuildTriggerSource(BuildTriggerSource.CI);
+
+    if (flowRuntimeId != null && !flowRuntimeId.equals("")){
+      detail.setFlowRuntimeId(flowRuntimeId);
+    }
+    else {
+      detail.setReleaseName(releaseName);
+    }
 
     try {
       detail.validate();
@@ -130,7 +136,9 @@ public class ElectricFlowAssociateBuildToRelease extends Recorder implements Sim
       logger.println(Arrays.toString(ex.getStackTrace()));
     }
 
-    logger.println("JSON: " + formatJsonOutput(detail.toJsonObject().toString()));
+    if (log.isDebugEnabled()){
+      logger.println("JSON: " + formatJsonOutput(detail.toJsonObject().toString()));
+    }
 
     logger.println("Preparing to attach build...");
     JSONObject result = efClient.attachCIBuildDetails(detail);
@@ -185,10 +193,6 @@ public class ElectricFlowAssociateBuildToRelease extends Recorder implements Sim
     this.overrideCredential = overrideCredential;
   }
 
-  public String getStoredConfiguration() {
-    return configuration;
-  }
-
   public String getProjectName() {
     return projectName;
   }
@@ -196,10 +200,6 @@ public class ElectricFlowAssociateBuildToRelease extends Recorder implements Sim
   @DataBoundSetter
   public void setProjectName(String projectName) {
     this.projectName = getSelectItemValue(projectName);
-  }
-
-  public String getStoredProjectName() {
-    return projectName;
   }
 
   public String getReleaseName() {
@@ -211,7 +211,28 @@ public class ElectricFlowAssociateBuildToRelease extends Recorder implements Sim
     this.releaseName = getSelectItemValue(releaseName);
   }
 
+  public String getFlowRuntimeId() {
+    return flowRuntimeId;
+  }
+
+  @DataBoundSetter
+  public void setFlowRuntimeId(String flowRuntimeId) {
+    this.flowRuntimeId = flowRuntimeId;
+  }
+
+  public String getStoredProjectName() {
+    return projectName;
+  }
+
+  public String getStoredConfiguration() {
+    return configuration;
+  }
+
   public String getStoredReleaseName() {
+    return releaseName;
+  }
+
+  public String getStoredFlowRuntimeId() {
     return releaseName;
   }
 
@@ -344,6 +365,56 @@ public class ElectricFlowAssociateBuildToRelease extends Recorder implements Sim
           return SelectFieldUtils.getListBoxModelOnException("Select release");
         } else {
           return SelectFieldUtils.getListBoxModelOnWrongConf("Select release");
+        }
+      }
+    }
+
+    public ListBoxModel doFillPipelineRunItems(
+        @QueryParameter String releaseName,
+        @QueryParameter String projectName,
+        @QueryParameter String configuration,
+        @QueryParameter boolean overrideCredential,
+        @QueryParameter @RelativePath("overrideCredential") String credentialId,
+        @AncestorInPath Item item) {
+      if (item == null || !item.hasPermission(Item.CONFIGURE)) {
+        return new ListBoxModel();
+      }
+
+      String dropdownPlaceholderText = "(Optional) Select release pipeline run";
+      try {
+        ListBoxModel m = new ListBoxModel();
+
+        m.add(dropdownPlaceholderText, "");
+
+        if (!configuration.isEmpty()
+            && !projectName.isEmpty()
+            && SelectFieldUtils.checkAllSelectItemsAreNotValidationWrappers(projectName)) {
+
+          Credential overrideCredentialObj =
+              overrideCredential ? new Credential(credentialId) : null;
+          ElectricFlowClient client =
+              ElectricFlowClientFactory.getElectricFlowClient(
+                  configuration, overrideCredentialObj, null, true);
+
+          List<Map<String, Object>> pipelineRuns =
+              client.getReleaseRuns(configuration, projectName, releaseName);
+
+          for (Map<String, Object> run : pipelineRuns) {
+            m.add((String) run.get("flowRuntimeName"), (String) run.get("flowRuntimeId"));
+          }
+        }
+
+        return m;
+      } catch (Exception e) {
+        Credential overrideCredentialObj = overrideCredential ? new Credential(credentialId) : null;
+        if (Utils.isEflowAvailable(configuration, overrideCredentialObj)) {
+          log.error(
+              "Error when fetching values for this parameter - release. Error message: "
+                  + e.getMessage(),
+              e);
+          return SelectFieldUtils.getListBoxModelOnException(dropdownPlaceholderText);
+        } else {
+          return SelectFieldUtils.getListBoxModelOnWrongConf(dropdownPlaceholderText);
         }
       }
     }

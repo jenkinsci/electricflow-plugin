@@ -20,6 +20,7 @@ import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import javax.net.ssl.HttpsURLConnection;
 import net.sf.json.JSONArray;
@@ -862,6 +863,10 @@ public class ElectricFlowClient {
                     && release.getProjectName().equals(projectName))
         .map(Release::getReleaseName)
         .collect(Collectors.toList());
+  }
+
+  public List<Map<String, Object>> getReleaseRuns(String conf, String project, String releaseName){
+    return null;
   }
 
   public List<String> getReleases(String conf, String projectName) throws Exception {

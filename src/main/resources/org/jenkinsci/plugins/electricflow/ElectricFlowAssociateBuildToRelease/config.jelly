@@ -19,6 +19,9 @@ All rights reserved.
     <f:entry title="Release Name" field="releaseName" >
         <f:select id="ef_abtr_releaseName"/>
     </f:entry>
+    <f:entry title="Pipeline runs" field="flowRuntimeId" >
+        <f:select id="ef_abtr_flowRuntimeId"/>
+    </f:entry>
 
     <f:invisibleEntry>
         <f:checkbox field="validationTrigger" id="ef_abtr_validationTrigger"/>
@@ -32,6 +35,9 @@ All rights reserved.
     </f:invisibleEntry>
     <f:invisibleEntry>
         <f:readOnlyTextbox field="storedReleaseName"/>
+    </f:invisibleEntry>
+    <f:invisibleEntry>
+        <f:readOnlyTextbox field="storedFlowRuntimeId"/>
     </f:invisibleEntry>
 
     <j:if test="${instance != null}">
