@@ -1,13 +1,10 @@
 buildPlugin(configurations: [
           // Sanity on the minimum required Jenkins version
-         [ platform: "linux", jdk: "8", jenkins: '2.190.3' ],
-
-          // Sanity on the recent Jenkins version
-         [ platform: "linux", jdk: "8", jenkins: null ],
+         [ platform: "linux", jdk: "8" ],
 
          // + Java 11
-         [ platform: "linux", jdk: "11", jenkins: null, javaLevel: "8"],
+         [ platform: "linux", jdk: "11"],
 
          // + Windows
-         [ platform: "windows", jdk: "11", jenkins: null, javaLevel: "8" ],
+         [ platform: "windows", jdk: "11"],
 ])
