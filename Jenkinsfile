@@ -5,6 +5,6 @@ buildPlugin(configurations: [
          // + Java 11
          [ platform: "linux", jdk: "11"],
 
-         // + Windows
-         [ platform: "windows", jdk: "11"],
+         // Sanity on the minimum required Jenkins version on Windows
+         [ platform: "windows", jdk: "8"],
 ])
