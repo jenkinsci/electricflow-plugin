@@ -10,6 +10,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import javax.annotation.Nonnull;
+import net.sf.json.JSONObject;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jenkinsci.plugins.electricflow.models.CallRestApiModel;
@@ -118,7 +119,7 @@ public class CloudBeesFlowCallRestApiStep extends Step implements CallRestApiMod
     return new Execution(stepContext, this);
   }
 
-  private static class Execution extends SynchronousStepExecution {
+  private static class Execution extends SynchronousStepExecution<JSONObject> {
 
     private static final long serialVersionUID = 1L;
     private transient CloudBeesFlowCallRestApiStep step;
@@ -133,7 +134,7 @@ public class CloudBeesFlowCallRestApiStep extends Step implements CallRestApiMod
     }
 
     @Override
-    protected String run() throws Exception {
+    protected JSONObject run() throws Exception {
       return CallRestApiUtils.perform(
           getStep(), getContext().get(Run.class), getContext().get(TaskListener.class));
     }
