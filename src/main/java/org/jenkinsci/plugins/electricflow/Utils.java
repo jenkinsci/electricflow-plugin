@@ -153,11 +153,11 @@ public class Utils {
       new ElectricFlowClient(configuration).testConnection();
     } catch (Exception e) {
       log.error(
-          "Connection to CloudBees Flow Server Failed. Please fix connection information and reload this page. Error message: "
+          "Connection to CloudBees CD Server Failed. Please fix connection information and reload this page. Error message: "
               + e.getMessage(),
           e);
       return FormValidation.error(
-          "Connection to CloudBees Flow Server Failed. Please fix connection information and reload this page. Error message: "
+          "Connection to CloudBees CD Server Failed. Please fix connection information and reload this page. Error message: "
               + e.getMessage());
     }
 

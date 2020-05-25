@@ -196,7 +196,7 @@ public class ElectricFlowRunProcedure extends Recorder implements SimpleBuildSte
     String jobId = JSONObject.fromObject(result).getString("jobId");
     String jobUrl = configuration.getElectricFlowUrl() + "/commander/link/jobDetails/jobs/" + jobId;
     String summaryText =
-        "<h3>CloudBees Flow Run Procedure</h3>"
+        "<h3>CloudBees CD Run Procedure</h3>"
             + "<table cellspacing=\"2\" cellpadding=\"4\"> \n"
             + "  <tr>\n"
             + "    <td>Procedure Name:</td>\n"
@@ -435,7 +435,7 @@ public class ElectricFlowRunProcedure extends Recorder implements SimpleBuildSte
           selectItemValidationWrapper =
               new SelectItemValidationWrapper(
                   FieldValidationStatus.ERROR,
-                  "Error when fetching set of procedure parameters. Connection to CloudBees Flow Server Failed. Please fix connection information and reload this page.",
+                  "Error when fetching set of procedure parameters. Connection to CloudBees CD Server Failed. Please fix connection information and reload this page.",
                   "{}");
         }
         m.add(selectItemValidationWrapper.getJsonStr());
@@ -445,7 +445,7 @@ public class ElectricFlowRunProcedure extends Recorder implements SimpleBuildSte
 
     @Override
     public String getDisplayName() {
-      return "CloudBees Flow - Run Procedure";
+      return "CloudBees CD - Run Procedure";
     }
 
     @Override

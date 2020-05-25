@@ -22,7 +22,7 @@ public class SelectFieldUtils {
     SelectItemValidationWrapper selectItemValidationWrapper =
         new SelectItemValidationWrapper(
             FieldValidationStatus.ERROR,
-            "Connection to CloudBees Flow Server Failed. Please fix connection information and reload this page.",
+            "Connection to CloudBees CD Server Failed. Please fix connection information and reload this page.",
             "");
 
     ListBoxModel m = new ListBoxModel();

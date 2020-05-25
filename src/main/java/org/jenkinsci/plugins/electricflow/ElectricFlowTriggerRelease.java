@@ -277,7 +277,7 @@ public class ElectricFlowTriggerRelease extends Recorder implements SimpleBuildS
         efClient.getElectricFlowUrl() + "/flow/#pipeline-run/" + pipelineId + "/" + flowRuntimeId;
     String urlRelease = efClient.getElectricFlowUrl() + "/flow/#releases";
     String summaryText =
-        "<h3>CloudBees Flow Trigger Release</h3>"
+        "<h3>CloudBees CD Trigger Release</h3>"
             + "<table cellspacing=\"2\" cellpadding=\"4\"> \n"
             + "  <tr>\n"
             + "    <td>Release Name:</td>\n"
@@ -545,7 +545,7 @@ public class ElectricFlowTriggerRelease extends Recorder implements SimpleBuildS
           selectItemValidationWrapper =
               new SelectItemValidationWrapper(
                   FieldValidationStatus.ERROR,
-                  "Error when fetching set of deploy parameters. Connection to CloudBees Flow Server Failed. Please fix connection information and reload this page.",
+                  "Error when fetching set of deploy parameters. Connection to CloudBees CD Server Failed. Please fix connection information and reload this page.",
                   "{}");
         }
         m.add(selectItemValidationWrapper.getJsonStr());
@@ -668,7 +668,7 @@ public class ElectricFlowTriggerRelease extends Recorder implements SimpleBuildS
 
     @Override
     public String getDisplayName() {
-      return "CloudBees Flow - Trigger Release";
+      return "CloudBees CD - Trigger Release";
     }
 
     @Override

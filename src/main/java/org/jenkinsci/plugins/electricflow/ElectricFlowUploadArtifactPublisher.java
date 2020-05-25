@@ -234,7 +234,7 @@ public class ElectricFlowUploadArtifactPublisher extends Recorder implements Sim
 
   private String getSummaryHtml(String newArtifactVersion, String repository, String efUrl) {
 
-    return "<h3>CloudBees Flow Publish Artifact</h3>"
+    return "<h3>CloudBees CD Publish Artifact</h3>"
         + "<table cellspacing=\"2\" cellpadding=\"4\">\n"
         + "  <tr>\n"
         + "    <td>Artifact URL:</td>\n"
@@ -412,7 +412,7 @@ public class ElectricFlowUploadArtifactPublisher extends Recorder implements Sim
      */
     @Override
     public String getDisplayName() {
-      return "CloudBees Flow - Publish Artifact";
+      return "CloudBees CD - Publish Artifact";
     }
 
     public String getElectricFlowPassword() {

@@ -264,7 +264,7 @@ public class ElectricFlowDeployApplication extends Recorder implements SimpleBui
             + jobId
             + "/runningProcess";
     String summaryText =
-        "<h3>CloudBees Flow Deploy Application</h3>"
+        "<h3>CloudBees CD Deploy Application</h3>"
             + "<table cellspacing=\"2\" cellpadding=\"4\"> \n"
             + "  <tr>\n"
             + "    <td>Application Name:</td>\n"
@@ -584,7 +584,7 @@ public class ElectricFlowDeployApplication extends Recorder implements SimpleBui
           selectItemValidationWrapper =
               new SelectItemValidationWrapper(
                   FieldValidationStatus.ERROR,
-                  "Error when fetching set of deploy parameters. Connection to CloudBees Flow Server Failed. Please fix connection information and reload this page.",
+                  "Error when fetching set of deploy parameters. Connection to CloudBees CD Server Failed. Please fix connection information and reload this page.",
                   "{}");
         }
         m.add(selectItemValidationWrapper.getJsonStr());
@@ -650,7 +650,7 @@ public class ElectricFlowDeployApplication extends Recorder implements SimpleBui
 
     @Override
     public String getDisplayName() {
-      return "CloudBees Flow - Deploy Application";
+      return "CloudBees CD - Deploy Application";
     }
 
     @Override
