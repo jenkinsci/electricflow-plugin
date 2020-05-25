@@ -1,9 +1,9 @@
-# CloudBees Flow
-CloudBees Flow Application Release Orchestration.
+# CloudBees CD
+CloudBees CD Application Release Orchestration.
 
 # Overview
 
-CloudBees Flow is an enterprise-grade DevOps Release Automation platform
+CloudBees CD is an enterprise-grade DevOps Release Automation platform
 that simplifies provisioning, build and release of multi-tiered
 applications. Our model-driven approach to managing environments and
 applications allows teams to collaborate on and coordinate multiple
@@ -12,59 +12,59 @@ predictable and auditable way. 
 
 # Features
 
-With the CloudBees Flow plugin you can:
+With the CloudBees CD plugin you can:
 
--   Trigger a release in CloudBees Flow
--   Trigger a pipeline in CloudBees Flow
--   Deploy an application in CloudBees Flow
--   Publish an artifact from Jenkins into the CloudBees Flow artifact
+-   Trigger a release in CloudBees CD
+-   Trigger a pipeline in CloudBees CD
+-   Deploy an application in CloudBees CD
+-   Publish an artifact from Jenkins into the CloudBees CD artifact
     repository
--   Run a Procedure in CloudBees Flow
--   Call a REST API to invoke any action in CloudBees Flow
--   Create Application in CloudBees Flow from Deployment Package
+-   Run a Procedure in CloudBees CD
+-   Call a REST API to invoke any action in CloudBees CD
+-   Create Application in CloudBees CD from Deployment Package
 
 # Connection Configurations
 
-In order to use and integrate with CloudBees Flow, you would have to
+In order to use and integrate with CloudBees CD, you would have to
 create a connection configuration in Jenkins, that stores connection
-information of the CloudBees Flow Server you are connecting to. You can
+information of the CloudBees CD Server you are connecting to. You can
 create one or more connection configurations depending on the number of
 Servers or Environments you are integrating with.
 
-Navigate to Manage Jenkins / Configure System and go to CloudBees Flow
+Navigate to Manage Jenkins / Configure System and go to CloudBees CD
 section. One or more configurations can be created to connect to and
-call APIs into CloudBees Flow system. For each configuration, the
+call APIs into CloudBees CD system. For each configuration, the
 following attributes need to be specified:
 
 -   Configuration Name: Specify the name to store this configuration,
-    which is used to connect to the CloudBees Flow Server.
+    which is used to connect to the CloudBees CD Server.
 
--   Server URL: CloudBees Flow Server URL
+-   Server URL: CloudBees CD Server URL
 
--   REST API Version: CloudBees Flow Server Rest API Version
+-   REST API Version: CloudBees CD Server Rest API Version
 
--   User Name: CloudBees Flow user name for Connection
+-   User Name: CloudBees CD user name for Connection
 
--   User Password: CloudBees Flow password for Connection
+-   User Password: CloudBees CD password for Connection
 
--   Override CloudBees Flow SSL Validation Check: By default SSL
+-   Override CloudBees CD SSL Validation Check: By default SSL
     Validation Check will be performed. Choose this setting to override
     the check. If you do not want to override this check, perform the
-    SSL certificate setup required in Jenkins and CloudBees Flow as per
-    the CloudBees Flow Server documentation.
+    SSL certificate setup required in Jenkins and CloudBees CD as per
+    the CloudBees CD Server documentation.
 
 ![](docs/images/Configuration.png)
 
 # Supported Post Build Actions
 
-Following post build actions are available in CloudBees Flow
+Following post build actions are available in CloudBees CD
 Plugin. These actions can be executed separately or combined
 sequentially.
 
-## Create Application from Deployment Package to CloudBees Flow
+## Create Application from Deployment Package to CloudBees CD
 
 This integration allows you to create and deploy Java, .NET or any other
-application to any environment in CloudBees Flow. Deployment package
+application to any environment in CloudBees CD. Deployment package
 would be generated as part of your Jenkins CI build, and contain a
 Manifest file and artifacts to be deployed. 
 
@@ -73,12 +73,12 @@ at [https://github.com/electric-cloud/DeploymentPackageManager/tree/master/Samp
 
 This build action has following parameters:
 
--   Configuration: Name of the CloudBees Flow configuration
+-   Configuration: Name of the CloudBees CD configuration
 
--   Override Credential: Connect to CloudBees Flow as a User other than the one mentioned in the electricflow Plugin Connection Configuration
+-   Override Credential: Connect to CloudBees CD as a User other than the one mentioned in the electricflow Plugin Connection Configuration
 
 -   Deployment Package Path: Location or path for the deployment package
-    to be published to CloudBees Flow. For e.g., MyProject/target
+    to be published to CloudBees CD. For e.g., MyProject/target
 
 ![](docs/images/CreateDeplApp.png)
 
@@ -90,20 +90,20 @@ node {
 }
 ```
 
-## Publish Artifact to CloudBees Flow
+## Publish Artifact to CloudBees CD
 
 This integration allows you to publish the artifact for your application
-to CloudBees Flow. The Artifact will be generated as part of your
+to CloudBees CD. The Artifact will be generated as part of your
 Jenkins CI build. 
 
 This build action takes the following parameters:
 
--   Configuration: Name of the CloudBees Flow configuration
+-   Configuration: Name of the CloudBees CD configuration
 
--   Override Credential: Connect to CloudBees Flow as a User other than the one mentioned in the electricflow Plugin Connection Configuration
+-   Override Credential: Connect to CloudBees CD as a User other than the one mentioned in the electricflow Plugin Connection Configuration
 
 -   Artifact Path: Location or path for the artifact files to be
-    published to CloudBees Flow. For
+    published to CloudBees CD. For
     e.g., MyProject/\*\*/\*-$BUILD\_NUMBER.war
 
 -   Artifact Name: Name of the application artifact using the format
@@ -113,7 +113,7 @@ This build action takes the following parameters:
     can specify 1.0 or 1.0-$BUILD\_TAG that is based on Jenkins
     environment variable
 
--   CloudBees Flow Repository Name: Name of the CloudBees Flow
+-   CloudBees CD Repository Name: Name of the CloudBees CD
     Repository
 
 ![](docs/images/PublishArtifact.png)
@@ -126,19 +126,19 @@ node {
 }
 ```
 
-## Run Pipeline in CloudBees Flow
+## Run Pipeline in CloudBees CD
 
-This integration allows you to run a pipeline in CloudBees Flow.
+This integration allows you to run a pipeline in CloudBees CD.
 
 This build action takes the following parameters:
 
-- Configuration: Name of the CloudBees Flow configuration
+- Configuration: Name of the CloudBees CD configuration
 
-- Override Credential: Connect to CloudBees Flow as a User other than the one mentioned in the electricflow Plugin Connection Configuration
+- Override Credential: Connect to CloudBees CD as a User other than the one mentioned in the electricflow Plugin Connection Configuration
 
-- Project Name: Name of the CloudBees Flow project
+- Project Name: Name of the CloudBees CD project
 
-- Pipeline Name: Name of the CloudBees Flow pipeline
+- Pipeline Name: Name of the CloudBees CD pipeline
 
 - (Optional) Pipeline Parameters
 
@@ -162,16 +162,16 @@ node{
 }
 ```
 
-## Call REST API of CloudBees Flow
+## Call REST API of CloudBees CD
 
-This integration allows you to call the CloudBees Flow REST API. Similar
+This integration allows you to call the CloudBees CD REST API. Similar
 pipeline step is available.
 
 This build action takes the following parameters:
 
--   Configuration: Specify the name of the CloudBees Flow configuration.
+-   Configuration: Specify the name of the CloudBees CD configuration.
 
--   Override Credential: Connect to CloudBees Flow as a User other than the one mentioned in the electricflow Plugin Connection Configuration
+-   Override Credential: Connect to CloudBees CD as a User other than the one mentioned in the electricflow Plugin Connection Configuration
 
 -   URL Path: Specify the URL Path for the REST API
 
@@ -228,25 +228,25 @@ node{
 }
 ```
 
-## Deploy Application using CloudBees Flow
+## Deploy Application using CloudBees CD
 
 This integration allows you to deploy an application using CloudBees
 Flow.
 
 This build action takes the following parameters:
 
-- Configuration: Specify the name of the CloudBees Flow configuration
+- Configuration: Specify the name of the CloudBees CD configuration
 
-- Override Credential: Connect to CloudBees Flow as a User other than the one mentioned in the electricflow Plugin Connection Configuration
+- Override Credential: Connect to CloudBees CD as a User other than the one mentioned in the electricflow Plugin Connection Configuration
 
-- Project Name: Specify the CloudBees Flow project name
+- Project Name: Specify the CloudBees CD project name
 
-- Application Name: Specify the CloudBees Flow application name
+- Application Name: Specify the CloudBees CD application name
 
-- Application Process Name: Specify the CloudBees Flow application process
+- Application Process Name: Specify the CloudBees CD application process
 name
 
-- Environment Name: Specify the CloudBees Flow environment name
+- Environment Name: Specify the CloudBees CD environment name
 
 - (Optional) Deploy Parameters
 
@@ -272,26 +272,26 @@ node{
 }
 ```
 
-## Trigger Release in CloudBees Flow
+## Trigger Release in CloudBees CD
 
-This Integration allows you to trigger a release in CloudBees Flow.
+This Integration allows you to trigger a release in CloudBees CD.
 
 This build action has following parameters:
 
-- Configuration: Specify the name of the CloudBees Flow configuration
+- Configuration: Specify the name of the CloudBees CD configuration
 
-- Override Credential: Connect to CloudBees Flow as a User other than the one mentioned in the electricflow Plugin Connection Configuration
+- Override Credential: Connect to CloudBees CD as a User other than the one mentioned in the electricflow Plugin Connection Configuration
 
-- Project Name: Specify the CloudBees Flow project name
+- Project Name: Specify the CloudBees CD project name
 
-- Release Name: Specify the CloudBees Flow release name
+- Release Name: Specify the CloudBees CD release name
 
 - (Optional) Starting Stage: Specify starting stage to run in the
-CloudBees Flow pipeline
+CloudBees CD pipeline
 
   -   Parameter is required if ‘Stages to run’ isn’t used
 
-- (Optional) Stages to run: Specify stages to run in the CloudBees Flow
+- (Optional) Stages to run: Specify stages to run in the CloudBees CD
 pipeline
 
   -   Parameter is required if ‘Starting Stage’ isn’t used
@@ -319,19 +319,19 @@ node{
 }
 ```
 
-## Run Procedure in CloudBees Flow
+## Run Procedure in CloudBees CD
 
-This Integration allows you run a procedure in CloudBees Flow.
+This Integration allows you run a procedure in CloudBees CD.
 
 This build action has following parameters:
 
-- Configuration: Specify the name of the CloudBees Flow configuration
+- Configuration: Specify the name of the CloudBees CD configuration
 
-- Override Credential: Connect to CloudBees Flow as a User other than the one mentioned in the electricflow Plugin Connection Configuration
+- Override Credential: Connect to CloudBees CD as a User other than the one mentioned in the electricflow Plugin Connection Configuration
 
-- Project Name: Specify the CloudBees Flow project name
+- Project Name: Specify the CloudBees CD project name
 
-- Procedure Name: Specify the CloudBees Flow procedure name
+- Procedure Name: Specify the CloudBees CD procedure name
 
 - (Optional) Procedure Parameters
 
@@ -356,11 +356,11 @@ node{
 
 # Supported Pipeline Steps
 
-Following pipeline steps are available in CloudBees Flow Plugin.
+Following pipeline steps are available in CloudBees CD Plugin.
 
-## Call REST API of CloudBees Flow
+## Call REST API of CloudBees CD
 
-This integration allows you to call the CloudBees Flow REST API. Similar
+This integration allows you to call the CloudBees CD REST API. Similar
 post build action is
 available.
 
@@ -368,9 +368,9 @@ Function name: cloudBeesFlowCallRestApi
 
 This pipeline step takes the following parameters:
 
--   Configuration: Specify the name of the CloudBees Flow configuration.
+-   Configuration: Specify the name of the CloudBees CD configuration.
 
--   Override Credential: Connect to CloudBees Flow as a User other than the one mentioned in the electricflow Plugin Connection Configuration
+-   Override Credential: Connect to CloudBees CD as a User other than the one mentioned in the electricflow Plugin Connection Configuration
 
 -   URL Path: Specify the URL Path for the REST API
 
