@@ -149,7 +149,7 @@ public class ElectricFlowAssociateBuildToRelease extends Recorder implements Sim
     logger.println("Preparing to attach build...");
     JSONObject result = efClient.attachCIBuildDetails(detail);
 
-    logger.println("Create jenkinsBuildDetails result: " + formatJsonOutput(result.toString()));
+    logger.println("CD response: " + formatJsonOutput(result.toString()));
     return result;
   }
 
