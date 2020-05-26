@@ -126,23 +126,28 @@ public class ElectricFlowTriggerRelease extends Recorder implements SimpleBuildS
       String summaryHtml = getSummaryHtml(efClient, flowRuntime, pipelineParameters, stagesToRun);
       SummaryTextAction action = new SummaryTextAction(run, summaryHtml);
 
-      CloudBeesFlowBuildData cbfdb = new CloudBeesFlowBuildData(run);
-      logger.println("++++++++++++++++++++++++++++++++++++++++++++");
-      logger.println("Release Name is " + releaseName);
-      logger.println("Project Name is " + projectName);
-      logger.println("CBF Data: " + cbfdb.toJsonObject().toString());
-      logger.println("++++++++++++++++++++++++");
-      logger.println("About to call setJenkinsBuildDetails after triggering a Flow Release");
+      try {
+        CloudBeesFlowBuildData cbfdb = new CloudBeesFlowBuildData(run);
+        if (log.isDebugEnabled()) {
+          logger.println("CBF Data: " + cbfdb.toJsonObject().toString());
+        }
 
-      JSONObject associateResult = efClient.attachCIBuildDetails(
-              new CIBuildDetail(cbfdb, projectName)
-                  .setFlowRuntimeId(flowRuntime.getString("flowRuntimeId"))
-                  .setAssociationType(BuildAssociationType.TRIGGERED_BY_CI)
-                  .setBuildTriggerSource(BuildTriggerSource.CI)
-          );
+        logger.println("About to call setJenkinsBuildDetails after triggering a Flow Release");
 
-      logger.println("Return from efClient: " + associateResult.toString());
-      logger.println("++++++++++++++++++++++++++++++++++++++++++++");
+        JSONObject associateResult =
+            efClient.attachCIBuildDetails(
+                new CIBuildDetail(cbfdb, projectName)
+                    .setFlowRuntimeId(flowRuntime.getString("flowRuntimeId"))
+                    .setAssociationType(BuildAssociationType.TRIGGERED_BY_CI)
+                    .setBuildTriggerSource(BuildTriggerSource.CI));
+
+        if (log.isDebugEnabled()) {
+          logger.println("Return from efClient: " + associateResult.toString());
+        }
+
+      } catch (RuntimeException ex) {
+        log.info("Can't attach CIBuildData to the pipeline run: " + ex.getMessage());
+      }
 
       run.addAction(action);
       run.save();
