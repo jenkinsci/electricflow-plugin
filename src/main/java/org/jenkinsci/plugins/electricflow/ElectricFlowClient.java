@@ -20,6 +20,7 @@ import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import javax.net.ssl.HttpsURLConnection;
 import net.sf.json.JSONArray;
@@ -879,6 +880,46 @@ public class ElectricFlowClient {
                     && release.getProjectName().equals(projectName))
         .map(Release::getReleaseName)
         .collect(Collectors.toList());
+  }
+
+  public List<Map<String, Object>> getReleaseRuns(
+      String conf, String projectName, String releaseName) throws Exception {
+
+    Release release = getRelease(conf, projectName, releaseName);
+    String pipelineName = release.getPipelineName();
+
+    // Build the request
+    String requestEndpoint =
+        "/projects/" + Utils.encodeURL(projectName) + "/pipelines/" + Utils.encodeURL(pipelineName);
+
+    requestEndpoint += "?request=getPipelineRuntimes&releaseId=" + release.getReleaseId();
+
+//    JSONObject obj = new JSONObject();
+//    obj.put("request", "");
+//    obj.put("releaseId", release.getReleaseId());
+//    String responseString = runRestAPI(requestEndpoint, PUT, obj.toString());
+    String responseString = runRestAPI(requestEndpoint, PUT);
+
+    try {
+      JSONObject response = JSONObject.fromObject(responseString);
+
+      if (!response.containsKey("flowRuntime")
+          || !(response.get("flowRuntime") instanceof JSONArray)) {
+        return new ArrayList<>(0);
+      }
+
+      JSONArray flowRuntimes = response.getJSONArray("flowRuntime");
+
+      ArrayList<Map<String, Object>> result = new ArrayList<>();
+      for (int i =0; i < flowRuntimes.size(); i++){
+        result.add(flowRuntimes.getJSONObject(i));
+      }
+
+      return result;
+    } catch (RuntimeException ex){
+      log.error("Failed to parse Flow server response:" + ex.getMessage());
+      return null;
+    }
   }
 
   public List<String> getReleases(String conf, String projectName) throws Exception {
