@@ -25,7 +25,8 @@ public class CloudBeesFlowTestResultJUnit extends CloudBeesFlowTestResult {
       TestResult result = testResultAction.getResult();
 
       if (result != null) {
-        this.setDuration(result.getDuration());
+        double testDuration = result.getDuration();
+        this.setDuration(testDuration);
         String urlName = testResultAction.getUrlName();
         Jenkins instance = Jenkins.get();
         String rootUrl = instance.getRootUrl();
@@ -36,10 +37,13 @@ public class CloudBeesFlowTestResultJUnit extends CloudBeesFlowTestResult {
         // had to bring the previousTestRun check within the IF
         hudson.tasks.test.TestResult previousTestRun = result.getPreviousResult();
         if (previousTestRun != null) {
+          this.setPreviousRunExists(true);
           this.setTotalCountPrevious(previousTestRun.getTotalCount());
           this.setSkipCountPrevious(previousTestRun.getSkipCount());
           this.setFailCountPrevious(previousTestRun.getFailCount());
-          this.setDurationPrevious(previousTestRun.getDuration());
+          double testDurationPrevious = 0.0;
+          testDurationPrevious = previousTestRun.getDuration();
+          this.setDurationPrevious(testDurationPrevious);
         }
       }
       return true;
