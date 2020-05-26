@@ -68,6 +68,10 @@ public class ElectricFlowBuildWatcher extends RunListener<Run> {
       ElectricFlowClient electricFlowClient = new ElectricFlowClient(tc.getConfigurationName());
       // 4. Creating CloudBeesFlowBuildData object out of run:
       CloudBeesFlowBuildData cbf = new CloudBeesFlowBuildData(run);
+      // According to NTVEPLUGIN-277, triggeredByFlow should be passed back to flow in
+      // case when build has been triggered by flow.
+      // TODO: Move this to constant later.
+      String assocType = "triggeredByFlow";
       try {
         electricFlowClient.setJenkinsBuildDetailsRunPipeline(
             cbf,
