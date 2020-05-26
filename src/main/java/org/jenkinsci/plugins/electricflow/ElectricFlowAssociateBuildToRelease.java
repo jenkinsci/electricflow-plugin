@@ -85,7 +85,6 @@ public class ElectricFlowAssociateBuildToRelease extends Recorder implements Sim
 
       // Calling the actual logic and saving the result
       JSONObject result = setJenkinsBuildDetails(efClient, cloudBeesFlowBuildData, logger);
-      JSONObject resultBuildDetailInfo = result.getJSONObject("ciBuildDetailInfo");
 
       // Setting the summary
       Release release = efClient.getRelease(configuration, projectName, releaseName);
@@ -94,8 +93,14 @@ public class ElectricFlowAssociateBuildToRelease extends Recorder implements Sim
       Map<String, String> args = new LinkedHashMap<>();
       args.put("releaseName", releaseName);
       args.put("buildName", cloudBeesFlowBuildData.getDisplayName());
-      args.put("releaseId", resultBuildDetailInfo.getString("releaseId"));
-      args.put("flowRuntimeId", release.getFlowRuntimeId());
+      args.put("releaseId", release.getReleaseId());
+
+      if (flowRuntimeId != null && !flowRuntimeId.equals("")){
+        args.put("flowRuntimeId", flowRuntimeId);
+      }
+      else {
+        args.put("flowRuntimeId", release.getFlowRuntimeId());
+      }
 
       // Adding text to the summary page
       run.addAction(new SummaryTextAction(run, getSummaryHtml(efClient, args, logger)));
@@ -123,6 +128,7 @@ public class ElectricFlowAssociateBuildToRelease extends Recorder implements Sim
             .setBuildTriggerSource(BuildTriggerSource.CI);
 
     if (flowRuntimeId != null && !flowRuntimeId.equals("")){
+      logger.println("Attaching to a specific CD Runtime Id: " + flowRuntimeId);
       detail.setFlowRuntimeId(flowRuntimeId);
     }
     else {
@@ -369,7 +375,7 @@ public class ElectricFlowAssociateBuildToRelease extends Recorder implements Sim
       }
     }
 
-    public ListBoxModel doFillPipelineRunItems(
+    public ListBoxModel doFillFlowRuntimeIdItems(
         @QueryParameter String releaseName,
         @QueryParameter String projectName,
         @QueryParameter String configuration,
@@ -388,6 +394,7 @@ public class ElectricFlowAssociateBuildToRelease extends Recorder implements Sim
 
         if (!configuration.isEmpty()
             && !projectName.isEmpty()
+            && !releaseName.isEmpty()
             && SelectFieldUtils.checkAllSelectItemsAreNotValidationWrappers(projectName)) {
 
           Credential overrideCredentialObj =
