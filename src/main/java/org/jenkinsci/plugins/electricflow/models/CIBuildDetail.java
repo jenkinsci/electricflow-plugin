@@ -30,7 +30,7 @@ public class CIBuildDetail {
   }
 
   public JSONObject toJsonObject() {
-    this.validate();
+    validate();
 
     JSONObject jsonObject = new JSONObject();
 
@@ -38,14 +38,14 @@ public class CIBuildDetail {
       buildName = buildData.getDisplayName();
     }
 
-    jsonObject.put("ciBuildDetailName", this.getBuildName());
-    jsonObject.put("projectName", this.getProjectName());
-    jsonObject.put("buildData", this.getBuildData().toJsonObject().toString());
-    jsonObject.put("buildTriggerSource", this.getBuildTriggerSource());
-    jsonObject.put("ciBuildAssociationType", this.getAssociationType());
+    jsonObject.put("ciBuildDetailName", getBuildName());
+    jsonObject.put("projectName", getProjectName());
+    jsonObject.put("buildData", getBuildData().toJsonObject().toString());
+    jsonObject.put("buildTriggerSource", getBuildTriggerSource());
+    jsonObject.put("ciBuildAssociationType", getAssociationType());
 
     if (flowRuntimeId != null) {
-      jsonObject.put("flowRuntimeId", this.getFlowRuntimeId());
+      jsonObject.put("flowRuntimeId", getFlowRuntimeId());
 
       if (stageName != null && flowRuntimeStateId != null){
         jsonObject.put("stageName", stageName);
@@ -53,7 +53,7 @@ public class CIBuildDetail {
       }
 
     } else if (projectName != null && releaseName != null) {
-      jsonObject.put("releaseName", this.getReleaseName());
+      jsonObject.put("releaseName", getReleaseName());
     }
 
     return jsonObject;
