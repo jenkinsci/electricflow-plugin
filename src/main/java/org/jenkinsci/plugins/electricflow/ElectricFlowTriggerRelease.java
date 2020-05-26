@@ -120,28 +120,29 @@ public class ElectricFlowTriggerRelease extends Recorder implements SimpleBuildS
       String releaseResult =
           efClient.runRelease(
               projectName, releaseName, stagesToRun, startingStage, pipelineParameters);
-      String summaryHtml = getSummaryHtml(efClient, releaseResult, pipelineParameters, stagesToRun);
+
+      JSONObject flowRuntime = JSONObject.fromObject(releaseResult).getJSONObject("flowRuntime");
+
+      String summaryHtml = getSummaryHtml(efClient, flowRuntime, pipelineParameters, stagesToRun);
       SummaryTextAction action = new SummaryTextAction(run, summaryHtml);
 
       CloudBeesFlowBuildData cbfdb = new CloudBeesFlowBuildData(run);
-      taskListener.getLogger().println("++++++++++++++++++++++++++++++++++++++++++++");
-      taskListener.getLogger().println("Release Name is " + releaseName);
-      taskListener.getLogger().println("Project Name is " + projectName);
-      taskListener.getLogger().println("CBF Data: " + cbfdb.toJsonObject().toString());
-      taskListener.getLogger().println("++++++++++++++++++++++++");
-      taskListener
-          .getLogger()
-          .println("About to call setJenkinsBuildDetails after triggering a Flow Release");
+      logger.println("++++++++++++++++++++++++++++++++++++++++++++");
+      logger.println("Release Name is " + releaseName);
+      logger.println("Project Name is " + projectName);
+      logger.println("CBF Data: " + cbfdb.toJsonObject().toString());
+      logger.println("++++++++++++++++++++++++");
+      logger.println("About to call setJenkinsBuildDetails after triggering a Flow Release");
 
-      JSONObject associateResult =
-          efClient.attachCIBuildDetails(
+      JSONObject associateResult = efClient.attachCIBuildDetails(
               new CIBuildDetail(cbfdb, projectName)
-                  .setReleaseName(releaseName)
+                  .setFlowRuntimeId(flowRuntime.getString("flowRuntimeId"))
                   .setAssociationType(BuildAssociationType.TRIGGERED_BY_CI)
-                  .setBuildTriggerSource(BuildTriggerSource.CI));
+                  .setBuildTriggerSource(BuildTriggerSource.CI)
+          );
 
-      taskListener.getLogger().println("Return from efClient: " + associateResult.toString());
-      taskListener.getLogger().println("++++++++++++++++++++++++++++++++++++++++++++");
+      logger.println("Return from efClient: " + associateResult.toString());
+      logger.println("++++++++++++++++++++++++++++++++++++++++++++");
 
       run.addAction(action);
       run.save();
@@ -266,10 +267,9 @@ public class ElectricFlowTriggerRelease extends Recorder implements SimpleBuildS
 
   private String getSummaryHtml(
       ElectricFlowClient efClient,
-      String releaseResult,
+      JSONObject flowRuntime,
       JSONArray parameters,
       List<String> stagesToRun) {
-    JSONObject flowRuntime = JSONObject.fromObject(releaseResult).getJSONObject("flowRuntime");
     String pipelineId = flowRuntime.getString("pipelineId");
     String flowRuntimeId = flowRuntime.getString("flowRuntimeId");
     String pipelineName = flowRuntime.getString("pipelineName");
