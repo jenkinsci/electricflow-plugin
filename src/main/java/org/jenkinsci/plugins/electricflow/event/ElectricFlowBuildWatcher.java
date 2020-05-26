@@ -78,7 +78,8 @@ public class ElectricFlowBuildWatcher extends RunListener<Run> {
             efCause.getProjectName(),
             efCause.getFlowRuntimeId(),
             efCause.getStageName(),
-            efCause.getFlowRuntimeStateId());
+            efCause.getFlowRuntimeStateId(),
+            assocType);
       } catch (IOException e) {
         return false;
       } catch (RuntimeException ex){
