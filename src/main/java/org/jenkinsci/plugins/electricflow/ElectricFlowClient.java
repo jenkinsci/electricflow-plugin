@@ -5,7 +5,6 @@ import static org.jenkinsci.plugins.electricflow.HttpMethod.GET;
 import static org.jenkinsci.plugins.electricflow.HttpMethod.POST;
 import static org.jenkinsci.plugins.electricflow.HttpMethod.PUT;
 
-import com.google.gson.JsonObject;
 import hudson.FilePath;
 import hudson.model.Run;
 import hudson.model.TaskListener;
@@ -20,7 +19,6 @@ import java.nio.charset.StandardCharsets;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
