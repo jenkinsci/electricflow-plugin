@@ -7,8 +7,16 @@ public class CIBuildDetail {
 
   private String buildName;
   private String projectName;
+
+  // CIBuildDetail attached to a release
   private String releaseName;
+
+  // CIBuildDetail attached to a pipeline run
   private String flowRuntimeId;
+
+  // CIBuildDetail attached to a specific task
+  private String stageName;
+  private String flowRuntimeStateId;
 
   private CloudBeesFlowBuildData buildData;
 
@@ -36,9 +44,15 @@ public class CIBuildDetail {
     jsonObject.put("buildTriggerSource", this.getBuildTriggerSource());
     jsonObject.put("ciBuildAssociationType", this.getAssociationType());
 
-    if (this.flowRuntimeId != null) {
+    if (flowRuntimeId != null) {
       jsonObject.put("flowRuntimeId", this.getFlowRuntimeId());
-    } else if (this.projectName != null && this.releaseName != null) {
+
+      if (stageName != null && flowRuntimeStateId != null){
+        jsonObject.put("stageName", stageName);
+        jsonObject.put("flowRuntimeStateId", flowRuntimeStateId);
+      }
+
+    } else if (projectName != null && releaseName != null) {
       jsonObject.put("releaseName", this.getReleaseName());
     }
 
@@ -136,6 +150,24 @@ public class CIBuildDetail {
 
   public CIBuildDetail setFlowRuntimeId(String flowRuntimeId) {
     this.flowRuntimeId = flowRuntimeId;
+    return this;
+  }
+
+  public String getStageName() {
+    return stageName;
+  }
+
+  public CIBuildDetail setStageName(String stageName) {
+    this.stageName = stageName;
+    return this;
+  }
+
+  public String getFlowRuntimeStateId() {
+    return flowRuntimeStateId;
+  }
+
+  public CIBuildDetail setFlowRuntimeStateId(String flowRuntimeStateId) {
+    this.flowRuntimeStateId = flowRuntimeStateId;
     return this;
   }
 
