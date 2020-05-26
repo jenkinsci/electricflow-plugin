@@ -83,8 +83,8 @@ public class ElectricFlowAssociateBuildToRelease extends Recorder implements Sim
           ElectricFlowClientFactory.getElectricFlowClient(configuration, overrideCredential, env);
       PrintStream logger = taskListener.getLogger();
 
-      // Calling the actual logic and saving the result
-      JSONObject result = setJenkinsBuildDetails(efClient, cloudBeesFlowBuildData, logger);
+      // Calling the actual logic
+      setJenkinsBuildDetails(efClient, cloudBeesFlowBuildData, logger);
 
       // Setting the summary
       Release release = efClient.getRelease(configuration, projectName, releaseName);
