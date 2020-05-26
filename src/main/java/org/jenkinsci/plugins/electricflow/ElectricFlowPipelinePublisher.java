@@ -159,19 +159,26 @@ public class ElectricFlowPipelinePublisher extends Recorder implements SimpleBui
 
       CloudBeesFlowBuildData cbfdb = new CloudBeesFlowBuildData(run);
 
-      logger.println("++++++++++++++++++++++++++++++++++++++++++++");
-      logger.println("CBF Data: " + cbfdb.toJsonObject().toString());
-      logger.println("++++++++++++++++++++++++++++++++++++++++++++");
-      logger.println("About to call setJenkinsBuildDetails after running a Pipeline");
+      if (log.isDebugEnabled()) {
+        logger.println("CBF Data: " + cbfdb.toJsonObject().toString());
+      }
 
-      JSONObject associateResult =
-          efClient.attachCIBuildDetails(
-              new CIBuildDetail(cbfdb, projectName)
-                  .setFlowRuntimeId(flowRuntimeId)
-                  .setAssociationType(BuildAssociationType.TRIGGERED_BY_CI));
+      try {
+        logger.println("About to call setCIBuildDetails after running a Pipeline");
 
-      logger.println("Return from efClient: " + associateResult.toString());
-      logger.println("++++++++++++++++++++++++++++++++++++++++++++");
+        JSONObject associateResult =
+            efClient.attachCIBuildDetails(
+                new CIBuildDetail(cbfdb, projectName)
+                    .setFlowRuntimeId(flowRuntimeId)
+                    .setAssociationType(BuildAssociationType.TRIGGERED_BY_CI));
+
+        if (log.isDebugEnabled()) {
+          logger.println("setCIBuildDetails response: " + associateResult.toString());
+        }
+
+      } catch (RuntimeException exception) {
+        log.info("Can't attach CIBuildData to the pipeline run: " + exception.getMessage());
+      }
 
       run.addAction(action);
       run.save();
