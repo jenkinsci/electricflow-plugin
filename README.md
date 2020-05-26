@@ -319,6 +319,8 @@ node{
 }
 ```
 
+Details for this build will be attached to the Release Run (if supported by CloudBees CD server).
+
 ## Run Procedure in CloudBees Flow
 
 This Integration allows you run a procedure in CloudBees Flow.
