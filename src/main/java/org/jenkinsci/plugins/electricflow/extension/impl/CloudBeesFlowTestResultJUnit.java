@@ -41,7 +41,8 @@ public class CloudBeesFlowTestResultJUnit extends CloudBeesFlowTestResult {
           this.setTotalCountPrevious(previousTestRun.getTotalCount());
           this.setSkipCountPrevious(previousTestRun.getSkipCount());
           this.setFailCountPrevious(previousTestRun.getFailCount());
-          double testDurationPrevious = previousTestRun.getDuration();
+          double testDurationPrevious = 0.0;
+          testDurationPrevious = previousTestRun.getDuration();
           this.setDurationPrevious(testDurationPrevious);
         }
       }
