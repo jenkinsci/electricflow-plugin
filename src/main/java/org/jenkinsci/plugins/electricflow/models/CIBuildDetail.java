@@ -20,6 +20,7 @@ public class CIBuildDetail {
 
   private CloudBeesFlowBuildData buildData;
 
+  // Defaults
   private BuildTriggerSource buildTriggerSource = BuildTriggerSource.CI;
   private BuildAssociationType associationType = BuildAssociationType.ATTACHED;
 
