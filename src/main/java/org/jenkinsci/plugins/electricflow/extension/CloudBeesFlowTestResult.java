@@ -13,10 +13,11 @@ public class CloudBeesFlowTestResult implements ExtensionPoint {
   protected int skipCountPrevious;
   protected int totalCount;
   protected int totalCountPrevious;
-  protected float duration;
-  protected float durationPrevious;
+  protected double duration;
+  protected double durationPrevious;
   protected String url;
   protected String displayName;
+  protected boolean isPreviousRunExists = false;
 
   public CloudBeesFlowTestResult() {}
 
@@ -40,8 +41,9 @@ public class CloudBeesFlowTestResult implements ExtensionPoint {
 
     // Converting seconds for both duration and durationPrevious
     // to milliseconds.
-    double durationSecs = (double) this.getDuration() * 1000;
-    double durationPreviousSecs = (double) this.getDurationPrevious() * 1000;
+    double durationSecs = 0.0;
+    durationSecs = this.getDuration() * 1000;
+
 
     if (this.getUrl() != null) {
       json.put("url", this.getUrl());
@@ -55,14 +57,19 @@ public class CloudBeesFlowTestResult implements ExtensionPoint {
     json.put("duration", durationSecs);
 
     // adding previous run
-    json.put("failCountPrevious", this.getFailCountPrevious());
-    json.put(
-        "passCountPrevious",
-        (this.getTotalCountPrevious() - this.getFailCountPrevious() - this.getSkipCountPrevious()));
-    json.put("skipCountPrevious", this.getSkipCountPrevious());
-    json.put("totalCountPrevious", this.getTotalCountPrevious());
-    json.put("durationPrevious", durationPreviousSecs);
-
+    if (this.isPreviousRunExists()) {
+      double durationPreviousSecs = 0.0;
+      durationPreviousSecs = this.getDurationPrevious() * 1000;
+      json.put("failCountPrevious", this.getFailCountPrevious());
+      json.put(
+          "passCountPrevious",
+          (this.getTotalCountPrevious()
+              - this.getFailCountPrevious()
+              - this.getSkipCountPrevious()));
+      json.put("skipCountPrevious", this.getSkipCountPrevious());
+      json.put("totalCountPrevious", this.getTotalCountPrevious());
+      json.put("durationPrevious", durationPreviousSecs);
+    }
     return json;
   }
 
@@ -114,11 +121,11 @@ public class CloudBeesFlowTestResult implements ExtensionPoint {
     this.displayName = displayName;
   }
 
-  public float getDuration() {
+  public double getDuration() {
     return duration;
   }
 
-  public void setDuration(float duration) {
+  public void setDuration(double duration) {
     this.duration = duration;
   }
 
@@ -146,11 +153,19 @@ public class CloudBeesFlowTestResult implements ExtensionPoint {
     this.totalCountPrevious = totalCountPrevious;
   }
 
-  public float getDurationPrevious() {
+  public double getDurationPrevious() {
     return durationPrevious;
   }
 
-  public void setDurationPrevious(float durationPrevious) {
+  public void setDurationPrevious(double durationPrevious) {
     this.durationPrevious = durationPrevious;
+  }
+
+  public boolean isPreviousRunExists() {
+    return isPreviousRunExists;
+  }
+
+  public void setPreviousRunExists(boolean previousRunExists) {
+    isPreviousRunExists = previousRunExists;
   }
 }
