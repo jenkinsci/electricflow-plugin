@@ -11,6 +11,7 @@ import java.util.List;
 import org.jenkinsci.plugins.electricflow.Configuration;
 import org.jenkinsci.plugins.electricflow.ElectricFlowClient;
 import org.jenkinsci.plugins.electricflow.Utils;
+import org.jenkinsci.plugins.electricflow.action.CloudBeesFlowRuntimeStateAction;
 import org.jenkinsci.plugins.electricflow.causes.EFCause;
 import org.jenkinsci.plugins.electricflow.data.CloudBeesFlowBuildData;
 import org.jenkinsci.plugins.electricflow.models.CIBuildDetail;
@@ -61,6 +62,12 @@ public class ElectricFlowBuildWatcher extends RunListener<Run> {
     if (efCause == null) {
       return false;
     }
+    // if efcause is present, we need to add state if it is not present.
+    CloudBeesFlowRuntimeStateAction cloudBeesFlowRuntimeStateAction = run.getAction(CloudBeesFlowRuntimeStateAction.class);
+    if (cloudBeesFlowRuntimeStateAction == null) {
+      cloudBeesFlowRuntimeStateAction = new CloudBeesFlowRuntimeStateAction();
+      run.addAction(cloudBeesFlowRuntimeStateAction);
+    }
     // 1. Getting configurations list:
     List<Configuration> cfgs = this.getConfigurations();
     // returning false because there is no applicable configurations to make it happen.
@@ -70,6 +77,9 @@ public class ElectricFlowBuildWatcher extends RunListener<Run> {
 
     // 2. Getting iterator out of configs.
     for (Configuration tc : cfgs) {
+      if (!cloudBeesFlowRuntimeStateAction.isWaitingForBuildData(tc.getConfigurationName())) {
+        return false;
+      }
       // 3. Getting configuration from iterator to create efclient out of it later.
       ElectricFlowClient electricFlowClient = new ElectricFlowClient(tc.getConfigurationName());
       // 4. Creating CloudBeesFlowBuildData object out of run:
@@ -98,6 +108,7 @@ public class ElectricFlowBuildWatcher extends RunListener<Run> {
         taskListener
             .getLogger()
             .printf("[Configuration %s] Can't attach CiBuildData%n", tc.getConfigurationName());
+        cloudBeesFlowRuntimeStateAction.setNotWaitingForBuildData(tc.getConfigurationName());
         taskListener.getLogger().println(ex.getMessage());
         return false;
       }
