@@ -48,7 +48,9 @@ public class CloudBeesFlowBuildData {
     String rootUrl = instance.getRootUrl();
 
     this.setBuildNumber(run.getNumber());
-    this.setDisplayName(this.getJobName() + run.getDisplayName());
+    // this.setDisplayName(this.getJobName() + run.getDisplayName());
+    // As been said in NTVEPLUGIN-297: no more calculations of getfulldisplayname
+    this.setDisplayName(run.getFullDisplayName());
     this.setBuilding(run.isBuilding());
 
     try {
