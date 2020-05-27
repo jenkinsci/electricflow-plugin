@@ -166,7 +166,7 @@ public class ElectricFlowAssociateBuildToRelease extends Recorder implements Sim
     String releaseRunLink = electricFlowClient.getElectricFlowUrl() + path;
     logger.println(String.format("INFO: link to the release: %s", releaseRunLink));
 
-    return "<h3>CloudBees Flow - Associate Build To Release</h3>"
+    return "<h3>CloudBees CD - Associate Build To Release</h3>"
         + "<table cellspacing=\"2\" cellpadding=\"4\"> \n"
         + "  <tr>\n"
         + "    <td>Build details were attached to the release </td>\n"
@@ -428,7 +428,7 @@ public class ElectricFlowAssociateBuildToRelease extends Recorder implements Sim
 
     @Override
     public String getDisplayName() {
-      return "CloudBees Flow - Associate Build To Release";
+      return "CloudBees CD - Associate Build To Release";
     }
 
     @Override

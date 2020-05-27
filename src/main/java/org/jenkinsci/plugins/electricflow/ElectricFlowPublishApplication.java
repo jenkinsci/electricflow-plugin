@@ -263,7 +263,7 @@ public class ElectricFlowPublishApplication extends Recorder implements SimpleBu
     String jobId = JSONObject.fromObject(deployResponse).getString("jobId");
     String jobUrl = efClient.getElectricFlowUrl() + "/commander/link/jobDetails/jobs/" + jobId;
     String summaryText =
-        "<h3>CloudBees Flow Create/Deploy Application from Deployment Package</h3>"
+        "<h3>CloudBees CD Create/Deploy Application from Deployment Package</h3>"
             + "<table cellspacing=\"2\" cellpadding=\"4\"> \n"
             + "  <tr>\n"
             + "    <td>Application URL:</td>\n"
@@ -274,7 +274,7 @@ public class ElectricFlowPublishApplication extends Recorder implements SimpleBu
             + "</a></td>   \n"
             + "  </tr>\n"
             + "  <tr>\n"
-            + "    <td>CloudBees Flow Job:</td>\n"
+            + "    <td>CloudBees CD Job:</td>\n"
             + "    <td><a href='"
             + HtmlUtils.encodeForHtml(jobUrl)
             + "'>link to createApplicationFromDeploymentPackage job</a></td>   \n"
@@ -424,7 +424,7 @@ public class ElectricFlowPublishApplication extends Recorder implements SimpleBu
      */
     @Override
     public String getDisplayName() {
-      return "CloudBees Flow - Create/Deploy Application from Deployment Package";
+      return "CloudBees CD - Create/Deploy Application from Deployment Package";
     }
 
     public String getElectricFlowPassword() {

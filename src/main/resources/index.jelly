@@ -12,5 +12,5 @@ All rights reserved.
   This view is used to render the installed plugins page.
 -->
 <div>
-    CloudBees Flow Application Release Orchestration
+    CloudBees CD Application Release Orchestration
 </div>

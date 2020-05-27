@@ -119,8 +119,8 @@ public class ElectricFlowPipelinePublisher extends Recorder implements SimpleBui
           ElectricFlowClientFactory.getElectricFlowClient(
               configuration, overrideCredential, run, env, false);
     } catch (Exception e) {
-      logger.println("Cannot create CloudBees Flow client. Error: " + e.getMessage());
-      log.error("Cannot create CloudBees Flow client. Error: " + e.getMessage(), e);
+      logger.println("Cannot create CloudBees CD client. Error: " + e.getMessage());
+      log.error("Cannot create CloudBees CD client. Error: " + e.getMessage(), e);
 
       return false;
     }
@@ -311,7 +311,7 @@ public class ElectricFlowPipelinePublisher extends Recorder implements SimpleBui
     String url =
         efClient.getElectricFlowUrl() + "/flow/#pipeline-run/" + pipelineId + "/" + flowRuntimeId;
     String summaryText =
-        "<h3>CloudBees Flow Run Pipeline</h3>"
+        "<h3>CloudBees CD Run Pipeline</h3>"
             + "<table cellspacing=\"2\" cellpadding=\"4\"> \n"
             + "  <tr>\n"
             + "    <td>Pipeline URL:</td>\n"
@@ -508,7 +508,7 @@ public class ElectricFlowPipelinePublisher extends Recorder implements SimpleBui
           selectItemValidationWrapper =
               new SelectItemValidationWrapper(
                   FieldValidationStatus.ERROR,
-                  "Error when fetching set of pipeline parameters. Connection to CloudBees Flow Server Failed. Please fix connection information and reload this page.",
+                  "Error when fetching set of pipeline parameters. Connection to CloudBees CD Server Failed. Please fix connection information and reload this page.",
                   "{}");
         }
         m.add(selectItemValidationWrapper.getJsonStr());
@@ -577,7 +577,7 @@ public class ElectricFlowPipelinePublisher extends Recorder implements SimpleBui
      */
     @Override
     public String getDisplayName() {
-      return "CloudBees Flow - Run Pipeline";
+      return "CloudBees CD - Run Pipeline";
     }
 
     @Override
