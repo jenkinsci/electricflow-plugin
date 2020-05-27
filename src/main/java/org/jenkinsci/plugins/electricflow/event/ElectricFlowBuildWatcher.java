@@ -13,6 +13,9 @@ import org.jenkinsci.plugins.electricflow.ElectricFlowClient;
 import org.jenkinsci.plugins.electricflow.Utils;
 import org.jenkinsci.plugins.electricflow.causes.EFCause;
 import org.jenkinsci.plugins.electricflow.data.CloudBeesFlowBuildData;
+import org.jenkinsci.plugins.electricflow.models.CIBuildDetail;
+import org.jenkinsci.plugins.electricflow.models.CIBuildDetail.BuildAssociationType;
+import org.jenkinsci.plugins.electricflow.models.CIBuildDetail.BuildTriggerSource;
 
 @Extension
 public class ElectricFlowBuildWatcher extends RunListener<Run> {
@@ -49,9 +52,12 @@ public class ElectricFlowBuildWatcher extends RunListener<Run> {
     EFCause efCause = null;
     try {
       efCause = (EFCause) run.getCause(EFCause.class);
-    } catch (ClassCastException ignored) { };
+    } catch (ClassCastException ignored) {
+      // Ignoring - not triggered by Flow
+      return false;
+    }
 
-    // No EFCause object. It means that it has been started not by efrun. We can't continue.
+    // No EFCause object. It means that it has not been started by efrun. We can't continue.
     if (efCause == null) {
       return false;
     }
@@ -68,24 +74,30 @@ public class ElectricFlowBuildWatcher extends RunListener<Run> {
       ElectricFlowClient electricFlowClient = new ElectricFlowClient(tc.getConfigurationName());
       // 4. Creating CloudBeesFlowBuildData object out of run:
       CloudBeesFlowBuildData cbf = new CloudBeesFlowBuildData(run);
-      // According to NTVEPLUGIN-277, triggeredByFlow should be passed back to flow in
-      // case when build has been triggered by flow.
-      // TODO: Move this to constant later.
-      String assocType = "triggeredByFlow";
+
       try {
-        electricFlowClient.setJenkinsBuildDetailsRunPipeline(
-            cbf,
-            efCause.getProjectName(),
-            efCause.getFlowRuntimeId(),
-            efCause.getStageName(),
-            efCause.getFlowRuntimeStateId());
+        // According to NTVEPLUGIN-277, triggeredByFlow should be passed back to flow in
+        // case when build has been triggered by flow.
+        CIBuildDetail details =
+            new CIBuildDetail(cbf, efCause.getProjectName())
+                .setFlowRuntimeId(efCause.getFlowRuntimeId())
+                .setAssociationType(BuildAssociationType.TRIGGERED_BY_FLOW)
+                .setBuildTriggerSource(BuildTriggerSource.FLOW);
+
+        if (!efCause.getStageName().equals("null")) {
+          details.setStageName(efCause.getStageName());
+        }
+        if (!efCause.getFlowRuntimeStateId().equals("null")) {
+          details.setFlowRuntimeStateId(efCause.getFlowRuntimeStateId());
+        }
+
+        electricFlowClient.attachCIBuildDetails(details);
       } catch (IOException e) {
         return false;
-      } catch (RuntimeException ex){
-        taskListener.getLogger().printf(
-            "[Configuration %s] Can't attach CiBuildData%n",
-            tc.getConfigurationName()
-        );
+      } catch (RuntimeException ex) {
+        taskListener
+            .getLogger()
+            .printf("[Configuration %s] Can't attach CiBuildData%n", tc.getConfigurationName());
         taskListener.getLogger().println(ex.getMessage());
         return false;
       }

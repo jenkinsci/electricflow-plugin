@@ -70,7 +70,7 @@ public class EFCause extends hudson.model.Cause {
     }
     if (!isEmptyOrNullString(projectName)) {
       shortDescription.append("<br/>");
-      shortDescription.append("Release Project Name: ").append(projectName);
+      shortDescription.append("Project Name: ").append(projectName);
     }
     if (!isEmptyOrNullString(releaseName)) {
       shortDescription.append("<br/>");

@@ -7,38 +7,54 @@ public class CIBuildDetail {
 
   private String buildName;
   private String projectName;
+
+  // CIBuildDetail attached to a release
   private String releaseName;
+
+  // CIBuildDetail attached to a pipeline run
   private String flowRuntimeId;
+
+  // CIBuildDetail attached to a specific task
+  private String stageName;
+  private String flowRuntimeStateId;
 
   private CloudBeesFlowBuildData buildData;
 
+  // Defaults
   private BuildTriggerSource buildTriggerSource = BuildTriggerSource.CI;
   private BuildAssociationType associationType = BuildAssociationType.ATTACHED;
 
   public CIBuildDetail(CloudBeesFlowBuildData buildData, String projectName) {
-    this.buildData = buildData;
-    this.buildName = buildData.getDisplayName();
-    this.projectName = projectName;
+    this.setBuildData(buildData);
+    this.setBuildName(buildData.getDisplayName());
+    this.setProjectName(projectName);
   }
 
   public JSONObject toJsonObject() {
-    this.validate();
+    validate();
 
     JSONObject jsonObject = new JSONObject();
 
     if (buildName == null) {
-      buildName = buildData.getDisplayName();
+      // buildName = buildData.getDisplayName();
+      this.setBuildName(buildData.getDisplayName());
     }
 
-    jsonObject.put("ciBuildDetailName", this.getBuildName());
-    jsonObject.put("projectName", this.getProjectName());
-    jsonObject.put("buildData", this.getBuildData().toJsonObject().toString());
-    jsonObject.put("buildTriggerSource", this.getBuildTriggerSource());
-    jsonObject.put("ciBuildAssociationType", this.getAssociationType());
+    jsonObject.put("ciBuildDetailName", getBuildName());
+    jsonObject.put("projectName", getProjectName());
+    jsonObject.put("buildData", getBuildData().toJsonObject().toString());
+    jsonObject.put("buildTriggerSource", getBuildTriggerSource());
+    jsonObject.put("ciBuildAssociationType", getAssociationType());
 
-    if (this.flowRuntimeId != null) {
-      jsonObject.put("flowRuntimeId", this.getFlowRuntimeId());
-    } else if (this.projectName != null && this.releaseName != null) {
+    if (flowRuntimeId != null) {
+      jsonObject.put("flowRuntimeId", getFlowRuntimeId());
+
+      if (this.getStageName() != null && this.getFlowRuntimeStateId() != null){
+        jsonObject.put("stageName", this.getStageName());
+        jsonObject.put("flowRuntimeStateId", this.getFlowRuntimeStateId());
+      }
+
+    } else if (this.getProjectName() != null && this.getReleaseName() != null) {
       jsonObject.put("releaseName", this.getReleaseName());
     }
 
@@ -46,12 +62,12 @@ public class CIBuildDetail {
   }
 
   public void validate() throws RuntimeException {
-    if (buildData == null) {
+    if (this.getBuildData() == null) {
       throw new RuntimeException("Field 'CloudBeesFlowData buildData' is not set up.");
     }
 
-    boolean hasValuesForReleaseAttach = (projectName != null && releaseName != null);
-    boolean hasValuesForPipelineAttach = (flowRuntimeId != null);
+    boolean hasValuesForReleaseAttach = (this.getProjectName() != null && this.getReleaseName() != null);
+    boolean hasValuesForPipelineAttach = (this.getFlowRuntimeId() != null);
 
     if (hasValuesForPipelineAttach && hasValuesForReleaseAttach) {
       throw new RuntimeException(
@@ -136,6 +152,24 @@ public class CIBuildDetail {
 
   public CIBuildDetail setFlowRuntimeId(String flowRuntimeId) {
     this.flowRuntimeId = flowRuntimeId;
+    return this;
+  }
+
+  public String getStageName() {
+    return stageName;
+  }
+
+  public CIBuildDetail setStageName(String stageName) {
+    this.stageName = stageName;
+    return this;
+  }
+
+  public String getFlowRuntimeStateId() {
+    return flowRuntimeStateId;
+  }
+
+  public CIBuildDetail setFlowRuntimeStateId(String flowRuntimeStateId) {
+    this.flowRuntimeStateId = flowRuntimeStateId;
     return this;
   }
 

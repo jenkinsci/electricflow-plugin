@@ -20,6 +20,7 @@ import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import javax.net.ssl.HttpsURLConnection;
 import net.sf.json.JSONArray;
@@ -27,15 +28,11 @@ import net.sf.json.JSONObject;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.jenkinsci.plugins.electricflow.data.CloudBeesFlowBuildData;
 import org.jenkinsci.plugins.electricflow.models.CIBuildDetail;
 
 public class ElectricFlowClient {
 
   // ~ Static fields/initializers ---------------------------------------------
-
-  public static final String JENKINS_BUILD_ASSOCIATION_TYPE = "triggeredByCI";
-  public static final String BUILD_TRIGGER_SOURCE = "CI";
   private static final Log log = LogFactory.getLog(ElectricFlowClient.class);
   private static final String CHARSET = "UTF-8";
 
@@ -319,93 +316,6 @@ public class ElectricFlowClient {
     }
   }
 
-  // Flow Endpoint :: flowRuntimes​/{flowRuntimeId}​/jenkinsBuildDetails​/{buildName}
-  public String setJenkinsBuildDetailsRunPipeline(
-      CloudBeesFlowBuildData cloudBeesFlowBuildData, String projectName, String flowRuntimeId)
-      throws IOException {
-    return setJenkinsBuildDetailsRunPipeline(
-        cloudBeesFlowBuildData, projectName, flowRuntimeId, "", "");
-  }
-
-  public String setJenkinsBuildDetailsRunPipeline(
-      CloudBeesFlowBuildData cloudBeesFlowBuildData,
-      String projectName,
-      String flowRuntimeId,
-      String stageName,
-      String flowRuntimeStateId)
-      throws IOException {
-          String assocType = JENKINS_BUILD_ASSOCIATION_TYPE;
-          return this.setJenkinsBuildDetailsRunPipeline(
-              cloudBeesFlowBuildData,
-              projectName,
-              flowRuntimeId,
-              stageName,
-              flowRuntimeStateId,
-              assocType);
-  }
-  public String setJenkinsBuildDetailsRunPipeline(
-      CloudBeesFlowBuildData cloudBeesFlowBuildData,
-      String projectName,
-      String flowRuntimeId,
-      String stageName,
-      String flowRuntimeStateId,
-      String assocType)
-      throws IOException {
-    String endpoint = "/ciBuildDetails?request=setCiBuildDetail";
-    JSONObject obj = new JSONObject();
-
-    // renaming buildName to ciBuildDetailName due to re-branding.
-    obj.put("ciBuildDetailName", cloudBeesFlowBuildData.getDisplayName());
-    // obj.put("buildName", cloudBeesFlowBuildData.getDisplayName());
-    obj.put("projectName", projectName);
-    obj.put("flowRuntimeId", flowRuntimeId);
-    // renaming jenkinsData to buildData due to re-branding.
-    obj.put("buildData", cloudBeesFlowBuildData.toJsonObject().toString());
-    // obj.put("jenkinsData", cloudBeesFlowBuildData.toJsonObject().toString());
-    obj.put("buildTriggerSource", BUILD_TRIGGER_SOURCE);
-    // renaming jenkinsBuildAssociationType to ciBuildAssociationType due to re-branding
-    obj.put("ciBuildAssociationType", assocType);
-    // obj.put("jenkinsBuildAssociationType", JENKINS_BUILD_ASSOCIATION_TYPE);
-
-    if (!stageName.equals("null") && !stageName.equals("")) {
-      obj.put("stageName", stageName);
-    }
-    if (!flowRuntimeStateId.equals("null") && !flowRuntimeStateId.equals("")) {
-      obj.put("flowRuntimeStateId", flowRuntimeStateId);
-    }
-    String content = obj.toString();
-    String resp = runRestAPI(endpoint, POST, content);
-    return resp;
-  }
-
-  // Flow Endpoint ::
-  // projects​/{projectName}​/releases​/{releaseName}​/jenkinsBuildDetails​/{buildName}
-  public String setJenkinsBuildDetailsTriggerRelease(
-      CloudBeesFlowBuildData cloudBeesFlowBuildData,
-      String projectName,
-      String releaseName,
-      String releaseProjectName)
-      throws IOException {
-    String endpoint = "/ciBuildDetails?request=setCiBuildDetail";
-    JSONObject obj = new JSONObject();
-
-    // renaming buildName to ciBuildDetailName due to re-branding.
-    obj.put("ciBuildDetailName", cloudBeesFlowBuildData.getDisplayName());
-    // obj.put("buildName", cloudBeesFlowBuildData.getDisplayName());
-    obj.put("projectName", projectName);
-    obj.put("releaseName", releaseName);
-    // renaming jenkinsData to buildData due to re-branding.
-    obj.put("buildData", cloudBeesFlowBuildData.toJsonObject().toString());
-    // obj.put("jenkinsData", cloudBeesFlowBuildData.toJsonObject().toString());
-    obj.put("buildTriggerSource", BUILD_TRIGGER_SOURCE);
-    // renaming jenkinsBuildAssociationType to ciBuildAssociationType due to re-branding
-    obj.put("ciBuildAssociationType", JENKINS_BUILD_ASSOCIATION_TYPE);
-    // obj.put("jenkinsBuildAssociationType", JENKINS_BUILD_ASSOCIATION_TYPE);
-    String content = obj.toString();
-    return runRestAPI(endpoint, POST, content);
-  }
-
-    // public JSONObject setCIBuildDetails(CIBuildDetail details) throws IOException {
   public JSONObject attachCIBuildDetails(CIBuildDetail details) throws IOException {
     String endpoint = "/ciBuildDetails?request=setCiBuildDetail";
     String result = runRestAPI(endpoint, POST, details.toJsonObject().toString());
@@ -778,7 +688,7 @@ public class ElectricFlowClient {
     String result = runRestAPI(requestEndpoint, PUT, obj.toString());
     JSONObject jsonObject = JSONObject.fromObject(result);
 
-    if (!jsonObject.isEmpty()) {
+    if (!jsonObject.containsKey("object")) {
       JSONArray arr = jsonObject.getJSONArray("object");
 
       for (int i = 0; i < arr.size(); i++) {
@@ -879,6 +789,46 @@ public class ElectricFlowClient {
                     && release.getProjectName().equals(projectName))
         .map(Release::getReleaseName)
         .collect(Collectors.toList());
+  }
+
+  public List<Map<String, Object>> getReleaseRuns(
+      String conf, String projectName, String releaseName) throws Exception {
+
+    Release release = getRelease(conf, projectName, releaseName);
+    String pipelineName = release.getPipelineName();
+
+    // Build the request
+    String requestEndpoint =
+        "/projects/" + Utils.encodeURL(projectName) + "/pipelines/" + Utils.encodeURL(pipelineName);
+
+    requestEndpoint += "?request=getPipelineRuntimes&releaseId=" + release.getReleaseId();
+
+//    JSONObject obj = new JSONObject();
+//    obj.put("request", "");
+//    obj.put("releaseId", release.getReleaseId());
+//    String responseString = runRestAPI(requestEndpoint, PUT, obj.toString());
+    String responseString = runRestAPI(requestEndpoint, PUT);
+
+    try {
+      JSONObject response = JSONObject.fromObject(responseString);
+
+      if (!response.containsKey("flowRuntime")
+          || !(response.get("flowRuntime") instanceof JSONArray)) {
+        return new ArrayList<>(0);
+      }
+
+      JSONArray flowRuntimes = response.getJSONArray("flowRuntime");
+
+      ArrayList<Map<String, Object>> result = new ArrayList<>();
+      for (int i =0; i < flowRuntimes.size(); i++){
+        result.add(flowRuntimes.getJSONObject(i));
+      }
+
+      return result;
+    } catch (RuntimeException ex){
+      log.error("Failed to parse Flow server response:" + ex.getMessage());
+      return null;
+    }
   }
 
   public List<String> getReleases(String conf, String projectName) throws Exception {
