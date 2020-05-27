@@ -8,6 +8,7 @@ import hudson.model.Run;
 import hudson.model.TaskListener;
 import hudson.util.ListBoxModel;
 import java.io.IOException;
+import net.sf.json.JSONObject;
 import org.jenkinsci.plugins.electricflow.Configuration;
 import org.jenkinsci.plugins.electricflow.ElectricFlowClient;
 import org.jenkinsci.plugins.electricflow.EnvReplacer;
@@ -30,8 +31,9 @@ public class CallRestApiUtils {
     return "cloudBeesFlowCallRestApi";
   }
 
-  public static String perform(
-      CallRestApiModel callRestApiModel, Run run, TaskListener taskListener) throws IOException {
+  public static JSONObject perform(
+      CallRestApiModel callRestApiModel, Run<?, ?> run, TaskListener taskListener)
+      throws IOException {
 
     try {
       EnvReplacer envReplacer = new EnvReplacer(run, taskListener);
@@ -65,7 +67,7 @@ public class CallRestApiUtils {
         run.addAction(new VariableInjectionAction(envVarForResult, result));
       }
 
-      return result;
+      return JSONObject.fromObject(result);
 
     } catch (IOException | InterruptedException e) {
       run.setResult(Result.FAILURE);
