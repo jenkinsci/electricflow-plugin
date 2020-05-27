@@ -28,15 +28,11 @@ import net.sf.json.JSONObject;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.jenkinsci.plugins.electricflow.data.CloudBeesFlowBuildData;
 import org.jenkinsci.plugins.electricflow.models.CIBuildDetail;
 
 public class ElectricFlowClient {
 
   // ~ Static fields/initializers ---------------------------------------------
-
-  public static final String JENKINS_BUILD_ASSOCIATION_TYPE = "triggeredByCI";
-  public static final String BUILD_TRIGGER_SOURCE = "CI";
   private static final Log log = LogFactory.getLog(ElectricFlowClient.class);
   private static final String CHARSET = "UTF-8";
 
@@ -320,93 +316,6 @@ public class ElectricFlowClient {
     }
   }
 
-  // Flow Endpoint :: flowRuntimes​/{flowRuntimeId}​/jenkinsBuildDetails​/{buildName}
-  public String setJenkinsBuildDetailsRunPipeline(
-      CloudBeesFlowBuildData cloudBeesFlowBuildData, String projectName, String flowRuntimeId)
-      throws IOException {
-    return setJenkinsBuildDetailsRunPipeline(
-        cloudBeesFlowBuildData, projectName, flowRuntimeId, "", "");
-  }
-
-  public String setJenkinsBuildDetailsRunPipeline(
-      CloudBeesFlowBuildData cloudBeesFlowBuildData,
-      String projectName,
-      String flowRuntimeId,
-      String stageName,
-      String flowRuntimeStateId)
-      throws IOException {
-          String assocType = JENKINS_BUILD_ASSOCIATION_TYPE;
-          return this.setJenkinsBuildDetailsRunPipeline(
-              cloudBeesFlowBuildData,
-              projectName,
-              flowRuntimeId,
-              stageName,
-              flowRuntimeStateId,
-              assocType);
-  }
-  public String setJenkinsBuildDetailsRunPipeline(
-      CloudBeesFlowBuildData cloudBeesFlowBuildData,
-      String projectName,
-      String flowRuntimeId,
-      String stageName,
-      String flowRuntimeStateId,
-      String assocType)
-      throws IOException {
-    String endpoint = "/ciBuildDetails?request=setCiBuildDetail";
-    JSONObject obj = new JSONObject();
-
-    // renaming buildName to ciBuildDetailName due to re-branding.
-    obj.put("ciBuildDetailName", cloudBeesFlowBuildData.getDisplayName());
-    // obj.put("buildName", cloudBeesFlowBuildData.getDisplayName());
-    obj.put("projectName", projectName);
-    obj.put("flowRuntimeId", flowRuntimeId);
-    // renaming jenkinsData to buildData due to re-branding.
-    obj.put("buildData", cloudBeesFlowBuildData.toJsonObject().toString());
-    // obj.put("jenkinsData", cloudBeesFlowBuildData.toJsonObject().toString());
-    obj.put("buildTriggerSource", BUILD_TRIGGER_SOURCE);
-    // renaming jenkinsBuildAssociationType to ciBuildAssociationType due to re-branding
-    obj.put("ciBuildAssociationType", assocType);
-    // obj.put("jenkinsBuildAssociationType", JENKINS_BUILD_ASSOCIATION_TYPE);
-
-    if (!stageName.equals("null") && !stageName.equals("")) {
-      obj.put("stageName", stageName);
-    }
-    if (!flowRuntimeStateId.equals("null") && !flowRuntimeStateId.equals("")) {
-      obj.put("flowRuntimeStateId", flowRuntimeStateId);
-    }
-    String content = obj.toString();
-    String resp = runRestAPI(endpoint, POST, content);
-    return resp;
-  }
-
-  // Flow Endpoint ::
-  // projects​/{projectName}​/releases​/{releaseName}​/jenkinsBuildDetails​/{buildName}
-  public String setJenkinsBuildDetailsTriggerRelease(
-      CloudBeesFlowBuildData cloudBeesFlowBuildData,
-      String projectName,
-      String releaseName,
-      String releaseProjectName)
-      throws IOException {
-    String endpoint = "/ciBuildDetails?request=setCiBuildDetail";
-    JSONObject obj = new JSONObject();
-
-    // renaming buildName to ciBuildDetailName due to re-branding.
-    obj.put("ciBuildDetailName", cloudBeesFlowBuildData.getDisplayName());
-    // obj.put("buildName", cloudBeesFlowBuildData.getDisplayName());
-    obj.put("projectName", projectName);
-    obj.put("releaseName", releaseName);
-    // renaming jenkinsData to buildData due to re-branding.
-    obj.put("buildData", cloudBeesFlowBuildData.toJsonObject().toString());
-    // obj.put("jenkinsData", cloudBeesFlowBuildData.toJsonObject().toString());
-    obj.put("buildTriggerSource", BUILD_TRIGGER_SOURCE);
-    // renaming jenkinsBuildAssociationType to ciBuildAssociationType due to re-branding
-    obj.put("ciBuildAssociationType", JENKINS_BUILD_ASSOCIATION_TYPE);
-    // obj.put("jenkinsBuildAssociationType", JENKINS_BUILD_ASSOCIATION_TYPE);
-    String content = obj.toString();
-    return runRestAPI(endpoint, POST, content);
-  }
-
-    // public JSONObject setCIBuildDetails(CIBuildDetail details) throws IOException {
   public JSONObject attachCIBuildDetails(CIBuildDetail details) throws IOException {
     String endpoint = "/ciBuildDetails?request=setCiBuildDetail";
     String result = runRestAPI(endpoint, POST, details.toJsonObject().toString());

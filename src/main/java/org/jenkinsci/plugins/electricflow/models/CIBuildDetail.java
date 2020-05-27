@@ -7,11 +7,20 @@ public class CIBuildDetail {
 
   private String buildName;
   private String projectName;
+
+  // CIBuildDetail attached to a release
   private String releaseName;
+
+  // CIBuildDetail attached to a pipeline run
   private String flowRuntimeId;
+
+  // CIBuildDetail attached to a specific task
+  private String stageName;
+  private String flowRuntimeStateId;
 
   private CloudBeesFlowBuildData buildData;
 
+  // Defaults
   private BuildTriggerSource buildTriggerSource = BuildTriggerSource.CI;
   private BuildAssociationType associationType = BuildAssociationType.ATTACHED;
 
@@ -22,7 +31,7 @@ public class CIBuildDetail {
   }
 
   public JSONObject toJsonObject() {
-    this.validate();
+    validate();
 
     JSONObject jsonObject = new JSONObject();
 
@@ -30,16 +39,22 @@ public class CIBuildDetail {
       buildName = buildData.getDisplayName();
     }
 
-    jsonObject.put("ciBuildDetailName", this.getBuildName());
-    jsonObject.put("projectName", this.getProjectName());
-    jsonObject.put("buildData", this.getBuildData().toJsonObject().toString());
-    jsonObject.put("buildTriggerSource", this.getBuildTriggerSource());
-    jsonObject.put("ciBuildAssociationType", this.getAssociationType());
+    jsonObject.put("ciBuildDetailName", getBuildName());
+    jsonObject.put("projectName", getProjectName());
+    jsonObject.put("buildData", getBuildData().toJsonObject().toString());
+    jsonObject.put("buildTriggerSource", getBuildTriggerSource());
+    jsonObject.put("ciBuildAssociationType", getAssociationType());
 
-    if (this.flowRuntimeId != null) {
-      jsonObject.put("flowRuntimeId", this.getFlowRuntimeId());
-    } else if (this.projectName != null && this.releaseName != null) {
-      jsonObject.put("releaseName", this.getReleaseName());
+    if (flowRuntimeId != null) {
+      jsonObject.put("flowRuntimeId", getFlowRuntimeId());
+
+      if (stageName != null && flowRuntimeStateId != null){
+        jsonObject.put("stageName", stageName);
+        jsonObject.put("flowRuntimeStateId", flowRuntimeStateId);
+      }
+
+    } else if (projectName != null && releaseName != null) {
+      jsonObject.put("releaseName", getReleaseName());
     }
 
     return jsonObject;
@@ -136,6 +151,24 @@ public class CIBuildDetail {
 
   public CIBuildDetail setFlowRuntimeId(String flowRuntimeId) {
     this.flowRuntimeId = flowRuntimeId;
+    return this;
+  }
+
+  public String getStageName() {
+    return stageName;
+  }
+
+  public CIBuildDetail setStageName(String stageName) {
+    this.stageName = stageName;
+    return this;
+  }
+
+  public String getFlowRuntimeStateId() {
+    return flowRuntimeStateId;
+  }
+
+  public CIBuildDetail setFlowRuntimeStateId(String flowRuntimeStateId) {
+    this.flowRuntimeStateId = flowRuntimeStateId;
     return this;
   }
 
