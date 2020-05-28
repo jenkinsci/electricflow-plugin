@@ -78,7 +78,7 @@ public class ElectricFlowBuildWatcher extends RunListener<Run> {
     // 2. Getting iterator out of configs.
     for (Configuration tc : cfgs) {
       if (!cloudBeesFlowRuntimeStateAction.isWaitingForBuildData(tc.getConfigurationName())) {
-        return false;
+        continue;
       }
       // 3. Getting configuration from iterator to create efclient out of it later.
       ElectricFlowClient electricFlowClient = new ElectricFlowClient(tc.getConfigurationName());
@@ -103,14 +103,15 @@ public class ElectricFlowBuildWatcher extends RunListener<Run> {
 
         electricFlowClient.attachCIBuildDetails(details);
       } catch (IOException e) {
-        return false;
+        cloudBeesFlowRuntimeStateAction.setNotWaitingForBuildData(tc.getConfigurationName());
+        continue;
       } catch (RuntimeException ex) {
         taskListener
             .getLogger()
             .printf("[Configuration %s] Can't attach CiBuildData%n", tc.getConfigurationName());
         cloudBeesFlowRuntimeStateAction.setNotWaitingForBuildData(tc.getConfigurationName());
         taskListener.getLogger().println(ex.getMessage());
-        return false;
+        continue;
       }
     }
     return true;
