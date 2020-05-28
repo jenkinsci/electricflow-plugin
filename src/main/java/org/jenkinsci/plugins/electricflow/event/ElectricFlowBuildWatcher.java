@@ -93,13 +93,13 @@ public class ElectricFlowBuildWatcher extends RunListener<Run> {
 
         electricFlowClient.attachCIBuildDetails(details);
       } catch (IOException e) {
-        return false;
+        continue;
       } catch (RuntimeException ex) {
         taskListener
             .getLogger()
             .printf("[Configuration %s] Can't attach CiBuildData%n", tc.getConfigurationName());
         taskListener.getLogger().println(ex.getMessage());
-        return false;
+        continue;
       }
     }
     return true;
