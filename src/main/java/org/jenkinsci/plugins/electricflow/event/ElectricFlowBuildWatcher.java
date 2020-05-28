@@ -63,11 +63,13 @@ public class ElectricFlowBuildWatcher extends RunListener<Run> {
       return false;
     }
     // if efcause is present, we need to add state if it is not present.
+    /* This section is commented out now because this behaviour should be investigated further.
     CloudBeesFlowRuntimeStateAction cloudBeesFlowRuntimeStateAction = run.getAction(CloudBeesFlowRuntimeStateAction.class);
     if (cloudBeesFlowRuntimeStateAction == null) {
       cloudBeesFlowRuntimeStateAction = new CloudBeesFlowRuntimeStateAction();
       run.addAction(cloudBeesFlowRuntimeStateAction);
     }
+    */
     // 1. Getting configurations list:
     List<Configuration> cfgs = this.getConfigurations();
     // returning false because there is no applicable configurations to make it happen.
@@ -77,9 +79,9 @@ public class ElectricFlowBuildWatcher extends RunListener<Run> {
 
     // 2. Getting iterator out of configs.
     for (Configuration tc : cfgs) {
-      if (!cloudBeesFlowRuntimeStateAction.isWaitingForBuildData(tc.getConfigurationName())) {
-        continue;
-      }
+//      if (!cloudBeesFlowRuntimeStateAction.isWaitingForBuildData(tc.getConfigurationName())) {
+//        continue;
+//      }
       // 3. Getting configuration from iterator to create efclient out of it later.
       ElectricFlowClient electricFlowClient = new ElectricFlowClient(tc.getConfigurationName());
       // 4. Creating CloudBeesFlowBuildData object out of run:
@@ -103,13 +105,13 @@ public class ElectricFlowBuildWatcher extends RunListener<Run> {
 
         electricFlowClient.attachCIBuildDetails(details);
       } catch (IOException e) {
-        cloudBeesFlowRuntimeStateAction.setNotWaitingForBuildData(tc.getConfigurationName());
+        // cloudBeesFlowRuntimeStateAction.setNotWaitingForBuildData(tc.getConfigurationName());
         continue;
       } catch (RuntimeException ex) {
         taskListener
             .getLogger()
             .printf("[Configuration %s] Can't attach CiBuildData%n", tc.getConfigurationName());
-        cloudBeesFlowRuntimeStateAction.setNotWaitingForBuildData(tc.getConfigurationName());
+        // cloudBeesFlowRuntimeStateAction.setNotWaitingForBuildData(tc.getConfigurationName());
         taskListener.getLogger().println(ex.getMessage());
         continue;
       }
