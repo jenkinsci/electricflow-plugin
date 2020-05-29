@@ -594,7 +594,8 @@ public class ElectricFlowTriggerRelease extends Recorder implements SimpleBuildS
               ElectricFlowClientFactory.getElectricFlowClient(
                   configuration, overrideCredentialObj, null, true);
 
-          List<String> releasesList = client.getReleases(configuration, projectName);
+          // List<String> releasesList = client.getReleases(configuration, projectName);
+          List<String> releasesList = client.getReleaseNames(configuration, projectName);
 
           for (String release : releasesList) {
             m.add(release);

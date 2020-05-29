@@ -763,6 +763,7 @@ public class ElectricFlowClient {
   public Release getRelease(String configuration, String projectName, String releaseName)
       throws Exception {
 
+    getReleases(configuration, projectName);
     for (Release release : releasesList) {
 
       if (release.getConfiguration().equals(configuration)
@@ -771,12 +772,10 @@ public class ElectricFlowClient {
         return release;
       }
     }
-
-    getReleases(configuration, projectName);
-
-    if (!releaseName.isEmpty()) {
-      return getRelease(configuration, projectName, releaseName);
-    }
+    
+    //if (!releaseName.isEmpty()) {
+    //  return getRelease(configuration, projectName, releaseName);
+    //}
 
     return null;
   }
