@@ -56,8 +56,8 @@ public class EFCause extends hudson.model.Cause {
 
   public String getShortDescription() {
     StringBuilder shortDescription = new StringBuilder();
-    shortDescription.append("CloudBeesFlow Triggered this build:");
-    // shortDescription.append(System.getProperty("<br/>"));
+    shortDescription.append("CloudBees CD Triggered this build:");
+
     String flowRuntimeId = this.getFlowRuntimeId();
     String projectName = this.getProjectName();
     String releaseName = this.getReleaseName();
