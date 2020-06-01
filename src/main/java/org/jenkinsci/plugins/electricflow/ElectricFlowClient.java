@@ -780,7 +780,11 @@ public class ElectricFlowClient {
     return null;
   }
 
-  public List<String> getReleaseNames(String configuration, String projectName) {
+  public List<String> getReleaseNames(String configuration, String projectName) throws Exception {
+    if (releasesList.size() == 0){
+      getReleases(configuration, projectName);
+    }
+
     return releasesList.stream()
         .filter(
             release ->
