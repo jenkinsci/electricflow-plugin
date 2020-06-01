@@ -426,6 +426,19 @@ pipeline{
 
 # Release Notes
 
+## Version 1.1.15 (June 1, 2020)
+
+  - Added support for new CI Build Detail APIs:
+    - New Post Build Action - Associate Build To Release to allow attaching CI Build Data of the independent builds to releases or release runs
+    - Run Pipeline now attaches CI Build Data to the triggered pipeline run
+    - Trigger Release now attaches CI Build Data to the triggered release pipeline run
+    
+  - Improved integration with CloudBees CD:
+    - CI Build Data infrastructure has been created
+    - Event-based watchers have been created to send build data to CloudBees CD automatically if build has been triggered by CloudBees CD.
+    
+  - Re-branding: renaming from "CloudBees Flow" to "CloudBees CD"
+
 ## Version 1.1.14 (May 6, 2020)
 
   - Added support of Configuration as Code
