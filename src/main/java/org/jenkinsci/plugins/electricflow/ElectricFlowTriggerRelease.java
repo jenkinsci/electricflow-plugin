@@ -726,7 +726,7 @@ public class ElectricFlowTriggerRelease extends Recorder implements SimpleBuildS
               + getValidationComparisonRowsForExtraParameters(
                   "Stages to run", storedStagesToRunMap, stagesToRunMap)
               + getValidationComparisonRowsForExtraParameters(
-                  "Pipeline parameters", storedPipelineParamsMap, pipelineParamsMap)
+                  "Release pipeline parameters", storedPipelineParamsMap, pipelineParamsMap)
               + "</table>";
 
       if (configurationValue.equals(storedConfiguration)

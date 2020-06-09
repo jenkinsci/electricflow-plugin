@@ -10,7 +10,7 @@ public class EFCause extends hudson.model.Cause {
   @Exported public String releaseName = "";
   @Exported public String flowRuntimeStateId = "";
   @Exported public String stageName = "";
-
+  final String LAUNCHED_BY_CD_TEXT = "Launched by CloudBees CD";
   // @Exported
   public String getFlowRuntimeId() {
     return flowRuntimeId;
@@ -85,6 +85,9 @@ public class EFCause extends hudson.model.Cause {
       shortDescription.append("Stage Name: ").append(stageName);
     }
     return shortDescription.toString();
+  }
+  public String getLaunchedByText() {
+    return this.LAUNCHED_BY_CD_TEXT;
   }
   private static boolean isEmptyOrNullString(String str) {
     if (str == null) {
