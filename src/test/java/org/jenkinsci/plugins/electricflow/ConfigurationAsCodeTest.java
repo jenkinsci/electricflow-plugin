@@ -30,7 +30,7 @@ public class ConfigurationAsCodeTest {
     assertEquals("this is the first configuration", configuration.getConfigurationName());
     assertEquals("test", configuration.getElectricFlowUser());
     assertThat(configuration.getElectricFlowPassword(), Matchers.notNullValue());
-    assertEquals("https://test-url/", configuration.getElectricFlowUrl());
+    assertEquals("https://test-url", configuration.getElectricFlowUrl());
     assertEquals("/rest/v1.0", configuration.getElectricFlowApiVersion());
     assertTrue(configuration.getIgnoreSslConnectionErrors());
   }
