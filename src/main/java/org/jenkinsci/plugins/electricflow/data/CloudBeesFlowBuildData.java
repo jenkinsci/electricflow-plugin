@@ -72,12 +72,12 @@ public class CloudBeesFlowBuildData {
     List<Cause> causes = run.getCauses();
     if (!causes.isEmpty()) {
       // 1. Trying to get EFCause. If it is present, then we will set launched by from there.
-      try {
-        EFCause efCause = run.getCause(EFCause.class);
-        if (efCause != null) {
-          this.setLaunchedBy(efCause.getLaunchedByText());
-        }
-      } catch(ClassCastException e) {
+
+      EFCause efCause = run.getCause(EFCause.class);
+      if (efCause != null) {
+        this.setLaunchedBy(efCause.getLaunchedByText());
+      }
+      else {
         if (causes.stream().findFirst().isPresent()) {
           Cause cause = causes.stream().findFirst().get();
           this.setLaunchedBy(cause.getShortDescription());
