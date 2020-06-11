@@ -117,7 +117,8 @@ public class CIBuildDetail {
   public String getBuildTriggerSource() {
     switch (this.buildTriggerSource) {
       case FLOW:
-        return "Flow";
+        // return "Flow"
+        return "CD";
       case CI:
         return "CI";
     }
@@ -134,7 +135,8 @@ public class CIBuildDetail {
       case ATTACHED:
         return "attached";
       case TRIGGERED_BY_FLOW:
-        return "triggeredByFlow";
+        // return "triggeredByFlow";
+        return "triggeredByCD";
       case TRIGGERED_BY_CI:
         return "triggeredByCI";
     }

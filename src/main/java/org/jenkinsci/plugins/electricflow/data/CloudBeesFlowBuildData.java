@@ -12,6 +12,7 @@ import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jenkinsci.plugins.electricflow.causes.EFCause;
 import org.jenkinsci.plugins.electricflow.extension.CloudBeesFlowArtifact;
 import org.jenkinsci.plugins.electricflow.extension.CloudBeesFlowPipeline;
 import org.jenkinsci.plugins.electricflow.extension.CloudBeesFlowSCM;
@@ -70,8 +71,21 @@ public class CloudBeesFlowBuildData {
     // resolve the launchedBy
     List<Cause> causes = run.getCauses();
     if (!causes.isEmpty()) {
-      Cause cause = causes.stream().findFirst().get();
-      this.setLaunchedBy(cause.getShortDescription());
+      // 1. Trying to get EFCause. If it is present, then we will set launched by from there.
+
+      EFCause efCause = run.getCause(EFCause.class);
+      if (efCause != null) {
+        this.setLaunchedBy(efCause.getLaunchedByText());
+      }
+      else {
+        if (causes.stream().findFirst().isPresent()) {
+          Cause cause = causes.stream().findFirst().get();
+          this.setLaunchedBy(cause.getShortDescription());
+        }
+        else {
+          this.setLaunchedBy("");
+        }
+      }
     }
 
     // todo: Improve reason handling

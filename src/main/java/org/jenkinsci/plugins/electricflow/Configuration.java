@@ -47,6 +47,8 @@ public class Configuration extends AbstractDescribableImpl<Configuration> {
       boolean ignoreSslConnectionErrors,
       boolean doNotSendBuildDetails) {
     this.configurationName = configurationName;
+    // Removing trailing slashes if any.
+    electricFlowUrl = electricFlowUrl.replaceAll("/+$", "");
     this.electricFlowUrl = electricFlowUrl;
     this.electricFlowUser = electricFlowUser;
     this.electricFlowPassword = electricFlowPassword;
