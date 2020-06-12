@@ -688,7 +688,7 @@ public class ElectricFlowClient {
     String result = runRestAPI(requestEndpoint, PUT, obj.toString());
     JSONObject jsonObject = JSONObject.fromObject(result);
 
-    if (!jsonObject.isEmpty()
+    if (jsonObject.isEmpty()
         || !jsonObject.containsKey("object")
         || !(jsonObject.get("object") instanceof JSONArray)) {
       return "";

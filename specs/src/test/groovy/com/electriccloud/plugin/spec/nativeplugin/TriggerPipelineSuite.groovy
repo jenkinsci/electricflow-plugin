@@ -37,7 +37,8 @@ class TriggerPipelineSuite extends JenkinsHelper {
     ]
 
     static def logMessages = [
-            failedFormalParametersRetrieve: 'Error occurred during formal parameters fetch'
+            failedFormalParametersRetrieve: 'Error occurred during formal parameters fetch',
+            pipelineIdFailed              : 'Failed to retrieve Id for pipeline'
     ]
 
     @Shared
@@ -114,8 +115,8 @@ class TriggerPipelineSuite extends JenkinsHelper {
 
         where:
         caseId      | flowProjectName  | flowPipelineName  | logMessage
-        'C500311.1' | projects.invalid | pipelines.correct | logMessages.failedFormalParametersRetrieve
-        'C500311.2' | projects.correct | pipelines.invalid | logMessages.failedFormalParametersRetrieve
+        'C500311.1' | projects.invalid | pipelines.correct | logMessages.pipelineIdFailed
+        'C500311.2' | projects.correct | pipelines.invalid | logMessages.pipelineIdFailed
     }
 
 }
