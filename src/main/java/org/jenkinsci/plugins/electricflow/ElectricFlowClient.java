@@ -640,8 +640,14 @@ public class ElectricFlowClient {
 
     String result = runRestAPI(requestEndpoint, PUT, obj.toString());
     JSONObject jsonObject = JSONObject.fromObject(result);
-    JSONArray arr = jsonObject.getJSONArray("object");
 
+    if (jsonObject.isEmpty()
+        || !jsonObject.containsKey("object")
+        || !(jsonObject.get("object") instanceof JSONArray)) {
+      return formalParameters;
+    }
+
+    JSONArray arr = jsonObject.getJSONArray("object");
     for (int i = 0; i < arr.size(); i++) {
       String parameterName =
           arr.getJSONObject(i).getJSONObject("formalParameter").getString("formalParameterName");
@@ -776,16 +782,16 @@ public class ElectricFlowClient {
         return release;
       }
     }
-    
-    //if (!releaseName.isEmpty()) {
+
+    // if (!releaseName.isEmpty()) {
     //  return getRelease(configuration, projectName, releaseName);
-    //}
+    // }
 
     return null;
   }
 
   public List<String> getReleaseNames(String configuration, String projectName) throws Exception {
-    if (releasesList.size() == 0){
+    if (releasesList.size() == 0) {
       getReleases(configuration, projectName);
     }
 
@@ -810,10 +816,10 @@ public class ElectricFlowClient {
 
     requestEndpoint += "?request=getPipelineRuntimes&releaseId=" + release.getReleaseId();
 
-//    JSONObject obj = new JSONObject();
-//    obj.put("request", "");
-//    obj.put("releaseId", release.getReleaseId());
-//    String responseString = runRestAPI(requestEndpoint, PUT, obj.toString());
+    //    JSONObject obj = new JSONObject();
+    //    obj.put("request", "");
+    //    obj.put("releaseId", release.getReleaseId());
+    //    String responseString = runRestAPI(requestEndpoint, PUT, obj.toString());
     String responseString = runRestAPI(requestEndpoint, PUT);
 
     try {
@@ -827,12 +833,12 @@ public class ElectricFlowClient {
       JSONArray flowRuntimes = response.getJSONArray("flowRuntime");
 
       ArrayList<Map<String, Object>> result = new ArrayList<>();
-      for (int i =0; i < flowRuntimes.size(); i++){
+      for (int i = 0; i < flowRuntimes.size(); i++) {
         result.add(flowRuntimes.getJSONObject(i));
       }
 
       return result;
-    } catch (RuntimeException ex){
+    } catch (RuntimeException ex) {
       log.error("Failed to parse Flow server response:" + ex.getMessage());
       return null;
     }
