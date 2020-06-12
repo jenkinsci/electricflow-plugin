@@ -660,7 +660,7 @@ public class ElectricFlowClient {
     return formalParameters;
   }
 
-  private String getPipelineId(String projectName, String pipelineName) throws Exception {
+  public String getPipelineId(String projectName, String pipelineName) throws Exception {
     String requestEndpoint = "/objects?request=findObjects";
     JSONObject obj = new JSONObject();
     JSONObject filterTop = new JSONObject();
@@ -688,17 +688,21 @@ public class ElectricFlowClient {
     String result = runRestAPI(requestEndpoint, PUT, obj.toString());
     JSONObject jsonObject = JSONObject.fromObject(result);
 
-    if (!jsonObject.containsKey("object")) {
-      JSONArray arr = jsonObject.getJSONArray("object");
+    if (!jsonObject.isEmpty()
+        || !jsonObject.containsKey("object")
+        || !(jsonObject.get("object") instanceof JSONArray)) {
+      return "";
+    }
 
-      for (int i = 0; i < arr.size(); i++) {
-        String pipelineName2 =
-            arr.getJSONObject(i).getJSONObject("pipeline").getString("pipelineName");
-        String pipelineId = arr.getJSONObject(i).getJSONObject("pipeline").getString("pipelineId");
+    JSONArray arr = jsonObject.getJSONArray("object");
 
-        if (pipelineName.equals(pipelineName2)) {
-          return pipelineId;
-        }
+    for (int i = 0; i < arr.size(); i++) {
+      String pipelineName2 =
+          arr.getJSONObject(i).getJSONObject("pipeline").getString("pipelineName");
+      String pipelineId = arr.getJSONObject(i).getJSONObject("pipeline").getString("pipelineId");
+
+      if (pipelineName.equals(pipelineName2)) {
+        return pipelineId;
       }
     }
 
