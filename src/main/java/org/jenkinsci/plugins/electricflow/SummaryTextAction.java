@@ -22,7 +22,7 @@ public class SummaryTextAction implements Action, SimpleBuildStep.LastBuildActio
   // ~ Instance fields --------------------------------------------------------
 
   protected final Run<?, ?> run;
-  protected final String summaryText;
+  protected String summaryText;
   protected List<SummaryTextAction> projectActions;
 
   // ~ Constructors -----------------------------------------------------------
@@ -60,6 +60,10 @@ public class SummaryTextAction implements Action, SimpleBuildStep.LastBuildActio
 
   public String getSummaryText() {
     return getHtmlPolicy().sanitize(this.summaryText);
+  }
+
+  public void setSummaryText(String summaryText) {
+    this.summaryText = summaryText;
   }
 
   @Override
