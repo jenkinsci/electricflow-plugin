@@ -16,6 +16,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.io.PrintStream;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.security.KeyManagementException;
@@ -336,6 +337,7 @@ public class ElectricFlowClient {
       FilePath workspace)
       throws IOException, KeyManagementException, NoSuchAlgorithmException, InterruptedException {
 
+    PrintStream logger = listener.getLogger();
     // here we're getting files from directory using wildcard:
     List<File> fileList =
         FileHelper.getFilesFromDirectoryWildcard(build, listener, workspace, path, true, true);
@@ -344,9 +346,24 @@ public class ElectricFlowClient {
       log.debug("File path: " + path);
     }
 
+    // Temporarily copying files from slave to master
     String uploadWorkspace = getPublishArtifactWorkspaceOnMaster(build).getRemote();
 
-    return uploadArtifact(fileList, uploadWorkspace, repo, name, version, uploadDirectory);
+    logger.println("Uploading artifact to the repository");
+    String result = uploadArtifact(fileList, uploadWorkspace, repo, name, version, uploadDirectory);
+    logger.println("Upload result: " + result);
+
+    // Removing temp
+    try {
+      FileHelper.removeTempDirectory(build);
+      logger.println("Removed temporary directory " + uploadWorkspace);
+    }
+    catch (IOException ex){
+      logger.println("Failed to remove the temporary directory " + uploadWorkspace
+          + "\n" + ex.getMessage());
+    }
+
+    return result;
   }
 
   public String uploadArtifact(

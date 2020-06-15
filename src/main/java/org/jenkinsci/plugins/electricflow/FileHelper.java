@@ -21,10 +21,16 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintStream;
 import java.io.Writer;
+import java.net.URI;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 import org.apache.maven.shared.utils.io.DirectoryScanner;
 
 public class FileHelper {
@@ -216,5 +222,18 @@ public class FileHelper {
     }
 
     return sameRoot;
+  }
+
+  public static void removeTempDirectory(Run<?, ?> run) throws IOException {
+    URI directory = new File(run.getRootDir(), "publish-artifact").toURI();
+
+    // create a stream
+    Stream<Path> files = Files.walk(Paths.get(directory));
+
+    // delete directory including files and sub-folders
+    files.sorted(Comparator.reverseOrder()).map(Path::toFile).forEach(File::deleteOnExit);
+
+    // close the stream
+    files.close();
   }
 }
