@@ -133,6 +133,7 @@ public class ElectricFlowDeployApplication extends Recorder implements SimpleBui
       args.put("processName", applicationProcessName);
       args.put("processId", processId);
       args.put("result", result);
+      args.put("applicationId", process.getJSONObject("process").getString("applicationId"));
 
       String summaryHtml = getSummaryHtml(efClient, parameter, args);
       SummaryTextAction action = new SummaryTextAction(run, summaryHtml);
@@ -255,7 +256,8 @@ public class ElectricFlowDeployApplication extends Recorder implements SimpleBui
     String applicationName = args.get("applicationName");
     String processId = args.get("processId");
     String jobId = JSONObject.fromObject(result).getString("jobId");
-    String applicationUrl = configuration.getElectricFlowUrl() + "/flow/#applications/applications";
+    String applicationId = args.get("applicationId");
+    String applicationUrl = configuration.getElectricFlowUrl() + "/flow/#applications/" + applicationId;
     String deployRunUrl =
         configuration.getElectricFlowUrl()
             + "/flow/#applications/"
