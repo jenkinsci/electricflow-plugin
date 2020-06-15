@@ -5,6 +5,8 @@ import static org.jenkinsci.plugins.electricflow.HttpMethod.GET;
 import static org.jenkinsci.plugins.electricflow.HttpMethod.POST;
 import static org.jenkinsci.plugins.electricflow.HttpMethod.PUT;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import hudson.FilePath;
 import hudson.model.Run;
 import hudson.model.TaskListener;
@@ -29,6 +31,7 @@ import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jenkinsci.plugins.electricflow.models.CIBuildDetail;
+import org.jenkinsci.plugins.electricflow.models.cdrestdata.jobs.GetJobStatusResponseData;
 
 public class ElectricFlowClient {
 
@@ -772,7 +775,7 @@ public class ElectricFlowClient {
         return release;
       }
     }
-    
+
     //if (!releaseName.isEmpty()) {
     //  return getRelease(configuration, projectName, releaseName);
     //}
@@ -908,5 +911,13 @@ public class ElectricFlowClient {
     JSONObject jsonObject = JSONObject.fromObject(result);
 
     return jsonObject.getString("sessionId");
+  }
+
+  public GetJobStatusResponseData getCdJobStatus(String cdJobId) throws IOException {
+    String requestEndpoint = "/jobs/" + cdJobId + "?request=getJobStatus";
+    String result = runRestAPI(requestEndpoint, GET);
+    return new ObjectMapper()
+        .enable(DeserializationFeature.READ_UNKNOWN_ENUM_VALUES_USING_DEFAULT_VALUE)
+        .readValue(result, GetJobStatusResponseData.class);
   }
 }
