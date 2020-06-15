@@ -1,0 +1,42 @@
+version: '3.4'
+services:
+  electric-flow:
+    image: "electricflow/efserver:latest"
+    ports:
+      - "8000:8000"
+      - "8443:8443"
+      - "443:443"
+      - "80:80"
+    networks:
+      - internal
+    container_name: electricflow
+    hostname: "efserver"
+    tty: true
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/rest/v1.0/server/info"]
+      interval: 120s
+      timeout: 10s
+      retries: 3
+      start_period: 120s
+    restart: always
+  jenkins:
+    image: electricflow/jenkins
+    ports:
+      - "8080:8080"
+      - "8043:8043"
+    networks:
+      - internal
+    container_name: jenkins
+    hostname: jenkins
+    tty: true
+    # Needed to restart failed EF
+  autoheal:
+    restart: always
+    image: willfarrell/autoheal
+    environment:
+      - AUTOHEAL_CONTAINER_LABEL=all
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+networks:
+  internal:
+    driver: bridge

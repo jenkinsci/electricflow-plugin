@@ -125,8 +125,27 @@ public class ElectricFlowPipelinePublisher extends Recorder implements SimpleBui
       return false;
     }
 
+    String pipelineId;
     try {
-      List<String> paramsResponse = efClient.getPipelineFormalParameters(projectName, pipelineName);
+      pipelineId = efClient.getPipelineId(projectName, pipelineName);
+    } catch (Exception e) {
+      e.printStackTrace();
+      throw new RuntimeException("Failed to retrieve Id for the pipeline: " + e.getMessage());
+    }
+
+    if (pipelineId == null || pipelineId.isEmpty()) {
+      throw new RuntimeException(
+          "Failed to retrieve Id for pipeline '"
+              + pipelineName
+              + "' in project '"
+              + projectName
+              + "'."
+              + " Please check that pipeline/project exists"
+              + " and the user with the specified credentials has access to the pipeline/project.");
+    }
+
+    try {
+      List<String> paramsResponse = efClient.getPipelineFormalParameters(pipelineId);
 
       if (log.isDebugEnabled()) {
         log.debug("FormalParameters are: " + paramsResponse.toString());

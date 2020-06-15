@@ -1,0 +1,50 @@
+
+apply plugin: "groovy"
+apply plugin: 'idea'
+
+version = "1.0"
+description = "EC-Jenkins Specs"
+
+sourceCompatibility = 1.8
+
+defaultTasks 'test'
+
+repositories {
+    jcenter()
+    mavenCentral()
+    maven {
+        url 'https://oss.sonatype.org/content/repositories/snapshots'
+    }
+    maven {
+        url  "https://dl.bintray.com/ecpluginsdev/maven"
+    }
+}
+
+dependencies {
+    compile 'org.codehaus.groovy:groovy-all:2.4.5:indy'
+    compile 'org.spockframework:spock-core:1.1-groovy-2.4'
+    compile 'com.electriccloud:commander-spec-tests:latest.release'
+    compile 'com.jayway.restassured:rest-assured:2.4.0'
+    compile 'com.electriccloud:ec-specs-plugins-core:1.9.2'
+    
+}
+
+test {
+    def server = findProperty('server') ?: 'localhost'
+    systemProperties['COMMANDER_SERVER'] = server
+    systemProperties["COMMANDER_SECURE"] = '1'
+
+    testLogging {
+        showStandardStreams = true
+    }
+    outputs.upToDateWhen { false }
+    systemProperties['EC_SPECS_CLI'] = true
+
+    String destination = findProperty('reportDestination') ?: "spec-report"
+    if (destination) {
+        reports {
+            html.setDestination(new File(destination))
+        }
+    }
+}
+

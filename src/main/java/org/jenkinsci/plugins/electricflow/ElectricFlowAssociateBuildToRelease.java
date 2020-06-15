@@ -89,6 +89,14 @@ public class ElectricFlowAssociateBuildToRelease extends Recorder implements Sim
       // Setting the summary
       Release release = efClient.getRelease(configuration, projectName, releaseName);
 
+      if (release == null){
+        throw new RuntimeException("No release was found for parameters:\n"
+            + " configuration: '" + configuration + "'\n"
+            + " projectName: '" + projectName + "'\n"
+            + " releaseName: '" + releaseName + "'\n"
+        );
+      }
+
       // Preparing arguments for the SummaryHTML call
       Map<String, String> args = new LinkedHashMap<>();
       args.put("releaseName", releaseName);
