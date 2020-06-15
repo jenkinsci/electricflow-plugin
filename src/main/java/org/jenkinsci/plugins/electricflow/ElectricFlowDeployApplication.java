@@ -141,7 +141,6 @@ public class ElectricFlowDeployApplication extends Recorder implements SimpleBui
       run.addAction(action);
       run.save();
       logger.println("Deploy application result: " + formatJsonOutput(result));
-      logger.println("Deploy application result: " + formatJsonOutput(process.toString()));
     } catch (Exception e) {
       logger.println(e.getMessage());
       log.error(e.getMessage(), e);
