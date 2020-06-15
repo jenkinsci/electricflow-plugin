@@ -640,8 +640,14 @@ public class ElectricFlowClient {
 
     String result = runRestAPI(requestEndpoint, PUT, obj.toString());
     JSONObject jsonObject = JSONObject.fromObject(result);
-    JSONArray arr = jsonObject.getJSONArray("object");
 
+    if (jsonObject.isEmpty()
+        || !jsonObject.containsKey("object")
+        || !(jsonObject.get("object") instanceof JSONArray)) {
+      return formalParameters;
+    }
+
+    JSONArray arr = jsonObject.getJSONArray("object");
     for (int i = 0; i < arr.size(); i++) {
       String parameterName =
           arr.getJSONObject(i).getJSONObject("formalParameter").getString("formalParameterName");
@@ -660,7 +666,7 @@ public class ElectricFlowClient {
     return formalParameters;
   }
 
-  private String getPipelineId(String projectName, String pipelineName) throws Exception {
+  public String getPipelineId(String projectName, String pipelineName) throws Exception {
     String requestEndpoint = "/objects?request=findObjects";
     JSONObject obj = new JSONObject();
     JSONObject filterTop = new JSONObject();
@@ -688,17 +694,21 @@ public class ElectricFlowClient {
     String result = runRestAPI(requestEndpoint, PUT, obj.toString());
     JSONObject jsonObject = JSONObject.fromObject(result);
 
-    if (!jsonObject.containsKey("object")) {
-      JSONArray arr = jsonObject.getJSONArray("object");
+    if (jsonObject.isEmpty()
+        || !jsonObject.containsKey("object")
+        || !(jsonObject.get("object") instanceof JSONArray)) {
+      return "";
+    }
 
-      for (int i = 0; i < arr.size(); i++) {
-        String pipelineName2 =
-            arr.getJSONObject(i).getJSONObject("pipeline").getString("pipelineName");
-        String pipelineId = arr.getJSONObject(i).getJSONObject("pipeline").getString("pipelineId");
+    JSONArray arr = jsonObject.getJSONArray("object");
 
-        if (pipelineName.equals(pipelineName2)) {
-          return pipelineId;
-        }
+    for (int i = 0; i < arr.size(); i++) {
+      String pipelineName2 =
+          arr.getJSONObject(i).getJSONObject("pipeline").getString("pipelineName");
+      String pipelineId = arr.getJSONObject(i).getJSONObject("pipeline").getString("pipelineId");
+
+      if (pipelineName.equals(pipelineName2)) {
+        return pipelineId;
       }
     }
 
@@ -763,25 +773,31 @@ public class ElectricFlowClient {
   public Release getRelease(String configuration, String projectName, String releaseName)
       throws Exception {
 
-    getReleases(configuration, projectName);
-    for (Release release : releasesList) {
+    Release cachedResult = getCachedRelease(configuration, projectName, releaseName);
 
+    if (cachedResult != null) {
+      return cachedResult;
+    }
+
+    // Renew list
+    getReleases(configuration, projectName);
+
+    return getCachedRelease(configuration, projectName, releaseName);
+  }
+
+  private Release getCachedRelease(String configuration, String projectName, String releaseName) {
+    for (Release release : releasesList) {
       if (release.getConfiguration().equals(configuration)
           && release.getProjectName().equals(projectName)
           && release.getReleaseName().equals(releaseName)) {
         return release;
       }
     }
-    
-    //if (!releaseName.isEmpty()) {
-    //  return getRelease(configuration, projectName, releaseName);
-    //}
-
     return null;
   }
 
   public List<String> getReleaseNames(String configuration, String projectName) throws Exception {
-    if (releasesList.size() == 0){
+    if (releasesList.size() == 0) {
       getReleases(configuration, projectName);
     }
 
@@ -806,10 +822,10 @@ public class ElectricFlowClient {
 
     requestEndpoint += "?request=getPipelineRuntimes&releaseId=" + release.getReleaseId();
 
-//    JSONObject obj = new JSONObject();
-//    obj.put("request", "");
-//    obj.put("releaseId", release.getReleaseId());
-//    String responseString = runRestAPI(requestEndpoint, PUT, obj.toString());
+    //    JSONObject obj = new JSONObject();
+    //    obj.put("request", "");
+    //    obj.put("releaseId", release.getReleaseId());
+    //    String responseString = runRestAPI(requestEndpoint, PUT, obj.toString());
     String responseString = runRestAPI(requestEndpoint, PUT);
 
     try {
@@ -823,12 +839,12 @@ public class ElectricFlowClient {
       JSONArray flowRuntimes = response.getJSONArray("flowRuntime");
 
       ArrayList<Map<String, Object>> result = new ArrayList<>();
-      for (int i =0; i < flowRuntimes.size(); i++){
+      for (int i = 0; i < flowRuntimes.size(); i++) {
         result.add(flowRuntimes.getJSONObject(i));
       }
 
       return result;
-    } catch (RuntimeException ex){
+    } catch (RuntimeException ex) {
       log.error("Failed to parse Flow server response:" + ex.getMessage());
       return null;
     }

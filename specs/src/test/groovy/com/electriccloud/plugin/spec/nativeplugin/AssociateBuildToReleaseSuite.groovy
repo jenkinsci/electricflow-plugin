@@ -50,9 +50,9 @@ class AssociateBuildToReleaseSuite extends JenkinsHelper {
     ]
 
     static def logMessages = [
-            noSuchProject: '"code":"NoSuchProject"',
-            noSuchRelease: '"code":"NoSuchRelease"',
-            nullPointer  : 'java.lang.NullPointerException'
+            noSuchProject  : '"code":"NoSuchProject"',
+            noSuchRelease  : '"code":"NoSuchRelease"',
+            releaseNotFound: 'No release was found for parameters'
     ]
 
     def doSetupSpec() {
@@ -60,7 +60,7 @@ class AssociateBuildToReleaseSuite extends JenkinsHelper {
         pipelineRun = release.getReleasePipeline().getLastRun()
         assert pipelineRun != null: "Release should be started"
         flowRuntimeIds['correct'] = pipelineRun.getId() as String
-        println ("PIPELINE RUN ID: ${flowRuntimeIds['correct']}")
+        println("PIPELINE RUN ID: ${flowRuntimeIds['correct']}")
     }
 
     def doCleanupSpec() {
@@ -144,10 +144,10 @@ class AssociateBuildToReleaseSuite extends JenkinsHelper {
         where:
         caseId       | projectName        | releaseName        | flowRuntimeId          | logMessage
         'C388045'    | projects.empty     | releases.correct   | flowRuntimeIds.empty   | logMessages.noSuchProject
-        'C388046'    | projects.correct   | releases.empty     | flowRuntimeIds.empty   | logMessages.nullPointer
+        'C388046'    | projects.correct   | releases.empty     | flowRuntimeIds.empty   | logMessages.releaseNotFound
         'C500312.1'  | projects.incorrect | releases.correct   | flowRuntimeIds.empty   | logMessages.noSuchProject
         'C388045.xx' | projects.empty     | releases.correct   | flowRuntimeIds.correct | logMessages.noSuchProject
-        'C388046.xx' | projects.correct   | releases.empty     | flowRuntimeIds.correct | logMessages.nullPointer
+        'C388046.xx' | projects.correct   | releases.empty     | flowRuntimeIds.correct | logMessages.releaseNotFound
         'C500312.2'  | projects.correct   | releases.incorrect | flowRuntimeIds.empty   | logMessages.noSuchRelease
     }
 
