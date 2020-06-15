@@ -39,7 +39,6 @@ import java.io.PrintStream;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import javax.annotation.Nonnull;
 import jenkins.tasks.SimpleBuildStep;
@@ -154,7 +153,7 @@ public class ElectricFlowRunProcedure extends Recorder implements SimpleBuildSte
           }
         }
       }
-    } catch (Exception e) {
+    } catch (PluginException | IOException | InterruptedException e) {
       logger.println(e.getMessage());
       log.error(e.getMessage(), e);
       return false;
