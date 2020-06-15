@@ -773,20 +773,26 @@ public class ElectricFlowClient {
   public Release getRelease(String configuration, String projectName, String releaseName)
       throws Exception {
 
-    getReleases(configuration, projectName);
-    for (Release release : releasesList) {
+    Release cachedResult = getCachedRelease(configuration, projectName, releaseName);
 
+    if (cachedResult != null) {
+      return cachedResult;
+    }
+
+    // Renew list
+    getReleases(configuration, projectName);
+
+    return getCachedRelease(configuration, projectName, releaseName);
+  }
+
+  private Release getCachedRelease(String configuration, String projectName, String releaseName) {
+    for (Release release : releasesList) {
       if (release.getConfiguration().equals(configuration)
           && release.getProjectName().equals(projectName)
           && release.getReleaseName().equals(releaseName)) {
         return release;
       }
     }
-
-    // if (!releaseName.isEmpty()) {
-    //  return getRelease(configuration, projectName, releaseName);
-    // }
-
     return null;
   }
 
