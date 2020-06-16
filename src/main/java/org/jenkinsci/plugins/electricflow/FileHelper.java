@@ -228,13 +228,13 @@ public class FileHelper {
    *
    * @param dir {@link File} Directory to delete
    */
-  private static void __deleteDirectory(File dir) {
+  private static boolean __deleteDirectory(File dir) {
     File[] files = dir.listFiles();
     if (files != null) {
       for (final File file : files) {
         __deleteDirectory(file);
       }
     }
-    dir.delete();
+    return dir.delete();
   }
 }
