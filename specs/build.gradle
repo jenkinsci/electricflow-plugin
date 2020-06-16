@@ -31,7 +31,12 @@ dependencies {
 
 test {
     def server = findProperty('server') ?: 'localhost'
+    def flowUser = findProperty('username') ?: 'admin'
+    def flowPass = findProperty('password') ?: 'changeme'
+
     systemProperties['COMMANDER_SERVER'] = server
+    systemProperties['COMMANDER_USERNAME'] = flowUser
+    systemProperties['COMMANDER_PASSWORD'] = flowPass
     systemProperties["COMMANDER_SECURE"] = '1'
 
     testLogging {
