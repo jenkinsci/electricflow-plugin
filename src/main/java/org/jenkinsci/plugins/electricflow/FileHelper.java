@@ -220,19 +220,19 @@ public class FileHelper {
 
   public static void removeTempDirectory(Run<?, ?> run) throws IOException {
     File directory = new File(run.getRootDir(), "publish-artifact");
-    deleteDirectory(directory);
+    __deleteDirectory(directory);
   }
 
   /**
-   * Deletes directory recursively
+   * Deletes directory recursively. Use with care
    *
    * @param dir {@link File} Directory to delete
    */
-  private static void deleteDirectory(File dir) {
+  private static void __deleteDirectory(File dir) {
     File[] files = dir.listFiles();
     if (files != null) {
       for (final File file : files) {
-        deleteDirectory(file);
+        __deleteDirectory(file);
       }
     }
     dir.delete();
