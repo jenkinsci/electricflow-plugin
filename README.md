@@ -188,6 +188,8 @@ This post build action takes the following parameters:
 
 ![](docs/images/image2019-9-27_16-51-9.png)
 
+![](docs/images/image2019-9-27_16-58-46.png)
+
 **Call REST API Example Pipeline Step \#1 (Scripted Pipeline)**
 
 ``` syntaxhighlighter-pre
