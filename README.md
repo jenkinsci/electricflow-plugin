@@ -47,6 +47,10 @@ following attributes need to be specified:
 
 -   User Password: CloudBees CD password for Connection
 
+-   Do not send build details to CloudBees CD:
+    By default, if the build has been triggered by CloudBees CD using CI configuration build details will be sent.
+    Use this setting if you do not want to be sending build details to this CloudBees CD instance.
+
 -   Override CloudBees CD SSL Validation Check: By default SSL
     Validation Check will be performed. Choose this setting to override
     the check. If you do not want to override this check, perform the
@@ -71,7 +75,7 @@ Manifest file and artifacts to be deployed. 
 Sample manifest.json file can be found
 at [https://github.com/electric-cloud/DeploymentPackageManager/tree/master/SampleManifests](https://github.com/electric-cloud/DeploymentPackageManager/tree/master/SampleManifests). 
 
-This build action has following parameters:
+This post build action has following parameters:
 
 -   Configuration: Name of the CloudBees CD configuration
 
@@ -86,7 +90,7 @@ This build action has following parameters:
 
 ``` syntaxhighlighter-pre
 node {
-    cloudBeesFlowCreateAndDeployAppFromJenkinsPackage configuration: 'CBFConfiguration', filePath: 'CBFProject/target/'
+    cloudBeesFlowCreateAndDeployAppFromJenkinsPackage configuration: 'CdConfiguration', filePath: 'CdProject/target/'
 }
 ```
 
@@ -96,7 +100,7 @@ This integration allows you to publish the artifact for your application
 to CloudBees CD. The Artifact will be generated as part of your
 Jenkins CI build. 
 
-This build action takes the following parameters:
+This post build action takes the following parameters:
 
 -   Configuration: Name of the CloudBees CD configuration
 
@@ -122,7 +126,7 @@ This build action takes the following parameters:
 
 ``` syntaxhighlighter-pre
 node {
-    cloudBeesFlowPublishArtifact artifactName: 'application:jpetstore', artifactVersion: '1.0', configuration: 'CBFConfiguration', filePath: 'CBFProject/target/jpetstore.war', repositoryName: 'default'
+    cloudBeesFlowPublishArtifact artifactName: 'application:jpetstore', artifactVersion: '1.0', configuration: 'CdConfiguration', filePath: 'CdProject/target/jpetstore.war', repositoryName: 'default'
 }
 ```
 
@@ -130,7 +134,7 @@ node {
 
 This integration allows you to run a pipeline in CloudBees CD.
 
-This build action takes the following parameters:
+This post build action takes the following parameters:
 
 - Configuration: Name of the CloudBees CD configuration
 
@@ -153,21 +157,16 @@ This build action takes the following parameters:
 
 ``` syntaxhighlighter-pre
 node{
-        step([$class: 'ElectricFlowPipelinePublisher', 
-            configuration: 'CBFConfiguration',
-            projectName: 'CloudBees',
-            pipelineName: 'CBFPipeline',
-            addParam: '{"pipeline":{"pipelineName":"CBFPipeline","parameters":"[{\\\"parameterName\\\": \\\"PipelineParam\\\", \\\"parameterValue\\\": \\\"185\\\"}]"}}'
-    ])
+    cloudBeesFlowRunPipeline addParam: '{"pipeline":{"pipelineName":"CdPipeline","parameters":[{"parameterName":"PipelineParam","parameterValue":"185"}]}}', configuration: 'CdConfiguration', pipelineName: 'CdPipeline', projectName: 'CloudBees'
 }
 ```
 
 ## Call REST API of CloudBees CD
 
-This integration allows you to call the CloudBees CD REST API. Similar
-pipeline step is available.
+This integration allows you to call the CloudBees CD REST API.
+Available as Post Build Action and Pipeline Step as well.
 
-This build action takes the following parameters:
+This post build action takes the following parameters:
 
 -   Configuration: Specify the name of the CloudBees CD configuration.
 
@@ -189,42 +188,37 @@ This build action takes the following parameters:
 
 ![](docs/images/image2019-9-27_16-51-9.png)
 
-**Call REST API Example \#1 (Pipeline Script)**
+![](docs/images/image2019-9-27_16-58-46.png)
+
+**Call REST API Example Pipeline Step \#1 (Scripted Pipeline)**
 
 ``` syntaxhighlighter-pre
 node{
-        step([$class: 'ElectricFlowGenericRestApi', 
-            configuration: 'CBFConfiguration',
-            urlPath : '/projects',
-            httpMethod : 'POST',
-            body : '',
-            parameters : [
-                [$class: 'Pair', 
-                    key: 'projectName',
-                    value: 'EC-TEST-Jenkins-1.00.00.01'
-                ],
-                [$class: 'Pair', 
-                    key: 'description',
-                    value: 'Native Jenkins Test Project'
-                ]
-            ],
-            envVarNameForResult: 'CALL_REST_API_CREATE_PROJECT_RESULT'
-    ])
+    stage('Test') {
+        def result = cloudBeesFlowCallRestApi body: '', configuration: 'CdConfiguration', envVarNameForResult: 'CALL_REST_API_CREATE_PROJECT_RESULT', httpMethod: 'POST', parameters: [[key: 'projectName', value: 'CD-TEST-Jenkins-1.00.00.01'], [key: 'description', value: 'Native Jenkins Test Project']], urlPath: '/projects'
+        echo "result : $result"
+        echo "CALL_REST_API_CREATE_PROJECT_RESULT environment variable: $CALL_REST_API_CREATE_PROJECT_RESULT"
+    }
 }
 ```
 
-![](docs/images/image2019-9-27_16-58-46.png)
-
-**Call REST API Example \#2 (Pipeline Script)**
+**Call REST API Example Pipeline Step \#2 (Declarative Pipeline)**
 
 ``` syntaxhighlighter-pre
-node{
-        step([$class: 'ElectricFlowGenericRestApi', 
-            configuration: 'CBFConfiguration',
-            urlPath : '/projects',
-            httpMethod : 'POST',
-            body : '{"projectName": "EC-TEST-Jenkins-1.00.00.01", "description": "Native Jenkins Test Project"}'
-    ])
+pipeline{
+    agent none
+    stages {
+        stage('Example Build') {
+            steps {
+                cloudBeesFlowCallRestApi body: '', configuration: 'CdConfiguration', envVarNameForResult: 'CALL_REST_API_CREATE_PROJECT_RESULT', httpMethod: 'POST', parameters: [[key: 'projectName', value: 'EC-TEST-Jenkins-1.00.00.01'], [key: 'description', value: 'Native Jenkins Test Project']], urlPath: '/projects'
+            }
+        }
+        stage('Example Build 2') {
+            steps {
+                echo "CALL_REST_API_CREATE_PROJECT_RESULT environment variable: $CALL_REST_API_CREATE_PROJECT_RESULT"
+            }
+        }
+    }
 }
 ```
 
@@ -233,7 +227,7 @@ node{
 This integration allows you to deploy an application using CloudBees
 Flow.
 
-This build action takes the following parameters:
+This post build action takes the following parameters:
 
 - Configuration: Specify the name of the CloudBees CD configuration
 
@@ -261,14 +255,7 @@ name
 
 ``` syntaxhighlighter-pre
 node{
-        step([$class: 'ElectricFlowDeployApplication', 
-            configuration: 'CBFConfiguration',
-            projectName : 'CloudBees',
-            applicationName : 'DemoApplication',
-            applicationProcessName : 'RunCommand',
-            environmentName : 'CBFEnvironment',
-            deployParameters : '{"runProcess":{"applicationName":"DemoApplication","applicationProcessName":"RunCommand","parameter":"[{\\\"actualParameterName\\\": \\\"Parameter1\\\", \\\"value\\\": \\\"value1\\\"}, {\\\"actualParameterName\\\": \\\"Parameter2\\\", \\\"value\\\": \\\"value2\\\"}]"}}'
-    ])
+   cloudBeesFlowDeployApplication applicationName: 'DemoApplication', applicationProcessName: 'RunCommand', configuration: 'CdConfiguration', deployParameters: '{"runProcess":{"applicationName":"DemoApplication","applicationProcessName":"RunCommand","parameter":[{"actualParameterName":"Parameter1","value":"value1"},{"actualParameterName":"Parameter2","value":"value2"}]}}', environmentName: 'CdEnvironment', projectName: 'CloudBees'
 }
 ```
 
@@ -276,7 +263,7 @@ node{
 
 This Integration allows you to trigger a release in CloudBees CD.
 
-This build action has following parameters:
+This post build action has following parameters:
 
 - Configuration: Specify the name of the CloudBees CD configuration
 
@@ -309,13 +296,7 @@ Flow pipeline
 
 ``` syntaxhighlighter-pre
 node{
-        step([$class: 'ElectricFlowTriggerRelease', 
-            configuration: 'CBFConfiguration',
-            projectName : 'CloudBees',
-            releaseName : 'CBFRelease1.1.5',
-            startingStage : '',
-            parameters : '{"release":{"releaseName":"CBFRelease1.1.5","stages":"[{\\\"stageName\\\": \\\"Stage 1\\\", \\\"stageValue\\\": false}, {\\\"stageName\\\": \\\"Stage 2\\\", \\\"stageValue\\\": true}]","parameters":"[{\\\"parameterName\\\": \\\"ReleaseParam\\\", \\\"parameterValue\\\": \\\"parameter\\\"}]"}}'
-    ])
+    cloudBeesFlowTriggerRelease configuration: 'CdConfiguration', parameters: '{"release":{"releaseName":"CdRelease1.1.5","stages":[{"stageName":"Stage 1","stageValue":false},{"stageName":"Stage 2","stageValue":true}],"pipelineName":"pipeline_CdRelease1.1.5","parameters":[{"parameterName":"ReleaseParam","parameterValue":"test"}]}}', projectName: 'CloudBees', releaseName: 'CdRelease1.1.5', startingStage: ''
 }
 ```
 
@@ -325,11 +306,17 @@ Details for this build will be attached to the Release Run (if supported by Clou
 
 This Integration allows you run a procedure in CloudBees CD.
 
-This build action has following parameters:
+This post build action has following parameters:
 
 - Configuration: Specify the name of the CloudBees CD configuration
 
 - Override Credential: Connect to CloudBees CD as a User other than the one mentioned in the electricflow Plugin Connection Configuration
+
+- Wait for CD Job Completed: Wait till launched CD job is completed
+
+  - Depend on CD Job Outcome: Mark CI build as failed if CD Job outcome is error or unknown
+  
+  - Check Interval: Specify the CloudBees CD procedure name
 
 - Project Name: Specify the CloudBees CD project name
 
@@ -347,82 +334,17 @@ This build action has following parameters:
 
 ``` syntaxhighlighter-pre
 node{
-        step([$class: 'ElectricFlowRunProcedure', 
-            configuration: 'CBFConfiguration',
-            projectName : 'CloudBees',
-            procedureName : 'TomcatCheckServer',
-            procedureParameters : '{"procedure":{"procedureName":"TomcatCheckServer","parameters":"[{\\\"actualParameterName\\\": \\\"max_time\\\", \\\"value\\\": \\\"10\\\"}, {\\\"actualParameterName\\\": \\\"tomcat_config_name\\\", \\\"value\\\": \\\"EC-Tomcat config\\\"}]"}}'
-    ])
+    cloudBeesFlowRunProcedure configuration: 'CdConfiguration', procedureName: 'TomcatCheckServer', procedureParameters: '{"procedure":{"procedureName":"TomcatCheckServer","parameters":[{"actualParameterName":"max_time","value":"10"},{"actualParameterName":"tomcat_config_name","value":"Tomcat configuration"}]}}', projectName: 'CloudBees'
 }
 ```
-
-# Supported Pipeline Steps
-
-Following pipeline steps are available in CloudBees CD Plugin.
-
-## Call REST API of CloudBees CD
-
-This integration allows you to call the CloudBees CD REST API. Similar
-post build action is
-available.
-
-Function name: cloudBeesFlowCallRestApi
-
-This pipeline step takes the following parameters:
-
--   Configuration: Specify the name of the CloudBees CD configuration.
-
--   Override Credential: Connect to CloudBees CD as a User other than the one mentioned in the electricflow Plugin Connection Configuration
-
--   URL Path: Specify the URL Path for the REST API
-
--   HTTP Method: Specify the HTTP Method
-
--   Parameters: Specify the parameters for the REST API. Parameters are
-    transformed into JSON object and used within body of HTTP request.
-
--   Body: Specify the body for the REST API. This parameter is not used
-    if 'Parameters' are provided.
-
--   Environment variable name for storing result: If provided, result of
-    calling CloudBees REST API (JSON output) will be stored within
-    provided environment variable available within build.
-
-![](docs/images/image2019-9-27_18-9-24.png)
-
-  
-
-**Call REST API Example Pipeline Step \#1 (Scripted Pipeline)**
 
 ``` syntaxhighlighter-pre
 node{
-    stage('Test') {
-        def result = cloudBeesFlowCallRestApi body: '', configuration: 'CBFConfiguration', envVarNameForResult: 'CALL_REST_API_CREATE_PROJECT_RESULT', httpMethod: 'POST', parameters: [[key: 'projectName', value: 'EC-TEST-Jenkins-1.00.00.01'], [key: 'description', value: 'Native Jenkins Test Project']], urlPath: '/projects'
-        echo "result : $result"
-        echo "CALL_REST_API_CREATE_PROJECT_RESULT environment variable: $CALL_REST_API_CREATE_PROJECT_RESULT"
-    }
+    cloudBeesFlowRunProcedure configuration: 'CdConfiguration', overrideCredential: [credentialId: 'CREDS_PARAM'], procedureName: 'TomcatCheckServer', procedureParameters: '{"procedure":{"procedureName":"TomcatCheckServer","parameters":[{"actualParameterName":"max_time","value":"10"},{"actualParameterName":"tomcat_config_name","value":"Tomcat configuration"}]}}', projectName: 'CloudBees', runAndWaitOption: [checkInterval: 5, dependOnCdJobOutcome: true]
 }
 ```
 
-**Call REST API Example Pipeline Step \#2 (Declarative Pipeline)**
 
-``` syntaxhighlighter-pre
-pipeline{
-    agent none
-    stages {
-        stage('Example Build') {
-            steps {
-                cloudBeesFlowCallRestApi body: '', configuration: 'CBFConfiguration', envVarNameForResult: 'CALL_REST_API_CREATE_PROJECT_RESULT', httpMethod: 'POST', parameters: [[key: 'projectName', value: 'EC-TEST-Jenkins-1.00.00.01'], [key: 'description', value: 'Native Jenkins Test Project']], urlPath: '/projects'
-            }
-        }
-        stage('Example Build 2') {
-            steps {
-                echo "CALL_REST_API_CREATE_PROJECT_RESULT environment variable: $CALL_REST_API_CREATE_PROJECT_RESULT"
-            }
-        }
-    }
-}
-```
 
 # Release Notes
 
