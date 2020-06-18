@@ -1,3 +1,15 @@
 <div>
-    Specify the location or path for the deployment package to be published to CloudBees CD. For e.g., MyProject/target
+    Specify the location or path for the deployment package to be published to CloudBees CD. E.g., MyProject/target.
+    Please note that your path or pattern should include manifest.json and all files that are declared in manifest.json.
+    This field supports ant-style path pattern matching and build-time environment variables.
+    <br/>For example: <br />
+    <pre>
+"?" matches one character. Application.?ar will match both Application.war and Application.jar.
+"*" matches zero or more characters. Report.*ml will match Report.html and Report.xml.
+"**" matches zero or more 'directories' in a path. target/**/*.war will match all war files in any directory inside "target"
+    </pre>
+    To reference environment variable value, "$" should be used. For example, to reference the current build number: $BUILD_NUMBER.
+    <br />
+    E.g., MyProject/**/*-$BUILD_NUMBER.war.
+
 </div>
