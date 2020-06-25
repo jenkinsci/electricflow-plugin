@@ -1,6 +1,7 @@
 package org.jenkinsci.plugins.electricflow.event;
 
 import hudson.Extension;
+import hudson.model.Queue.Executable;
 import hudson.model.Run;
 import hudson.model.TaskListener;
 import hudson.model.listeners.RunListener;
@@ -8,6 +9,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
+import org.antlr.v4.runtime.misc.NotNull;
 import org.jenkinsci.plugins.electricflow.Configuration;
 import org.jenkinsci.plugins.electricflow.ElectricFlowClient;
 import org.jenkinsci.plugins.electricflow.Utils;
@@ -16,9 +20,12 @@ import org.jenkinsci.plugins.electricflow.data.CloudBeesFlowBuildData;
 import org.jenkinsci.plugins.electricflow.models.CIBuildDetail;
 import org.jenkinsci.plugins.electricflow.models.CIBuildDetail.BuildAssociationType;
 import org.jenkinsci.plugins.electricflow.models.CIBuildDetail.BuildTriggerSource;
+import org.jenkinsci.plugins.workflow.flow.GraphListener;
+import org.jenkinsci.plugins.workflow.graph.FlowNode;
+import org.jenkinsci.plugins.workflow.job.WorkflowRun;
 
 @Extension
-public class ElectricFlowBuildWatcher extends RunListener<Run> {
+public class ElectricFlowBuildWatcher extends RunListener<Run> implements GraphListener {
   public ElectricFlowBuildWatcher() {
     super(Run.class);
   }
@@ -45,6 +52,14 @@ public class ElectricFlowBuildWatcher extends RunListener<Run> {
       }
     }
     return retval;
+  }
+
+  @Override
+  public void onNewHead(FlowNode flowNode) {
+    // flowNode.
+    WorkflowRun run = getRun(flowNode);
+    String dname = flowNode.getDisplayName();
+    String dname2 = flowNode.getDisplayFunctionName();
   }
 
   public boolean sendBuildDetailsToInstance(Run<?, ?> run, TaskListener taskListener) {
@@ -103,5 +118,20 @@ public class ElectricFlowBuildWatcher extends RunListener<Run> {
       }
     }
     return true;
+  }
+  @CheckForNull
+  private WorkflowRun getRun(@NotNull FlowNode flowNode) {
+    Executable exec;
+    try {
+      exec = flowNode.getExecution().getOwner().getExecutable();
+    } catch (IOException e) {
+      // Ignore the error, that step cannot be monitored.
+      return null;
+    }
+
+    if (exec instanceof WorkflowRun) {
+      return (WorkflowRun) exec;
+    }
+    return null;
   }
 }
