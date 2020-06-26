@@ -224,8 +224,7 @@ pipeline{
 
 ## Deploy Application using CloudBees CD
 
-This integration allows you to deploy an application using CloudBees
-Flow.
+This integration allows you to deploy an application using CloudBees CD.
 
 This post build action takes the following parameters:
 
@@ -283,8 +282,7 @@ pipeline
 
   -   Parameter is required if ‘Starting Stage’ isn’t used
 
-- (Optional) Pipeline parameters: Specify parameters for the CloudBees
-Flow pipeline
+- (Optional) Pipeline parameters: Specify parameters for the CloudBees CD pipeline
 
   -   Parameter name will be displayed as Label
 
@@ -347,6 +345,31 @@ node{
 
 
 # Release Notes
+
+## Version 1.1.16 (June 26, 2020)
+
+Improvements:
+
+- Updated Run Procedure by “RunAndWait” option which includes extra dependOnCdJobOutcome and checkInterval sub-options
+- Improved error messages in Trigger Pipeline PBA
+- Improved error handling in Run Procedure PBA
+- Updated build summary of Deploy Application by an extra link to CD application
+
+Bugfixes:
+
+- Fixed an issue when Publish Artifact has been creating a wrong repository structure if the artifact has been published from the Jenkins agent node
+- Fixed an error when CD Artifacts URL had a double slash under some conditions
+- Deploy Application PBA now has a link to the exact application that has been deployed instead of a link to all applications on customer instance
+- Fixed an issue in EC-Jenkins when artifacts could URL could not be retrieved for the Report stage of Run And Monitor and Run And Wait under certain conditions
+- The release retrieval code has been fixed
+- Fixed an error when "Publish Artifacts" was turning a successful build into failed build under some conditions
+- Fixed a bug when parameter "Stages to run" has been ignored and all stages were running
+
+Documentation, help tips and labels:
+
+- Updated plugin documentation by new screenshots and pipeline code snaps
+- Parameters label for Trigger release has been changed to be more concrete
+- Updated help tips for "Publish Artifacts" and "Create/Deploy Application from Deployment Package" PBAs has been improved and now has the list of supported cases
 
 ## Version 1.1.15 (June 1, 2020)
 
