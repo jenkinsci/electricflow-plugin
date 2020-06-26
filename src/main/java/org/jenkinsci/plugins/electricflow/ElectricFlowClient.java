@@ -33,6 +33,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jenkinsci.plugins.electricflow.models.CIBuildDetail;
 import org.jenkinsci.plugins.electricflow.models.cdrestdata.jobs.GetJobStatusResponseData;
+import org.jenkinsci.plugins.electricflow.models.cdrestdata.jobs.GetPipelineRuntimeDetailsResponseData;
 
 public class ElectricFlowClient {
 
@@ -952,5 +953,17 @@ public class ElectricFlowClient {
     return new ObjectMapper()
         .enable(DeserializationFeature.READ_UNKNOWN_ENUM_VALUES_USING_DEFAULT_VALUE)
         .readValue(result, GetJobStatusResponseData.class);
+  }
+
+  public GetPipelineRuntimeDetailsResponseData getCdPipelineRuntimeDetails(String flowRuntimeId)
+      throws IOException {
+    String requestEndpoint = "/pipelineRuntimeDetails?request=getPipelineRuntimeDetails";
+    String result =
+        runRestAPI(requestEndpoint, PUT, "{\"flowRuntimeId\":[\"" + flowRuntimeId + "\"]}");
+    return new ObjectMapper()
+        .enable(DeserializationFeature.READ_UNKNOWN_ENUM_VALUES_USING_DEFAULT_VALUE)
+        .readValue(
+            JSONObject.fromObject(result).getJSONArray("flowRuntime").getJSONObject(0).toString(),
+            GetPipelineRuntimeDetailsResponseData.class);
   }
 }
