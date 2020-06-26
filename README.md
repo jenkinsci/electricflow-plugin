@@ -224,8 +224,7 @@ pipeline{
 
 ## Deploy Application using CloudBees CD
 
-This integration allows you to deploy an application using CloudBees
-Flow.
+This integration allows you to deploy an application using CloudBees CD.
 
 This post build action takes the following parameters:
 
@@ -283,8 +282,7 @@ pipeline
 
   -   Parameter is required if ‘Starting Stage’ isn’t used
 
-- (Optional) Pipeline parameters: Specify parameters for the CloudBees
-Flow pipeline
+- (Optional) Pipeline parameters: Specify parameters for the CloudBees CD pipeline
 
   -   Parameter name will be displayed as Label
 
@@ -360,7 +358,7 @@ Improvements:
 Bugfixes:
 
 - Fixed an issue when Publish Artifact has been creating a wrong repository structure if the artifact has been published from the Jenkins agent node
-- Fixed an error when Flow Artifacts URL had a double slash under some conditions
+- Fixed an error when CD Artifacts URL had a double slash under some conditions
 - Deploy Application PBA now has a link to the exact application that has been deployed instead of a link to all applications on customer instance
 - Fixed an issue in EC-Jenkins when artifacts could URL could not be retrieved for the Report stage of Run And Monitor and Run And Wait under certain conditions
 - The release retrieval code has been fixed
