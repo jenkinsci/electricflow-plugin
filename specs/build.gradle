@@ -1,3 +1,4 @@
+import groovy.io.FileType
 
 apply plugin: "groovy"
 apply plugin: 'idea'
@@ -49,6 +50,23 @@ test {
     if (destination) {
         reports {
             html.setDestination(new File(destination))
+        }
+    }
+
+    def envName = findProperty('envName') ?: "default"
+    if (!System.getenv("I_AM_PLUGIN_DEVELOPER") && envName) {
+        println "Enviroment $envName"
+        File envFolder = new File(projectDir, "environments/${envName}")
+        envFolder.eachFile(FileType.FILES) {
+            if (it.name == 'remote-secrets.env') {
+                // Read all lines except comments or empty lines
+                def lines = it.readLines().findAll{ !(it.startsWith('#') || it.isEmpty()) }
+                lines.each() {
+                    def (key, value) = it.tokenize("=")
+                    println "Environment $key, ${'*' * value.size()}"
+                    environment key, value
+                }
+            }
         }
     }
 }
