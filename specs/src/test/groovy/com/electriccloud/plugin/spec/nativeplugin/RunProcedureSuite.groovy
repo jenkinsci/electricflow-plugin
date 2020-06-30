@@ -48,10 +48,12 @@ class RunProcedureSuite extends JenkinsHelper {
         ArrayList<Job> jobsBefore = Job.findJobsOfProcedure(procedureName)
 
         def ciPipelineParameters = [
-                flowConfigName   : CI_CONFIG_NAME,
-                flowProjectName  : projectName,
-                flowProcedureName: procedureName,
-                runOnly          : testPbaName
+                flowConfigName        : CI_CONFIG_NAME,
+                flowProjectName       : projectName,
+                flowProcedureName     : procedureName,
+                dependOnCdJobOutcomeCh: 'true',
+                runAndWaitInterval    : '5',
+                runOnly               : testPbaName
         ]
 
         when: 'Run pipeline and collect run properties'
