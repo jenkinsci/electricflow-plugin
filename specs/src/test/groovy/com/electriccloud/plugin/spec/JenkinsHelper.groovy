@@ -37,6 +37,13 @@ class JenkinsHelper extends PluginSpockTestSupport {
         }
     }
 
+    def doCleanupSpec(){
+        def testName = getClass().simpleName
+        println(">>>>>Finished with SpecTest $testName")
+        logger.info(">>>>>Finished with SpecTest $testName")
+        super.doCleanupSpec()
+    }
+
     def dslWithTimeout(dslString, timeout = 3600) {
         def result = dsl(dslString)
         PollingConditions poll = new PollingConditions(timeout: timeout, initialDelay: 0, factor: 1.25)
