@@ -39,7 +39,6 @@ class JenkinsHelper extends PluginSpockTestSupport {
 
     def doCleanupSpec(){
         def testName = getClass().simpleName
-        println(">>>>>Finished with SpecTest $testName")
         logger.info(">>>>>Finished with SpecTest $testName")
         super.doCleanupSpec()
     }
