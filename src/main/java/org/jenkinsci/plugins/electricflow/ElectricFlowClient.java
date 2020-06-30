@@ -33,6 +33,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jenkinsci.plugins.electricflow.models.CIBuildDetail;
 import org.jenkinsci.plugins.electricflow.models.cdrestdata.jobs.GetJobStatusResponseData;
+import org.jenkinsci.plugins.electricflow.models.cdrestdata.jobs.GetPipelineRuntimeDetailsResponseData;
 
 public class ElectricFlowClient {
 
@@ -949,8 +950,24 @@ public class ElectricFlowClient {
   public GetJobStatusResponseData getCdJobStatus(String cdJobId) throws IOException {
     String requestEndpoint = "/jobs/" + cdJobId + "?request=getJobStatus";
     String result = runRestAPI(requestEndpoint, GET);
-    return new ObjectMapper()
+    GetJobStatusResponseData getJobStatusResponseData = new ObjectMapper()
         .enable(DeserializationFeature.READ_UNKNOWN_ENUM_VALUES_USING_DEFAULT_VALUE)
         .readValue(result, GetJobStatusResponseData.class);
+    getJobStatusResponseData.setContent(result);
+    return getJobStatusResponseData;
+  }
+
+  public GetPipelineRuntimeDetailsResponseData getCdPipelineRuntimeDetails(String flowRuntimeId)
+      throws IOException {
+    String requestEndpoint = "/pipelineRuntimeDetails?request=getPipelineRuntimeDetails";
+    String result =
+        runRestAPI(requestEndpoint, PUT, "{\"flowRuntimeId\":[\"" + flowRuntimeId + "\"]}");
+    GetPipelineRuntimeDetailsResponseData getPipelineRuntimeDetailsResponseData = new ObjectMapper()
+        .enable(DeserializationFeature.READ_UNKNOWN_ENUM_VALUES_USING_DEFAULT_VALUE)
+        .readValue(
+            JSONObject.fromObject(result).getJSONArray("flowRuntime").getJSONObject(0).toString(),
+            GetPipelineRuntimeDetailsResponseData.class);
+    getPipelineRuntimeDetailsResponseData.setContent(result);
+    return getPipelineRuntimeDetailsResponseData;
   }
 }
