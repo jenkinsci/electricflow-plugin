@@ -49,7 +49,7 @@ public class GetJobStatusResponseData {
   @Override
   public String toString() {
     if ((getStatus() == CdJobStatus.unknown || getOutcome() == CdJobOutcome.unknown)
-        && content != null) {
+        && getContent() != null) {
       try {
         return "CD Job Status Response (unexpected json): " + formatJsonOutput(getContent());
       } catch (IOException e) {

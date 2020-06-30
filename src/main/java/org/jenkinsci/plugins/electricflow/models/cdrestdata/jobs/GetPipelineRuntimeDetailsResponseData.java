@@ -57,7 +57,7 @@ public class GetPipelineRuntimeDetailsResponseData {
 
   @Override
   public String toString() {
-    if (getOutcome() == CdPipelineOutcome.unknown && content != null) {
+    if (getOutcome() == CdPipelineOutcome.unknown && getContent() != null) {
       try {
         return "CD Pipeline Runtime Details Response (unexpected json): "
             + formatJsonOutput(getContent());

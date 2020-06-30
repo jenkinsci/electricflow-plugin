@@ -950,9 +950,11 @@ public class ElectricFlowClient {
   public GetJobStatusResponseData getCdJobStatus(String cdJobId) throws IOException {
     String requestEndpoint = "/jobs/" + cdJobId + "?request=getJobStatus";
     String result = runRestAPI(requestEndpoint, GET);
-    return new ObjectMapper()
+    GetJobStatusResponseData getJobStatusResponseData = new ObjectMapper()
         .enable(DeserializationFeature.READ_UNKNOWN_ENUM_VALUES_USING_DEFAULT_VALUE)
         .readValue(result, GetJobStatusResponseData.class);
+    getJobStatusResponseData.setContent(result);
+    return getJobStatusResponseData;
   }
 
   public GetPipelineRuntimeDetailsResponseData getCdPipelineRuntimeDetails(String flowRuntimeId)
@@ -960,10 +962,12 @@ public class ElectricFlowClient {
     String requestEndpoint = "/pipelineRuntimeDetails?request=getPipelineRuntimeDetails";
     String result =
         runRestAPI(requestEndpoint, PUT, "{\"flowRuntimeId\":[\"" + flowRuntimeId + "\"]}");
-    return new ObjectMapper()
+    GetPipelineRuntimeDetailsResponseData getPipelineRuntimeDetailsResponseData = new ObjectMapper()
         .enable(DeserializationFeature.READ_UNKNOWN_ENUM_VALUES_USING_DEFAULT_VALUE)
         .readValue(
             JSONObject.fromObject(result).getJSONArray("flowRuntime").getJSONObject(0).toString(),
             GetPipelineRuntimeDetailsResponseData.class);
+    getPipelineRuntimeDetailsResponseData.setContent(result);
+    return getPipelineRuntimeDetailsResponseData;
   }
 }
