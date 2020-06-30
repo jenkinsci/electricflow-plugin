@@ -15,6 +15,8 @@ All rights reserved.
     </f:entry>
 
     <st:include class="org.jenkinsci.plugins.electricflow.Credential" page="overrideCredential.jelly" />
+
+    <st:include class="org.jenkinsci.plugins.electricflow.RunAndWaitOption" page="runAndWaitOption.jelly" />
   
     <f:entry title="Project Name" field="projectName">
         <f:select id="projectN" onchange="deleteParameterRows()"/>
