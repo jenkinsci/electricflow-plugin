@@ -2,10 +2,13 @@ package org.jenkinsci.plugins.electricflow.models.cdrestdata.jobs;
 
 import com.fasterxml.jackson.annotation.JsonEnumDefaultValue;
 
-public enum CdPipelineOutcome {
+public enum CdPipelineStatus {
+  running,
   success,
-  error,
   warning,
+  error,
+  ABORT,
+  FORCE_ABORT,
   @JsonEnumDefaultValue
   unknown
 }
