@@ -63,9 +63,6 @@ class AssociateBuildToReleaseSuite extends JenkinsHelper {
         println("PIPELINE RUN ID: ${flowRuntimeIds['correct']}")
     }
 
-    def doCleanupSpec() {
-    }
-
     @Unroll
     def "C499948.#caseId. AssociateBuildToRelease - #pbaToRun. FlowRuntimeId: '#flowRuntimeId'"() {
         given: 'Parameters for the pipeline'
