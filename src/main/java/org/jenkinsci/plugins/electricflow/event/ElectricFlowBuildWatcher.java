@@ -20,6 +20,8 @@ import org.jenkinsci.plugins.electricflow.data.CloudBeesFlowBuildData;
 import org.jenkinsci.plugins.electricflow.models.CIBuildDetail;
 import org.jenkinsci.plugins.electricflow.models.CIBuildDetail.BuildAssociationType;
 import org.jenkinsci.plugins.electricflow.models.CIBuildDetail.BuildTriggerSource;
+import org.jenkinsci.plugins.workflow.cps.CpsFlowExecution;
+import org.jenkinsci.plugins.workflow.flow.FlowExecution;
 import org.jenkinsci.plugins.workflow.flow.GraphListener;
 import org.jenkinsci.plugins.workflow.graph.FlowNode;
 import org.jenkinsci.plugins.workflow.job.WorkflowRun;
@@ -57,9 +59,21 @@ public class ElectricFlowBuildWatcher extends RunListener<Run> implements GraphL
   @Override
   public void onNewHead(FlowNode flowNode) {
     // flowNode.
+    System.out.println("Start of GraphListener block");
     WorkflowRun run = getRun(flowNode);
+    try {
+      String log = run.getLog();
+      System.out.println(log);
+    } catch (IOException | NullPointerException ignore) { }
     String dname = flowNode.getDisplayName();
     String dname2 = flowNode.getDisplayFunctionName();
+    try {
+      CpsFlowExecution execution = (CpsFlowExecution) flowNode.getExecution();
+      String script = execution.getScript();
+      System.out.println(script);
+      // String state = execution.
+    } catch (ClassCastException ignore) { }
+    System.out.println("End of GraphListener block");
   }
 
   public boolean sendBuildDetailsToInstance(Run<?, ?> run, TaskListener taskListener) {
