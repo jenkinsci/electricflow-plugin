@@ -10,8 +10,8 @@ import java.io.IOException;
 public class GetJobStatusResponseData {
 
   @JsonProperty() private String jobId;
-  @JsonProperty() private CdJobStatus status;
-  @JsonProperty() private CdJobOutcome outcome;
+  @JsonProperty() private CdJobStatus status = CdJobStatus.unknown;
+  @JsonProperty() private CdJobOutcome outcome = CdJobOutcome.unknown;
   private String content;
 
   public String getJobId() {

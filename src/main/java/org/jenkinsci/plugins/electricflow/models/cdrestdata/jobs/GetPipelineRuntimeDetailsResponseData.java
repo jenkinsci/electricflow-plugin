@@ -20,7 +20,7 @@ public class GetPipelineRuntimeDetailsResponseData {
   @JsonDeserialize(using = NumericBooleanDeserializer.class)
   private Boolean completed;
 
-  @JsonProperty private CdPipelineOutcome outcome;
+  @JsonProperty private CdPipelineStatus status = CdPipelineStatus.unknown;
   private String content;
 
   public String getFlowRuntimeId() {
@@ -39,12 +39,12 @@ public class GetPipelineRuntimeDetailsResponseData {
     this.completed = completed;
   }
 
-  public CdPipelineOutcome getOutcome() {
-    return outcome;
+  public CdPipelineStatus getStatus() {
+    return status;
   }
 
-  public void setOutcome(CdPipelineOutcome outcome) {
-    this.outcome = outcome;
+  public void setStatus(CdPipelineStatus status) {
+    this.status = status;
   }
 
   public String getContent() {
@@ -57,7 +57,7 @@ public class GetPipelineRuntimeDetailsResponseData {
 
   @Override
   public String toString() {
-    if (getOutcome() == CdPipelineOutcome.unknown && getContent() != null) {
+    if (getStatus() == CdPipelineStatus.unknown && getContent() != null) {
       try {
         return "CD Pipeline Runtime Details Response (unexpected json): "
             + formatJsonOutput(getContent());
@@ -71,7 +71,7 @@ public class GetPipelineRuntimeDetailsResponseData {
         + ", completed="
         + completed
         + ", status="
-        + outcome
+        + status
         + '}';
   }
 }

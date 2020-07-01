@@ -55,7 +55,7 @@ import org.jenkinsci.plugins.electricflow.exceptions.PluginException;
 import org.jenkinsci.plugins.electricflow.factories.ElectricFlowClientFactory;
 import org.jenkinsci.plugins.electricflow.models.CIBuildDetail;
 import org.jenkinsci.plugins.electricflow.models.CIBuildDetail.BuildAssociationType;
-import org.jenkinsci.plugins.electricflow.models.cdrestdata.jobs.CdPipelineOutcome;
+import org.jenkinsci.plugins.electricflow.models.cdrestdata.jobs.CdPipelineStatus;
 import org.jenkinsci.plugins.electricflow.models.cdrestdata.jobs.GetPipelineRuntimeDetailsResponseData;
 import org.jenkinsci.plugins.electricflow.ui.FieldValidationStatus;
 import org.jenkinsci.plugins.electricflow.ui.HtmlUtils;
@@ -233,12 +233,12 @@ public class ElectricFlowPipelinePublisher extends Recorder implements SimpleBui
         } while (!getPipelineRuntimeDetailsResponseData.isCompleted());
 
         if (runAndWaitOption.isDependOnCdJobOutcome()) {
-          if (getPipelineRuntimeDetailsResponseData.getOutcome() == CdPipelineOutcome.error
-              || getPipelineRuntimeDetailsResponseData.getOutcome() == CdPipelineOutcome.unknown) {
+          if (getPipelineRuntimeDetailsResponseData.getStatus() != CdPipelineStatus.success
+              && getPipelineRuntimeDetailsResponseData.getStatus() != CdPipelineStatus.warning) {
             throw new PluginException(
-                "CD job completed with "
-                    + getPipelineRuntimeDetailsResponseData.getOutcome()
-                    + " outcome");
+                "CD pipeline completed with "
+                    + getPipelineRuntimeDetailsResponseData.getStatus()
+                    + " status");
           }
         }
       }
@@ -422,9 +422,9 @@ public class ElectricFlowPipelinePublisher extends Recorder implements SimpleBui
       summaryText =
           summaryText
               + "  <tr>\n"
-              + "    <td>CD Pipeline Outcome:</td>\n"
+              + "    <td>CD Pipeline Status:</td>\n"
               + "    <td>\n"
-              + HtmlUtils.encodeForHtml(getPipelineRuntimeDetailsResponseData.getOutcome().name())
+              + HtmlUtils.encodeForHtml(getPipelineRuntimeDetailsResponseData.getStatus().name())
               + "    </td>\n"
               + "  </tr>\n";
     }
