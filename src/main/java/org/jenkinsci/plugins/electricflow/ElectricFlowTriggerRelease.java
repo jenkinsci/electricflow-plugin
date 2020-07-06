@@ -41,6 +41,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import javax.annotation.Nonnull;
 import jenkins.tasks.SimpleBuildStep;
 import net.sf.json.JSONArray;
@@ -49,10 +50,13 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jenkinsci.Symbol;
 import org.jenkinsci.plugins.electricflow.data.CloudBeesFlowBuildData;
+import org.jenkinsci.plugins.electricflow.exceptions.PluginException;
 import org.jenkinsci.plugins.electricflow.factories.ElectricFlowClientFactory;
 import org.jenkinsci.plugins.electricflow.models.CIBuildDetail;
 import org.jenkinsci.plugins.electricflow.models.CIBuildDetail.BuildAssociationType;
 import org.jenkinsci.plugins.electricflow.models.CIBuildDetail.BuildTriggerSource;
+import org.jenkinsci.plugins.electricflow.models.cdrestdata.jobs.CdPipelineStatus;
+import org.jenkinsci.plugins.electricflow.models.cdrestdata.jobs.GetPipelineRuntimeDetailsResponseData;
 import org.jenkinsci.plugins.electricflow.ui.FieldValidationStatus;
 import org.jenkinsci.plugins.electricflow.ui.HtmlUtils;
 import org.jenkinsci.plugins.electricflow.ui.SelectFieldUtils;
@@ -72,6 +76,7 @@ public class ElectricFlowTriggerRelease extends Recorder implements SimpleBuildS
 
   private String configuration;
   private Credential overrideCredential;
+  private RunAndWaitOption runAndWaitOption;
   private String projectName;
   private String releaseName;
   private String startingStage;
@@ -122,8 +127,10 @@ public class ElectricFlowTriggerRelease extends Recorder implements SimpleBuildS
               projectName, releaseName, stagesToRun, startingStage, pipelineParameters);
 
       JSONObject flowRuntime = JSONObject.fromObject(releaseResult).getJSONObject("flowRuntime");
+      String flowRuntimeId = flowRuntime.getString("flowRuntimeId");
 
-      String summaryHtml = getSummaryHtml(efClient, flowRuntime, pipelineParameters, stagesToRun);
+      String summaryHtml =
+          getSummaryHtml(efClient, flowRuntime, pipelineParameters, stagesToRun, null);
       SummaryTextAction action = new SummaryTextAction(run, summaryHtml);
 
       try {
@@ -152,11 +159,47 @@ public class ElectricFlowTriggerRelease extends Recorder implements SimpleBuildS
       run.addAction(action);
       run.save();
       logger.println("TriggerRelease  result: " + formatJsonOutput(releaseResult));
-    } catch (IOException e) {
-      logger.println(e.getMessage());
-      log.error(e.getMessage(), e);
-      run.setResult(Result.FAILURE);
-    } catch (InterruptedException e) {
+
+      if (runAndWaitOption != null) {
+        int checkInterval = runAndWaitOption.getCheckInterval();
+
+        logger.println(
+            "Waiting till CloudBees CD pipeline is completed, checking every "
+                + checkInterval
+                + " seconds");
+
+        GetPipelineRuntimeDetailsResponseData getPipelineRuntimeDetailsResponseData;
+        do {
+          TimeUnit.SECONDS.sleep(checkInterval);
+
+          getPipelineRuntimeDetailsResponseData =
+              efClient.getCdPipelineRuntimeDetails(flowRuntimeId);
+          logger.println(getPipelineRuntimeDetailsResponseData);
+
+          summaryHtml =
+              getSummaryHtml(
+                  efClient,
+                  flowRuntime,
+                  pipelineParameters,
+                  stagesToRun,
+                  getPipelineRuntimeDetailsResponseData);
+          action = new SummaryTextAction(run, summaryHtml);
+          run.addOrReplaceAction(action);
+          run.save();
+        } while (!getPipelineRuntimeDetailsResponseData.isCompleted());
+
+        if (runAndWaitOption.isDependOnCdJobOutcome()) {
+          if (getPipelineRuntimeDetailsResponseData.getStatus() != CdPipelineStatus.success
+              && getPipelineRuntimeDetailsResponseData.getStatus() != CdPipelineStatus.warning) {
+            throw new PluginException(
+                "CD pipeline completed with "
+                    + getPipelineRuntimeDetailsResponseData.getStatus()
+                    + " status");
+          }
+        }
+      }
+
+    } catch (IOException | InterruptedException | PluginException e) {
       logger.println(e.getMessage());
       log.error(e.getMessage(), e);
       run.setResult(Result.FAILURE);
@@ -199,6 +242,15 @@ public class ElectricFlowTriggerRelease extends Recorder implements SimpleBuildS
   @DataBoundSetter
   public void setOverrideCredential(Credential overrideCredential) {
     this.overrideCredential = overrideCredential;
+  }
+
+  public RunAndWaitOption getRunAndWaitOption() {
+    return runAndWaitOption;
+  }
+
+  @DataBoundSetter
+  public void setRunAndWaitOption(RunAndWaitOption runAndWaitOption) {
+    this.runAndWaitOption = runAndWaitOption;
   }
 
   @Override
@@ -274,7 +326,8 @@ public class ElectricFlowTriggerRelease extends Recorder implements SimpleBuildS
       ElectricFlowClient efClient,
       JSONObject flowRuntime,
       JSONArray parameters,
-      List<String> stagesToRun) {
+      List<String> stagesToRun,
+      GetPipelineRuntimeDetailsResponseData getPipelineRuntimeDetailsResponseData) {
     String pipelineId = flowRuntime.getString("pipelineId");
     String flowRuntimeId = flowRuntime.getString("flowRuntimeId");
     String pipelineName = flowRuntime.getString("pipelineName");
@@ -331,6 +384,24 @@ public class ElectricFlowTriggerRelease extends Recorder implements SimpleBuildS
     }
 
     summaryText = getParametersHTML(parameters, summaryText, "parameterName", "parameterValue");
+    if (getPipelineRuntimeDetailsResponseData != null) {
+      summaryText =
+          summaryText
+              + "  <tr>\n"
+              + "    <td>CD Pipeline Completed:</td>\n"
+              + "    <td>\n"
+              + getPipelineRuntimeDetailsResponseData.isCompleted()
+              + "    </td>\n"
+              + "  </tr>\n";
+      summaryText =
+          summaryText
+              + "  <tr>\n"
+              + "    <td>CD Pipeline Status:</td>\n"
+              + "    <td>\n"
+              + HtmlUtils.encodeForHtml(getPipelineRuntimeDetailsResponseData.getStatus().name())
+              + "    </td>\n"
+              + "  </tr>\n";
+    }
     summaryText = summaryText + "</table>";
 
     return summaryText;
