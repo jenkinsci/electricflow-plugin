@@ -33,6 +33,8 @@ import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -258,7 +260,11 @@ public class ElectricFlowPublishApplication extends Recorder implements SimpleBu
           }
         }
       }
-    } catch (Exception e) {
+    } catch (PluginException
+        | IOException
+        | NoSuchAlgorithmException
+        | InterruptedException
+        | KeyManagementException e) {
       logger.println("Warning: Error occurred during application creation: " + e.getMessage());
       log.warn("Error occurred during application creation: " + e.getMessage(), e);
 

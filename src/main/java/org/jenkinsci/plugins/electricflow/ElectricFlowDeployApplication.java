@@ -181,7 +181,7 @@ public class ElectricFlowDeployApplication extends Recorder implements SimpleBui
           }
         }
       }
-    } catch (Exception e) {
+    } catch (PluginException | InterruptedException | IOException e) {
       logger.println(e.getMessage());
       log.error(e.getMessage(), e);
 
