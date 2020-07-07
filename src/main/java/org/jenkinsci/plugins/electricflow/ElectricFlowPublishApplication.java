@@ -37,6 +37,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import javax.annotation.Nonnull;
 import jenkins.tasks.SimpleBuildStep;
 import net.sf.json.JSONObject;
@@ -45,6 +46,9 @@ import org.apache.commons.logging.LogFactory;
 import org.jenkinsci.Symbol;
 import org.jenkinsci.plugins.electricflow.exceptions.PluginException;
 import org.jenkinsci.plugins.electricflow.factories.ElectricFlowClientFactory;
+import org.jenkinsci.plugins.electricflow.models.cdrestdata.jobs.CdJobOutcome;
+import org.jenkinsci.plugins.electricflow.models.cdrestdata.jobs.CdJobStatus;
+import org.jenkinsci.plugins.electricflow.models.cdrestdata.jobs.GetJobStatusResponseData;
 import org.jenkinsci.plugins.electricflow.ui.HtmlUtils;
 import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.DataBoundConstructor;
@@ -66,6 +70,7 @@ public class ElectricFlowPublishApplication extends Recorder implements SimpleBu
   private final String MANIFEST_NAME = "manifest.json";
   private final String configuration;
   private Credential overrideCredential;
+  private RunAndWaitOption runAndWaitOption;
   private String filePath;
 
   // ~ Constructors -----------------------------------------------------------
@@ -207,11 +212,52 @@ public class ElectricFlowPublishApplication extends Recorder implements SimpleBu
       logger.println(
           "Flow response on triggering CreateApplicationFromDeploymentPackage: " + deployResponse);
 
-      String summaryHtml = getSummaryHtml(efClient, deployResponse, workspace.getRemote(), logger);
+      String summaryHtml =
+          getSummaryHtml(efClient, deployResponse, workspace.getRemote(), logger, null);
       SummaryTextAction action = new SummaryTextAction(run, summaryHtml);
 
       run.addAction(action);
       run.save();
+
+      if (runAndWaitOption != null) {
+        int checkInterval = runAndWaitOption.getCheckInterval();
+
+        logger.println(
+            "Waiting till CloudBees CD job is completed, checking every "
+                + checkInterval
+                + " seconds");
+
+        String jobId = JSONObject.fromObject(deployResponse).getString("jobId");
+        GetJobStatusResponseData getJobStatusResponseData;
+        do {
+          TimeUnit.SECONDS.sleep(checkInterval);
+
+          getJobStatusResponseData = efClient.getCdJobStatus(jobId);
+          logger.println(getJobStatusResponseData);
+
+          summaryHtml =
+              getSummaryHtml(
+                  efClient,
+                  deployResponse,
+                  workspace.getRemote(),
+                  logger,
+                  getJobStatusResponseData);
+          action = new SummaryTextAction(run, summaryHtml);
+          run.addOrReplaceAction(action);
+          run.save();
+          if (getJobStatusResponseData.getStatus() == CdJobStatus.unknown) {
+            throw new PluginException("Unexpected format of CD job status response");
+          }
+        } while (getJobStatusResponseData.getStatus() != CdJobStatus.completed);
+
+        if (runAndWaitOption.isDependOnCdJobOutcome()) {
+          if (getJobStatusResponseData.getOutcome() == CdJobOutcome.error
+              || getJobStatusResponseData.getOutcome() == CdJobOutcome.unknown) {
+            throw new PluginException(
+                "CD job completed with " + getJobStatusResponseData.getOutcome() + " outcome");
+          }
+        }
+      }
     } catch (Exception e) {
       logger.println("Warning: Error occurred during application creation: " + e.getMessage());
       log.warn("Error occurred during application creation: " + e.getMessage(), e);
@@ -240,6 +286,15 @@ public class ElectricFlowPublishApplication extends Recorder implements SimpleBu
     this.overrideCredential = overrideCredential;
   }
 
+  public RunAndWaitOption getRunAndWaitOption() {
+    return runAndWaitOption;
+  }
+
+  @DataBoundSetter
+  public void setRunAndWaitOption(RunAndWaitOption runAndWaitOption) {
+    this.runAndWaitOption = runAndWaitOption;
+  }
+
   // Overridden for better type safety.
   // If your plugin doesn't really define any property on Descriptor,
   // you don't have to do this.
@@ -258,7 +313,11 @@ public class ElectricFlowPublishApplication extends Recorder implements SimpleBu
   }
 
   private String getSummaryHtml(
-      ElectricFlowClient efClient, String deployResponse, String workspaceDir, PrintStream logger) {
+      ElectricFlowClient efClient,
+      String deployResponse,
+      String workspaceDir,
+      PrintStream logger,
+      GetJobStatusResponseData getJobStatusResponseData) {
     String url = efClient.getElectricFlowUrl() + "/flow/#applications";
     String jobId = JSONObject.fromObject(deployResponse).getString("jobId");
     String jobUrl = efClient.getElectricFlowUrl() + "/commander/link/jobDetails/jobs/" + jobId;
@@ -332,6 +391,24 @@ public class ElectricFlowPublishApplication extends Recorder implements SimpleBu
       }
 
       summaryText = strBuilder.toString();
+    }
+    if (getJobStatusResponseData != null) {
+      summaryText =
+          summaryText
+              + "  <tr>\n"
+              + "    <td>CD Job Status:</td>\n"
+              + "    <td>\n"
+              + HtmlUtils.encodeForHtml(getJobStatusResponseData.getStatus().name())
+              + "    </td>\n"
+              + "  </tr>\n";
+      summaryText =
+          summaryText
+              + "  <tr>\n"
+              + "    <td>CD Job Outcome:</td>\n"
+              + "    <td>\n"
+              + HtmlUtils.encodeForHtml(getJobStatusResponseData.getOutcome().name())
+              + "    </td>\n"
+              + "  </tr>\n";
     }
 
     summaryText = summaryText + "</table>";
