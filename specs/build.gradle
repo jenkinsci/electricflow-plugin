@@ -1,11 +1,9 @@
-import groovy.io.FileType
-
-apply plugin: "groovy"
-apply plugin: 'idea'
+plugins {
+    id "com.cloudbees.cd.plugins.specs" version "1.1.10.22"
+}
 
 version = "1.0"
 description = "EC-Jenkins Specs"
-
 sourceCompatibility = 1.8
 
 defaultTasks 'test'
@@ -24,50 +22,27 @@ repositories {
 dependencies {
     compile 'org.codehaus.groovy:groovy-all:2.4.5:indy'
     compile 'org.spockframework:spock-core:1.1-groovy-2.4'
-    compile 'com.electriccloud:commander-spec-tests:latest.release'
-    compile 'com.jayway.restassured:rest-assured:2.4.0'
     compile 'com.electriccloud:ec-specs-plugins-core:1.9.2'
-    
+//    compile 'com.electriccloud:commander-spec-tests:latest.release'
+
+//    compile 'com.jayway.restassured:rest-assured:2.4.0'
+
 }
 
 test {
-    def server = findProperty('server') ?: 'localhost'
-    def flowUser = findProperty('username') ?: 'admin'
-    def flowPass = findProperty('password') ?: 'changeme'
-
-    systemProperties['COMMANDER_SERVER'] = server
-    systemProperties['COMMANDER_USERNAME'] = flowUser
-    systemProperties['COMMANDER_PASSWORD'] = flowPass
+    systemProperties['COMMANDER_SERVER'] = findProperty('server') ?: 'localhost'
+    systemProperties['COMMANDER_USERNAME'] = findProperty('username') ?: 'admin'
+    systemProperties['COMMANDER_PASSWORD'] = findProperty('password') ?: 'changeme'
     systemProperties["COMMANDER_SECURE"] = '1'
+}
 
-    testLogging {
-        showStandardStreams = true
-    }
-    outputs.upToDateWhen { false }
-    systemProperties['EC_SPECS_CLI'] = true
+sendAllureReports {
+    projectName = 'electricflow-plugin'
+}
 
-    String destination = findProperty('reportDestination') ?: "spec-report"
-    if (destination) {
-        reports {
-            html.setDestination(new File(destination))
-        }
-    }
-
-    def envName = findProperty('envName') ?: "default"
-    if (!System.getenv("I_AM_PLUGIN_DEVELOPER") && envName) {
-        println "Enviroment $envName"
-        File envFolder = new File(projectDir, "environments/${envName}")
-        envFolder.eachFile(FileType.FILES) {
-            if (it.name == 'remote-secrets.env') {
-                // Read all lines except comments or empty lines
-                def lines = it.readLines().findAll{ !(it.startsWith('#') || it.isEmpty()) }
-                lines.each() {
-                    def (key, value) = it.tokenize("=")
-                    println "Environment $key, ${'*' * value.size()}"
-                    environment key, value
-                }
-            }
-        }
-    }
+configureTests {
+    environmentName = findProperty("envName") ?: 'default'
+    readEnvironmentVariables = true
+    readSecrets = true
 }
 
