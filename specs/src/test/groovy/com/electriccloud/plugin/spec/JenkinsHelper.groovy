@@ -131,7 +131,9 @@ class JenkinsHelper extends PluginSpockTestSupport {
         }
         // There is no proxy, regular creation.
         else {
-            def jobs_location_dsl = (coreTeam != null) ? """,jobs_location: '$coreTeam'""" : ''
+            def jobs_location_dsl = (coreTeam != null && coreTeam != 'null')
+                    ? """,jobs_location: '$coreTeam'"""
+                    : ''
 
             result = dsl """
             runProcedure(
