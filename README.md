@@ -279,7 +279,7 @@ This post build action has following parameters:
 - Stages to run: Specify stages to run in the CloudBees CD release pipeline
 
   -   Parameter is required if ‘Starting Stage’ is not used.
-  Parameter is ignored if ‘Starting Stage’ is used.
+  -   Parameter is ignored if ‘Starting Stage’ is used.
 
 - (Optional) Pipeline parameters: Specify parameters for the CloudBees CD pipeline
 
