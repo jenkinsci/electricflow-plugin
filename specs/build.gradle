@@ -1,5 +1,5 @@
 plugins {
-    id "com.cloudbees.cd.plugins.specs" version "1.1.10.30"
+    id "com.cloudbees.cd.plugins.specs" version "1.2.0.0"
 }
 
 version = "1.0"
