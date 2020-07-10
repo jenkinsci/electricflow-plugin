@@ -36,6 +36,7 @@ test {
 }
 
 sendAllureReports {
+    serverUrl = 'http://34.74.22.225:5050/allure-docker-service'
     projectName = 'electricflow-plugin'
 }
 
