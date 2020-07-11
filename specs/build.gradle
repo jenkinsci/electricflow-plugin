@@ -1,5 +1,5 @@
 plugins {
-    id "com.cloudbees.cd.plugins.specs" version "1.2.1.0"
+    id "com.cloudbees.cd.plugins.specs" version "1.2.1.6"
 }
 
 version = "1.0"
@@ -20,9 +20,9 @@ repositories {
 }
 
 dependencies {
-    compile 'org.codehaus.groovy:groovy-all:2.4.5:indy'
-    compile 'org.spockframework:spock-core:1.1-groovy-2.4'
-    compile 'com.electriccloud:ec-specs-plugins-core:1.9.2'
+    implementation 'org.codehaus.groovy:groovy-all:2.4.5:indy'
+    implementation 'org.spockframework:spock-core:1.1-groovy-2.4'
+    implementation 'com.electriccloud:ec-specs-plugins-core:1.9.2'
 //    compile 'com.electriccloud:commander-spec-tests:latest.release'
 //    compile 'com.jayway.restassured:rest-assured:2.4.0'
 
