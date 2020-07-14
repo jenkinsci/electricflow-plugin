@@ -4,16 +4,15 @@ import static org.jenkinsci.plugins.electricflow.Utils.formatJsonOutput;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonRawValue;
 import java.io.IOException;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class GetJobStatusResponseData {
 
   @JsonProperty() private String jobId;
-  @JsonProperty() private CdJobStatus status;
-  @JsonProperty() private CdJobOutcome outcome;
-  @JsonRawValue() private String content;
+  @JsonProperty() private CdJobStatus status = CdJobStatus.unknown;
+  @JsonProperty() private CdJobOutcome outcome = CdJobOutcome.unknown;
+  private String content;
 
   public String getJobId() {
     return jobId;
@@ -49,7 +48,8 @@ public class GetJobStatusResponseData {
 
   @Override
   public String toString() {
-    if (getStatus() == CdJobStatus.unknown || getOutcome() == CdJobOutcome.unknown) {
+    if ((getStatus() == CdJobStatus.unknown || getOutcome() == CdJobOutcome.unknown)
+        && getContent() != null) {
       try {
         return "CD Job Status Response (unexpected json): " + formatJsonOutput(getContent());
       } catch (IOException e) {

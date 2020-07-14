@@ -41,6 +41,7 @@ import java.io.PrintStream;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import javax.annotation.Nonnull;
 import javax.servlet.ServletException;
 import jenkins.tasks.SimpleBuildStep;
@@ -50,9 +51,12 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jenkinsci.Symbol;
 import org.jenkinsci.plugins.electricflow.data.CloudBeesFlowBuildData;
+import org.jenkinsci.plugins.electricflow.exceptions.PluginException;
 import org.jenkinsci.plugins.electricflow.factories.ElectricFlowClientFactory;
 import org.jenkinsci.plugins.electricflow.models.CIBuildDetail;
 import org.jenkinsci.plugins.electricflow.models.CIBuildDetail.BuildAssociationType;
+import org.jenkinsci.plugins.electricflow.models.cdrestdata.jobs.CdPipelineStatus;
+import org.jenkinsci.plugins.electricflow.models.cdrestdata.jobs.GetPipelineRuntimeDetailsResponseData;
 import org.jenkinsci.plugins.electricflow.ui.FieldValidationStatus;
 import org.jenkinsci.plugins.electricflow.ui.HtmlUtils;
 import org.jenkinsci.plugins.electricflow.ui.SelectFieldUtils;
@@ -76,6 +80,7 @@ public class ElectricFlowPipelinePublisher extends Recorder implements SimpleBui
   private String pipelineName;
   private String configuration;
   private Credential overrideCredential;
+  private RunAndWaitOption runAndWaitOption;
   private String addParam;
   private JSONArray additionalOption;
 
@@ -170,7 +175,7 @@ public class ElectricFlowPipelinePublisher extends Recorder implements SimpleBui
         pipelineResult = efClient.runPipeline(projectName, pipelineName, parameters);
       }
 
-      String summaryHtml = getSummaryHtml(efClient, pipelineResult, parameters);
+      String summaryHtml = getSummaryHtml(efClient, pipelineResult, parameters, null);
       SummaryTextAction action = new SummaryTextAction(run, summaryHtml);
 
       String flowRuntimeId = getFlowRuntimeIdFromResponse(pipelineResult);
@@ -201,7 +206,43 @@ public class ElectricFlowPipelinePublisher extends Recorder implements SimpleBui
 
       run.addAction(action);
       run.save();
-      logger.println("Pipeline result: " + formatJsonOutput(pipelineResult));
+      logger.println("Pipeline triggered. Response JSON: " + formatJsonOutput(pipelineResult));
+
+      if (runAndWaitOption != null) {
+        int checkInterval = runAndWaitOption.getCheckInterval();
+
+        logger.println(
+            "Waiting till CloudBees CD pipeline is completed, checking every "
+                + checkInterval
+                + " seconds");
+
+        GetPipelineRuntimeDetailsResponseData getPipelineRuntimeDetailsResponseData;
+        do {
+          TimeUnit.SECONDS.sleep(checkInterval);
+
+          getPipelineRuntimeDetailsResponseData =
+              efClient.getCdPipelineRuntimeDetails(flowRuntimeId);
+          logger.println(getPipelineRuntimeDetailsResponseData);
+
+          summaryHtml =
+              getSummaryHtml(
+                  efClient, pipelineResult, parameters, getPipelineRuntimeDetailsResponseData);
+          action = new SummaryTextAction(run, summaryHtml);
+          run.addOrReplaceAction(action);
+          run.save();
+        } while (!getPipelineRuntimeDetailsResponseData.isCompleted());
+
+        if (runAndWaitOption.isDependOnCdJobOutcome()) {
+          if (getPipelineRuntimeDetailsResponseData.getStatus() != CdPipelineStatus.success
+              && getPipelineRuntimeDetailsResponseData.getStatus() != CdPipelineStatus.warning) {
+            throw new PluginException(
+                "CD pipeline completed with "
+                    + getPipelineRuntimeDetailsResponseData.getStatus()
+                    + " status");
+          }
+        }
+      }
+
     } catch (Exception e) {
       logger.println(e.getMessage());
       log.error(e.getMessage(), e);
@@ -250,6 +291,15 @@ public class ElectricFlowPipelinePublisher extends Recorder implements SimpleBui
   @DataBoundSetter
   public void setOverrideCredential(Credential overrideCredential) {
     this.overrideCredential = overrideCredential;
+  }
+
+  public RunAndWaitOption getRunAndWaitOption() {
+    return runAndWaitOption;
+  }
+
+  @DataBoundSetter
+  public void setRunAndWaitOption(RunAndWaitOption runAndWaitOption) {
+    this.runAndWaitOption = runAndWaitOption;
   }
 
   public String getStoredConfiguration() {
@@ -323,7 +373,10 @@ public class ElectricFlowPipelinePublisher extends Recorder implements SimpleBui
   }
 
   private String getSummaryHtml(
-      ElectricFlowClient efClient, String pipelineResult, JSONArray parameters) {
+      ElectricFlowClient efClient,
+      String pipelineResult,
+      JSONArray parameters,
+      GetPipelineRuntimeDetailsResponseData getPipelineRuntimeDetailsResponseData) {
     JSONObject flowRuntime = JSONObject.fromObject(pipelineResult).getJSONObject("flowRuntime");
     String pipelineId = (String) flowRuntime.get("pipelineId");
     String flowRuntimeId = (String) flowRuntime.get("flowRuntimeId");
@@ -357,6 +410,24 @@ public class ElectricFlowPipelinePublisher extends Recorder implements SimpleBui
 
     summaryText =
         Utils.getParametersHTML(parameters, summaryText, "parameterName", "parameterValue");
+    if (getPipelineRuntimeDetailsResponseData != null) {
+      summaryText =
+          summaryText
+              + "  <tr>\n"
+              + "    <td>CD Pipeline Completed:</td>\n"
+              + "    <td>\n"
+              + getPipelineRuntimeDetailsResponseData.isCompleted()
+              + "    </td>\n"
+              + "  </tr>\n";
+      summaryText =
+          summaryText
+              + "  <tr>\n"
+              + "    <td>CD Pipeline Status:</td>\n"
+              + "    <td>\n"
+              + HtmlUtils.encodeForHtml(getPipelineRuntimeDetailsResponseData.getStatus().name())
+              + "    </td>\n"
+              + "  </tr>\n";
+    }
     summaryText = summaryText + "</table>";
 
     return summaryText;
