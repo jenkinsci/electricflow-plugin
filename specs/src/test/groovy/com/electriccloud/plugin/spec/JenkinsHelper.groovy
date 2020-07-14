@@ -84,8 +84,9 @@ class JenkinsHelper extends PluginSpockTestSupport {
         def efProxyUsername = System.getenv('EF_PROXY_USERNAME') ?: ''
         def efProxyPassword = System.getenv('EF_PROXY_PASSWORD') ?: ''
 
-        def coreTeam = ''
-        if (System.getenv("JENKINS_TYPE") ?: '' == 'Core') {
+        def coreTeam = null
+        String jenkinsType = System.getenv("JENKINS_TYPE")
+        if ( jenkinsType != null &&  jenkinsType == 'Core') {
             coreTeam = System.getenv('CORE_TEAM') ?: ''
         }
 
@@ -130,7 +131,9 @@ class JenkinsHelper extends PluginSpockTestSupport {
         }
         // There is no proxy, regular creation.
         else {
-            def jobs_location_dsl = (coreTeam == '') ? '' : """,jobs_location: '$coreTeam'"""
+            def jobs_location_dsl = (coreTeam != null && coreTeam != 'null')
+                    ? """,jobs_location: '$coreTeam'"""
+                    : ''
 
             result = dsl """
             runProcedure(
