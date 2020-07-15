@@ -3,7 +3,7 @@ plugins {
 }
 
 version = "1.0"
-description = "EC-Jenkins Specs"
+description = "Native Jenkins electricflow-plugin specs"
 sourceCompatibility = 1.8
 
 defaultTasks 'test'
