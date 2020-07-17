@@ -349,7 +349,7 @@ node{
 
 Improvements:
 
-- Updated the following post build actions by Run and Wait option with possibility to depend of CD job or pipeline outcome:
+- Updated the following post build actions by Run and Wait option with possibility to depend on CD job or pipeline outcome:
   - Run Pipeline
   - Trigger Release
   - Deploy Application
