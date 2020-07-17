@@ -345,6 +345,16 @@ node{
 
 # Release Notes
 
+## Version 1.1.17 (July 17, 2020)
+
+Improvements:
+
+- Updated the following post build actions by Run and Wait option with possibility to depend of CD job or pipeline outcome:
+  - Run Pipeline
+  - Trigger Release
+  - Deploy Application
+  - Create and Deploy Application from Deployment Package
+
 ## Version 1.1.16 (June 26, 2020)
 
 Improvements:
