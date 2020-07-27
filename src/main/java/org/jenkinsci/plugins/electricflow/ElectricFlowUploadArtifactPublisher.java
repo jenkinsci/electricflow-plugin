@@ -57,6 +57,7 @@ public class ElectricFlowUploadArtifactPublisher extends Recorder implements Sim
   private String artifactName;
   private String artifactVersion;
   private String filePath;
+  private String relativeWorkspace;
 
   // ~ Constructors -----------------------------------------------------------
 
@@ -105,6 +106,7 @@ public class ElectricFlowUploadArtifactPublisher extends Recorder implements Sim
 
       // Expanding the variables
       EnvReplacer env = new EnvReplacer(run, taskListener);
+      String newRelativeWorkspace = env.expandEnv(relativeWorkspace);
       String newFilePath = env.expandEnv(filePath);
       String newArtifactVersion = env.expandEnv(artifactVersion);
       String newArtifactName = env.expandEnv(artifactName);
@@ -118,6 +120,7 @@ public class ElectricFlowUploadArtifactPublisher extends Recorder implements Sim
       ElectricFlowClient efClient =
           ElectricFlowClientFactory.getElectricFlowClient(
               configuration, overrideCredential, run, env, false);
+
       String result =
           efClient.uploadArtifact(
               run,
@@ -127,7 +130,7 @@ public class ElectricFlowUploadArtifactPublisher extends Recorder implements Sim
               newArtifactVersion,
               newFilePath,
               true,
-              workspace);
+              new FilePath(workspace, newRelativeWorkspace));
 
       if (!"Artifact-Published-OK".equals(result)) {
         logger.println("Upload result: " + result);
@@ -223,6 +226,15 @@ public class ElectricFlowUploadArtifactPublisher extends Recorder implements Sim
 
   public String getRepositoryName() {
     return repositoryName;
+  }
+
+  public String getRelativeWorkspace() {
+    return relativeWorkspace;
+  }
+
+  @DataBoundSetter
+  public void setRelativeWorkspace(String relativeWorkspace) {
+    this.relativeWorkspace = relativeWorkspace;
   }
 
   @Override
