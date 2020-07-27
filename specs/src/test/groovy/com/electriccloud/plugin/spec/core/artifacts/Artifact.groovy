@@ -39,9 +39,14 @@ class Artifact implements ResponseDecorator {
     }
 
     private ArrayList<ArtifactVersion> _retrieveArtifactVersions() {
-        def response = (new PluginSpockTestSupport()).dsl("""
-            getArtifactVersions( artifactName: '$groupId:$artifactKey' )
-        """)
-        return response['artifactVersion'].collect({ new ArtifactVersion(this, it) })
+        try {
+            def response = (new PluginSpockTestSupport()).dsl("""
+        getArtifactVersions( artifactName: '$groupId:$artifactKey' )
+    """)
+            return response['artifactVersion'].collect({ new ArtifactVersion(this, it) })
+        } catch (Error ex){
+            log.warning("DSL call for getArtifactVersions failed. " + ex.getMessage())
+        }
+        return null
     }
 }
