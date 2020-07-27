@@ -31,7 +31,8 @@ class TriggerReleaseSuite extends JenkinsHelper {
 
     private static def flowReleases = [
             correct: 'pvRelease',
-            invalid: 'incorrect'
+            invalid: 'incorrect',
+            runAndWait: 'TriggerReleaseRunAndWait',
     ]
 
     private static def stages = [
@@ -43,6 +44,8 @@ class TriggerReleaseSuite extends JenkinsHelper {
     private static def logMessages = [
             jsonIsNull : 'net.sf.json.JSONException: null object',
             noSuchStage: '"code":"NoSuchStage"',
+            timing: "Waiting till CloudBees CD job is completed, checking every TIME seconds",
+            jobOutcome: "CD Pipeline Runtime Details Response Data: .* status=completed, outcome=OUTCOME"
     ]
 
     @Shared
@@ -52,6 +55,8 @@ class TriggerReleaseSuite extends JenkinsHelper {
            caseId
 
     def doSetupSpec() {
+        dslFile('dsl/RunAndWait/runAndWaitProcedure.dsl')
+        dslFile('dsl/RunAndWait/runAndWaitRelease.dsl')
         // Do project import here
     }
 
@@ -111,6 +116,66 @@ class TriggerReleaseSuite extends JenkinsHelper {
         // Here project and stage are wired in the pipeline script, other combinations will not work
         'C367661' | flowProjects.correct        | stages.default
         'C368277' | flowProjects.withParameters | stages.second
+    }
+
+    @Unroll
+    def "#caseId. TriggerRelease Run and wait"() {
+        given: 'Parameters for the pipeline'
+
+
+        Release release = new Release(cdProjectName, releaseName)
+        ReleasePipeline pipeline = release.getReleasePipeline()
+
+        // Check last pipeline run
+        PipelineRun previousPipelineRun = pipeline.getLastRun()
+
+        def ciPipelineParameters = [
+                flowConfigName   : CI_CONFIG_NAME,
+                flowProjectName  : cdProjectName,
+                flowReleaseName  : releaseName,
+                dependOnCdJobOutcomeCh: dependOnCdJobOutcomeCh,
+                runAndWaitInterval    : runAndWaitInterval,
+                procedureOutcome: procedureOutcome,
+                sleepTime: sleepTime
+        ]
+
+        when: 'Run pipeline and collect run properties'
+        JenkinsBuildJob ciJob = jjr.run('TriggerReleaseRunAndWaitPipeline', ciPipelineParameters)
+
+        then: 'Collecting the result objects'
+        assert ciJob.isSuccess() == ciJobSuccess
+        String buildName = ciJob.getJenkinsBuildDisplayName()
+
+        pipeline.refresh()
+        PipelineRun newPipelineRun = pipeline.pipelineRuns.last()
+
+        if (previousPipelineRun != null) {
+            int prevNumber = previousPipelineRun.getNumber()
+            int newNumber = newPipelineRun.getNumber()
+            assert newNumber > prevNumber: 'new number is greater than previous'
+        }
+
+        CiBuildDetailInfo ciBuildDetailInfo = newPipelineRun.findCiBuildDetailInfo(buildName)
+        CiBuildDetail cbd = ciBuildDetailInfo?.getCiBuildDetail()
+
+
+        // Receiving extended information about the CI build details
+        expect: 'Checking the CiBuildDetail values'
+        verifyAll { // soft assert. Will show all the failed cases
+            ciBuildDetailInfo['associationType'] == 'triggeredByCI'
+            ciBuildDetailInfo['result'] == "SUCCESS"
+            cbd['buildTriggerSource'] == "CI"
+        }
+
+        where:
+        caseId    | cdProjectName               | releaseName              | dependOnCdJobOutcomeCh | runAndWaitInterval | ciJobSuccess  | procedureOutcome | sleepTime | logMessage
+        'C367661' | flowProjects.correct        | flowReleases.runAndWait  | 'false'                | '5'                | true          | 'success'        | '4'       | [logMessages.timing, logMessages.jobOutcome]
+        'C367661' | flowProjects.correct        | flowReleases.runAndWait  | 'true'                 | '5'                | true          | 'success'        | '4'       | [logMessages.timing, logMessages.jobOutcome]
+        'C367661' | flowProjects.correct        | flowReleases.runAndWait  | 'true'                 | '5'                | true          | 'warning'        | '4'       | [logMessages.timing, logMessages.jobOutcome]
+        'C367661' | flowProjects.correct        | flowReleases.runAndWait  | 'false'                | '5'                | true          | 'warning'        | '4'       | [logMessages.timing, logMessages.jobOutcome]
+        'C367661' | flowProjects.correct        | flowReleases.runAndWait  | 'true'                 | '5'                | false         | 'error'          | '4'       | [logMessages.timing, logMessages.jobOutcome]
+        'C367661' | flowProjects.correct        | flowReleases.runAndWait  | 'false'                | '5'                | true          | 'error'          | '4'       | [logMessages.timing, logMessages.jobOutcome]
+        'C367661' | flowProjects.correct        | flowReleases.runAndWait  | 'true'                 | '15'               | true          | 'success'        | '4'       | [logMessages.timing, logMessages.jobOutcome]
     }
 
     @Unroll
