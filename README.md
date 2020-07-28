@@ -106,6 +106,8 @@ This post build action takes the following parameters:
 
 -   Override Credential: Connect to CloudBees CD as a User other than the one mentioned in the electricflow Plugin Connection Configuration
 
+-   Relative Workspace: Specify the relative workspace (relative to workspace root) for artifact path.
+
 -   Artifact Path: Location or path for the artifact files to be
     published to CloudBees CD. For
     e.g., MyProject/\*\*/\*-$BUILD\_NUMBER.war

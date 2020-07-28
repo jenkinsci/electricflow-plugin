@@ -13,6 +13,9 @@ All rights reserved.
       <f:select />
   </f:entry>
     <st:include class="org.jenkinsci.plugins.electricflow.Credential" page="overrideCredential.jelly" />
+  <f:entry title="Relative Workspace" field="relativeWorkspace">
+    <f:textbox />
+  </f:entry>
   <f:entry title="Artifact Path" field="filePath">
       <f:textbox />
   </f:entry>
