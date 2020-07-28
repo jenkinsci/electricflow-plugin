@@ -14,12 +14,11 @@ public class RunAndWaitOption extends AbstractDescribableImpl<RunAndWaitOption> 
   private boolean dependOnCdJobOutcome = DEPEND_ON_CD_JOB_OUTCOME_DEFAULT;
   private int checkInterval = CHECK_INTERVAL_DEFAULT;
 
+  @DataBoundConstructor
+  public RunAndWaitOption() {}
+
   public boolean isDependOnCdJobOutcome() {
     return dependOnCdJobOutcome;
-  }
-
-  @DataBoundConstructor
-  public RunAndWaitOption() {
   }
 
   @DataBoundSetter
