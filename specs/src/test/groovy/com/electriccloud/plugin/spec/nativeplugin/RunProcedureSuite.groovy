@@ -24,18 +24,22 @@ class RunProcedureSuite extends JenkinsHelper {
 
     static def procedures = [
             correct: 'nativeJenkinsTestProcedure',
-            invalid: 'incorrect'
+            invalid: 'incorrect',
+            runAndWait: 'runAndWaitProcedure'
     ]
 
     static def logMessages = [
             noSuchProcedure: '"code":"NoSuchProcedure"',
-            noSuchProject  : '"code":"NoSuchProject"'
+            noSuchProject  : '"code":"NoSuchProject"',
+            timing: "Waiting till CloudBees CD job is completed, checking every TIME seconds",
+            jobOutcome: "CD Job Status Response Data: .* status=completed, outcome=OUTCOME"
     ]
 
     @Shared
     String projectName, procedureName, caseId, logMessage
 
     def doSetupSpec() {
+        dslFile('dsl/RunAndWait/runAndWaitProcedure.dsl')
         // Do project import here
     }
 
@@ -68,6 +72,51 @@ class RunProcedureSuite extends JenkinsHelper {
 
         then: "Checking that last job has finished with success"
         assert jobsAfter.last().isSuccess()
+    }
+
+    @Unroll
+    def "Run Procedure. Run and Wait"() {
+        given: 'Parameters for the pipeline'
+
+        ArrayList<Job> jobsBefore = Job.findJobsOfProcedure(procedureName)
+
+        def ciPipelineParameters = [
+                flowConfigName        : CI_CONFIG_NAME,
+                flowProjectName       : projectName,
+                flowProcedureName     : procedureName,
+                dependOnCdJobOutcomeCh: dependOnCdJobOutcomeCh,
+                runAndWaitInterval    : runAndWaitInterval,
+                value1                : cdJobOutcome,
+                value2                : '5'
+        ]
+
+        when: 'Run pipeline and collect run properties'
+        JenkinsBuildJob ciJob = jjr.run("RunProcedureRunAndWaitPipeline", ciPipelineParameters)
+
+        then: 'Collecting the result objects'
+        assert ciJob.isSuccess() == ciJobSuccess
+
+        then: "Checking that we have one new job for the procedure"
+        ArrayList<Job> jobsAfter = Job.findJobsOfProcedure(procedureName)
+        assert jobsAfter.size() - jobsBefore.size() == 1
+
+            then: "Checking that last job has finished with expected result"
+            assert jobsAfter.last().outcome == cdJobOutcome
+
+            for (message in logMessage) {
+                assert ciJob.logs =~ logMessage
+                .replace('TIME', runAndWaitInterval).replace('OUTCOME', cdJobOutcome)
+        }
+
+        where:
+        caseId      | projectName      | procedureName         | dependOnCdJobOutcomeCh | runAndWaitInterval | ciJobSuccess  | cdJobOutcome | logMessage
+        'C519130'   | projects.correct | procedures.runAndWait | 'false'                | '5'                | true          | 'success'    | [logMessages.timing, logMessages.jobOutcome]
+        'C519131'   | projects.correct | procedures.runAndWait | 'true'                 | '5'                | true          | 'success'    | [logMessages.timing, logMessages.jobOutcome]
+        'C519136'   | projects.correct | procedures.runAndWait | 'true'                 | '5'                | true          | 'warning'    | [logMessages.timing, logMessages.jobOutcome]
+        'C519137'   | projects.correct | procedures.runAndWait | 'false'                | '5'                | true          | 'warning'    | [logMessages.timing, logMessages.jobOutcome]
+        'C519132'   | projects.correct | procedures.runAndWait | 'true'                 | '5'                | false         | 'error'      | [logMessages.timing, logMessages.jobOutcome]
+        'C519133'   | projects.correct | procedures.runAndWait | 'false'                | '5'                | true          | 'error'      | [logMessages.timing, logMessages.jobOutcome]
+        'C519134'   | projects.correct | procedures.runAndWait | 'true'                 | '10'               | true          | 'success'    | [logMessages.timing, logMessages.jobOutcome]
     }
 
     @Unroll
