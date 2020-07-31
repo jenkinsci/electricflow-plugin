@@ -38,6 +38,7 @@ import java.io.PrintStream;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import javax.annotation.Nonnull;
 import jenkins.tasks.SimpleBuildStep;
 import net.sf.json.JSONArray;
@@ -45,7 +46,11 @@ import net.sf.json.JSONObject;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jenkinsci.Symbol;
+import org.jenkinsci.plugins.electricflow.exceptions.PluginException;
 import org.jenkinsci.plugins.electricflow.factories.ElectricFlowClientFactory;
+import org.jenkinsci.plugins.electricflow.models.cdrestdata.jobs.CdJobOutcome;
+import org.jenkinsci.plugins.electricflow.models.cdrestdata.jobs.CdJobStatus;
+import org.jenkinsci.plugins.electricflow.models.cdrestdata.jobs.GetJobStatusResponseData;
 import org.jenkinsci.plugins.electricflow.ui.FieldValidationStatus;
 import org.jenkinsci.plugins.electricflow.ui.HtmlUtils;
 import org.jenkinsci.plugins.electricflow.ui.SelectFieldUtils;
@@ -65,6 +70,7 @@ public class ElectricFlowDeployApplication extends Recorder implements SimpleBui
 
   private String configuration;
   private Credential overrideCredential;
+  private RunAndWaitOption runAndWaitOption;
   private String projectName;
   private String applicationName;
   private String applicationProcessName;
@@ -133,14 +139,49 @@ public class ElectricFlowDeployApplication extends Recorder implements SimpleBui
       args.put("processName", applicationProcessName);
       args.put("processId", processId);
       args.put("result", result);
+      args.put("applicationId", process.getJSONObject("process").getString("applicationId"));
 
-      String summaryHtml = getSummaryHtml(efClient, parameter, args);
+      String summaryHtml = getSummaryHtml(efClient, parameter, args, null);
       SummaryTextAction action = new SummaryTextAction(run, summaryHtml);
 
       run.addAction(action);
       run.save();
       logger.println("Deploy application result: " + formatJsonOutput(result));
-    } catch (Exception e) {
+
+      if (runAndWaitOption != null) {
+        int checkInterval = runAndWaitOption.getCheckInterval();
+
+        logger.println(
+            "Waiting till CloudBees CD job is completed, checking every "
+                + checkInterval
+                + " seconds");
+
+        String jobId = JSONObject.fromObject(result).getString("jobId");
+        GetJobStatusResponseData getJobStatusResponseData;
+        do {
+          TimeUnit.SECONDS.sleep(checkInterval);
+
+          getJobStatusResponseData = efClient.getCdJobStatus(jobId);
+          logger.println(getJobStatusResponseData);
+
+          summaryHtml = getSummaryHtml(efClient, parameter, args, getJobStatusResponseData);
+          action = new SummaryTextAction(run, summaryHtml);
+          run.addOrReplaceAction(action);
+          run.save();
+          if (getJobStatusResponseData.getStatus() == CdJobStatus.unknown) {
+            throw new PluginException("Unexpected format of CD job status response");
+          }
+        } while (getJobStatusResponseData.getStatus() != CdJobStatus.completed);
+
+        if (runAndWaitOption.isDependOnCdJobOutcome()) {
+          if (getJobStatusResponseData.getOutcome() == CdJobOutcome.error
+              || getJobStatusResponseData.getOutcome() == CdJobOutcome.unknown) {
+            throw new PluginException(
+                "CD job completed with " + getJobStatusResponseData.getOutcome() + " outcome");
+          }
+        }
+      }
+    } catch (PluginException | InterruptedException | IOException e) {
       logger.println(e.getMessage());
       log.error(e.getMessage(), e);
 
@@ -198,6 +239,15 @@ public class ElectricFlowDeployApplication extends Recorder implements SimpleBui
     this.overrideCredential = overrideCredential;
   }
 
+  public RunAndWaitOption getRunAndWaitOption() {
+    return runAndWaitOption;
+  }
+
+  @DataBoundSetter
+  public void setRunAndWaitOption(RunAndWaitOption runAndWaitOption) {
+    this.runAndWaitOption = runAndWaitOption;
+  }
+
   public String getDeployParameters() {
     return deployParameters;
   }
@@ -250,12 +300,17 @@ public class ElectricFlowDeployApplication extends Recorder implements SimpleBui
   }
 
   private String getSummaryHtml(
-      ElectricFlowClient configuration, JSONArray parameters, Map<String, String> args) {
+      ElectricFlowClient configuration,
+      JSONArray parameters,
+      Map<String, String> args,
+      GetJobStatusResponseData getJobStatusResponseData) {
     String result = args.get("result");
     String applicationName = args.get("applicationName");
     String processId = args.get("processId");
     String jobId = JSONObject.fromObject(result).getString("jobId");
-    String applicationUrl = configuration.getElectricFlowUrl() + "/flow/#applications/applications";
+    String applicationId = args.get("applicationId");
+    String applicationUrl =
+        configuration.getElectricFlowUrl() + "/flow/#applications/" + applicationId;
     String deployRunUrl =
         configuration.getElectricFlowUrl()
             + "/flow/#applications/"
@@ -264,7 +319,7 @@ public class ElectricFlowDeployApplication extends Recorder implements SimpleBui
             + jobId
             + "/runningProcess";
     String summaryText =
-        "<h3>CloudBees Flow Deploy Application</h3>"
+        "<h3>CloudBees CD Deploy Application</h3>"
             + "<table cellspacing=\"2\" cellpadding=\"4\"> \n"
             + "  <tr>\n"
             + "    <td>Application Name:</td>\n"
@@ -284,6 +339,24 @@ public class ElectricFlowDeployApplication extends Recorder implements SimpleBui
             + "  </tr>";
 
     summaryText = Utils.getParametersHTML(parameters, summaryText, "actualParameterName", "value");
+    if (getJobStatusResponseData != null) {
+      summaryText =
+          summaryText
+              + "  <tr>\n"
+              + "    <td>CD Job Status:</td>\n"
+              + "    <td>\n"
+              + HtmlUtils.encodeForHtml(getJobStatusResponseData.getStatus().name())
+              + "    </td>\n"
+              + "  </tr>\n";
+      summaryText =
+          summaryText
+              + "  <tr>\n"
+              + "    <td>CD Job Outcome:</td>\n"
+              + "    <td>\n"
+              + HtmlUtils.encodeForHtml(getJobStatusResponseData.getOutcome().name())
+              + "    </td>\n"
+              + "  </tr>\n";
+    }
     summaryText = summaryText + "</table>";
 
     return summaryText;
@@ -584,7 +657,7 @@ public class ElectricFlowDeployApplication extends Recorder implements SimpleBui
           selectItemValidationWrapper =
               new SelectItemValidationWrapper(
                   FieldValidationStatus.ERROR,
-                  "Error when fetching set of deploy parameters. Connection to CloudBees Flow Server Failed. Please fix connection information and reload this page.",
+                  "Error when fetching set of deploy parameters. Connection to CloudBees CD Server Failed. Please fix connection information and reload this page.",
                   "{}");
         }
         m.add(selectItemValidationWrapper.getJsonStr());
@@ -650,7 +723,7 @@ public class ElectricFlowDeployApplication extends Recorder implements SimpleBui
 
     @Override
     public String getDisplayName() {
-      return "CloudBees Flow - Deploy Application";
+      return "CloudBees CD - Deploy Application";
     }
 
     @Override

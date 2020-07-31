@@ -23,7 +23,7 @@ import org.jenkinsci.plugins.electricflow.ui.HtmlUtils;
 public class CallRestApiUtils {
 
   public static String getDisplayName() {
-    return "CloudBees Flow - Call REST API";
+    return "CloudBees CD - Call REST API";
   }
 
   public static String getFunctionName() {
@@ -86,7 +86,7 @@ public class CallRestApiUtils {
         efClient.getElectricFlowUrl() + configuration.getElectricFlowApiVersion() + urlPath;
 
     String summaryText =
-        "<h3>CloudBees Flow Generic REST API</h3>"
+        "<h3>CloudBees CD Generic REST API</h3>"
             + "<table cellspacing=\"2\" cellpadding=\"4\"> \n"
             + "  <tr>\n"
             + "    <td style='width:20%;'>URL Path:</td>\n"

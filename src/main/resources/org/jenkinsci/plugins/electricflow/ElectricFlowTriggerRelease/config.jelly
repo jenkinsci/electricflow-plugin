@@ -13,6 +13,7 @@ All rights reserved.
         <f:select onchange="deleteReleaseParameterRows()"/>
     </f:entry>
     <st:include class="org.jenkinsci.plugins.electricflow.Credential" page="overrideCredential.jelly" />
+    <st:include class="org.jenkinsci.plugins.electricflow.RunAndWaitOption" page="runAndWaitOption.jelly" />
     <f:entry title="Project Name" field="projectName" >
         <f:select onchange="deleteReleaseParameterRows()"/>
     </f:entry>
@@ -131,7 +132,7 @@ All rights reserved.
                     var row1 = table.insertRow(table.rows.length - 2);
                     row1.className = "_ef_st_row";
                     if (parameters.length) {
-                        row1.appendChild(createTitleForTriggerRelease("Pipeline parameters"));
+                        row1.appendChild(createTitleForTriggerRelease("Release pipeline parameters"));
                         parameters.forEach(function (elem) {
                             var row = table.insertRow(table.rows.length - 2);
                             row.className = "_ef_sr_parameters _ef_st_row";

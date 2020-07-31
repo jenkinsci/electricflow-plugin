@@ -57,6 +57,7 @@ public class ElectricFlowUploadArtifactPublisher extends Recorder implements Sim
   private String artifactName;
   private String artifactVersion;
   private String filePath;
+  private String relativeWorkspace;
 
   // ~ Constructors -----------------------------------------------------------
 
@@ -105,6 +106,7 @@ public class ElectricFlowUploadArtifactPublisher extends Recorder implements Sim
 
       // Expanding the variables
       EnvReplacer env = new EnvReplacer(run, taskListener);
+      String newRelativeWorkspace = env.expandEnv(relativeWorkspace);
       String newFilePath = env.expandEnv(filePath);
       String newArtifactVersion = env.expandEnv(artifactVersion);
       String newArtifactName = env.expandEnv(artifactName);
@@ -118,6 +120,7 @@ public class ElectricFlowUploadArtifactPublisher extends Recorder implements Sim
       ElectricFlowClient efClient =
           ElectricFlowClientFactory.getElectricFlowClient(
               configuration, overrideCredential, run, env, false);
+
       String result =
           efClient.uploadArtifact(
               run,
@@ -127,7 +130,7 @@ public class ElectricFlowUploadArtifactPublisher extends Recorder implements Sim
               newArtifactVersion,
               newFilePath,
               true,
-              workspace);
+              new FilePath(workspace, newRelativeWorkspace));
 
       if (!"Artifact-Published-OK".equals(result)) {
         logger.println("Upload result: " + result);
@@ -225,6 +228,15 @@ public class ElectricFlowUploadArtifactPublisher extends Recorder implements Sim
     return repositoryName;
   }
 
+  public String getRelativeWorkspace() {
+    return relativeWorkspace;
+  }
+
+  @DataBoundSetter
+  public void setRelativeWorkspace(String relativeWorkspace) {
+    this.relativeWorkspace = relativeWorkspace;
+  }
+
   @Override
   public BuildStepMonitor getRequiredMonitorService() {
     return BuildStepMonitor.NONE;
@@ -232,7 +244,7 @@ public class ElectricFlowUploadArtifactPublisher extends Recorder implements Sim
 
   private String getSummaryHtml(String newArtifactVersion, String repository, String efUrl) {
 
-    return "<h3>CloudBees Flow Publish Artifact</h3>"
+    return "<h3>CloudBees CD Publish Artifact</h3>"
         + "<table cellspacing=\"2\" cellpadding=\"4\">\n"
         + "  <tr>\n"
         + "    <td>Artifact URL:</td>\n"
@@ -410,7 +422,7 @@ public class ElectricFlowUploadArtifactPublisher extends Recorder implements Sim
      */
     @Override
     public String getDisplayName() {
-      return "CloudBees Flow - Publish Artifact";
+      return "CloudBees CD - Publish Artifact";
     }
 
     public String getElectricFlowPassword() {

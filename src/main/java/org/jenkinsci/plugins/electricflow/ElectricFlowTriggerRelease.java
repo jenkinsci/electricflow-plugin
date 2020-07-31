@@ -39,6 +39,7 @@ import java.io.PrintStream;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import javax.annotation.Nonnull;
 import jenkins.tasks.SimpleBuildStep;
 import net.sf.json.JSONArray;
@@ -47,10 +48,14 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jenkinsci.Symbol;
 import org.jenkinsci.plugins.electricflow.data.CloudBeesFlowBuildData;
+import org.jenkinsci.plugins.electricflow.exceptions.PluginException;
 import org.jenkinsci.plugins.electricflow.factories.ElectricFlowClientFactory;
 import org.jenkinsci.plugins.electricflow.models.CIBuildDetail;
 import org.jenkinsci.plugins.electricflow.models.CIBuildDetail.BuildAssociationType;
 import org.jenkinsci.plugins.electricflow.models.CIBuildDetail.BuildTriggerSource;
+import org.jenkinsci.plugins.electricflow.models.cdrestdata.jobs.CdPipelineStatus;
+import org.jenkinsci.plugins.electricflow.models.cdrestdata.jobs.GetPipelineRuntimeDetailsResponseData;
+import org.jenkinsci.plugins.electricflow.models.ReleaseRunParameters;
 import org.jenkinsci.plugins.electricflow.models.ReleaseRunParameters;
 import org.jenkinsci.plugins.electricflow.ui.FieldValidationStatus;
 import org.jenkinsci.plugins.electricflow.ui.HtmlUtils;
@@ -73,6 +78,7 @@ public class ElectricFlowTriggerRelease extends Recorder implements SimpleBuildS
 
   private String configuration;
   private Credential overrideCredential;
+  private RunAndWaitOption runAndWaitOption;
   private String projectName;
   private String releaseName;
   private String startingStage;
@@ -111,8 +117,7 @@ public class ElectricFlowTriggerRelease extends Recorder implements SimpleBuildS
       JSONObject flowRuntime = runtimeDetails.getJSONObject("flowRuntime");
 
       String summaryHtml =
-          getSummaryHtml(efClient.getElectricFlowUrl(), flowRuntime, releaseRunParameters);
-
+          getSummaryHtml(efClient.getElectricFlowUrl(), flowRuntime, releaseRunParameters, null);
       SummaryTextAction action = new SummaryTextAction(run, summaryHtml);
 
       try {
@@ -140,9 +145,49 @@ public class ElectricFlowTriggerRelease extends Recorder implements SimpleBuildS
 
       run.addAction(action);
       run.save();
-      logger.println("TriggerRelease  result: " + formatJsonOutput(flowRuntime.toString()));
+      logger.println("TriggerRelease  result: " + formatJsonOutput(releaseResult));
+
+      if (runAndWaitOption != null) {
+        int checkInterval = runAndWaitOption.getCheckInterval();
+
+        logger.println(
+            "Waiting till CloudBees CD pipeline is completed, checking every "
+                + checkInterval
+                + " seconds");
+
+        GetPipelineRuntimeDetailsResponseData getPipelineRuntimeDetailsResponseData;
+        do {
+          TimeUnit.SECONDS.sleep(checkInterval);
+
+          getPipelineRuntimeDetailsResponseData =
+              efClient.getCdPipelineRuntimeDetails(flowRuntimeId);
+          logger.println(getPipelineRuntimeDetailsResponseData);
+
+          summaryHtml =
+              getSummaryHtml(
+                  efClient,
+                  flowRuntime,
+                  pipelineParameters,
+                  stagesToRun,
+                  getPipelineRuntimeDetailsResponseData);
+          action = new SummaryTextAction(run, summaryHtml);
+          run.addOrReplaceAction(action);
+          run.save();
+        } while (!getPipelineRuntimeDetailsResponseData.isCompleted());
+
+        if (runAndWaitOption.isDependOnCdJobOutcome()) {
+          if (getPipelineRuntimeDetailsResponseData.getStatus() != CdPipelineStatus.success
+              && getPipelineRuntimeDetailsResponseData.getStatus() != CdPipelineStatus.warning) {
+            throw new PluginException(
+                "CD pipeline completed with "
+                    + getPipelineRuntimeDetailsResponseData.getStatus()
+                    + " status");
+          }
+        }
+      }
+
       return runtimeDetails;
-    } catch (IOException | InterruptedException | RuntimeException e) {
+    } catch (IOException | InterruptedException | PluginException e) {
       logger.println(e.getMessage());
       log.error(e.getMessage(), e);
       run.setResult(Result.FAILURE);
@@ -186,6 +231,15 @@ public class ElectricFlowTriggerRelease extends Recorder implements SimpleBuildS
   @DataBoundSetter
   public void setOverrideCredential(Credential overrideCredential) {
     this.overrideCredential = overrideCredential;
+  }
+
+  public RunAndWaitOption getRunAndWaitOption() {
+    return runAndWaitOption;
+  }
+
+  @DataBoundSetter
+  public void setRunAndWaitOption(RunAndWaitOption runAndWaitOption) {
+    this.runAndWaitOption = runAndWaitOption;
   }
 
   @Override
@@ -258,7 +312,10 @@ public class ElectricFlowTriggerRelease extends Recorder implements SimpleBuildS
   public void setValidationTrigger(String validationTrigger) {}
 
   private String getSummaryHtml(
-      String flowUrl, JSONObject flowRuntime, ReleaseRunParameters releaseParameters) {
+      String flowUrl,
+      JSONObject flowRuntime,
+      ReleaseRunParameters releaseParameters,
+      GetPipelineRuntimeDetailsResponseData getPipelineRuntimeDetailsResponseData) {
 
     JSONArray pipelineParameters = releaseParameters.getPipelineParameters();
     List<String> stagesToRun = releaseParameters.getStagesToRun();
@@ -271,7 +328,7 @@ public class ElectricFlowTriggerRelease extends Recorder implements SimpleBuildS
     String urlRelease = flowUrl + "/flow/#releases";
 
     String summaryText =
-        "<h3>CloudBees Flow Trigger Release</h3>"
+        "<h3>CloudBees CD Trigger Release</h3>"
             + "<table cellspacing=\"2\" cellpadding=\"4\"> \n"
             + "  <tr>\n"
             + "    <td>Release Name:</td>\n"
@@ -319,8 +376,25 @@ public class ElectricFlowTriggerRelease extends Recorder implements SimpleBuildS
       summaryText = getParametersHTML(stagesToRun, summaryText);
     }
 
-    summaryText =
-        getParametersHTML(pipelineParameters, summaryText, "parameterName", "parameterValue");
+    summaryText = getParametersHTML(parameters, summaryText, "parameterName", "parameterValue");
+    if (getPipelineRuntimeDetailsResponseData != null) {
+      summaryText =
+          summaryText
+              + "  <tr>\n"
+              + "    <td>CD Pipeline Completed:</td>\n"
+              + "    <td>\n"
+              + getPipelineRuntimeDetailsResponseData.isCompleted()
+              + "    </td>\n"
+              + "  </tr>\n";
+      summaryText =
+          summaryText
+              + "  <tr>\n"
+              + "    <td>CD Pipeline Status:</td>\n"
+              + "    <td>\n"
+              + HtmlUtils.encodeForHtml(getPipelineRuntimeDetailsResponseData.getStatus().name())
+              + "    </td>\n"
+              + "  </tr>\n";
+    }
     summaryText = summaryText + "</table>";
 
     return summaryText;
@@ -540,7 +614,7 @@ public class ElectricFlowTriggerRelease extends Recorder implements SimpleBuildS
           selectItemValidationWrapper =
               new SelectItemValidationWrapper(
                   FieldValidationStatus.ERROR,
-                  "Error when fetching set of deploy parameters. Connection to CloudBees Flow Server Failed. Please fix connection information and reload this page.",
+                  "Error when fetching set of deploy parameters. Connection to CloudBees CD Server Failed. Please fix connection information and reload this page.",
                   "{}");
         }
         m.add(selectItemValidationWrapper.getJsonStr());
@@ -584,7 +658,8 @@ public class ElectricFlowTriggerRelease extends Recorder implements SimpleBuildS
               ElectricFlowClientFactory.getElectricFlowClient(
                   configuration, overrideCredentialObj, null, true);
 
-          List<String> releasesList = client.getReleases(configuration, projectName);
+          // List<String> releasesList = client.getReleases(configuration, projectName);
+          List<String> releasesList = client.getReleaseNames(configuration, projectName);
 
           for (String release : releasesList) {
             m.add(release);
@@ -663,7 +738,7 @@ public class ElectricFlowTriggerRelease extends Recorder implements SimpleBuildS
 
     @Override
     public String getDisplayName() {
-      return "CloudBees Flow - Trigger Release";
+      return "CloudBees CD - Trigger Release";
     }
 
     @Override
@@ -715,7 +790,7 @@ public class ElectricFlowTriggerRelease extends Recorder implements SimpleBuildS
               + getValidationComparisonRowsForExtraParameters(
                   "Stages to run", storedStagesToRunMap, stagesToRunMap)
               + getValidationComparisonRowsForExtraParameters(
-                  "Pipeline parameters", storedPipelineParamsMap, pipelineParamsMap)
+                  "Release pipeline parameters", storedPipelineParamsMap, pipelineParamsMap)
               + "</table>";
 
       if (configurationValue.equals(storedConfiguration)

@@ -89,6 +89,14 @@ public class ElectricFlowAssociateBuildToRelease extends Recorder implements Sim
       // Setting the summary
       Release release = efClient.getRelease(configuration, projectName, releaseName);
 
+      if (release == null){
+        throw new RuntimeException("No release was found for parameters:\n"
+            + " configuration: '" + configuration + "'\n"
+            + " projectName: '" + projectName + "'\n"
+            + " releaseName: '" + releaseName + "'\n"
+        );
+      }
+
       // Preparing arguments for the SummaryHTML call
       Map<String, String> args = new LinkedHashMap<>();
       args.put("releaseName", releaseName);
@@ -166,7 +174,7 @@ public class ElectricFlowAssociateBuildToRelease extends Recorder implements Sim
     String releaseRunLink = electricFlowClient.getElectricFlowUrl() + path;
     logger.println(String.format("INFO: link to the release: %s", releaseRunLink));
 
-    return "<h3>CloudBees Flow - Associate Build To Release</h3>"
+    return "<h3>CloudBees CD - Associate Build To Release</h3>"
         + "<table cellspacing=\"2\" cellpadding=\"4\"> \n"
         + "  <tr>\n"
         + "    <td>Build details were attached to the release </td>\n"
@@ -353,7 +361,8 @@ public class ElectricFlowAssociateBuildToRelease extends Recorder implements Sim
               ElectricFlowClientFactory.getElectricFlowClient(
                   configuration, overrideCredentialObj, null, true);
 
-          List<String> releasesList = client.getReleases(configuration, projectName);
+          // List<String> releasesList = client.getReleases(configuration, projectName);
+          List<String> releasesList = client.getReleaseNames(configuration, projectName);
 
           for (String release : releasesList) {
             m.add(release);
@@ -428,7 +437,7 @@ public class ElectricFlowAssociateBuildToRelease extends Recorder implements Sim
 
     @Override
     public String getDisplayName() {
-      return "CloudBees Flow - Associate Build To Release";
+      return "CloudBees CD - Associate Build To Release";
     }
 
     @Override

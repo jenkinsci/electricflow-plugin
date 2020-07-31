@@ -47,6 +47,8 @@ public class Configuration extends AbstractDescribableImpl<Configuration> {
       boolean ignoreSslConnectionErrors,
       boolean doNotSendBuildDetails) {
     this.configurationName = configurationName;
+    // Removing trailing slashes if any.
+    electricFlowUrl = electricFlowUrl.replaceAll("/+$", "");
     this.electricFlowUrl = electricFlowUrl;
     this.electricFlowUser = electricFlowUser;
     this.electricFlowPassword = electricFlowPassword;
@@ -105,7 +107,7 @@ public class Configuration extends AbstractDescribableImpl<Configuration> {
         return FormValidation.ok();
       }
 
-      return Utils.validateValueOnEmpty(value, "CloudBees Flow api version");
+      return Utils.validateValueOnEmpty(value, "CloudBees CD api version");
     }
 
     public FormValidation doCheckElectricFlowPassword(@QueryParameter String value) {
@@ -113,7 +115,7 @@ public class Configuration extends AbstractDescribableImpl<Configuration> {
         return FormValidation.ok();
       }
 
-      return Utils.validateValueOnEmpty(value, "CloudBees Flow password");
+      return Utils.validateValueOnEmpty(value, "CloudBees CD password");
     }
 
     public FormValidation doCheckElectricFlowUrl(@QueryParameter String value) {
@@ -121,7 +123,7 @@ public class Configuration extends AbstractDescribableImpl<Configuration> {
         return FormValidation.ok();
       }
 
-      return Utils.validateValueOnEmpty(value, "CloudBees Flow Url");
+      return Utils.validateValueOnEmpty(value, "CloudBees CD Url");
     }
 
     public FormValidation doCheckElectricFlowUser(@QueryParameter String value) {
@@ -129,7 +131,7 @@ public class Configuration extends AbstractDescribableImpl<Configuration> {
         return FormValidation.ok();
       }
 
-      return Utils.validateValueOnEmpty(value, "CloudBees Flow user");
+      return Utils.validateValueOnEmpty(value, "CloudBees CD user");
     }
 
     public ListBoxModel doFillElectricFlowApiVersionItems() {
@@ -178,9 +180,9 @@ public class Configuration extends AbstractDescribableImpl<Configuration> {
 
         return FormValidation.ok("Success");
       } catch (Exception e) {
-        log.warn("Wrong configuration - connection to CloudBees Flow server failed", e);
+        log.warn("Wrong configuration - connection to CloudBees CD server failed", e);
         return FormValidation.error(
-            "Wrong configuration - connection to CloudBees Flow server failed. Error message: "
+            "Wrong configuration - connection to CloudBees CD server failed. Error message: "
                 + e.getMessage());
       }
     }

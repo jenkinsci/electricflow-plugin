@@ -10,7 +10,7 @@ public class EFCause extends hudson.model.Cause {
   @Exported public String releaseName = "";
   @Exported public String flowRuntimeStateId = "";
   @Exported public String stageName = "";
-
+  final String LAUNCHED_BY_CD_TEXT = "Launched by CloudBees CD";
   // @Exported
   public String getFlowRuntimeId() {
     return flowRuntimeId;
@@ -56,8 +56,8 @@ public class EFCause extends hudson.model.Cause {
 
   public String getShortDescription() {
     StringBuilder shortDescription = new StringBuilder();
-    shortDescription.append("CloudBeesFlow Triggered this build:");
-    // shortDescription.append(System.getProperty("<br/>"));
+    shortDescription.append("CloudBees CD Triggered this build:");
+
     String flowRuntimeId = this.getFlowRuntimeId();
     String projectName = this.getProjectName();
     String releaseName = this.getReleaseName();
@@ -70,7 +70,7 @@ public class EFCause extends hudson.model.Cause {
     }
     if (!isEmptyOrNullString(projectName)) {
       shortDescription.append("<br/>");
-      shortDescription.append("Release Project Name: ").append(projectName);
+      shortDescription.append("Project Name: ").append(projectName);
     }
     if (!isEmptyOrNullString(releaseName)) {
       shortDescription.append("<br/>");
@@ -85,6 +85,9 @@ public class EFCause extends hudson.model.Cause {
       shortDescription.append("Stage Name: ").append(stageName);
     }
     return shortDescription.toString();
+  }
+  public String getLaunchedByText() {
+    return this.LAUNCHED_BY_CD_TEXT;
   }
   private static boolean isEmptyOrNullString(String str) {
     if (str == null) {

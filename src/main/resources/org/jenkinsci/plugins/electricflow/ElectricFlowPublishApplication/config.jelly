@@ -13,6 +13,7 @@ All rights reserved.
       <f:select />
   </f:entry>
   <st:include class="org.jenkinsci.plugins.electricflow.Credential" page="overrideCredential.jelly" />
+  <st:include class="org.jenkinsci.plugins.electricflow.RunAndWaitOption" page="runAndWaitOption.jelly" />
   <f:entry title="Deployment Package Path" field="filePath">
       <f:textbox />
   </f:entry>

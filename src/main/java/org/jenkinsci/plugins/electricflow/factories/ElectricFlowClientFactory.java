@@ -37,7 +37,7 @@ public class ElectricFlowClientFactory {
     Configuration cred = Utils.getConfigurationByName(configurationName);
 
     if (cred == null) {
-      throw new RuntimeException("Cannot find CloudBees Flow configuration " + configurationName);
+      throw new RuntimeException("Cannot find CloudBees CD configuration " + configurationName);
     }
 
     String electricFlowUrl = cred.getElectricFlowUrl();

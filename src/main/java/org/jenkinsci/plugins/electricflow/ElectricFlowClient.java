@@ -5,6 +5,8 @@ import static org.jenkinsci.plugins.electricflow.HttpMethod.GET;
 import static org.jenkinsci.plugins.electricflow.HttpMethod.POST;
 import static org.jenkinsci.plugins.electricflow.HttpMethod.PUT;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import hudson.FilePath;
 import hudson.model.Run;
 import hudson.model.TaskListener;
@@ -14,6 +16,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.io.PrintStream;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.security.KeyManagementException;
@@ -29,6 +32,8 @@ import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jenkinsci.plugins.electricflow.models.CIBuildDetail;
+import org.jenkinsci.plugins.electricflow.models.cdrestdata.jobs.GetJobStatusResponseData;
+import org.jenkinsci.plugins.electricflow.models.cdrestdata.jobs.GetPipelineRuntimeDetailsResponseData;
 
 public class ElectricFlowClient {
 
@@ -333,6 +338,7 @@ public class ElectricFlowClient {
       FilePath workspace)
       throws IOException, KeyManagementException, NoSuchAlgorithmException, InterruptedException {
 
+    PrintStream logger = listener.getLogger();
     // here we're getting files from directory using wildcard:
     List<File> fileList =
         FileHelper.getFilesFromDirectoryWildcard(build, listener, workspace, path, true, true);
@@ -341,9 +347,24 @@ public class ElectricFlowClient {
       log.debug("File path: " + path);
     }
 
+    // Temporarily copying files from slave to master
     String uploadWorkspace = getPublishArtifactWorkspaceOnMaster(build).getRemote();
 
-    return uploadArtifact(fileList, uploadWorkspace, repo, name, version, uploadDirectory);
+    logger.println("Uploading artifact to the repository");
+    String result = uploadArtifact(fileList, uploadWorkspace, repo, name, version, uploadDirectory);
+    logger.println("Upload result: " + result);
+
+    // Removing temp
+    try {
+      FileHelper.removeTempDirectory(build);
+      logger.println("Removed temporary directory " + uploadWorkspace);
+    }
+    catch (IOException ex){
+      logger.println("Failed to remove the temporary directory " + uploadWorkspace
+          + "\n" + ex.getMessage());
+    }
+
+    return result;
   }
 
   public String uploadArtifact(
@@ -640,8 +661,14 @@ public class ElectricFlowClient {
 
     String result = runRestAPI(requestEndpoint, PUT, obj.toString());
     JSONObject jsonObject = JSONObject.fromObject(result);
-    JSONArray arr = jsonObject.getJSONArray("object");
 
+    if (jsonObject.isEmpty()
+        || !jsonObject.containsKey("object")
+        || !(jsonObject.get("object") instanceof JSONArray)) {
+      return formalParameters;
+    }
+
+    JSONArray arr = jsonObject.getJSONArray("object");
     for (int i = 0; i < arr.size(); i++) {
       String parameterName =
           arr.getJSONObject(i).getJSONObject("formalParameter").getString("formalParameterName");
@@ -660,7 +687,7 @@ public class ElectricFlowClient {
     return formalParameters;
   }
 
-  private String getPipelineId(String projectName, String pipelineName) throws Exception {
+  public String getPipelineId(String projectName, String pipelineName) throws Exception {
     String requestEndpoint = "/objects?request=findObjects";
     JSONObject obj = new JSONObject();
     JSONObject filterTop = new JSONObject();
@@ -688,17 +715,21 @@ public class ElectricFlowClient {
     String result = runRestAPI(requestEndpoint, PUT, obj.toString());
     JSONObject jsonObject = JSONObject.fromObject(result);
 
-    if (!jsonObject.containsKey("object")) {
-      JSONArray arr = jsonObject.getJSONArray("object");
+    if (jsonObject.isEmpty()
+        || !jsonObject.containsKey("object")
+        || !(jsonObject.get("object") instanceof JSONArray)) {
+      return "";
+    }
 
-      for (int i = 0; i < arr.size(); i++) {
-        String pipelineName2 =
-            arr.getJSONObject(i).getJSONObject("pipeline").getString("pipelineName");
-        String pipelineId = arr.getJSONObject(i).getJSONObject("pipeline").getString("pipelineId");
+    JSONArray arr = jsonObject.getJSONArray("object");
 
-        if (pipelineName.equals(pipelineName2)) {
-          return pipelineId;
-        }
+    for (int i = 0; i < arr.size(); i++) {
+      String pipelineName2 =
+          arr.getJSONObject(i).getJSONObject("pipeline").getString("pipelineName");
+      String pipelineId = arr.getJSONObject(i).getJSONObject("pipeline").getString("pipelineId");
+
+      if (pipelineName.equals(pipelineName2)) {
+        return pipelineId;
       }
     }
 
@@ -763,25 +794,34 @@ public class ElectricFlowClient {
   public Release getRelease(String configuration, String projectName, String releaseName)
       throws Exception {
 
-    for (Release release : releasesList) {
+    Release cachedResult = getCachedRelease(configuration, projectName, releaseName);
 
+    if (cachedResult != null) {
+      return cachedResult;
+    }
+
+    // Renew list
+    getReleases(configuration, projectName);
+
+    return getCachedRelease(configuration, projectName, releaseName);
+  }
+
+  private Release getCachedRelease(String configuration, String projectName, String releaseName) {
+    for (Release release : releasesList) {
       if (release.getConfiguration().equals(configuration)
           && release.getProjectName().equals(projectName)
           && release.getReleaseName().equals(releaseName)) {
         return release;
       }
     }
-
-    getReleases(configuration, projectName);
-
-    if (!releaseName.isEmpty()) {
-      return getRelease(configuration, projectName, releaseName);
-    }
-
     return null;
   }
 
-  public List<String> getReleaseNames(String configuration, String projectName) {
+  public List<String> getReleaseNames(String configuration, String projectName) throws Exception {
+    if (releasesList.size() == 0) {
+      getReleases(configuration, projectName);
+    }
+
     return releasesList.stream()
         .filter(
             release ->
@@ -803,10 +843,10 @@ public class ElectricFlowClient {
 
     requestEndpoint += "?request=getPipelineRuntimes&releaseId=" + release.getReleaseId();
 
-//    JSONObject obj = new JSONObject();
-//    obj.put("request", "");
-//    obj.put("releaseId", release.getReleaseId());
-//    String responseString = runRestAPI(requestEndpoint, PUT, obj.toString());
+    //    JSONObject obj = new JSONObject();
+    //    obj.put("request", "");
+    //    obj.put("releaseId", release.getReleaseId());
+    //    String responseString = runRestAPI(requestEndpoint, PUT, obj.toString());
     String responseString = runRestAPI(requestEndpoint, PUT);
 
     try {
@@ -820,12 +860,12 @@ public class ElectricFlowClient {
       JSONArray flowRuntimes = response.getJSONArray("flowRuntime");
 
       ArrayList<Map<String, Object>> result = new ArrayList<>();
-      for (int i =0; i < flowRuntimes.size(); i++){
+      for (int i = 0; i < flowRuntimes.size(); i++) {
         result.add(flowRuntimes.getJSONObject(i));
       }
 
       return result;
-    } catch (RuntimeException ex){
+    } catch (RuntimeException ex) {
       log.error("Failed to parse Flow server response:" + ex.getMessage());
       return null;
     }
@@ -905,5 +945,29 @@ public class ElectricFlowClient {
     JSONObject jsonObject = JSONObject.fromObject(result);
 
     return jsonObject.getString("sessionId");
+  }
+
+  public GetJobStatusResponseData getCdJobStatus(String cdJobId) throws IOException {
+    String requestEndpoint = "/jobs/" + cdJobId + "?request=getJobStatus";
+    String result = runRestAPI(requestEndpoint, GET);
+    GetJobStatusResponseData getJobStatusResponseData = new ObjectMapper()
+        .enable(DeserializationFeature.READ_UNKNOWN_ENUM_VALUES_USING_DEFAULT_VALUE)
+        .readValue(result, GetJobStatusResponseData.class);
+    getJobStatusResponseData.setContent(result);
+    return getJobStatusResponseData;
+  }
+
+  public GetPipelineRuntimeDetailsResponseData getCdPipelineRuntimeDetails(String flowRuntimeId)
+      throws IOException {
+    String requestEndpoint = "/pipelineRuntimeDetails?request=getPipelineRuntimeDetails";
+    String result =
+        runRestAPI(requestEndpoint, PUT, "{\"flowRuntimeId\":[\"" + flowRuntimeId + "\"]}");
+    GetPipelineRuntimeDetailsResponseData getPipelineRuntimeDetailsResponseData = new ObjectMapper()
+        .enable(DeserializationFeature.READ_UNKNOWN_ENUM_VALUES_USING_DEFAULT_VALUE)
+        .readValue(
+            JSONObject.fromObject(result).getJSONArray("flowRuntime").getJSONObject(0).toString(),
+            GetPipelineRuntimeDetailsResponseData.class);
+    getPipelineRuntimeDetailsResponseData.setContent(result);
+    return getPipelineRuntimeDetailsResponseData;
   }
 }

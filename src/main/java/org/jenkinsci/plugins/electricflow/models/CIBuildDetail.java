@@ -25,9 +25,9 @@ public class CIBuildDetail {
   private BuildAssociationType associationType = BuildAssociationType.ATTACHED;
 
   public CIBuildDetail(CloudBeesFlowBuildData buildData, String projectName) {
-    this.buildData = buildData;
-    this.buildName = buildData.getDisplayName();
-    this.projectName = projectName;
+    this.setBuildData(buildData);
+    this.setBuildName(buildData.getDisplayName());
+    this.setProjectName(projectName);
   }
 
   public JSONObject toJsonObject() {
@@ -36,7 +36,8 @@ public class CIBuildDetail {
     JSONObject jsonObject = new JSONObject();
 
     if (buildName == null) {
-      buildName = buildData.getDisplayName();
+      // buildName = buildData.getDisplayName();
+      this.setBuildName(buildData.getDisplayName());
     }
 
     jsonObject.put("ciBuildDetailName", getBuildName());
@@ -48,25 +49,25 @@ public class CIBuildDetail {
     if (flowRuntimeId != null) {
       jsonObject.put("flowRuntimeId", getFlowRuntimeId());
 
-      if (stageName != null && flowRuntimeStateId != null){
-        jsonObject.put("stageName", stageName);
-        jsonObject.put("flowRuntimeStateId", flowRuntimeStateId);
+      if (this.getStageName() != null && this.getFlowRuntimeStateId() != null){
+        jsonObject.put("stageName", this.getStageName());
+        jsonObject.put("flowRuntimeStateId", this.getFlowRuntimeStateId());
       }
 
-    } else if (projectName != null && releaseName != null) {
-      jsonObject.put("releaseName", getReleaseName());
+    } else if (this.getProjectName() != null && this.getReleaseName() != null) {
+      jsonObject.put("releaseName", this.getReleaseName());
     }
 
     return jsonObject;
   }
 
   public void validate() throws RuntimeException {
-    if (buildData == null) {
+    if (this.getBuildData() == null) {
       throw new RuntimeException("Field 'CloudBeesFlowData buildData' is not set up.");
     }
 
-    boolean hasValuesForReleaseAttach = (projectName != null && releaseName != null);
-    boolean hasValuesForPipelineAttach = (flowRuntimeId != null);
+    boolean hasValuesForReleaseAttach = (this.getProjectName() != null && this.getReleaseName() != null);
+    boolean hasValuesForPipelineAttach = (this.getFlowRuntimeId() != null);
 
     if (hasValuesForPipelineAttach && hasValuesForReleaseAttach) {
       throw new RuntimeException(
@@ -116,7 +117,8 @@ public class CIBuildDetail {
   public String getBuildTriggerSource() {
     switch (this.buildTriggerSource) {
       case FLOW:
-        return "Flow";
+        // return "Flow"
+        return "CD";
       case CI:
         return "CI";
     }
@@ -133,7 +135,8 @@ public class CIBuildDetail {
       case ATTACHED:
         return "attached";
       case TRIGGERED_BY_FLOW:
-        return "triggeredByFlow";
+        // return "triggeredByFlow";
+        return "triggeredByCD";
       case TRIGGERED_BY_CI:
         return "triggeredByCI";
     }
