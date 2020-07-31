@@ -1,0 +1,103 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<flow-definition plugin="workflow-job@2.39">
+  <actions>
+    <org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobAction plugin="pipeline-model-definition@1.7.1"/>
+    <org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobPropertyTrackerAction plugin="pipeline-model-definition@1.7.1">
+      <jobProperties/>
+      <triggers/>
+      <parameters/>
+      <options/>
+    </org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobPropertyTrackerAction>
+  </actions>
+  <description></description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.StringParameterDefinition>
+          <name>flowConfigName</name>
+          <description></description>
+          <defaultValue>electricflow</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>flowProjectName</name>
+          <description></description>
+          <defaultValue>pvNativeJenkinsProject01</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>flowReleaseName</name>
+          <description></description>
+          <defaultValue>pvRelease</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>flowApplication</name>
+          <description></description>
+          <defaultValue>pvNativeJenkinsTestApplication01</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>flowProcedureName</name>
+          <description></description>
+          <defaultValue>nativeJenkinsTestProcedure</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>dependOnCdJobOutcomeCh</name>
+          <description></description>
+          <defaultValue>true</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>value1</name>
+          <description></description>
+          <defaultValue></defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>value2</name>
+          <description></description>
+          <defaultValue></defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>runAndWaitInterval</name>
+          <description></description>
+          <defaultValue>5</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+  </properties>
+  <definition class="org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition" plugin="workflow-cps@2.81">
+    <script>package projects.pipelines
+
+def jsonForReleaseParameters
+
+pipeline {
+    agent any
+    stages {
+        stage(&apos;Build&apos;) {
+            steps {
+                cleanWs()
+                sh &apos;echo &quot;=================== Run on jenkins side ====================&quot;&apos;
+                sh &apos;echo `pwd`&apos;
+            }
+        }
+    }
+    post {
+        always {
+            script {
+                cloudBeesFlowRunProcedure configuration: &quot;$flowConfigName&quot;, procedureName: &quot;$flowProcedureName&quot;, procedureParameters: &apos;{&quot;procedure&quot;:{&quot;procedureName&quot;:&quot;$flowProcedureName&quot;,&quot;parameters&quot;:[{&quot;actualParameterName&quot;:&quot;procedureOutcome&quot;,&quot;value&quot;:&quot;$value1&quot;},{&quot;actualParameterName&quot;:&quot;sleepTime&quot;,&quot;value&quot;:&quot;$value2&quot;}]}}&apos;, projectName: &quot;$flowProjectName&quot;,  runAndWaitOption: [checkInterval: &quot;$runAndWaitInterval&quot;, dependOnCdJobOutcome: &quot;$dependOnCdJobOutcomeCh&quot;]
+            }
+        }
+    }
+}
+</script>
+    <sandbox>true</sandbox>
+  </definition>
+  <triggers/>
+  <disabled>false</disabled>
+</flow-definition>

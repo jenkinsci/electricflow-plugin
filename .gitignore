@@ -6,3 +6,7 @@ release.properties
 electricflow.iml
 runConfigurations
 work
+/specs/spec-report/
+/specs/logs/
+/specs/.gradle/
+/specs/build/

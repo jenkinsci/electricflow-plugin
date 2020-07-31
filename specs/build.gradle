@@ -1,0 +1,37 @@
+plugins {
+    id "com.cloudbees.cd.plugins.specs" version "1.5.13.0"
+}
+
+version = "1.0"
+description = "Native Jenkins electricflow-plugin specs"
+sourceCompatibility = 1.8
+
+defaultTasks 'test'
+
+repositories {
+    jcenter()
+    mavenCentral()
+    maven {
+        url 'https://oss.sonatype.org/content/repositories/snapshots'
+    }
+    maven {
+        url  "https://dl.bintray.com/ecpluginsdev/maven"
+    }
+}
+
+dependencies {
+    implementation 'org.codehaus.groovy:groovy-all:2.4.5:indy'
+    implementation 'org.spockframework:spock-core:1.1-groovy-2.4'
+    implementation 'com.electriccloud:ec-specs-plugins-core:1.9.2'
+}
+
+test {
+    systemProperties['COMMANDER_SERVER'] = findProperty('server') ?: 'localhost'
+    systemProperties['COMMANDER_USERNAME'] = findProperty('username') ?: 'admin'
+    systemProperties['COMMANDER_PASSWORD'] = findProperty('password') ?: 'changeme'
+    systemProperties['COMMANDER_SECURE'] = '1'
+}
+
+sendAllureReports {
+    projectName = 'electricflow-plugin'
+}
