@@ -9,7 +9,6 @@
 package org.jenkinsci.plugins.electricflow;
 
 import static org.jenkinsci.plugins.electricflow.Utils.addParametersToJsonAndPreserveStored;
-import static org.jenkinsci.plugins.electricflow.Utils.expandParameters;
 import static org.jenkinsci.plugins.electricflow.Utils.formatJsonOutput;
 import static org.jenkinsci.plugins.electricflow.Utils.getParametersHTML;
 import static org.jenkinsci.plugins.electricflow.Utils.getParamsMap;
@@ -37,7 +36,6 @@ import hudson.util.FormValidation;
 import hudson.util.ListBoxModel;
 import java.io.IOException;
 import java.io.PrintStream;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -53,10 +51,13 @@ import org.jenkinsci.plugins.electricflow.factories.ElectricFlowClientFactory;
 import org.jenkinsci.plugins.electricflow.models.CIBuildDetail;
 import org.jenkinsci.plugins.electricflow.models.CIBuildDetail.BuildAssociationType;
 import org.jenkinsci.plugins.electricflow.models.CIBuildDetail.BuildTriggerSource;
+import org.jenkinsci.plugins.electricflow.models.ReleaseRunParameters;
 import org.jenkinsci.plugins.electricflow.ui.FieldValidationStatus;
 import org.jenkinsci.plugins.electricflow.ui.HtmlUtils;
 import org.jenkinsci.plugins.electricflow.ui.SelectFieldUtils;
 import org.jenkinsci.plugins.electricflow.ui.SelectItemValidationWrapper;
+import org.jenkinsci.plugins.workflow.steps.StepContext;
+import org.jenkinsci.plugins.workflow.steps.SynchronousNonBlockingStepExecution;
 import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
@@ -90,40 +91,28 @@ public class ElectricFlowTriggerRelease extends Recorder implements SimpleBuildS
       @Nonnull FilePath filePath,
       @Nonnull Launcher launcher,
       @Nonnull TaskListener taskListener) {
-    JSONObject release = JSONObject.fromObject(parameters).getJSONObject("release");
-    JSONArray stages = JSONArray.fromObject(release.getString("stages"));
-    JSONArray pipelineParameters = JSONArray.fromObject(release.getString("parameters"));
-    List<String> stagesToRun = new ArrayList<>();
+    executeStepAction(run, taskListener);
+  }
 
-    if (startingStage.isEmpty()) {
-
-      for (int i = 0; i < stages.size(); i++) {
-        JSONObject stage = stages.getJSONObject(i);
-        if (stage.getString("stageName").length() > 0) {
-          stagesToRun.add(stage.getString("stageName"));
-        }
-      }
-    }
-
+  private JSONObject executeStepAction(@Nonnull Run<?, ?> run, @Nonnull TaskListener taskListener) {
     PrintStream logger = taskListener.getLogger();
 
     try {
-      logger.println("Preparing to triggerRelease...");
-
       EnvReplacer env = new EnvReplacer(run, taskListener);
       ElectricFlowClient efClient =
           ElectricFlowClientFactory.getElectricFlowClient(
               configuration, overrideCredential, run, env, false);
 
-      expandParameters(pipelineParameters, env);
+      ReleaseRunParameters releaseRunParameters =
+          new ReleaseRunParameters(env, parameters, startingStage);
 
-      String releaseResult =
-          efClient.runRelease(
-              projectName, releaseName, stagesToRun, startingStage, pipelineParameters);
+      logger.println("Preparing to triggerRelease...");
+      JSONObject runtimeDetails = doTriggerRelease(releaseRunParameters, efClient);
+      JSONObject flowRuntime = runtimeDetails.getJSONObject("flowRuntime");
 
-      JSONObject flowRuntime = JSONObject.fromObject(releaseResult).getJSONObject("flowRuntime");
+      String summaryHtml =
+          getSummaryHtml(efClient.getElectricFlowUrl(), flowRuntime, releaseRunParameters);
 
-      String summaryHtml = getSummaryHtml(efClient, flowRuntime, pipelineParameters, stagesToRun);
       SummaryTextAction action = new SummaryTextAction(run, summaryHtml);
 
       try {
@@ -132,7 +121,7 @@ public class ElectricFlowTriggerRelease extends Recorder implements SimpleBuildS
           logger.println("CBF Data: " + cbfdb.toJsonObject().toString());
         }
 
-        logger.println("About to call setJenkinsBuildDetails after triggering a Flow Release");
+        logger.println("About to call setCIBuildDetails after triggering a CD Release");
 
         JSONObject associateResult =
             efClient.attachCIBuildDetails(
@@ -151,32 +140,30 @@ public class ElectricFlowTriggerRelease extends Recorder implements SimpleBuildS
 
       run.addAction(action);
       run.save();
-      logger.println("TriggerRelease  result: " + formatJsonOutput(releaseResult));
-    } catch (IOException e) {
-      logger.println(e.getMessage());
-      log.error(e.getMessage(), e);
-      run.setResult(Result.FAILURE);
-    } catch (InterruptedException e) {
+      logger.println("TriggerRelease  result: " + formatJsonOutput(flowRuntime.toString()));
+      return runtimeDetails;
+    } catch (IOException | InterruptedException | RuntimeException e) {
       logger.println(e.getMessage());
       log.error(e.getMessage(), e);
       run.setResult(Result.FAILURE);
     }
+
+    return null;
   }
 
-  private String getReleaseNameFromResponse(String releaseResult) {
-    JSONObject releaseJSON = JSONObject.fromObject(releaseResult).getJSONObject("release");
-    return (String) releaseJSON.get("releaseName");
-  }
+  private JSONObject doTriggerRelease(
+      @Nonnull ReleaseRunParameters releaseRunParameters, @Nonnull ElectricFlowClient efClient)
+      throws IOException {
 
-  private String getProjectNameFromResponse(String releaseResult) {
-    JSONObject releaseJSON = JSONObject.fromObject(releaseResult).getJSONObject("release");
-    return (String) releaseJSON.get("projectName");
-  }
+    String releaseResult =
+        efClient.runRelease(
+            projectName,
+            releaseName,
+            releaseRunParameters.getStagesToRun(),
+            startingStage,
+            releaseRunParameters.getPipelineParameters());
 
-  private String getSetJenkinsBuildDetailsUrlBase(String releaseResult) {
-    JSONObject releaseJSON = JSONObject.fromObject(releaseResult).getJSONObject("release");
-    String retval = "/flowRuntimes/" + releaseJSON.get("releaseName") + "/jenkinsBuildDetails";
-    return retval;
+    return JSONObject.fromObject(releaseResult);
   }
 
   public String getConfiguration() {
@@ -271,16 +258,18 @@ public class ElectricFlowTriggerRelease extends Recorder implements SimpleBuildS
   public void setValidationTrigger(String validationTrigger) {}
 
   private String getSummaryHtml(
-      ElectricFlowClient efClient,
-      JSONObject flowRuntime,
-      JSONArray parameters,
-      List<String> stagesToRun) {
+      String flowUrl, JSONObject flowRuntime, ReleaseRunParameters releaseParameters) {
+
+    JSONArray pipelineParameters = releaseParameters.getPipelineParameters();
+    List<String> stagesToRun = releaseParameters.getStagesToRun();
+
     String pipelineId = flowRuntime.getString("pipelineId");
     String flowRuntimeId = flowRuntime.getString("flowRuntimeId");
     String pipelineName = flowRuntime.getString("pipelineName");
-    String urlPipeline =
-        efClient.getElectricFlowUrl() + "/flow/#pipeline-run/" + pipelineId + "/" + flowRuntimeId;
-    String urlRelease = efClient.getElectricFlowUrl() + "/flow/#releases";
+
+    String urlPipeline = flowUrl + "/flow/#pipeline-run/" + pipelineId + "/" + flowRuntimeId;
+    String urlRelease = flowUrl + "/flow/#releases";
+
     String summaryText =
         "<h3>CloudBees Flow Trigger Release</h3>"
             + "<table cellspacing=\"2\" cellpadding=\"4\"> \n"
@@ -330,7 +319,8 @@ public class ElectricFlowTriggerRelease extends Recorder implements SimpleBuildS
       summaryText = getParametersHTML(stagesToRun, summaryText);
     }
 
-    summaryText = getParametersHTML(parameters, summaryText, "parameterName", "parameterValue");
+    summaryText =
+        getParametersHTML(pipelineParameters, summaryText, "parameterName", "parameterValue");
     summaryText = summaryText + "</table>";
 
     return summaryText;
@@ -737,6 +727,26 @@ public class ElectricFlowTriggerRelease extends Recorder implements SimpleBuildS
       } else {
         return FormValidation.warningWithMarkup("Changes detected:<br>" + comparisonTable);
       }
+    }
+  }
+
+  private static class Execution extends SynchronousNonBlockingStepExecution<JSONObject> {
+    private static final long serialVersionUID = 1L;
+    private final transient ElectricFlowTriggerRelease step;
+
+    protected Execution(StepContext context, ElectricFlowTriggerRelease buildStep) {
+      super(context);
+      this.step = buildStep;
+    }
+
+    @Override
+    protected JSONObject run() throws Exception {
+      StepContext context = getContext();
+      return step.executeStepAction(context.get(Run.class), context.get(TaskListener.class));
+    }
+
+    private ElectricFlowTriggerRelease getStep() {
+      return step;
     }
   }
 }
