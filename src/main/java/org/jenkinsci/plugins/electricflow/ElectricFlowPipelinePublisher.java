@@ -50,6 +50,7 @@ import net.sf.json.JSONObject;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jenkinsci.Symbol;
+import org.jenkinsci.plugins.electricflow.action.CloudBeesCDPBABuildDetails;
 import org.jenkinsci.plugins.electricflow.data.CloudBeesFlowBuildData;
 import org.jenkinsci.plugins.electricflow.exceptions.PluginException;
 import org.jenkinsci.plugins.electricflow.factories.ElectricFlowClientFactory;
@@ -199,7 +200,11 @@ public class ElectricFlowPipelinePublisher extends Recorder implements SimpleBui
         if (log.isDebugEnabled()) {
           logger.println("setCIBuildDetails response: " + associateResult.toString());
         }
-
+      // Now we're creating the CloudBessCDPBABuildDetails action and adding it to the run.
+        CloudBeesCDPBABuildDetails cdPbaBd = new CloudBeesCDPBABuildDetails();
+        cdPbaBd.setFlowRuntimeId(flowRuntimeId);
+        cdPbaBd.setProjectName(projectName);
+        run.addAction(cdPbaBd);
       } catch (RuntimeException exception) {
         log.info("Can't attach CIBuildData to the pipeline run: " + exception.getMessage());
       }
