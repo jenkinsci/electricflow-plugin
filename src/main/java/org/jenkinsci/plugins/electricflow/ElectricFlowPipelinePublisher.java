@@ -201,10 +201,14 @@ public class ElectricFlowPipelinePublisher extends Recorder implements SimpleBui
           logger.println("setCIBuildDetails response: " + associateResult.toString());
         }
       // Now we're creating the CloudBessCDPBABuildDetails action and adding it to the run.
-        CloudBeesCDPBABuildDetails cdPbaBd = new CloudBeesCDPBABuildDetails();
-        cdPbaBd.setFlowRuntimeId(flowRuntimeId);
-        cdPbaBd.setProjectName(projectName);
-        run.addAction(cdPbaBd);
+        CloudBeesCDPBABuildDetails.applyToRuntime(
+                run,
+                flowRuntimeId,
+                null,
+                projectName,
+                null,
+                null
+        );
       } catch (RuntimeException exception) {
         log.info("Can't attach CIBuildData to the pipeline run: " + exception.getMessage());
       }

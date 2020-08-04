@@ -55,11 +55,11 @@ public class ElectricFlowBuildWatcher extends RunListener<Run> {
     // BuildAssociationType buildAssociationType = null;
     // BuildTriggerSource buildTriggerSource = null;
 
-    // getting EFCause object and CloudBeesCDPBABuildDetails object.
+    // 0. Getting EFCause object.
     try {
       efCause = (EFCause) run.getCause(EFCause.class);
-    } catch (ClassCastException ignored) {
-    }
+    } catch (ClassCastException ignored) { }
+    // 0a. Getting CloudBeesCDPBABuildDetails object only and only when EFCause is null
     if (efCause == null) {
       cdPBABuildDetails = run.getAction(CloudBeesCDPBABuildDetails.class);
     }
@@ -67,12 +67,24 @@ public class ElectricFlowBuildWatcher extends RunListener<Run> {
     if (efCause == null && cdPBABuildDetails == null) {
       return false;
     }
+
+    // 1. Getting configurations
     List<Configuration> cfgs = this.getConfigurations();
     // returning false because there is no applicable configurations to make it happen.
     if (cfgs.size() == 0) {
       return false;
     }
 
+    /*
+    !!!IMPORTANT!!!
+      Do not return any value from iterating configurations loop.
+      It turns out that there is a scenario when we may have more than 1 configuration.
+      In that case we need to iterate through them and if this method will return something
+      inside of the loop under some condition - iteration will stop and some configs will not be
+      processed.
+    !!!IMPORTANT!!!
+    */
+    // 2. Getting iterator out of configs list.
     for (Configuration tc : cfgs) {
       // 3. Getting configuration from iterator to create efclient out of it later.
       ElectricFlowClient electricFlowClient = new ElectricFlowClient(tc.getConfigurationName());
@@ -109,7 +121,7 @@ public class ElectricFlowBuildWatcher extends RunListener<Run> {
       if (details != null) {
         try {
           JSONObject attachResult = electricFlowClient.attachCIBuildDetails(details);
-          System.out.println(details.toString());
+//          System.out.println(details.toString());
         } catch (IOException e) {
           continue;
         } catch (RuntimeException ex) {
@@ -125,75 +137,5 @@ public class ElectricFlowBuildWatcher extends RunListener<Run> {
     return true;
   }
 
-  public boolean sendBuildDetailsToInstance(Run<?, ?> run, TaskListener taskListener) {
-    // 0. Getting EFCause
-    EFCause efCause = null;
-    try {
-      efCause = (EFCause) run.getCause(EFCause.class);
-    } catch (ClassCastException ignored) {
-      // Ignoring - not triggered by Flow
-      return false;
-    }
-    BuildAssociationType buildAssociationType = BuildAssociationType.TRIGGERED_BY_FLOW;
-    BuildTriggerSource buildTriggerSource = BuildTriggerSource.FLOW;
 
-    // No EFCause object. It means that it has not been started by efrun. We can't continue.
-    if (efCause == null) {
-      // there is no efCause, so we will be trying to get CloudBeesCDPBABuildDetails
-      // The run has not been started by flow, but we need to catch it and send build details.
-      CloudBeesCDPBABuildDetails bd = run.getAction(CloudBeesCDPBABuildDetails.class);
-      if (bd == null) {
-        return false;
-      }
-      // now we know that the CI is a trigger of a build, so we need to change the value of
-      // build association type
-      efCause = bd.newEFCause();
-      buildAssociationType = BuildAssociationType.TRIGGERED_BY_CI;
-      buildTriggerSource = BuildTriggerSource.CI;
-    }
-    // 1. Getting configurations list:
-    List<Configuration> cfgs = this.getConfigurations();
-    // returning false because there is no applicable configurations to make it happen.
-    if (cfgs.size() == 0) {
-      return false;
-    }
-
-    // 2. Getting iterator out of configs.
-    for (Configuration tc : cfgs) {
-      // 3. Getting configuration from iterator to create efclient out of it later.
-      ElectricFlowClient electricFlowClient = new ElectricFlowClient(tc.getConfigurationName());
-      // 4. Creating CloudBeesFlowBuildData object out of run:
-      CloudBeesFlowBuildData cbf = new CloudBeesFlowBuildData(run);
-
-      try {
-        // According to NTVEPLUGIN-277, triggeredByFlow should be passed back to flow in
-        // case when build has been triggered by flow.
-        CIBuildDetail details =
-                new CIBuildDetail(cbf, efCause.getProjectName())
-                        .setFlowRuntimeId(efCause.getFlowRuntimeId())
-                        .setAssociationType(buildAssociationType)
-                        .setBuildTriggerSource(buildTriggerSource);
-        // .setAssociationType(BuildAssociationType.TRIGGERED_BY_FLOW)
-        // .setBuildTriggerSource(BuildTriggerSource.FLOW);
-
-        if (!efCause.getStageName().equals("null")) {
-          details.setStageName(efCause.getStageName());
-        }
-        if (!efCause.getFlowRuntimeStateId().equals("null")) {
-          details.setFlowRuntimeStateId(efCause.getFlowRuntimeStateId());
-        }
-
-        electricFlowClient.attachCIBuildDetails(details);
-      } catch (IOException e) {
-        continue;
-      } catch (RuntimeException ex) {
-        taskListener
-                .getLogger()
-                .printf("[Configuration %s] Can't attach CiBuildData%n", tc.getConfigurationName());
-        taskListener.getLogger().println(ex.getMessage());
-        continue;
-      }
-    }
-    return true;
-  }
 }

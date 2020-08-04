@@ -1,6 +1,7 @@
 package org.jenkinsci.plugins.electricflow.action;
 
 import hudson.model.Action;
+import hudson.model.Run;
 import javax.annotation.CheckForNull;
 import org.jenkinsci.plugins.electricflow.causes.EFCause;
 import org.kohsuke.stapler.export.Exported;
@@ -71,23 +72,50 @@ public class CloudBeesCDPBABuildDetails implements Action {
   public void setStageName(String stageName) {
     this.stageName = stageName;
   }
-  public EFCause newEFCause() {
-    EFCause efCause = new EFCause();
-    if (this.getFlowRuntimeId() != null) {
-      efCause.setFlowRuntimeId(this.getFlowRuntimeId());
+//  public EFCause newEFCause() {
+//    EFCause efCause = new EFCause();
+//    if (this.getFlowRuntimeId() != null) {
+//      efCause.setFlowRuntimeId(this.getFlowRuntimeId());
+//    }
+//    if (this.getFlowRuntimeStateId() != null) {
+//      efCause.setFlowRuntimeStateId(this.getFlowRuntimeStateId());
+//    }
+//    if (this.getProjectName() != null) {
+//      efCause.setProjectName(this.getProjectName());
+//    }
+//    if (this.getReleaseName() != null) {
+//      efCause.setReleaseName(this.getReleaseName());
+//    }
+//    if (this.getStageName() != null) {
+//      efCause.setStageName(this.getStageName());
+//    }
+//    return efCause;
+//  }
+  public static void applyToRuntime(
+          Run<?, ?> run,
+          String flowRuntimeId,
+          String flowRuntimeStateId,
+          String projectName,
+          String releaseName,
+          String stageName
+  ) {
+    CloudBeesCDPBABuildDetails cdpbaBuildDetails = new CloudBeesCDPBABuildDetails();
+    if (flowRuntimeId != null) {
+      cdpbaBuildDetails.setFlowRuntimeId(flowRuntimeId);
     }
-    if (this.getFlowRuntimeStateId() != null) {
-      efCause.setFlowRuntimeStateId(this.getFlowRuntimeStateId());
+    if (flowRuntimeStateId != null) {
+      cdpbaBuildDetails.setFlowRuntimeStateId(flowRuntimeStateId);
     }
-    if (this.getProjectName() != null) {
-      efCause.setProjectName(this.getProjectName());
+    if (projectName != null) {
+      cdpbaBuildDetails.setProjectName(projectName);
     }
-    if (this.getReleaseName() != null) {
-      efCause.setReleaseName(this.getReleaseName());
+    if (releaseName != null) {
+      cdpbaBuildDetails.setReleaseName(releaseName);
     }
-    if (this.getStageName() != null) {
-      efCause.setStageName(this.getStageName());
+    if (stageName != null) {
+      cdpbaBuildDetails.setStageName(stageName);
     }
-    return efCause;
+
+    run.addAction(cdpbaBuildDetails);
   }
 }
