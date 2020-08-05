@@ -53,7 +53,6 @@ import org.jenkinsci.plugins.electricflow.data.CloudBeesFlowBuildData;
 import org.jenkinsci.plugins.electricflow.factories.ElectricFlowClientFactory;
 import org.jenkinsci.plugins.electricflow.models.CIBuildDetail;
 import org.jenkinsci.plugins.electricflow.models.CIBuildDetail.BuildAssociationType;
-import org.jenkinsci.plugins.electricflow.models.cdrestdata.jobs.CdPipelineStatus;
 import org.jenkinsci.plugins.electricflow.models.cdrestdata.jobs.GetPipelineRuntimeDetailsResponseData;
 import org.jenkinsci.plugins.electricflow.ui.FieldValidationStatus;
 import org.jenkinsci.plugins.electricflow.ui.HtmlUtils;
@@ -230,13 +229,8 @@ public class ElectricFlowPipelinePublisher extends Recorder implements SimpleBui
                 + getPipelineRuntimeDetailsResponseData.getStatus()
                 + " status");
         if (runAndWaitOption.isDependOnCdJobOutcome()) {
-          if (getPipelineRuntimeDetailsResponseData.getStatus() != CdPipelineStatus.success
-              && getPipelineRuntimeDetailsResponseData.getStatus() != CdPipelineStatus.warning) {
-            return Result.FAILURE;
-          } else if (getPipelineRuntimeDetailsResponseData.getStatus()
-              == CdPipelineStatus.warning) {
-            return Result.UNSTABLE;
-          }
+          return Utils.getCorrespondedCiBuildResult(
+              getPipelineRuntimeDetailsResponseData.getStatus());
         }
       }
 

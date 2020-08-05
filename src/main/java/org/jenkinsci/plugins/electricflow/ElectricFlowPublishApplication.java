@@ -48,7 +48,6 @@ import org.apache.commons.logging.LogFactory;
 import org.jenkinsci.Symbol;
 import org.jenkinsci.plugins.electricflow.exceptions.PluginException;
 import org.jenkinsci.plugins.electricflow.factories.ElectricFlowClientFactory;
-import org.jenkinsci.plugins.electricflow.models.cdrestdata.jobs.CdJobOutcome;
 import org.jenkinsci.plugins.electricflow.models.cdrestdata.jobs.CdJobStatus;
 import org.jenkinsci.plugins.electricflow.models.cdrestdata.jobs.GetJobStatusResponseData;
 import org.jenkinsci.plugins.electricflow.ui.HtmlUtils;
@@ -254,12 +253,7 @@ public class ElectricFlowPublishApplication extends Recorder implements SimpleBu
         logger.println(
             "CD job completed with " + getJobStatusResponseData.getOutcome() + " outcome");
         if (runAndWaitOption.isDependOnCdJobOutcome()) {
-          if (getJobStatusResponseData.getOutcome() == CdJobOutcome.error
-              || getJobStatusResponseData.getOutcome() == CdJobOutcome.unknown) {
-            return Result.FAILURE;
-          } else if (getJobStatusResponseData.getOutcome() == CdJobOutcome.warning) {
-            return Result.UNSTABLE;
-          }
+          return Utils.getCorrespondedCiBuildResult(getJobStatusResponseData.getOutcome());
         }
       }
     } catch (PluginException

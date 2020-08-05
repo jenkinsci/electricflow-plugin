@@ -54,7 +54,6 @@ import org.jenkinsci.plugins.electricflow.factories.ElectricFlowClientFactory;
 import org.jenkinsci.plugins.electricflow.models.CIBuildDetail;
 import org.jenkinsci.plugins.electricflow.models.CIBuildDetail.BuildAssociationType;
 import org.jenkinsci.plugins.electricflow.models.CIBuildDetail.BuildTriggerSource;
-import org.jenkinsci.plugins.electricflow.models.cdrestdata.jobs.CdPipelineStatus;
 import org.jenkinsci.plugins.electricflow.models.cdrestdata.jobs.GetPipelineRuntimeDetailsResponseData;
 import org.jenkinsci.plugins.electricflow.ui.FieldValidationStatus;
 import org.jenkinsci.plugins.electricflow.ui.HtmlUtils;
@@ -192,13 +191,9 @@ public class ElectricFlowTriggerRelease extends Recorder implements SimpleBuildS
                 + getPipelineRuntimeDetailsResponseData.getStatus()
                 + " status");
         if (runAndWaitOption.isDependOnCdJobOutcome()) {
-          if (getPipelineRuntimeDetailsResponseData.getStatus() != CdPipelineStatus.success
-              && getPipelineRuntimeDetailsResponseData.getStatus() != CdPipelineStatus.warning) {
-            run.setResult(Result.FAILURE);
-          } else if (getPipelineRuntimeDetailsResponseData.getStatus()
-              != CdPipelineStatus.warning) {
-            run.setResult(Result.UNSTABLE);
-          }
+          run.setResult(
+              Utils.getCorrespondedCiBuildResult(
+                  getPipelineRuntimeDetailsResponseData.getStatus()));
         }
       }
 

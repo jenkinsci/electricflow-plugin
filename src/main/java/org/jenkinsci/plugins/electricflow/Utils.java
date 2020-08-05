@@ -11,6 +11,7 @@ package org.jenkinsci.plugins.electricflow;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import hudson.EnvVars;
 import hudson.model.BuildListener;
+import hudson.model.Result;
 import hudson.model.TaskListener;
 import hudson.slaves.EnvironmentVariablesNodeProperty;
 import hudson.slaves.NodeProperty;
@@ -35,6 +36,8 @@ import net.sf.json.JSONObject;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jenkinsci.plugins.electricflow.factories.ElectricFlowClientFactory;
+import org.jenkinsci.plugins.electricflow.models.cdrestdata.jobs.CdJobOutcome;
+import org.jenkinsci.plugins.electricflow.models.cdrestdata.jobs.CdPipelineStatus;
 import org.jenkinsci.plugins.electricflow.ui.FieldValidationStatus;
 import org.jenkinsci.plugins.electricflow.ui.HtmlUtils;
 import org.jenkinsci.plugins.electricflow.ui.SelectFieldUtils;
@@ -450,5 +453,27 @@ public class Utils {
       return logger;
     }
     return logger;
+  }
+
+  public static Result getCorrespondedCiBuildResult(CdPipelineStatus cdPipelineStatus) {
+    switch (cdPipelineStatus) {
+      case success:
+        return Result.SUCCESS;
+      case warning:
+        return Result.UNSTABLE;
+      default:
+        return Result.FAILURE;
+    }
+  }
+
+  public static Result getCorrespondedCiBuildResult(CdJobOutcome cdJobOutcome) {
+    switch (cdJobOutcome) {
+      case success:
+        return Result.SUCCESS;
+      case warning:
+        return Result.UNSTABLE;
+      default:
+        return Result.FAILURE;
+    }
   }
 }
