@@ -191,9 +191,11 @@ public class ElectricFlowTriggerRelease extends Recorder implements SimpleBuildS
                 + getPipelineRuntimeDetailsResponseData.getStatus()
                 + " status");
         if (runAndWaitOption.isDependOnCdJobOutcome()) {
-          run.setResult(
-              Utils.getCorrespondedCiBuildResult(
-                  getPipelineRuntimeDetailsResponseData.getStatus()));
+          Result result =
+              Utils.getCorrespondedCiBuildResult(getPipelineRuntimeDetailsResponseData.getStatus());
+          if (result != Result.SUCCESS) {
+            run.setResult(result);
+          }
         }
       }
 
