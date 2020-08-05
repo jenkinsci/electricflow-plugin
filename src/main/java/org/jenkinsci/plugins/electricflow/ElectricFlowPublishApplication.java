@@ -142,15 +142,14 @@ public class ElectricFlowPublishApplication extends Recorder implements SimpleBu
       @Nonnull Run<?, ?> run,
       @Nonnull FilePath workspace,
       @Nonnull Launcher launcher,
-      @Nonnull TaskListener taskListener)
-      throws InterruptedException, IOException {
-    boolean isSuccess = runProcess(run, taskListener, workspace);
-    if (!isSuccess) {
-      run.setResult(Result.FAILURE);
+      @Nonnull TaskListener taskListener) {
+    Result result = runProcess(run, taskListener, workspace);
+    if (result != Result.SUCCESS) {
+      run.setResult(result);
     }
   }
 
-  private boolean runProcess(
+  private Result runProcess(
       @Nonnull Run<?, ?> run, @Nonnull TaskListener taskListener, @Nonnull FilePath workspace) {
     PrintStream logger = taskListener.getLogger();
 
@@ -183,7 +182,7 @@ public class ElectricFlowPublishApplication extends Recorder implements SimpleBu
       logger.println("Warning: Cannot create archive: " + e.getMessage());
       log.warn("Can't create archive: " + e.getMessage(), e);
 
-      return false;
+      return Result.FAILURE;
     }
 
     String artifactGroup = "org.ec";
@@ -252,11 +251,14 @@ public class ElectricFlowPublishApplication extends Recorder implements SimpleBu
           }
         } while (getJobStatusResponseData.getStatus() != CdJobStatus.completed);
 
+        logger.println(
+            "CD job completed with " + getJobStatusResponseData.getOutcome() + " outcome");
         if (runAndWaitOption.isDependOnCdJobOutcome()) {
           if (getJobStatusResponseData.getOutcome() == CdJobOutcome.error
               || getJobStatusResponseData.getOutcome() == CdJobOutcome.unknown) {
-            throw new PluginException(
-                "CD job completed with " + getJobStatusResponseData.getOutcome() + " outcome");
+            return Result.FAILURE;
+          } else if (getJobStatusResponseData.getOutcome() == CdJobOutcome.warning) {
+            return Result.UNSTABLE;
           }
         }
       }
@@ -268,10 +270,10 @@ public class ElectricFlowPublishApplication extends Recorder implements SimpleBu
       logger.println("Warning: Error occurred during application creation: " + e.getMessage());
       log.warn("Error occurred during application creation: " + e.getMessage(), e);
 
-      return false;
+      return Result.FAILURE;
     }
 
-    return true;
+    return Result.SUCCESS;
   }
 
   /**

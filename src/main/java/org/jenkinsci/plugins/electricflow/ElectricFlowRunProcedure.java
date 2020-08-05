@@ -40,7 +40,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
-import java.util.Optional;
 import javax.annotation.Nonnull;
 import jenkins.tasks.SimpleBuildStep;
 import net.sf.json.JSONArray;
@@ -82,13 +81,13 @@ public class ElectricFlowRunProcedure extends Recorder implements SimpleBuildSte
       @Nonnull FilePath filePath,
       @Nonnull Launcher launcher,
       @Nonnull TaskListener taskListener) {
-    boolean isSuccess = runProcedure(run, taskListener);
-    if (!isSuccess) {
-      run.setResult(Result.FAILURE);
+    Result result = runProcedure(run, taskListener);
+    if (result != Result.SUCCESS) {
+      run.setResult(result);
     }
   }
 
-  private boolean runProcedure(@Nonnull Run<?, ?> run, @Nonnull TaskListener taskListener) {
+  private Result runProcedure(@Nonnull Run<?, ?> run, @Nonnull TaskListener taskListener) {
     PrintStream logger = taskListener.getLogger();
 
     logger.println("Project name: " + projectName + ", Procedure name: " + procedureName);
@@ -136,8 +135,7 @@ public class ElectricFlowRunProcedure extends Recorder implements SimpleBuildSte
           getJobStatusResponseData = efClient.getCdJobStatus(jobId);
           logger.println(getJobStatusResponseData);
 
-          summaryHtml =
-              getSummaryHtml(efClient, parameter, args, getJobStatusResponseData);
+          summaryHtml = getSummaryHtml(efClient, parameter, args, getJobStatusResponseData);
           action = new SummaryTextAction(run, summaryHtml);
           run.addOrReplaceAction(action);
           run.save();
@@ -146,21 +144,24 @@ public class ElectricFlowRunProcedure extends Recorder implements SimpleBuildSte
           }
         } while (getJobStatusResponseData.getStatus() != CdJobStatus.completed);
 
+        logger.println(
+            "CD job completed with " + getJobStatusResponseData.getOutcome() + " outcome");
         if (runAndWaitOption.isDependOnCdJobOutcome()) {
           if (getJobStatusResponseData.getOutcome() == CdJobOutcome.error
               || getJobStatusResponseData.getOutcome() == CdJobOutcome.unknown) {
-            throw new PluginException(
-                "CD job completed with " + getJobStatusResponseData.getOutcome() + " outcome");
+            return Result.FAILURE;
+          } else if (getJobStatusResponseData.getOutcome() == CdJobOutcome.warning) {
+            return Result.UNSTABLE;
           }
         }
       }
     } catch (PluginException | IOException | InterruptedException e) {
       logger.println(e.getMessage());
       log.error(e.getMessage(), e);
-      return false;
+      return Result.FAILURE;
     }
 
-    return true;
+    return Result.SUCCESS;
   }
 
   public String getConfiguration() {

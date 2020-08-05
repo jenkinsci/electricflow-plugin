@@ -50,7 +50,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jenkinsci.Symbol;
 import org.jenkinsci.plugins.electricflow.data.CloudBeesFlowBuildData;
-import org.jenkinsci.plugins.electricflow.exceptions.PluginException;
 import org.jenkinsci.plugins.electricflow.factories.ElectricFlowClientFactory;
 import org.jenkinsci.plugins.electricflow.models.CIBuildDetail;
 import org.jenkinsci.plugins.electricflow.models.CIBuildDetail.BuildAssociationType;
@@ -188,18 +187,22 @@ public class ElectricFlowTriggerRelease extends Recorder implements SimpleBuildS
           run.save();
         } while (!getPipelineRuntimeDetailsResponseData.isCompleted());
 
+        logger.println(
+            "CD pipeline completed with "
+                + getPipelineRuntimeDetailsResponseData.getStatus()
+                + " status");
         if (runAndWaitOption.isDependOnCdJobOutcome()) {
           if (getPipelineRuntimeDetailsResponseData.getStatus() != CdPipelineStatus.success
               && getPipelineRuntimeDetailsResponseData.getStatus() != CdPipelineStatus.warning) {
-            throw new PluginException(
-                "CD pipeline completed with "
-                    + getPipelineRuntimeDetailsResponseData.getStatus()
-                    + " status");
+            run.setResult(Result.FAILURE);
+          } else if (getPipelineRuntimeDetailsResponseData.getStatus()
+              != CdPipelineStatus.warning) {
+            run.setResult(Result.UNSTABLE);
           }
         }
       }
 
-    } catch (IOException | InterruptedException | PluginException e) {
+    } catch (IOException | InterruptedException e) {
       logger.println(e.getMessage());
       log.error(e.getMessage(), e);
       run.setResult(Result.FAILURE);
