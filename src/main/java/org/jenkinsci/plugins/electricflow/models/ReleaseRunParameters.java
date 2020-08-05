@@ -17,10 +17,10 @@ public class ReleaseRunParameters {
 
   public ReleaseRunParameters(EnvReplacer env, String parameters, String startStage) {
     release = JSONObject.fromObject(parameters).getJSONObject("release");
-    stages = JSONArray.fromObject(release.getString("stages"));
     pipelineParameters = JSONArray.fromObject(release.getString("parameters"));
-    stagesToRun = new ArrayList<>();
 
+    stages = JSONArray.fromObject(release.getString("stages"));
+    stagesToRun = new ArrayList<>();
     if (startStage.isEmpty()) {
       for (int i = 0; i < stages.size(); i++) {
         JSONObject stage = stages.getJSONObject(i);

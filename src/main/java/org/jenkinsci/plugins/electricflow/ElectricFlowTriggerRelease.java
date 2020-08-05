@@ -36,9 +36,11 @@ import hudson.util.FormValidation;
 import hudson.util.ListBoxModel;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import javax.annotation.Nonnull;
 import jenkins.tasks.SimpleBuildStep;
@@ -53,16 +55,19 @@ import org.jenkinsci.plugins.electricflow.factories.ElectricFlowClientFactory;
 import org.jenkinsci.plugins.electricflow.models.CIBuildDetail;
 import org.jenkinsci.plugins.electricflow.models.CIBuildDetail.BuildAssociationType;
 import org.jenkinsci.plugins.electricflow.models.CIBuildDetail.BuildTriggerSource;
+import org.jenkinsci.plugins.electricflow.models.ReleaseRunParameters;
 import org.jenkinsci.plugins.electricflow.models.cdrestdata.jobs.CdPipelineStatus;
 import org.jenkinsci.plugins.electricflow.models.cdrestdata.jobs.GetPipelineRuntimeDetailsResponseData;
-import org.jenkinsci.plugins.electricflow.models.ReleaseRunParameters;
-import org.jenkinsci.plugins.electricflow.models.ReleaseRunParameters;
 import org.jenkinsci.plugins.electricflow.ui.FieldValidationStatus;
 import org.jenkinsci.plugins.electricflow.ui.HtmlUtils;
 import org.jenkinsci.plugins.electricflow.ui.SelectFieldUtils;
 import org.jenkinsci.plugins.electricflow.ui.SelectItemValidationWrapper;
+import org.jenkinsci.plugins.workflow.steps.Step;
 import org.jenkinsci.plugins.workflow.steps.StepContext;
+import org.jenkinsci.plugins.workflow.steps.StepDescriptor;
+import org.jenkinsci.plugins.workflow.steps.StepExecution;
 import org.jenkinsci.plugins.workflow.steps.SynchronousNonBlockingStepExecution;
+import org.jenkinsci.plugins.workflow.steps.SynchronousStepExecution;
 import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
@@ -91,7 +96,6 @@ public class ElectricFlowTriggerRelease extends Recorder implements SimpleBuildS
 
   // ~ Methods ----------------------------------------------------------------
 
-  @Override
   public void perform(
       @Nonnull Run<?, ?> run,
       @Nonnull FilePath filePath,
@@ -113,8 +117,9 @@ public class ElectricFlowTriggerRelease extends Recorder implements SimpleBuildS
           new ReleaseRunParameters(env, parameters, startingStage);
 
       logger.println("Preparing to triggerRelease...");
-      JSONObject runtimeDetails = doTriggerRelease(releaseRunParameters, efClient);
-      JSONObject flowRuntime = runtimeDetails.getJSONObject("flowRuntime");
+
+      JSONObject releaseResult = doTriggerRelease(releaseRunParameters, efClient);
+      JSONObject flowRuntime = releaseResult.getJSONObject("flowRuntime");
 
       String summaryHtml =
           getSummaryHtml(efClient.getElectricFlowUrl(), flowRuntime, releaseRunParameters, null);
@@ -122,30 +127,16 @@ public class ElectricFlowTriggerRelease extends Recorder implements SimpleBuildS
 
       try {
         CloudBeesFlowBuildData cbfdb = new CloudBeesFlowBuildData(run);
-        if (log.isDebugEnabled()) {
-          logger.println("CBF Data: " + cbfdb.toJsonObject().toString());
-        }
-
-        logger.println("About to call setCIBuildDetails after triggering a CD Release");
-
-        JSONObject associateResult =
-            efClient.attachCIBuildDetails(
-                new CIBuildDetail(cbfdb, projectName)
-                    .setFlowRuntimeId(flowRuntime.getString("flowRuntimeId"))
-                    .setAssociationType(BuildAssociationType.TRIGGERED_BY_CI)
-                    .setBuildTriggerSource(BuildTriggerSource.CI));
-
-        if (log.isDebugEnabled()) {
-          logger.println("Return from efClient: " + associateResult.toString());
-        }
-
+        sendCIBuildDetails(efClient, cbfdb, flowRuntime.getString("flowRuntimeId"), logger);
       } catch (RuntimeException ex) {
-        log.info("Can't attach CIBuildData to the pipeline run: " + ex.getMessage());
+        // Sending errors will be handled by method, so we have only CloudBeesFlowBuildData here
+        logger.println("Failed to build CIBuildData for a run");
       }
 
       run.addAction(action);
       run.save();
-      logger.println("TriggerRelease  result: " + formatJsonOutput(releaseResult));
+
+      logger.println("TriggerRelease  result: " + formatJsonOutput(releaseResult.toString()));
 
       if (runAndWaitOption != null) {
         int checkInterval = runAndWaitOption.getCheckInterval();
@@ -160,16 +151,16 @@ public class ElectricFlowTriggerRelease extends Recorder implements SimpleBuildS
           TimeUnit.SECONDS.sleep(checkInterval);
 
           getPipelineRuntimeDetailsResponseData =
-              efClient.getCdPipelineRuntimeDetails(flowRuntimeId);
+              efClient.getCdPipelineRuntimeDetails(flowRuntime.getString("flowRuntimeId"));
           logger.println(getPipelineRuntimeDetailsResponseData);
 
           summaryHtml =
               getSummaryHtml(
-                  efClient,
+                  efClient.getElectricFlowUrl(),
                   flowRuntime,
-                  pipelineParameters,
-                  stagesToRun,
+                  releaseRunParameters,
                   getPipelineRuntimeDetailsResponseData);
+
           action = new SummaryTextAction(run, summaryHtml);
           run.addOrReplaceAction(action);
           run.save();
@@ -186,7 +177,8 @@ public class ElectricFlowTriggerRelease extends Recorder implements SimpleBuildS
         }
       }
 
-      return runtimeDetails;
+      return releaseResult;
+
     } catch (IOException | InterruptedException | PluginException e) {
       logger.println(e.getMessage());
       log.error(e.getMessage(), e);
@@ -209,6 +201,34 @@ public class ElectricFlowTriggerRelease extends Recorder implements SimpleBuildS
             releaseRunParameters.getPipelineParameters());
 
     return JSONObject.fromObject(releaseResult);
+  }
+
+  private void sendCIBuildDetails(
+      ElectricFlowClient efClient,
+      CloudBeesFlowBuildData cbfdb,
+      String flowRuntimeId,
+      PrintStream logger) {
+    try {
+      if (log.isDebugEnabled()) {
+        logger.println("CBF Data: " + cbfdb.toJsonObject().toString());
+      }
+
+      logger.println("About to call setCIBuildDetails after triggering a CD Release");
+
+      JSONObject associateResult =
+          efClient.attachCIBuildDetails(
+              new CIBuildDetail(cbfdb, projectName)
+                  .setFlowRuntimeId(flowRuntimeId)
+                  .setAssociationType(BuildAssociationType.TRIGGERED_BY_CI)
+                  .setBuildTriggerSource(BuildTriggerSource.CI));
+
+      if (log.isDebugEnabled()) {
+        logger.println("Return from efClient: " + associateResult.toString());
+      }
+
+    } catch (RuntimeException | IOException ex) {
+      log.info("Can't attach CIBuildData to the pipeline run: " + ex.getMessage());
+    }
   }
 
   public String getConfiguration() {
@@ -376,7 +396,9 @@ public class ElectricFlowTriggerRelease extends Recorder implements SimpleBuildS
       summaryText = getParametersHTML(stagesToRun, summaryText);
     }
 
-    summaryText = getParametersHTML(parameters, summaryText, "parameterName", "parameterValue");
+    summaryText =
+        getParametersHTML(pipelineParameters, summaryText, "parameterName", "parameterValue");
+
     if (getPipelineRuntimeDetailsResponseData != null) {
       summaryText =
           summaryText
