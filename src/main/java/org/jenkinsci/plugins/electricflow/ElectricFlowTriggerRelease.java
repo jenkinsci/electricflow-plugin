@@ -51,12 +51,10 @@ import org.apache.commons.logging.LogFactory;
 import org.jenkinsci.Symbol;
 import org.jenkinsci.plugins.electricflow.action.CloudBeesCDPBABuildDetails;
 import org.jenkinsci.plugins.electricflow.data.CloudBeesFlowBuildData;
-import org.jenkinsci.plugins.electricflow.exceptions.PluginException;
 import org.jenkinsci.plugins.electricflow.factories.ElectricFlowClientFactory;
 import org.jenkinsci.plugins.electricflow.models.CIBuildDetail;
 import org.jenkinsci.plugins.electricflow.models.CIBuildDetail.BuildAssociationType;
 import org.jenkinsci.plugins.electricflow.models.CIBuildDetail.BuildTriggerSource;
-import org.jenkinsci.plugins.electricflow.models.cdrestdata.jobs.CdPipelineStatus;
 import org.jenkinsci.plugins.electricflow.models.cdrestdata.jobs.GetPipelineRuntimeDetailsResponseData;
 import org.jenkinsci.plugins.electricflow.ui.FieldValidationStatus;
 import org.jenkinsci.plugins.electricflow.ui.HtmlUtils;
@@ -197,18 +195,20 @@ public class ElectricFlowTriggerRelease extends Recorder implements SimpleBuildS
           run.save();
         } while (!getPipelineRuntimeDetailsResponseData.isCompleted());
 
+        logger.println(
+            "CD pipeline completed with "
+                + getPipelineRuntimeDetailsResponseData.getStatus()
+                + " status");
         if (runAndWaitOption.isDependOnCdJobOutcome()) {
-          if (getPipelineRuntimeDetailsResponseData.getStatus() != CdPipelineStatus.success
-              && getPipelineRuntimeDetailsResponseData.getStatus() != CdPipelineStatus.warning) {
-            throw new PluginException(
-                "CD pipeline completed with "
-                    + getPipelineRuntimeDetailsResponseData.getStatus()
-                    + " status");
+          Result result =
+              Utils.getCorrespondedCiBuildResult(getPipelineRuntimeDetailsResponseData.getStatus());
+          if (result != Result.SUCCESS) {
+            run.setResult(result);
           }
         }
       }
 
-    } catch (IOException | InterruptedException | PluginException e) {
+    } catch (IOException | InterruptedException e) {
       logger.println(e.getMessage());
       log.error(e.getMessage(), e);
       run.setResult(Result.FAILURE);

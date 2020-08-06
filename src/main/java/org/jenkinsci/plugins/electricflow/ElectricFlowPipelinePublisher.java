@@ -23,7 +23,6 @@ import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
 import hudson.RelativePath;
-import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
 import hudson.model.BuildListener;
 import hudson.model.Item;
@@ -52,11 +51,9 @@ import org.apache.commons.logging.LogFactory;
 import org.jenkinsci.Symbol;
 import org.jenkinsci.plugins.electricflow.action.CloudBeesCDPBABuildDetails;
 import org.jenkinsci.plugins.electricflow.data.CloudBeesFlowBuildData;
-import org.jenkinsci.plugins.electricflow.exceptions.PluginException;
 import org.jenkinsci.plugins.electricflow.factories.ElectricFlowClientFactory;
 import org.jenkinsci.plugins.electricflow.models.CIBuildDetail;
 import org.jenkinsci.plugins.electricflow.models.CIBuildDetail.BuildAssociationType;
-import org.jenkinsci.plugins.electricflow.models.cdrestdata.jobs.CdPipelineStatus;
 import org.jenkinsci.plugins.electricflow.models.cdrestdata.jobs.GetPipelineRuntimeDetailsResponseData;
 import org.jenkinsci.plugins.electricflow.ui.FieldValidationStatus;
 import org.jenkinsci.plugins.electricflow.ui.HtmlUtils;
@@ -93,24 +90,19 @@ public class ElectricFlowPipelinePublisher extends Recorder implements SimpleBui
   // ~ Methods ----------------------------------------------------------------
 
   @Override
-  public boolean perform(AbstractBuild build, Launcher launcher, BuildListener listener) {
-    return runPipeline(build, listener, null);
-  }
-
-  @Override
   public void perform(
       @Nonnull Run<?, ?> run,
       @Nonnull FilePath filePath,
       @Nonnull Launcher launcher,
       @Nonnull TaskListener taskListener) {
-    boolean result = runPipeline(run, null, taskListener);
+    Result result = runPipeline(run, null, taskListener);
 
-    if (!result) {
-      run.setResult(Result.FAILURE);
+    if (result != Result.SUCCESS) {
+      run.setResult(result);
     }
   }
 
-  private boolean runPipeline(
+  private Result runPipeline(
       Run<?, ?> run, BuildListener buildListener, TaskListener taskListener) {
 
     // We should be sure that logger is not null
@@ -128,7 +120,7 @@ public class ElectricFlowPipelinePublisher extends Recorder implements SimpleBui
       logger.println("Cannot create CloudBees CD client. Error: " + e.getMessage());
       log.error("Cannot create CloudBees CD client. Error: " + e.getMessage(), e);
 
-      return false;
+      return Result.FAILURE;
     }
 
     String pipelineId;
@@ -160,7 +152,7 @@ public class ElectricFlowPipelinePublisher extends Recorder implements SimpleBui
       logger.println("Error occurred during formal parameters fetch: " + e.getMessage());
       log.error("Error occurred during formal parameters fetch: " + e.getMessage(), e);
 
-      return false;
+      return Result.FAILURE;
     }
 
     try {
@@ -241,14 +233,13 @@ public class ElectricFlowPipelinePublisher extends Recorder implements SimpleBui
           run.save();
         } while (!getPipelineRuntimeDetailsResponseData.isCompleted());
 
+        logger.println(
+            "CD pipeline completed with "
+                + getPipelineRuntimeDetailsResponseData.getStatus()
+                + " status");
         if (runAndWaitOption.isDependOnCdJobOutcome()) {
-          if (getPipelineRuntimeDetailsResponseData.getStatus() != CdPipelineStatus.success
-              && getPipelineRuntimeDetailsResponseData.getStatus() != CdPipelineStatus.warning) {
-            throw new PluginException(
-                "CD pipeline completed with "
-                    + getPipelineRuntimeDetailsResponseData.getStatus()
-                    + " status");
-          }
+          return Utils.getCorrespondedCiBuildResult(
+              getPipelineRuntimeDetailsResponseData.getStatus());
         }
       }
 
@@ -256,10 +247,10 @@ public class ElectricFlowPipelinePublisher extends Recorder implements SimpleBui
       logger.println(e.getMessage());
       log.error(e.getMessage(), e);
 
-      return false;
+      return Result.FAILURE;
     }
 
-    return true;
+    return Result.SUCCESS;
   }
 
   public JSONArray getAdditionalOption() {

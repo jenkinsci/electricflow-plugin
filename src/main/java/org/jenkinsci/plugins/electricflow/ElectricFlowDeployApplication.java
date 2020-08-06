@@ -48,7 +48,6 @@ import org.apache.commons.logging.LogFactory;
 import org.jenkinsci.Symbol;
 import org.jenkinsci.plugins.electricflow.exceptions.PluginException;
 import org.jenkinsci.plugins.electricflow.factories.ElectricFlowClientFactory;
-import org.jenkinsci.plugins.electricflow.models.cdrestdata.jobs.CdJobOutcome;
 import org.jenkinsci.plugins.electricflow.models.cdrestdata.jobs.CdJobStatus;
 import org.jenkinsci.plugins.electricflow.models.cdrestdata.jobs.GetJobStatusResponseData;
 import org.jenkinsci.plugins.electricflow.ui.FieldValidationStatus;
@@ -91,13 +90,13 @@ public class ElectricFlowDeployApplication extends Recorder implements SimpleBui
       @Nonnull Launcher launcher,
       @Nonnull TaskListener taskListener)
       throws InterruptedException, IOException {
-    boolean isSuccess = runProcess(run, taskListener);
-    if (!isSuccess) {
-      run.setResult(Result.FAILURE);
+    Result result = runProcess(run, taskListener);
+    if (result != Result.SUCCESS) {
+      run.setResult(result);
     }
   }
 
-  private boolean runProcess(@Nonnull Run<?, ?> run, @Nonnull TaskListener taskListener) {
+  private Result runProcess(@Nonnull Run<?, ?> run, @Nonnull TaskListener taskListener) {
     PrintStream logger = taskListener.getLogger();
 
     logger.println(
@@ -129,7 +128,7 @@ public class ElectricFlowDeployApplication extends Recorder implements SimpleBui
           efClient.getProcess(projectName, applicationName, applicationProcessName);
 
       if (process == null || process.isEmpty()) {
-        return false;
+        throw new PluginException("Cannot find triggered deploy process");
       }
 
       String processId = process.getJSONObject("process").getString("processId");
@@ -173,22 +172,20 @@ public class ElectricFlowDeployApplication extends Recorder implements SimpleBui
           }
         } while (getJobStatusResponseData.getStatus() != CdJobStatus.completed);
 
+        logger.println(
+            "CD job completed with " + getJobStatusResponseData.getOutcome() + " outcome");
         if (runAndWaitOption.isDependOnCdJobOutcome()) {
-          if (getJobStatusResponseData.getOutcome() == CdJobOutcome.error
-              || getJobStatusResponseData.getOutcome() == CdJobOutcome.unknown) {
-            throw new PluginException(
-                "CD job completed with " + getJobStatusResponseData.getOutcome() + " outcome");
-          }
+          return Utils.getCorrespondedCiBuildResult(getJobStatusResponseData.getOutcome());
         }
       }
     } catch (PluginException | InterruptedException | IOException e) {
       logger.println(e.getMessage());
       log.error(e.getMessage(), e);
 
-      return false;
+      return Result.FAILURE;
     }
 
-    return true;
+    return Result.SUCCESS;
   }
 
   public String getApplicationName() {
