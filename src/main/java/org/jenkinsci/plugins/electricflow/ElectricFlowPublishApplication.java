@@ -360,7 +360,11 @@ public class ElectricFlowPublishApplication extends Recorder implements SimpleBu
         }
 
         if (fileName.endsWith(MANIFEST_NAME)) {
-          String manifestPath = FileHelper.buildPath(workspaceDir, "/", fileName);
+          String deploymentPathInWorkspace = "/";
+          if (this.filePath != null && !this.filePath.equals("/")) {
+            deploymentPathInWorkspace = this.filePath;
+          }
+          String manifestPath = FileHelper.buildPath(workspaceDir, deploymentPathInWorkspace, fileName);
 
           try {
             byte[] encoded = Files.readAllBytes(Paths.get(manifestPath));
