@@ -27,7 +27,6 @@ public class CloudBeesFlowTestResult implements ExtensionPoint {
     ExtensionList<CloudBeesFlowTestResult> makers =
         ExtensionList.lookup(CloudBeesFlowTestResult.class);
     for (CloudBeesFlowTestResult m : makers) {
-      System.out.println("Iterating through extensions");
       boolean popRes = m.populate(run);
       if (popRes) {
         return m;

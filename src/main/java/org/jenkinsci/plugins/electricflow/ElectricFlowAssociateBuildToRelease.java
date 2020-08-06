@@ -42,6 +42,7 @@ import net.sf.json.JSONObject;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jenkinsci.Symbol;
+import org.jenkinsci.plugins.electricflow.action.CloudBeesCDPBABuildDetails;
 import org.jenkinsci.plugins.electricflow.data.CloudBeesFlowBuildData;
 import org.jenkinsci.plugins.electricflow.factories.ElectricFlowClientFactory;
 import org.jenkinsci.plugins.electricflow.models.CIBuildDetail;
@@ -85,7 +86,6 @@ public class ElectricFlowAssociateBuildToRelease extends Recorder implements Sim
 
       // Calling the actual logic
       setJenkinsBuildDetails(efClient, cloudBeesFlowBuildData, logger);
-
       // Setting the summary
       Release release = efClient.getRelease(configuration, projectName, releaseName);
 
@@ -109,7 +109,16 @@ public class ElectricFlowAssociateBuildToRelease extends Recorder implements Sim
       else {
         args.put("flowRuntimeId", release.getFlowRuntimeId());
       }
-
+      try {
+        CloudBeesCDPBABuildDetails.applyToRuntime(
+                run,
+                flowRuntimeId,
+                null,
+                projectName,
+                releaseName,
+                null
+        );
+      } catch(RuntimeException ignored) {}
       // Adding text to the summary page
       run.addAction(new SummaryTextAction(run, getSummaryHtml(efClient, args, logger)));
 

@@ -8,9 +8,11 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import net.sf.json.JSONObject;
 import org.jenkinsci.plugins.electricflow.Configuration;
 import org.jenkinsci.plugins.electricflow.ElectricFlowClient;
 import org.jenkinsci.plugins.electricflow.Utils;
+import org.jenkinsci.plugins.electricflow.action.CloudBeesCDPBABuildDetails;
 import org.jenkinsci.plugins.electricflow.causes.EFCause;
 import org.jenkinsci.plugins.electricflow.data.CloudBeesFlowBuildData;
 import org.jenkinsci.plugins.electricflow.models.CIBuildDetail;
@@ -25,12 +27,12 @@ public class ElectricFlowBuildWatcher extends RunListener<Run> {
 
   @Override
   public void onStarted(Run run, TaskListener listener) {
-    this.sendBuildDetailsToInstance(run, listener);
+    this.sendBuildDetailsToInstanceImproved(run, listener);
   }
 
   @Override
   public void onCompleted(Run run, TaskListener listener) {
-    this.sendBuildDetailsToInstance(run, listener);
+    this.sendBuildDetailsToInstanceImproved(run, listener);
   }
 
   public List<Configuration> getConfigurations() {
@@ -47,42 +49,55 @@ public class ElectricFlowBuildWatcher extends RunListener<Run> {
     return retval;
   }
 
-  public boolean sendBuildDetailsToInstance(Run<?, ?> run, TaskListener taskListener) {
-    // 0. Getting EFCause
+  public boolean sendBuildDetailsToInstanceImproved(Run<?, ?> run, TaskListener taskListener) {
     EFCause efCause = null;
+    CloudBeesCDPBABuildDetails cdPBABuildDetails = null;
+    // BuildAssociationType buildAssociationType = null;
+    // BuildTriggerSource buildTriggerSource = null;
+
+    // 0. Getting EFCause object.
     try {
       efCause = (EFCause) run.getCause(EFCause.class);
-    } catch (ClassCastException ignored) {
-      // Ignoring - not triggered by Flow
+    } catch (ClassCastException ignored) { }
+    // 0a. Getting CloudBeesCDPBABuildDetails object only and only when EFCause is null
+    if (efCause == null) {
+      cdPBABuildDetails = run.getAction(CloudBeesCDPBABuildDetails.class);
+    }
+
+    if (efCause == null && cdPBABuildDetails == null) {
       return false;
     }
 
-    // No EFCause object. It means that it has not been started by efrun. We can't continue.
-    if (efCause == null) {
-      return false;
-    }
-    // 1. Getting configurations list:
+    // 1. Getting configurations
     List<Configuration> cfgs = this.getConfigurations();
     // returning false because there is no applicable configurations to make it happen.
     if (cfgs.size() == 0) {
       return false;
     }
 
-    // 2. Getting iterator out of configs.
+    /*
+    !!!IMPORTANT!!!
+      Do not return any value from iterating configurations loop.
+      It turns out that there is a scenario when we may have more than 1 configuration.
+      In that case we need to iterate through them and if this method will return something
+      inside of the loop under some condition - iteration will stop and some configs will not be
+      processed.
+    !!!IMPORTANT!!!
+    */
+    // 2. Getting iterator out of configs list.
     for (Configuration tc : cfgs) {
       // 3. Getting configuration from iterator to create efclient out of it later.
       ElectricFlowClient electricFlowClient = new ElectricFlowClient(tc.getConfigurationName());
       // 4. Creating CloudBeesFlowBuildData object out of run:
       CloudBeesFlowBuildData cbf = new CloudBeesFlowBuildData(run);
-
-      try {
-        // According to NTVEPLUGIN-277, triggeredByFlow should be passed back to flow in
-        // case when build has been triggered by flow.
-        CIBuildDetail details =
-            new CIBuildDetail(cbf, efCause.getProjectName())
-                .setFlowRuntimeId(efCause.getFlowRuntimeId())
-                .setAssociationType(BuildAssociationType.TRIGGERED_BY_FLOW)
-                .setBuildTriggerSource(BuildTriggerSource.FLOW);
+      // EFCause has higher priority. It means that if we have EFCause object and
+      // CloudBeesCDPBABuildDetails at the same time - we should use EFCause logic.
+      CIBuildDetail details = null;
+      if (efCause != null) {
+        details = new CIBuildDetail(cbf, efCause.getProjectName());
+        details.setFlowRuntimeId(efCause.getFlowRuntimeId());
+        details.setAssociationType(BuildAssociationType.TRIGGERED_BY_FLOW);
+        details.setBuildTriggerSource(BuildTriggerSource.FLOW);
 
         if (!efCause.getStageName().equals("null")) {
           details.setStageName(efCause.getStageName());
@@ -91,17 +106,36 @@ public class ElectricFlowBuildWatcher extends RunListener<Run> {
           details.setFlowRuntimeStateId(efCause.getFlowRuntimeStateId());
         }
 
-        electricFlowClient.attachCIBuildDetails(details);
-      } catch (IOException e) {
-        continue;
-      } catch (RuntimeException ex) {
-        taskListener
-            .getLogger()
-            .printf("[Configuration %s] Can't attach CiBuildData%n", tc.getConfigurationName());
-        taskListener.getLogger().println(ex.getMessage());
-        continue;
+      } else if (cdPBABuildDetails != null) {
+        details = new CIBuildDetail(cbf, cdPBABuildDetails.getProjectName());
+        details.setFlowRuntimeId(cdPBABuildDetails.getFlowRuntimeId());
+        details.setAssociationType(BuildAssociationType.TRIGGERED_BY_CI);
+        if (!cdPBABuildDetails.getStageName().equals("null")) {
+          details.setStageName(cdPBABuildDetails.getStageName());
+        }
+        if (!cdPBABuildDetails.getFlowRuntimeStateId().equals("null")) {
+          details.setFlowRuntimeStateId(cdPBABuildDetails.getFlowRuntimeStateId());
+        }
+      }
+
+      if (details != null) {
+        try {
+          JSONObject attachResult = electricFlowClient.attachCIBuildDetails(details);
+//          System.out.println(details.toString());
+        } catch (IOException e) {
+          continue;
+        } catch (RuntimeException ex) {
+          taskListener
+                  .getLogger()
+                  .printf("[Configuration %s] Can't attach CiBuildData%n", tc.getConfigurationName());
+          taskListener.getLogger().println(ex.getMessage());
+          continue;
+        }
       }
     }
+
     return true;
   }
+
+
 }

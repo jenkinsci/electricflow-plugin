@@ -20,10 +20,8 @@ public class ElectricFlowChangeSet implements ExtensionPoint {
     ExtensionList.lookup(ElectricFlowChangeSet.class);
     ExtensionList<ElectricFlowChangeSet> makers = ExtensionList.lookup(ElectricFlowChangeSet.class);
     for (ElectricFlowChangeSet m : makers) {
-      System.out.println("Iterating through extensions");
       boolean applicable = m.isApplicable(obj);
       if (applicable) {
-        System.out.println("Applicable");
         m.populate(obj);
         return m;
       }
