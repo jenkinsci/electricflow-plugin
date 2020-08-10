@@ -8,9 +8,14 @@
 
 package org.jenkinsci.plugins.electricflow;
 
+import static hudson.plugins.git.GitChangeSet.LOGGER;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.sun.corba.se.spi.orbutil.threadpool.Work;
 import hudson.EnvVars;
 import hudson.model.BuildListener;
+import hudson.model.ItemGroup;
+import hudson.model.Run;
 import hudson.model.TaskListener;
 import hudson.slaves.EnvironmentVariablesNodeProperty;
 import hudson.slaves.NodeProperty;
@@ -18,6 +23,7 @@ import hudson.slaves.NodePropertyDescriptor;
 import hudson.util.DescribableList;
 import hudson.util.FormValidation;
 import hudson.util.ListBoxModel;
+import hudson.util.LogTaskListener;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.io.UnsupportedEncodingException;
@@ -28,8 +34,20 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Level;
+import jenkins.branch.Branch;
+import jenkins.branch.BranchProjectFactory;
+import jenkins.branch.MultiBranchProject;
+import jenkins.branch.MultiBranchProjectFactory;
 import jenkins.model.GlobalConfiguration;
 import jenkins.model.Jenkins;
+import jenkins.scm.api.SCMHeadOrigin;
+import jenkins.scm.api.SCMHead;
+import jenkins.scm.api.metadata.ContributorMetadataAction;
+import jenkins.scm.api.metadata.ObjectMetadataAction;
+import jenkins.scm.api.mixin.ChangeRequestSCMHead;
+import jenkins.scm.api.mixin.ChangeRequestSCMHead2;
+import jenkins.scm.api.mixin.TagSCMHead;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import org.apache.commons.logging.Log;
@@ -39,6 +57,7 @@ import org.jenkinsci.plugins.electricflow.ui.FieldValidationStatus;
 import org.jenkinsci.plugins.electricflow.ui.HtmlUtils;
 import org.jenkinsci.plugins.electricflow.ui.SelectFieldUtils;
 import org.jenkinsci.plugins.electricflow.ui.SelectItemValidationWrapper;
+import org.jenkinsci.plugins.workflow.job.WorkflowRun;
 
 public class Utils {
 
@@ -451,4 +470,44 @@ public class Utils {
     }
     return logger;
   }
+  public static String getBranchName(Run run) {
+    ItemGroup parent = run.getParent().getParent();
+    if (parent instanceof MultiBranchProject) {
+      BranchProjectFactory projectFactory = ((MultiBranchProject) parent).getProjectFactory();
+      if (projectFactory.isProject(run.getParent())) {
+        Branch branch = projectFactory.getBranch(run.getParent());
+        SCMHead head = branch.getHead();
+      }
+    }
+    return "";
+  }
+//  public static String getBranchName(Run run, TaskListener tl) throws IOException {
+//    String branchName = "master";
+//    WorkflowRun wfrun = (WorkflowRun) run;
+//    SCMSource src = SCMSource.SourceByItem.findSource(run.getParent());
+//    SCMRevision rev = SCMRevisionAction.getRevision(src, run);
+//    // return branchName;
+//
+//    if (rev == null) {
+//      SCMHead head = SCMHead.HeadByItem.findHead(run.getParent());
+//      if (head != null) {
+//        LOGGER.fine(() -> "trying to find revision in " + run + " via " + head);
+//        try {
+//          rev = src.fetch(head, new LogTaskListener(LOGGER, Level.FINE));
+//        } catch (InterruptedException x) {
+//          throw new IOException(x);
+//        }
+//      } else {
+//        LOGGER.fine(() -> "could not find revision in " + run);
+//      }
+//    }
+//    // boolean isPr = rev instanceof PullRequestSCMRevision;
+//
+//    //if (isPr) {
+//      // branchName = build.getParent().getParent().getFullName() + "/" + ((PullRequestSCMHead) rev.getHead()).getBranchName();
+//    //} else {
+//    branchName = run.getParent().getParent().getFullName() + "/" + rev.getHead().getName();
+//    //}
+//    return branchName;
+//  }
 }

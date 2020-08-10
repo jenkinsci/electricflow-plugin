@@ -27,6 +27,7 @@ public class ElectricFlowBuildWatcher extends RunListener<Run> {
 
   @Override
   public void onStarted(Run run, TaskListener listener) {
+    Utils.getBranchName(run);
     this.sendBuildDetailsToInstanceImproved(run, listener);
   }
 
