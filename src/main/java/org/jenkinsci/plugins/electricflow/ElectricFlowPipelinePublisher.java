@@ -195,6 +195,8 @@ public class ElectricFlowPipelinePublisher extends Recorder implements SimpleBui
       // Now we're creating the CloudBessCDPBABuildDetails action and adding it to the run.
         CloudBeesCDPBABuildDetails.applyToRuntime(
                 run,
+                configuration,
+                null,
                 flowRuntimeId,
                 null,
                 projectName,
