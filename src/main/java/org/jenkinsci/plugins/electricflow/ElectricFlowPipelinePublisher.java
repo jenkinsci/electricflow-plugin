@@ -192,15 +192,9 @@ public class ElectricFlowPipelinePublisher extends Recorder implements SimpleBui
         if (log.isDebugEnabled()) {
           logger.println("setCIBuildDetails response: " + associateResult.toString());
         }
-      // Now we're creating the CloudBessCDPBABuildDetails action and adding it to the run.
+        // Now we're creating the CloudBessCDPBABuildDetails action and adding it to the run.
         CloudBeesCDPBABuildDetails.applyToRuntime(
-                run,
-                flowRuntimeId,
-                null,
-                projectName,
-                null,
-                null
-        );
+            run, flowRuntimeId, null, projectName, null, null);
       } catch (RuntimeException exception) {
         log.info("Can't attach CIBuildData to the pipeline run: " + exception.getMessage());
       }
@@ -380,23 +374,24 @@ public class ElectricFlowPipelinePublisher extends Recorder implements SimpleBui
     JSONObject flowRuntime = JSONObject.fromObject(pipelineResult).getJSONObject("flowRuntime");
     String pipelineId = (String) flowRuntime.get("pipelineId");
     String flowRuntimeId = (String) flowRuntime.get("flowRuntimeId");
-    String url =
+    String pipelineRunUrl =
         efClient.getElectricFlowUrl() + "/flow/#pipeline-run/" + pipelineId + "/" + flowRuntimeId;
+    String pipelineUrl = efClient.getElectricFlowUrl() + "/flow/#pipeline-kanban/" + pipelineId;
     String summaryText =
         "<h3>CloudBees CD Run Pipeline</h3>"
             + "<table cellspacing=\"2\" cellpadding=\"4\"> \n"
             + "  <tr>\n"
             + "    <td>Pipeline URL:</td>\n"
             + "    <td><a href='"
-            + HtmlUtils.encodeForHtml(url)
+            + HtmlUtils.encodeForHtml(pipelineRunUrl)
             + "'>"
-            + HtmlUtils.encodeForHtml(url)
+            + HtmlUtils.encodeForHtml(pipelineRunUrl)
             + "</a></td>   \n"
             + "  </tr>\n"
             + "  <tr>\n"
             + "    <td>Pipeline Name:</td>\n"
             + "    <td><a href='"
-            + HtmlUtils.encodeForHtml(url)
+            + HtmlUtils.encodeForHtml(pipelineUrl)
             + "'>"
             + HtmlUtils.encodeForHtml(pipelineName)
             + "</a></td>   \n"
