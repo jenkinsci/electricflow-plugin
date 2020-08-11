@@ -153,6 +153,8 @@ public class ElectricFlowTriggerRelease extends Recorder implements SimpleBuildS
         // Now we're creating the CloudBessCDPBABuildDetails action and adding it to the run.
         CloudBeesCDPBABuildDetails.applyToRuntime(
                 run,
+                configuration,
+                overrideCredential,
                 flowRuntimeId,
                 null,
                 projectName,
