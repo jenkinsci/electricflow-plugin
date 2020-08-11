@@ -126,6 +126,9 @@ public class CloudBeesCDPBABuildDetails implements Action {
     if (configurationName != null) {
       cdpbaBuildDetails.setConfigurationName(configurationName);
     }
+    if (credential != null) {
+      cdpbaBuildDetails.setOverriddenCredential(credential);
+    }
     if (flowRuntimeId != null) {
       cdpbaBuildDetails.setFlowRuntimeId(flowRuntimeId);
     }

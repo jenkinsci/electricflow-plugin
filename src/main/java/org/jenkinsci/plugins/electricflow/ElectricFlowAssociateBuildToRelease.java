@@ -113,7 +113,7 @@ public class ElectricFlowAssociateBuildToRelease extends Recorder implements Sim
         CloudBeesCDPBABuildDetails.applyToRuntime(
                 run,
                 configuration,
-                null,
+                overrideCredential,
                 flowRuntimeId,
                 null,
                 projectName,

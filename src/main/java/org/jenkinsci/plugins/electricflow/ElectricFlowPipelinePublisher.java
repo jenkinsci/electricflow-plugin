@@ -196,7 +196,7 @@ public class ElectricFlowPipelinePublisher extends Recorder implements SimpleBui
         CloudBeesCDPBABuildDetails.applyToRuntime(
                 run,
                 configuration,
-                null,
+                overrideCredential,
                 flowRuntimeId,
                 null,
                 projectName,
