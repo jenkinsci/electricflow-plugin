@@ -152,15 +152,14 @@ public class ElectricFlowTriggerRelease extends Recorder implements SimpleBuildS
         }
         // Now we're creating the CloudBessCDPBABuildDetails action and adding it to the run.
         CloudBeesCDPBABuildDetails.applyToRuntime(
-                run,
-                configuration,
-                overrideCredential,
-                flowRuntimeId,
-                null,
-                projectName,
-                releaseName,
-                null
-        );
+            run,
+            configuration,
+            overrideCredential,
+            flowRuntimeId,
+            null,
+            projectName,
+            releaseName,
+            null);
       } catch (RuntimeException ex) {
         log.info("Can't attach CIBuildData to the pipeline run: " + ex.getMessage());
       }
@@ -342,32 +341,40 @@ public class ElectricFlowTriggerRelease extends Recorder implements SimpleBuildS
     String pipelineId = flowRuntime.getString("pipelineId");
     String flowRuntimeId = flowRuntime.getString("flowRuntimeId");
     String pipelineName = flowRuntime.getString("pipelineName");
-    String urlPipeline =
-        efClient.getElectricFlowUrl() + "/flow/#pipeline-run/" + pipelineId + "/" + flowRuntimeId;
-    String urlRelease = efClient.getElectricFlowUrl() + "/flow/#releases";
+    String releaseId = flowRuntime.getString("releaseId");
+    String pipelineUrl = efClient.getElectricFlowUrl() + "/flow/#pipeline-kanban/" + pipelineId;
+    String releasePipelineRunUrl =
+        efClient.getElectricFlowUrl()
+            + "/flow/#pipeline-run/"
+            + pipelineId
+            + "/"
+            + flowRuntimeId
+            + "/release/"
+            + releaseId;
+    String releaseUrl = efClient.getElectricFlowUrl() + "/flow/#release-kanban/" + releaseId;
     String summaryText =
         "<h3>CloudBees CD Trigger Release</h3>"
             + "<table cellspacing=\"2\" cellpadding=\"4\"> \n"
             + "  <tr>\n"
             + "    <td>Release Name:</td>\n"
             + "    <td><a href='"
-            + HtmlUtils.encodeForHtml(urlRelease)
+            + HtmlUtils.encodeForHtml(releaseUrl)
             + "'>"
             + HtmlUtils.encodeForHtml(releaseName)
             + "</a></td>   \n"
             + "  </tr>\n"
             + "  <tr>\n"
-            + "    <td>Pipeline URL:</td>\n"
+            + "    <td>Release Pipeline Run URL:</td>\n"
             + "    <td><a href='"
-            + HtmlUtils.encodeForHtml(urlPipeline)
+            + HtmlUtils.encodeForHtml(releasePipelineRunUrl)
             + "'>"
-            + HtmlUtils.encodeForHtml(urlPipeline)
+            + HtmlUtils.encodeForHtml(releasePipelineRunUrl)
             + "</a></td>   \n"
             + "  </tr>\n"
             + "  <tr>\n"
             + "    <td>Pipeline Name:</td>\n"
             + "    <td><a href='"
-            + HtmlUtils.encodeForHtml(urlPipeline)
+            + HtmlUtils.encodeForHtml(pipelineUrl)
             + "'>"
             + HtmlUtils.encodeForHtml(pipelineName)
             + "</a></td>   \n"
