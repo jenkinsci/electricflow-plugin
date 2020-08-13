@@ -30,8 +30,8 @@ class TriggerReleaseSuite extends JenkinsHelper {
     ]
 
     private static def flowReleases = [
-            correct: 'pvRelease',
-            invalid: 'incorrect',
+            correct   : 'pvRelease',
+            invalid   : 'incorrect',
             runAndWait: 'TriggerReleaseRunAndWait',
     ]
 
@@ -44,8 +44,8 @@ class TriggerReleaseSuite extends JenkinsHelper {
     private static def logMessages = [
             jsonIsNull : 'net.sf.json.JSONException: null object',
             noSuchStage: '"code":"NoSuchStage"',
-            timing: "Waiting till CloudBees CD job is completed, checking every TIME seconds",
-            jobOutcome: "CD Pipeline Runtime Details Response Data: .* status=completed, outcome=OUTCOME"
+            timing     : "Waiting till CloudBees CD job is completed, checking every TIME seconds",
+            jobOutcome : "CD Pipeline Runtime Details Response Data: .* status=completed, outcome=OUTCOME"
     ]
 
     @Shared
@@ -58,6 +58,12 @@ class TriggerReleaseSuite extends JenkinsHelper {
         dslFile('dsl/RunAndWait/runAndWaitProcedure.dsl')
         dslFile('dsl/RunAndWait/runAndWaitRelease.dsl')
         // Do project import here
+
+        importJenkinsJob(
+                "TriggerReleaseRunAndWaitPipeline.xml",
+                "TriggerReleaseRunAndWaitPipeline"
+        )
+
     }
 
     @Unroll
@@ -130,13 +136,13 @@ class TriggerReleaseSuite extends JenkinsHelper {
         PipelineRun previousPipelineRun = pipeline.getLastRun()
 
         def ciPipelineParameters = [
-                flowConfigName   : CI_CONFIG_NAME,
-                flowProjectName  : cdProjectName,
-                flowReleaseName  : releaseName,
+                flowConfigName        : CI_CONFIG_NAME,
+                flowProjectName       : cdProjectName,
+                flowReleaseName       : releaseName,
                 dependOnCdJobOutcomeCh: dependOnCdJobOutcomeCh,
                 runAndWaitInterval    : runAndWaitInterval,
-                procedureOutcome: procedureOutcome,
-                sleepTime: sleepTime
+                procedureOutcome      : procedureOutcome,
+                sleepTime             : sleepTime
         ]
 
         when: 'Run pipeline and collect run properties'
@@ -168,14 +174,14 @@ class TriggerReleaseSuite extends JenkinsHelper {
         }
 
         where:
-        caseId    | cdProjectName               | releaseName              | dependOnCdJobOutcomeCh | runAndWaitInterval | ciJobSuccess  | procedureOutcome | sleepTime | logMessage
-        'C367661' | flowProjects.correct        | flowReleases.runAndWait  | 'false'                | '5'                | true          | 'success'        | '4'       | [logMessages.timing, logMessages.jobOutcome]
-        'C367661' | flowProjects.correct        | flowReleases.runAndWait  | 'true'                 | '5'                | true          | 'success'        | '4'       | [logMessages.timing, logMessages.jobOutcome]
-        'C367661' | flowProjects.correct        | flowReleases.runAndWait  | 'true'                 | '5'                | true          | 'warning'        | '4'       | [logMessages.timing, logMessages.jobOutcome]
-        'C367661' | flowProjects.correct        | flowReleases.runAndWait  | 'false'                | '5'                | true          | 'warning'        | '4'       | [logMessages.timing, logMessages.jobOutcome]
-        'C367661' | flowProjects.correct        | flowReleases.runAndWait  | 'true'                 | '5'                | false         | 'error'          | '4'       | [logMessages.timing, logMessages.jobOutcome]
-        'C367661' | flowProjects.correct        | flowReleases.runAndWait  | 'false'                | '5'                | true          | 'error'          | '4'       | [logMessages.timing, logMessages.jobOutcome]
-        'C367661' | flowProjects.correct        | flowReleases.runAndWait  | 'true'                 | '15'               | true          | 'success'        | '4'       | [logMessages.timing, logMessages.jobOutcome]
+        caseId    | cdProjectName        | releaseName             | dependOnCdJobOutcomeCh | runAndWaitInterval | ciJobSuccess | procedureOutcome | sleepTime | logMessage
+        'C367661' | flowProjects.correct | flowReleases.runAndWait | 'false'                | '5'                | true         | 'success'        | '4'       | [logMessages.timing, logMessages.jobOutcome]
+        'C367661' | flowProjects.correct | flowReleases.runAndWait | 'true'                 | '5'                | true         | 'success'        | '4'       | [logMessages.timing, logMessages.jobOutcome]
+        'C367661' | flowProjects.correct | flowReleases.runAndWait | 'true'                 | '5'                | true         | 'warning'        | '4'       | [logMessages.timing, logMessages.jobOutcome]
+        'C367661' | flowProjects.correct | flowReleases.runAndWait | 'false'                | '5'                | true         | 'warning'        | '4'       | [logMessages.timing, logMessages.jobOutcome]
+        'C367661' | flowProjects.correct | flowReleases.runAndWait | 'true'                 | '5'                | false        | 'error'          | '4'       | [logMessages.timing, logMessages.jobOutcome]
+        'C367661' | flowProjects.correct | flowReleases.runAndWait | 'false'                | '5'                | true         | 'error'          | '4'       | [logMessages.timing, logMessages.jobOutcome]
+        'C367661' | flowProjects.correct | flowReleases.runAndWait | 'true'                 | '15'               | true         | 'success'        | '4'       | [logMessages.timing, logMessages.jobOutcome]
     }
 
     @Unroll

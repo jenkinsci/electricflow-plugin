@@ -17,12 +17,18 @@ repositories {
     maven {
         url  "https://dl.bintray.com/ecpluginsdev/maven"
     }
+    flatDir {
+        dirs 'libs'
+    }
 }
 
 dependencies {
     implementation 'org.codehaus.groovy:groovy-all:2.4.5:indy'
     implementation 'org.spockframework:spock-core:1.1-groovy-2.4'
     implementation 'com.electriccloud:ec-specs-plugins-core:1.9.2'
+
+    implementation 'com.electriccloud.cd.plugins:jenkins-cli-wrapper:1.0.0-SNAPSHOT'
+    implementation group: 'com.squareup.okhttp3', name: 'okhttp', version: '4.8.1'
 }
 
 test {

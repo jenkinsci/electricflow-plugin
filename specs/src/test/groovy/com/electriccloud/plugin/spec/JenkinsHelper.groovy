@@ -1,6 +1,6 @@
 package com.electriccloud.plugin.spec
 
-
+import com.electriccloud.cd.plugins.jenkinscliwrapper.JenkinsCLIWrapper
 import com.electriccloud.spec.PluginSpockTestSupport
 import spock.util.concurrent.PollingConditions
 
@@ -80,7 +80,7 @@ class JenkinsHelper extends PluginSpockTestSupport {
 
         def coreTeam = null
         String jenkinsType = System.getenv("JENKINS_TYPE")
-        if ( jenkinsType != null &&  jenkinsType == 'Core') {
+        if (jenkinsType != null && jenkinsType == 'Core') {
             coreTeam = System.getenv('CORE_TEAM') ?: ''
         }
 
@@ -313,6 +313,30 @@ class JenkinsHelper extends PluginSpockTestSupport {
         def resName = result?.resource?.resourceName
         assert resName
         resName
+    }
+
+    JenkinsCLIWrapper jenkinsCli() {
+        String username = System.getenv('JENKINS_USERNAME')
+        String password = System.getenv('JENKINS_PASSWORD')
+
+        String url = System.getenv('JENKINS_EXT_URL') ?: System.getenv('JENKINS_URL')
+
+        String tempDir = System.getProperty('java.io.tmpdir')
+        String cliPath = new File(tempDir, 'jenkins-cli.jar').getAbsolutePath()
+
+        return new JenkinsCLIWrapper(url, username, password, cliPath, true)
+    }
+
+    def importJenkinsJob(String fileResourceName, String jobName){
+        URL resource = this.class.getResource("/jenkinsXMLs/$fileResourceName")
+
+        File xmlPath = new File(resource.toURI())
+
+        if (!xmlPath.exists()){
+            throw new RuntimeException("File named $fileResourceName does not exist in ${xmlPath.parentFile.absolutePath}")
+        }
+
+        jenkinsCli().importJenkinsJob(jobName, xmlPath)
     }
 
 }
