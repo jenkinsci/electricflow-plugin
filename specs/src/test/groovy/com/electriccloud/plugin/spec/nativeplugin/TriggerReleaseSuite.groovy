@@ -58,12 +58,6 @@ class TriggerReleaseSuite extends JenkinsHelper {
         dslFile('dsl/RunAndWait/runAndWaitProcedure.dsl')
         dslFile('dsl/RunAndWait/runAndWaitRelease.dsl')
         // Do project import here
-
-        importJenkinsJob(
-                "TriggerReleaseRunAndWaitPipeline.xml",
-                "TriggerReleaseRunAndWaitPipeline"
-        )
-
     }
 
     @Unroll
