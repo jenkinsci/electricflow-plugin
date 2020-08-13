@@ -11,7 +11,6 @@ package org.jenkinsci.plugins.electricflow;
 import static hudson.plugins.git.GitChangeSet.LOGGER;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sun.corba.se.spi.orbutil.threadpool.Work;
 import hudson.EnvVars;
 import hudson.model.BuildListener;
 import hudson.model.ItemGroup;

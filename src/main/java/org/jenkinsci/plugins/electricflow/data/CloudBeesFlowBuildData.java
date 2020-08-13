@@ -13,10 +13,7 @@ import net.sf.json.JSONObject;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jenkinsci.plugins.electricflow.causes.EFCause;
-import org.jenkinsci.plugins.electricflow.extension.CloudBeesFlowArtifact;
-import org.jenkinsci.plugins.electricflow.extension.CloudBeesFlowPipeline;
-import org.jenkinsci.plugins.electricflow.extension.CloudBeesFlowSCM;
-import org.jenkinsci.plugins.electricflow.extension.CloudBeesFlowTestResult;
+import org.jenkinsci.plugins.electricflow.extension.*;
 
 public class CloudBeesFlowBuildData {
 
@@ -35,6 +32,11 @@ public class CloudBeesFlowBuildData {
   protected String logs;
   protected String url;
   protected String blueOceanUrl;
+  // Adding as a part of NTVEPLUGIN-377
+  // branchName will be set only if we're creating build data
+  // in MultiBranchPipeline context
+  protected String branchName;
+  // End of NTVEPLUGIN-377
   protected CloudBeesFlowPipelineData stages;
   protected CloudBeesFlowSCMData changeSets;
   protected CloudBeesFlowArtifactData artifacts;
@@ -102,6 +104,9 @@ public class CloudBeesFlowBuildData {
     RunWithSCM<?, ?> abstractBuild = (RunWithSCM<?, ?>) run;
     List<ChangeLogSet<? extends ChangeLogSet.Entry>> changeSets = abstractBuild.getChangeSets();
 
+    // Getting multibranch pipeline data:
+    CloudBeesFlowMultiBranchPipeline multiBranchPipeline = CloudBeesFlowMultiBranchPipeline.build(run);
+    this.setBranchName(multiBranchPipeline.getBranchName());
     this.changeSets = new CloudBeesFlowSCMData(changeSets);
     this.testResult = new CloudBeesFlowTestResultData(run);
     this.artifacts = new CloudBeesFlowArtifactData(run);
@@ -149,6 +154,8 @@ public class CloudBeesFlowBuildData {
       json.put("blueOceanUrl", this.blueOceanUrl);
     }
 
+    // adding branch object to the top level of JSON as per NTVEPLUGIN-377
+    json.put("ciJobBranchName", this.getBranchName());
     // now adding object values to json
 
     // processing pipeline data
@@ -333,5 +340,13 @@ public class CloudBeesFlowBuildData {
 
   public void setTestResult(CloudBeesFlowTestResultData testResult) {
     this.testResult = testResult;
+  }
+
+  public String getBranchName() {
+    return branchName;
+  }
+
+  public void setBranchName(String branchName) {
+    this.branchName = branchName;
   }
 }
