@@ -12,11 +12,13 @@ public class CloudBeesFlowMultiBranchPipeline implements ExtensionPoint {
     public static CloudBeesFlowMultiBranchPipeline build(Run run) {
         CloudBeesFlowMultiBranchPipeline retval = new CloudBeesFlowMultiBranchPipeline();
         final Jenkins jenkins = Jenkins.get();
-        final ExtensionList<CloudBeesFlowMultiBranchPipeline> makers = ExtensionList.lookup(CloudBeesFlowMultiBranchPipeline.class);
-        for (CloudBeesFlowMultiBranchPipeline m : makers) {
-            m.populate(run);
-            if (m.getBranchName() != null && !m.getBranchName().equals("")) {
-                retval.setBranchName(m.getBranchName());
+        if (jenkins != null) {
+            final ExtensionList<CloudBeesFlowMultiBranchPipeline> makers = ExtensionList.lookup(CloudBeesFlowMultiBranchPipeline.class);
+            for (CloudBeesFlowMultiBranchPipeline m : makers) {
+                m.populate(run);
+                if (m.getBranchName() != null && !m.getBranchName().equals("")) {
+                    retval.setBranchName(m.getBranchName());
+                }
             }
         }
         return retval;
