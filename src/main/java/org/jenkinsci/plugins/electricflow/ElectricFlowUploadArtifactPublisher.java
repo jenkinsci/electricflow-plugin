@@ -116,6 +116,9 @@ public class ElectricFlowUploadArtifactPublisher extends Recorder implements Sim
         log.debug("Workspace directory: " + newFilePath);
       }
 
+      FilePath actualWorkspace =
+          newRelativeWorkspace == null ? workspace : new FilePath(workspace, newRelativeWorkspace);
+
       // Uploading artifact
       ElectricFlowClient efClient =
           ElectricFlowClientFactory.getElectricFlowClient(
@@ -130,7 +133,7 @@ public class ElectricFlowUploadArtifactPublisher extends Recorder implements Sim
               newArtifactVersion,
               newFilePath,
               true,
-              new FilePath(workspace, newRelativeWorkspace));
+              actualWorkspace);
 
       if (!"Artifact-Published-OK".equals(result)) {
         logger.println("Upload result: " + result);
