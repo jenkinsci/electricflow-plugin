@@ -119,7 +119,7 @@ class TriggerPipelineSuite extends JenkinsHelper {
         JenkinsBuildJob ciJob = jjr.run('RunPipelineRunAndWaitPipeline', ciPipelineParameters)
 
         then: 'Collecting the result objects'
-        assert ciJob.isSuccess() == ciJobSuccess
+        assert ciJob.getCiJobOutcome() == ciJobOutcome
 
         String buildName = ciJob.getJenkinsBuildDisplayName()
         pipeline.refresh()
@@ -130,6 +130,9 @@ class TriggerPipelineSuite extends JenkinsHelper {
             assert newNumber > prevNumber: 'new number is greater than previous'
         }
 
+        // NTVEPLUGIN-378
+        assert !(ciJob.logs.contains('Unauthorized'))
+
         CiBuildDetailInfo ciBuildDetailInfo = newPipelineRun.findCiBuildDetailInfo(buildName)
         CiBuildDetail cbd = ciBuildDetailInfo?.getCiBuildDetail()
 
@@ -137,19 +140,24 @@ class TriggerPipelineSuite extends JenkinsHelper {
         expect: 'Checking the CiBuildDetail values'
         verifyAll { // soft assert. Will show all the failed cases
             ciBuildDetailInfo['associationType'] == 'triggeredByCI'
-            ciBuildDetailInfo['result'] == "SUCCESS"
+            if (dependOnCdJobOutcomeCh.toBoolean()){
+                ciBuildDetailInfo['result'] == ciJobOutcome
+            }
+            else {
+                ciBuildDetailInfo['result'] == "SUCCESS"
+            }
             cbd['buildTriggerSource'] == "CI"
         }
 
         where:
-        caseId      | flowProjectName  | flowPipelineName       | dependOnCdJobOutcomeCh | runAndWaitInterval  | ciJobSuccess  | procedureOutcome  | sleepTime | logMessage
-        'C519154'   | projects.correct | pipelines.runAndWait   | 'false'                | '5'                 | true          | 'success'         | '4'       | [logMessages.timing, logMessages.jobOutcome]
-        'C519155'   | projects.correct | pipelines.runAndWait   | 'true'                 | '5'                 | true          | 'success'         | '4'       | [logMessages.timing, logMessages.jobOutcome]
-        'C519156'   | projects.correct | pipelines.runAndWait   | 'true'                 | '5'                 | true          | 'warning'         | '4'       | [logMessages.timing, logMessages.jobOutcome]
-        'C519157'   | projects.correct | pipelines.runAndWait   | 'false'                | '5'                 | true          | 'warning'         | '4'       | [logMessages.timing, logMessages.jobOutcome]
-        'C519158'   | projects.correct | pipelines.runAndWait   | 'true'                 | '5'                 | false         | 'error'           | '4'       | [logMessages.timing, logMessages.jobOutcome]
-        'C519159'   | projects.correct | pipelines.runAndWait   | 'false'                | '5'                 | true          | 'error'           | '4'       | [logMessages.timing, logMessages.jobOutcome]
-        'C519160'   | projects.correct | pipelines.runAndWait   | 'true'                 | '15'                | true          | 'success'         | '4'       | [logMessages.timing, logMessages.jobOutcome]
+        caseId      | flowProjectName  | flowPipelineName       | dependOnCdJobOutcomeCh | runAndWaitInterval  | ciJobOutcome     | procedureOutcome  | sleepTime | logMessage
+        'C519154'   | projects.correct | pipelines.runAndWait   | 'false'                | '5'                 | 'SUCCESS'        | 'success'         | '4'       | [logMessages.timing, logMessages.jobOutcome]
+        'C519155'   | projects.correct | pipelines.runAndWait   | 'true'                 | '5'                 | 'SUCCESS'        | 'success'         | '4'       | [logMessages.timing, logMessages.jobOutcome]
+        'C519156'   | projects.correct | pipelines.runAndWait   | 'true'                 | '5'                 | 'UNSTABLE'       | 'warning'         | '4'       | [logMessages.timing, logMessages.jobOutcome]
+        'C519157'   | projects.correct | pipelines.runAndWait   | 'false'                | '5'                 | 'SUCCESS'        | 'warning'         | '4'       | [logMessages.timing, logMessages.jobOutcome]
+        'C519158'   | projects.correct | pipelines.runAndWait   | 'true'                 | '5'                 | 'FAILURE'        | 'error'           | '4'       | [logMessages.timing, logMessages.jobOutcome]
+        'C519159'   | projects.correct | pipelines.runAndWait   | 'false'                | '5'                 | 'SUCCESS'        | 'error'           | '4'       | [logMessages.timing, logMessages.jobOutcome]
+        'C519160'   | projects.correct | pipelines.runAndWait   | 'true'                 | '15'                | 'SUCCESS'        | 'success'         | '4'       | [logMessages.timing, logMessages.jobOutcome]
     }
 
     @Unroll
