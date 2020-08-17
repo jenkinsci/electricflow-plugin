@@ -6,6 +6,7 @@ import javax.annotation.CheckForNull;
 
 import org.jenkinsci.plugins.electricflow.Credential;
 import org.jenkinsci.plugins.electricflow.causes.EFCause;
+import org.jenkinsci.plugins.electricflow.models.CIBuildDetail;
 import org.kohsuke.stapler.export.Exported;
 
 // TODO: Since we have now 2 classes that are doing pretty match the same
@@ -16,6 +17,8 @@ public class CloudBeesCDPBABuildDetails implements Action {
   @Exported public String flowRuntimeStateId = "";
   @Exported public String stageName = "";
   @Exported public String configurationName = "";
+  @Exported public CIBuildDetail.BuildTriggerSource triggerSource;
+  @Exported public CIBuildDetail.BuildAssociationType buildAssociationType;
   private Credential overriddenCredential = null;
 
   public  CloudBeesCDPBABuildDetails() { }
@@ -93,25 +96,22 @@ public class CloudBeesCDPBABuildDetails implements Action {
     this.overriddenCredential = overriddenCredential;
   }
 
-  //  public EFCause newEFCause() {
-//    EFCause efCause = new EFCause();
-//    if (this.getFlowRuntimeId() != null) {
-//      efCause.setFlowRuntimeId(this.getFlowRuntimeId());
-//    }
-//    if (this.getFlowRuntimeStateId() != null) {
-//      efCause.setFlowRuntimeStateId(this.getFlowRuntimeStateId());
-//    }
-//    if (this.getProjectName() != null) {
-//      efCause.setProjectName(this.getProjectName());
-//    }
-//    if (this.getReleaseName() != null) {
-//      efCause.setReleaseName(this.getReleaseName());
-//    }
-//    if (this.getStageName() != null) {
-//      efCause.setStageName(this.getStageName());
-//    }
-//    return efCause;
-//  }
+  public CIBuildDetail.BuildTriggerSource getTriggerSource() {
+    return triggerSource;
+  }
+
+  public void setTriggerSource(CIBuildDetail.BuildTriggerSource triggerSource) {
+    this.triggerSource = triggerSource;
+  }
+
+  public CIBuildDetail.BuildAssociationType getBuildAssociationType() {
+    return buildAssociationType;
+  }
+
+  public void setBuildAssociationType(CIBuildDetail.BuildAssociationType buildAssociationType) {
+    this.buildAssociationType = buildAssociationType;
+  }
+
   public static void applyToRuntime(
           Run<?, ?> run,
           String configurationName,
@@ -120,7 +120,9 @@ public class CloudBeesCDPBABuildDetails implements Action {
           String flowRuntimeStateId,
           String projectName,
           String releaseName,
-          String stageName
+          String stageName,
+          CIBuildDetail.BuildTriggerSource triggerSource,
+          CIBuildDetail.BuildAssociationType buildAssociationType
   ) {
     CloudBeesCDPBABuildDetails cdpbaBuildDetails = new CloudBeesCDPBABuildDetails();
     if (configurationName != null) {
@@ -144,7 +146,12 @@ public class CloudBeesCDPBABuildDetails implements Action {
     if (stageName != null) {
       cdpbaBuildDetails.setStageName(stageName);
     }
-
+    if (triggerSource != null) {
+      cdpbaBuildDetails.setTriggerSource(triggerSource);
+    }
+    if (buildAssociationType != null) {
+      cdpbaBuildDetails.setBuildAssociationType(buildAssociationType);
+    }
     run.addAction(cdpbaBuildDetails);
   }
 }
