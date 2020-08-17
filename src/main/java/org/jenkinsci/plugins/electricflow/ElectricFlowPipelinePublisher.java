@@ -201,7 +201,9 @@ public class ElectricFlowPipelinePublisher extends Recorder implements SimpleBui
                 null,
                 projectName,
                 null,
-                null
+                null,
+                null,
+                BuildAssociationType.TRIGGERED_BY_CI
         );
       } catch (RuntimeException exception) {
         log.info("Can't attach CIBuildData to the pipeline run: " + exception.getMessage());

@@ -159,7 +159,10 @@ public class ElectricFlowTriggerRelease extends Recorder implements SimpleBuildS
             null,
             projectName,
             releaseName,
-            null);
+            null,
+            BuildTriggerSource.CI,
+            BuildAssociationType.TRIGGERED_BY_CI
+        );
       } catch (RuntimeException ex) {
         log.info("Can't attach CIBuildData to the pipeline run: " + ex.getMessage());
       }

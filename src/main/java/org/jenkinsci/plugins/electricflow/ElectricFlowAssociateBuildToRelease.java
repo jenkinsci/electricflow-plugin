@@ -118,7 +118,9 @@ public class ElectricFlowAssociateBuildToRelease extends Recorder implements Sim
                 null,
                 projectName,
                 releaseName,
-                null
+                null,
+                BuildTriggerSource.CI,
+                BuildAssociationType.ATTACHED
         );
       } catch(RuntimeException ignored) {}
       // Adding text to the summary page
