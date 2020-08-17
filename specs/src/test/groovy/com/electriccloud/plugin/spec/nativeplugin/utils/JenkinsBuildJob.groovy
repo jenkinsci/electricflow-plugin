@@ -56,6 +56,20 @@ class JenkinsBuildJob extends Job {
         return true
     }
 
+    String getCiJobOutcome(){
+        String outcomeValue = ''
+        if (jenkinsBuildLogs.contains("Finished: SUCCESS")) {
+            outcomeValue = 'SUCCESS'
+        }
+        if (jenkinsBuildLogs.contains("Finished: UNSTABLE")) {
+            outcomeValue = 'UNSTABLE'
+        }
+        if (jenkinsBuildLogs.contains("Finished: FAILURE")) {
+            outcomeValue = 'FAILURE'
+        }
+        return outcomeValue
+    }
+
     String _retrieveFullLogs() {
         String jobName = this.getJenkinsJobName()
         String number = this.getJenkinsBuildNumber()
