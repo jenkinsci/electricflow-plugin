@@ -94,7 +94,10 @@ class RunProcedureSuite extends JenkinsHelper {
         JenkinsBuildJob ciJob = jjr.run("RunProcedureRunAndWaitPipeline", ciPipelineParameters)
 
         then: 'Collecting the result objects'
-        assert ciJob.isSuccess() == ciJobSuccess
+        assert ciJob.getCiJobOutcome() == ciJobOutcome
+
+        // NTVEPLUGIN-378
+        assert !(ciJob.logs.contains('Unauthorized'))
 
         then: "Checking that we have one new job for the procedure"
         ArrayList<Job> jobsAfter = Job.findJobsOfProcedure(procedureName)
@@ -109,14 +112,14 @@ class RunProcedureSuite extends JenkinsHelper {
         }
 
         where:
-        caseId      | projectName      | procedureName         | dependOnCdJobOutcomeCh | runAndWaitInterval | ciJobSuccess  | cdJobOutcome | logMessage
-        'C519130'   | projects.correct | procedures.runAndWait | 'false'                | '5'                | true          | 'success'    | [logMessages.timing, logMessages.jobOutcome]
-        'C519131'   | projects.correct | procedures.runAndWait | 'true'                 | '5'                | true          | 'success'    | [logMessages.timing, logMessages.jobOutcome]
-        'C519136'   | projects.correct | procedures.runAndWait | 'true'                 | '5'                | true          | 'warning'    | [logMessages.timing, logMessages.jobOutcome]
-        'C519137'   | projects.correct | procedures.runAndWait | 'false'                | '5'                | true          | 'warning'    | [logMessages.timing, logMessages.jobOutcome]
-        'C519132'   | projects.correct | procedures.runAndWait | 'true'                 | '5'                | false         | 'error'      | [logMessages.timing, logMessages.jobOutcome]
-        'C519133'   | projects.correct | procedures.runAndWait | 'false'                | '5'                | true          | 'error'      | [logMessages.timing, logMessages.jobOutcome]
-        'C519134'   | projects.correct | procedures.runAndWait | 'true'                 | '10'               | true          | 'success'    | [logMessages.timing, logMessages.jobOutcome]
+        caseId      | projectName      | procedureName         | dependOnCdJobOutcomeCh | runAndWaitInterval | ciJobOutcome  | cdJobOutcome | logMessage
+        'C519130'   | projects.correct | procedures.runAndWait | 'false'                | '5'                | 'SUCCESS'     | 'success'    | [logMessages.timing, logMessages.jobOutcome]
+        'C519131'   | projects.correct | procedures.runAndWait | 'true'                 | '5'                | 'SUCCESS'     | 'success'    | [logMessages.timing, logMessages.jobOutcome]
+        'C519136'   | projects.correct | procedures.runAndWait | 'true'                 | '5'                | 'UNSTABLE'    | 'warning'    | [logMessages.timing, logMessages.jobOutcome]
+        'C519137'   | projects.correct | procedures.runAndWait | 'false'                | '5'                | 'SUCCESS'     | 'warning'    | [logMessages.timing, logMessages.jobOutcome]
+        'C519132'   | projects.correct | procedures.runAndWait | 'true'                 | '5'                | 'FAILURE'     | 'error'      | [logMessages.timing, logMessages.jobOutcome]
+        'C519133'   | projects.correct | procedures.runAndWait | 'false'                | '5'                | 'SUCCESS'     | 'error'      | [logMessages.timing, logMessages.jobOutcome]
+        'C519134'   | projects.correct | procedures.runAndWait | 'true'                 | '10'               | 'SUCCESS'     | 'success'    | [logMessages.timing, logMessages.jobOutcome]
     }
 
     @Unroll
