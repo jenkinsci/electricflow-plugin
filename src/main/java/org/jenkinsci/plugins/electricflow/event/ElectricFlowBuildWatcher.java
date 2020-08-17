@@ -126,7 +126,20 @@ public class ElectricFlowBuildWatcher extends RunListener<Run> {
         }
         details = new CIBuildDetail(cbf, cdPBABuildDetails.getProjectName());
         details.setFlowRuntimeId(cdPBABuildDetails.getFlowRuntimeId());
-        details.setAssociationType(BuildAssociationType.TRIGGERED_BY_CI);
+
+        // Handling forwarding of build association type
+        if (cdPBABuildDetails.getBuildAssociationType() != null) {
+          details.setAssociationType(cdPBABuildDetails.getBuildAssociationType());
+        }
+        else {
+          details.setAssociationType(BuildAssociationType.TRIGGERED_BY_CI);
+        }
+
+        // Handling forwarding of trigger source
+        if (cdPBABuildDetails.getTriggerSource() != null) {
+          details.setBuildTriggerSource(cdPBABuildDetails.getTriggerSource());
+        }
+
         if (!cdPBABuildDetails.getStageName().equals("null")) {
           details.setStageName(cdPBABuildDetails.getStageName());
         }
