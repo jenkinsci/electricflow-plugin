@@ -1,0 +1,79 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<flow-definition plugin="workflow-job@2.39">
+  <actions>
+    <org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobAction plugin="pipeline-model-definition@1.7.1"/>
+    <org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobPropertyTrackerAction plugin="pipeline-model-definition@1.7.1">
+      <jobProperties/>
+      <triggers/>
+      <parameters/>
+      <options/>
+    </org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobPropertyTrackerAction>
+  </actions>
+  <description></description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.StringParameterDefinition>
+          <name>flowConfigName</name>
+          <description></description>
+          <defaultValue></defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>flowRuntimeId</name>
+          <description></description>
+          <defaultValue></defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>projectName</name>
+          <description></description>
+          <defaultValue></defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>releaseName</name>
+          <description></description>
+          <defaultValue></defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>CIbuildResult</name>
+          <description></description>
+          <defaultValue></defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+  </properties>
+  <definition class="org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition" plugin="workflow-cps@2.82">
+    <script>pipeline {
+    agent any
+
+    stages {
+        stage(&apos;AssociateBuildToRelease&apos;) {
+            steps {
+                echo &apos;execute AssociateBuildToRelease&apos;
+                sh &quot;echo &apos;test1123aaa&apos; &gt;&gt; artifact.log&quot;
+            }
+        }
+    }
+    post {
+        always {
+            script {
+                cloudBeesFlowAssociateBuildToRelease configuration: &quot;$flowConfigName&quot;, flowRuntimeId: &quot;$flowRuntimeId&quot;, projectName: &quot;$projectName&quot;, releaseName: &quot;$releaseName&quot;
+                currentBuild.result = &quot;$CIbuildResult&quot;
+                archiveArtifacts &apos;artifact.log&apos;
+                cloudBeesFlowPublishArtifact artifactName: &apos;test:AssociateBuildToRelease&apos;, artifactVersion: &quot;${currentBuild.number}&quot;, configuration: &quot;$flowConfigName&quot;, filePath: &apos;artifact.log&apos;, relativeWorkspace: &apos;&apos;, repositoryName: &apos;default&apos;
+            }
+        }
+    }
+}
+
+</script>
+    <sandbox>true</sandbox>
+  </definition>
+  <triggers/>
+  <disabled>false</disabled>
+</flow-definition>
