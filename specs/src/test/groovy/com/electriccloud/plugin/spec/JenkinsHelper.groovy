@@ -316,7 +316,7 @@ class JenkinsHelper extends PluginSpockTestSupport {
     }
 
     JenkinsCLIWrapper jenkinsCli() {
-        String username = System.getenv('JENKINS_USERNAME')
+        String username = System.getenv('JENKINS_USER')
         String password = System.getenv('JENKINS_PASSWORD')
 
         String url = System.getenv('JENKINS_EXT_URL') ?: System.getenv('JENKINS_URL')
