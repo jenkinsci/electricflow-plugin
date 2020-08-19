@@ -6,6 +6,7 @@ import jenkins.branch.Branch;
 import jenkins.branch.BranchProjectFactory;
 import jenkins.branch.MultiBranchProject;
 import jenkins.scm.api.SCMHead;
+import jenkins.scm.api.mixin.ChangeRequestSCMHead;
 import org.jenkinsci.plugins.electricflow.extension.CloudBeesFlowMultiBranchPipeline;
 import org.jenkinsci.plugins.variant.OptionalExtension;
 
@@ -18,7 +19,13 @@ public class CloudBeesFlowMultiBranchPipelineBranchApi extends CloudBeesFlowMult
             if (projectFactory.isProject(run.getParent())) {
                 Branch branch = projectFactory.getBranch(run.getParent());
                 SCMHead head = branch.getHead();
-                this.setBranchName(head.getName());
+                if (head instanceof ChangeRequestSCMHead) {
+                    // This logic will be executed if we're in pull request.
+                    this.setBranchName("");
+                }
+                else {
+                    this.setBranchName(head.getName());
+                }
             }
         }
     }
