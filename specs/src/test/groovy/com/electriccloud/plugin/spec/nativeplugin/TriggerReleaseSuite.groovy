@@ -21,6 +21,15 @@ class TriggerReleaseSuite extends JenkinsHelper {
     private static final String PIPELINE_NAME = "nativeJenkinsPBAExtendedPipelineProject"
     public static final String CI_CONFIG_NAME = "electricflow"
 
+    public static ciConfigs = [
+            correct: 'electricflow',
+            incorrectPassword: 'incorrectPassword'
+    ]
+
+    public static def ciPipelinesNames = [
+            runAndWait: 'TriggerReleaseRunAndWaitPipeline',
+    ]
+
     private static JenkinsJobRunner jjr = JenkinsJobRunner.getInstance()
 
     private static def flowProjects = [
@@ -55,6 +64,7 @@ class TriggerReleaseSuite extends JenkinsHelper {
            caseId
 
     def doSetupSpec() {
+        importJenkinsJob('TriggerReleaseRunAndWaitPipeline.xml', ciPipelinesNames.runAndWait)
         dslFile('dsl/RunAndWait/runAndWaitProcedure.dsl')
         dslFile('dsl/RunAndWait/runAndWaitRelease.dsl')
         // Do project import here
@@ -130,17 +140,18 @@ class TriggerReleaseSuite extends JenkinsHelper {
         PipelineRun previousPipelineRun = pipeline.getLastRun()
 
         def ciPipelineParameters = [
-                flowConfigName   : CI_CONFIG_NAME,
+                flowConfigName   : ciConfig,
                 flowProjectName  : cdProjectName,
                 flowReleaseName  : releaseName,
                 dependOnCdJobOutcomeCh: dependOnCdJobOutcomeCh,
                 runAndWaitInterval    : runAndWaitInterval,
                 procedureOutcome: procedureOutcome,
-                sleepTime: sleepTime
+                sleepTime: sleepTime,
+                creds: creds
         ]
 
         when: 'Run pipeline and collect run properties'
-        JenkinsBuildJob ciJob = jjr.run('TriggerReleaseRunAndWaitPipeline', ciPipelineParameters)
+        JenkinsBuildJob ciJob = jjr.run(ciPipelinesNames.runAndWait, ciPipelineParameters)
 
         then: 'Collecting the result objects'
         assert ciJob.getCiJobOutcome() == ciJobOutcome
@@ -176,14 +187,15 @@ class TriggerReleaseSuite extends JenkinsHelper {
         }
 
         where:
-        caseId    | cdProjectName               | releaseName              | dependOnCdJobOutcomeCh | runAndWaitInterval | ciJobOutcome  | procedureOutcome | sleepTime | logMessage
-        'C367661' | flowProjects.correct        | flowReleases.runAndWait  | 'false'                | '5'                | 'SUCCESS'     | 'success'        | '4'       | [logMessages.timing, logMessages.jobOutcome]
-        'C367661' | flowProjects.correct        | flowReleases.runAndWait  | 'true'                 | '5'                | 'SUCCESS'     | 'success'        | '4'       | [logMessages.timing, logMessages.jobOutcome]
-        'C367661' | flowProjects.correct        | flowReleases.runAndWait  | 'true'                 | '5'                | 'UNSTABLE'    | 'warning'        | '4'       | [logMessages.timing, logMessages.jobOutcome]
-        'C367661' | flowProjects.correct        | flowReleases.runAndWait  | 'false'                | '5'                | 'SUCCESS'     | 'warning'        | '4'       | [logMessages.timing, logMessages.jobOutcome]
-        'C367661' | flowProjects.correct        | flowReleases.runAndWait  | 'true'                 | '5'                | 'FAILURE'     | 'error'          | '4'       | [logMessages.timing, logMessages.jobOutcome]
-        'C367661' | flowProjects.correct        | flowReleases.runAndWait  | 'false'                | '5'                | 'SUCCESS'     | 'error'          | '4'       | [logMessages.timing, logMessages.jobOutcome]
-        'C367661' | flowProjects.correct        | flowReleases.runAndWait  | 'true'                 | '15'               | 'SUCCESS'     | 'success'        | '4'       | [logMessages.timing, logMessages.jobOutcome]
+        caseId    | ciConfig                    | cdProjectName               | releaseName              | dependOnCdJobOutcomeCh | runAndWaitInterval | ciJobOutcome  | procedureOutcome | sleepTime | creds | logMessage
+        'C367661' | ciConfigs.correct           | flowProjects.correct        | flowReleases.runAndWait  | 'false'                | '5'                | 'SUCCESS'     | 'success'        | '4'       | ''    | [logMessages.timing, logMessages.jobOutcome]
+        'C367661' | ciConfigs.correct           | flowProjects.correct        | flowReleases.runAndWait  | 'true'                 | '5'                | 'SUCCESS'     | 'success'        | '4'       | ''    | [logMessages.timing, logMessages.jobOutcome]
+        'C367661' | ciConfigs.correct           | flowProjects.correct        | flowReleases.runAndWait  | 'true'                 | '5'                | 'UNSTABLE'    | 'warning'        | '4'       | ''    | [logMessages.timing, logMessages.jobOutcome]
+        'C367661' | ciConfigs.correct           | flowProjects.correct        | flowReleases.runAndWait  | 'false'                | '5'                | 'SUCCESS'     | 'warning'        | '4'       | ''    | [logMessages.timing, logMessages.jobOutcome]
+        'C367661' | ciConfigs.correct           | flowProjects.correct        | flowReleases.runAndWait  | 'true'                 | '5'                | 'FAILURE'     | 'error'          | '4'       | ''    | [logMessages.timing, logMessages.jobOutcome]
+        'C367661' | ciConfigs.correct           | flowProjects.correct        | flowReleases.runAndWait  | 'false'                | '5'                | 'SUCCESS'     | 'error'          | '4'       | ''    | [logMessages.timing, logMessages.jobOutcome]
+        'C367661' | ciConfigs.correct           | flowProjects.correct        | flowReleases.runAndWait  | 'true'                 | '15'               | 'SUCCESS'     | 'success'        | '4'       | ''    | [logMessages.timing, logMessages.jobOutcome]
+        'C367661' | ciConfigs.incorrectPassword | flowProjects.correct        | flowReleases.runAndWait  | 'false'                | '5'                | 'SUCCESS'     | 'success'        | '4'       | '4'   | [logMessages.timing, logMessages.jobOutcome]
     }
 
     @Unroll
