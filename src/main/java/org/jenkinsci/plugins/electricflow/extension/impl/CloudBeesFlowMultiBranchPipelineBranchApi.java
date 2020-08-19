@@ -21,7 +21,9 @@ public class CloudBeesFlowMultiBranchPipelineBranchApi extends CloudBeesFlowMult
                 SCMHead head = branch.getHead();
                 if (head instanceof ChangeRequestSCMHead) {
                     // This logic will be executed if we're in pull request.
-                    this.setBranchName("");
+                    SCMHead target = ((ChangeRequestSCMHead) head).getTarget();
+                    String targetBranchName = target.getName();
+                    this.setBranchName(targetBranchName);
                 }
                 else {
                     this.setBranchName(head.getName());
