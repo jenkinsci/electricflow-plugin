@@ -336,7 +336,9 @@ class JenkinsHelper extends PluginSpockTestSupport {
             throw new RuntimeException("File named $fileResourceName does not exist in ${xmlPath.parentFile.absolutePath}")
         }
 
-        jenkinsCli().importJenkinsJob(jobName, xmlPath)
+        def importResult = jenkinsCli().importJenkinsJob(jobName, xmlPath)
+        println("Result of import: ${importResult}")
+        return importResult
     }
 
 }
