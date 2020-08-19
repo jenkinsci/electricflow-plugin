@@ -21,6 +21,12 @@
           <trim>false</trim>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
+          <name>creds</name>
+          <description></description>
+          <defaultValue>1</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
           <name>flowReleaseName</name>
           <description></description>
           <defaultValue>TriggerReleaseRunAndWait</defaultValue>
@@ -78,7 +84,12 @@ pipeline {
     post {
         always {
             script {
-                cloudBeesFlowTriggerRelease configuration: &quot;$flowConfigName&quot;, parameters: &quot;{&apos;release&apos;:{&apos;releaseName&apos;:&apos;$flowReleaseName&apos;,&apos;stages&apos;:[{&apos;stageName&apos;:&apos;Stage 1&apos;,&apos;stageValue&apos;:&apos;&apos;}],&apos;pipelineName&apos;:&apos;pipeline_$flowReleaseName&apos;,&apos;parameters&apos;:[{&apos;parameterName&apos;:&apos;procedureOutcome&apos;,&apos;parameterValue&apos;:&apos;$procedureOutcome&apos;},{&apos;parameterName&apos;:&apos;sleepTime&apos;,&apos;parameterValue&apos;:&apos;$sleepTime&apos;}]}}&quot;, projectName: &quot;$flowProjectName&quot;, releaseName: &quot;$flowReleaseName&quot;, runAndWaitOption: [checkInterval: &quot;$runAndWaitInterval&quot;, dependOnCdJobOutcome: &quot;$dependOnCdJobOutcomeCh&quot;], startingStage: &quot;Stage 1&quot;
+                if (creds) {
+                    cloudBeesFlowTriggerRelease configuration: &quot;$flowConfigName&quot;,  overrideCredential: [credentialId: &quot;$creds&quot;], parameters: &quot;{&apos;release&apos;:{&apos;releaseName&apos;:&apos;$flowReleaseName&apos;,&apos;stages&apos;:[{&apos;stageName&apos;:&apos;Stage 1&apos;,&apos;stageValue&apos;:&apos;&apos;}],&apos;pipelineName&apos;:&apos;pipeline_$flowReleaseName&apos;,&apos;parameters&apos;:[{&apos;parameterName&apos;:&apos;procedureOutcome&apos;,&apos;parameterValue&apos;:&apos;$procedureOutcome&apos;},{&apos;parameterName&apos;:&apos;sleepTime&apos;,&apos;parameterValue&apos;:&apos;$sleepTime&apos;}]}}&quot;, projectName: &quot;$flowProjectName&quot;, releaseName: &quot;$flowReleaseName&quot;, runAndWaitOption: [checkInterval: &quot;$runAndWaitInterval&quot;, dependOnCdJobOutcome: &quot;$dependOnCdJobOutcomeCh&quot;], startingStage: &quot;Stage 1&quot;
+                }
+                else {
+                    cloudBeesFlowTriggerRelease configuration: &quot;$flowConfigName&quot;, parameters: &quot;{&apos;release&apos;:{&apos;releaseName&apos;:&apos;$flowReleaseName&apos;,&apos;stages&apos;:[{&apos;stageName&apos;:&apos;Stage 1&apos;,&apos;stageValue&apos;:&apos;&apos;}],&apos;pipelineName&apos;:&apos;pipeline_$flowReleaseName&apos;,&apos;parameters&apos;:[{&apos;parameterName&apos;:&apos;procedureOutcome&apos;,&apos;parameterValue&apos;:&apos;$procedureOutcome&apos;},{&apos;parameterName&apos;:&apos;sleepTime&apos;,&apos;parameterValue&apos;:&apos;$sleepTime&apos;}]}}&quot;, projectName: &quot;$flowProjectName&quot;, releaseName: &quot;$flowReleaseName&quot;, runAndWaitOption: [checkInterval: &quot;$runAndWaitInterval&quot;, dependOnCdJobOutcome: &quot;$dependOnCdJobOutcomeCh&quot;], startingStage: &quot;Stage 1&quot;
+                }
             }
         }
     }

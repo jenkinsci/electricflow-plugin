@@ -21,6 +21,12 @@
           <trim>false</trim>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
+          <name>creds</name>
+          <description></description>
+          <defaultValue>1</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
           <name>flowPipelineName</name>
           <description></description>
           <defaultValue>runProcedureRunAndWait</defaultValue>
@@ -78,7 +84,12 @@ pipeline {
     post {
         always {
             script {
-                cloudBeesFlowRunPipeline addParam: &apos;{&quot;pipeline&quot;:{&quot;pipelineName&quot;:&quot;$flowPipelineName&quot;,&quot;parameters&quot;:[{&quot;parameterName&quot;:&quot;procedureOutcome&quot;,&quot;parameterValue&quot;:&quot;$procedureOutcome&quot;},{&quot;parameterName&quot;:&quot;sleepTime&quot;,&quot;parameterValue&quot;:&quot;$sleepTime&quot;}]}}&apos;, configuration: &quot;$flowConfigName&quot;, pipelineName: &quot;$flowPipelineName&quot;, projectName: &quot;$flowProjectName&quot;, runAndWaitOption: [checkInterval: &quot;$runAndWaitInterval&quot;, dependOnCdJobOutcome: &quot;$dependOnCdJobOutcomeCh&quot;]
+                if (creds) {
+                    cloudBeesFlowRunPipeline addParam: &apos;{&quot;pipeline&quot;:{&quot;pipelineName&quot;:&quot;$flowPipelineName&quot;,&quot;parameters&quot;:[{&quot;parameterName&quot;:&quot;procedureOutcome&quot;,&quot;parameterValue&quot;:&quot;$procedureOutcome&quot;},{&quot;parameterName&quot;:&quot;sleepTime&quot;,&quot;parameterValue&quot;:&quot;$sleepTime&quot;}]}}&apos;, configuration: &quot;$flowConfigName&quot;, overrideCredential: [credentialId: &quot;$creds&quot;], pipelineName: &quot;$flowPipelineName&quot;, projectName: &quot;$flowProjectName&quot;, runAndWaitOption: [checkInterval: &quot;$runAndWaitInterval&quot;, dependOnCdJobOutcome: &quot;$dependOnCdJobOutcomeCh&quot;]
+                }
+                else {
+                    cloudBeesFlowRunPipeline addParam: &apos;{&quot;pipeline&quot;:{&quot;pipelineName&quot;:&quot;$flowPipelineName&quot;,&quot;parameters&quot;:[{&quot;parameterName&quot;:&quot;procedureOutcome&quot;,&quot;parameterValue&quot;:&quot;$procedureOutcome&quot;},{&quot;parameterName&quot;:&quot;sleepTime&quot;,&quot;parameterValue&quot;:&quot;$sleepTime&quot;}]}}&apos;, configuration: &quot;$flowConfigName&quot;, pipelineName: &quot;$flowPipelineName&quot;, projectName: &quot;$flowProjectName&quot;, runAndWaitOption: [checkInterval: &quot;$runAndWaitInterval&quot;, dependOnCdJobOutcome: &quot;$dependOnCdJobOutcomeCh&quot;]
+                }
             }
         }
     }
