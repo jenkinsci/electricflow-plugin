@@ -8,6 +8,8 @@
 
 package org.jenkinsci.plugins.electricflow;
 
+import static hudson.plugins.git.GitChangeSet.LOGGER;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import hudson.EnvVars;
 import hudson.model.BuildListener;
@@ -454,7 +456,7 @@ public class Utils {
     }
     return logger;
   }
-
+  
   public static Result getCorrespondedCiBuildResult(CdPipelineStatus cdPipelineStatus) {
     switch (cdPipelineStatus) {
       case success:
@@ -476,4 +478,5 @@ public class Utils {
         return Result.FAILURE;
     }
   }
+
 }
