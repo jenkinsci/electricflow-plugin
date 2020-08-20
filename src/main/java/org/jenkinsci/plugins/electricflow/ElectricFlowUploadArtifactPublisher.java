@@ -116,6 +116,9 @@ public class ElectricFlowUploadArtifactPublisher extends Recorder implements Sim
         log.debug("Workspace directory: " + newFilePath);
       }
 
+      FilePath actualWorkspace =
+          newRelativeWorkspace == null ? workspace : new FilePath(workspace, newRelativeWorkspace);
+
       // Uploading artifact
       ElectricFlowClient efClient =
           ElectricFlowClientFactory.getElectricFlowClient(
@@ -130,7 +133,7 @@ public class ElectricFlowUploadArtifactPublisher extends Recorder implements Sim
               newArtifactVersion,
               newFilePath,
               true,
-              new FilePath(workspace, newRelativeWorkspace));
+              actualWorkspace);
 
       if (!"Artifact-Published-OK".equals(result)) {
         logger.println("Upload result: " + result);
@@ -143,10 +146,16 @@ public class ElectricFlowUploadArtifactPublisher extends Recorder implements Sim
               + "/commander/link/artifactVersionDetails/artifactVersions/"
               + Utils.encodeURL(newArtifactName + ":" + newArtifactVersion)
               + "?s=Artifacts&ss=Artifacts";
+      String efArtifactAllVersionsUrl =
+          efClient.getElectricFlowUrl()
+              + "/commander/link/artifactDetails/artifacts/"
+              + Utils.encodeURL(newArtifactName)
+              + "?s=Artifacts&ss=Artifacts";
 
       String repository = repositoryName.isEmpty() ? "default" : repositoryName;
 
-      String summaryHtml = getSummaryHtml(newArtifactVersion, repository, efArtifactUrl);
+      String summaryHtml =
+          getSummaryHtml(newArtifactVersion, repository, efArtifactUrl, efArtifactAllVersionsUrl);
 
       ArtifactUploadSummaryTextAction action =
           new ArtifactUploadSummaryTextAction(run, summaryHtml);
@@ -242,7 +251,8 @@ public class ElectricFlowUploadArtifactPublisher extends Recorder implements Sim
     return BuildStepMonitor.NONE;
   }
 
-  private String getSummaryHtml(String newArtifactVersion, String repository, String efUrl) {
+  private String getSummaryHtml(
+      String newArtifactVersion, String repository, String efUrl, String efArtifactAllVersionsUrl) {
 
     return "<h3>CloudBees CD Publish Artifact</h3>"
         + "<table cellspacing=\"2\" cellpadding=\"4\">\n"
@@ -257,7 +267,7 @@ public class ElectricFlowUploadArtifactPublisher extends Recorder implements Sim
         + "  <tr>\n"
         + "    <td>Artifact Name:</td>\n"
         + "    <td><a href ='"
-        + HtmlUtils.encodeForHtml(efUrl)
+        + HtmlUtils.encodeForHtml(efArtifactAllVersionsUrl)
         + "'>"
         + HtmlUtils.encodeForHtml(artifactName)
         + "</a></td> \n"

@@ -51,12 +51,10 @@ import org.apache.commons.logging.LogFactory;
 import org.jenkinsci.Symbol;
 import org.jenkinsci.plugins.electricflow.action.CloudBeesCDPBABuildDetails;
 import org.jenkinsci.plugins.electricflow.data.CloudBeesFlowBuildData;
-import org.jenkinsci.plugins.electricflow.exceptions.PluginException;
 import org.jenkinsci.plugins.electricflow.factories.ElectricFlowClientFactory;
 import org.jenkinsci.plugins.electricflow.models.CIBuildDetail;
 import org.jenkinsci.plugins.electricflow.models.CIBuildDetail.BuildAssociationType;
 import org.jenkinsci.plugins.electricflow.models.CIBuildDetail.BuildTriggerSource;
-import org.jenkinsci.plugins.electricflow.models.cdrestdata.jobs.CdPipelineStatus;
 import org.jenkinsci.plugins.electricflow.models.cdrestdata.jobs.GetPipelineRuntimeDetailsResponseData;
 import org.jenkinsci.plugins.electricflow.ui.FieldValidationStatus;
 import org.jenkinsci.plugins.electricflow.ui.HtmlUtils;
@@ -154,12 +152,16 @@ public class ElectricFlowTriggerRelease extends Recorder implements SimpleBuildS
         }
         // Now we're creating the CloudBessCDPBABuildDetails action and adding it to the run.
         CloudBeesCDPBABuildDetails.applyToRuntime(
-                run,
-                flowRuntimeId,
-                null,
-                projectName,
-                releaseName,
-                null
+            run,
+            configuration,
+            overrideCredential,
+            flowRuntimeId,
+            null,
+            projectName,
+            releaseName,
+            null,
+            BuildTriggerSource.CI,
+            BuildAssociationType.TRIGGERED_BY_CI
         );
       } catch (RuntimeException ex) {
         log.info("Can't attach CIBuildData to the pipeline run: " + ex.getMessage());
@@ -197,18 +199,20 @@ public class ElectricFlowTriggerRelease extends Recorder implements SimpleBuildS
           run.save();
         } while (!getPipelineRuntimeDetailsResponseData.isCompleted());
 
+        logger.println(
+            "CD pipeline completed with "
+                + getPipelineRuntimeDetailsResponseData.getStatus()
+                + " status");
         if (runAndWaitOption.isDependOnCdJobOutcome()) {
-          if (getPipelineRuntimeDetailsResponseData.getStatus() != CdPipelineStatus.success
-              && getPipelineRuntimeDetailsResponseData.getStatus() != CdPipelineStatus.warning) {
-            throw new PluginException(
-                "CD pipeline completed with "
-                    + getPipelineRuntimeDetailsResponseData.getStatus()
-                    + " status");
+          Result result =
+              Utils.getCorrespondedCiBuildResult(getPipelineRuntimeDetailsResponseData.getStatus());
+          if (result != Result.SUCCESS) {
+            run.setResult(result);
           }
         }
       }
 
-    } catch (IOException | InterruptedException | PluginException e) {
+    } catch (IOException | InterruptedException e) {
       logger.println(e.getMessage());
       log.error(e.getMessage(), e);
       run.setResult(Result.FAILURE);
@@ -340,32 +344,40 @@ public class ElectricFlowTriggerRelease extends Recorder implements SimpleBuildS
     String pipelineId = flowRuntime.getString("pipelineId");
     String flowRuntimeId = flowRuntime.getString("flowRuntimeId");
     String pipelineName = flowRuntime.getString("pipelineName");
-    String urlPipeline =
-        efClient.getElectricFlowUrl() + "/flow/#pipeline-run/" + pipelineId + "/" + flowRuntimeId;
-    String urlRelease = efClient.getElectricFlowUrl() + "/flow/#releases";
+    String releaseId = flowRuntime.getString("releaseId");
+    String pipelineUrl = efClient.getElectricFlowUrl() + "/flow/#pipeline-kanban/" + pipelineId;
+    String releasePipelineRunUrl =
+        efClient.getElectricFlowUrl()
+            + "/flow/#pipeline-run/"
+            + pipelineId
+            + "/"
+            + flowRuntimeId
+            + "/release/"
+            + releaseId;
+    String releaseUrl = efClient.getElectricFlowUrl() + "/flow/#release-kanban/" + releaseId;
     String summaryText =
         "<h3>CloudBees CD Trigger Release</h3>"
             + "<table cellspacing=\"2\" cellpadding=\"4\"> \n"
             + "  <tr>\n"
             + "    <td>Release Name:</td>\n"
             + "    <td><a href='"
-            + HtmlUtils.encodeForHtml(urlRelease)
+            + HtmlUtils.encodeForHtml(releaseUrl)
             + "'>"
             + HtmlUtils.encodeForHtml(releaseName)
             + "</a></td>   \n"
             + "  </tr>\n"
             + "  <tr>\n"
-            + "    <td>Pipeline URL:</td>\n"
+            + "    <td>Release Pipeline Run URL:</td>\n"
             + "    <td><a href='"
-            + HtmlUtils.encodeForHtml(urlPipeline)
+            + HtmlUtils.encodeForHtml(releasePipelineRunUrl)
             + "'>"
-            + HtmlUtils.encodeForHtml(urlPipeline)
+            + HtmlUtils.encodeForHtml(releasePipelineRunUrl)
             + "</a></td>   \n"
             + "  </tr>\n"
             + "  <tr>\n"
             + "    <td>Pipeline Name:</td>\n"
             + "    <td><a href='"
-            + HtmlUtils.encodeForHtml(urlPipeline)
+            + HtmlUtils.encodeForHtml(pipelineUrl)
             + "'>"
             + HtmlUtils.encodeForHtml(pipelineName)
             + "</a></td>   \n"

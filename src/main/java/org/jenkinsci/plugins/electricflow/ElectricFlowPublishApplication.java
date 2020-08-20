@@ -48,7 +48,6 @@ import org.apache.commons.logging.LogFactory;
 import org.jenkinsci.Symbol;
 import org.jenkinsci.plugins.electricflow.exceptions.PluginException;
 import org.jenkinsci.plugins.electricflow.factories.ElectricFlowClientFactory;
-import org.jenkinsci.plugins.electricflow.models.cdrestdata.jobs.CdJobOutcome;
 import org.jenkinsci.plugins.electricflow.models.cdrestdata.jobs.CdJobStatus;
 import org.jenkinsci.plugins.electricflow.models.cdrestdata.jobs.GetJobStatusResponseData;
 import org.jenkinsci.plugins.electricflow.ui.HtmlUtils;
@@ -142,15 +141,14 @@ public class ElectricFlowPublishApplication extends Recorder implements SimpleBu
       @Nonnull Run<?, ?> run,
       @Nonnull FilePath workspace,
       @Nonnull Launcher launcher,
-      @Nonnull TaskListener taskListener)
-      throws InterruptedException, IOException {
-    boolean isSuccess = runProcess(run, taskListener, workspace);
-    if (!isSuccess) {
-      run.setResult(Result.FAILURE);
+      @Nonnull TaskListener taskListener) {
+    Result result = runProcess(run, taskListener, workspace);
+    if (result != Result.SUCCESS) {
+      run.setResult(result);
     }
   }
 
-  private boolean runProcess(
+  private Result runProcess(
       @Nonnull Run<?, ?> run, @Nonnull TaskListener taskListener, @Nonnull FilePath workspace) {
     PrintStream logger = taskListener.getLogger();
 
@@ -183,7 +181,7 @@ public class ElectricFlowPublishApplication extends Recorder implements SimpleBu
       logger.println("Warning: Cannot create archive: " + e.getMessage());
       log.warn("Can't create archive: " + e.getMessage(), e);
 
-      return false;
+      return Result.FAILURE;
     }
 
     String artifactGroup = "org.ec";
@@ -252,12 +250,10 @@ public class ElectricFlowPublishApplication extends Recorder implements SimpleBu
           }
         } while (getJobStatusResponseData.getStatus() != CdJobStatus.completed);
 
+        logger.println(
+            "CD job completed with " + getJobStatusResponseData.getOutcome() + " outcome");
         if (runAndWaitOption.isDependOnCdJobOutcome()) {
-          if (getJobStatusResponseData.getOutcome() == CdJobOutcome.error
-              || getJobStatusResponseData.getOutcome() == CdJobOutcome.unknown) {
-            throw new PluginException(
-                "CD job completed with " + getJobStatusResponseData.getOutcome() + " outcome");
-          }
+          return Utils.getCorrespondedCiBuildResult(getJobStatusResponseData.getOutcome());
         }
       }
     } catch (PluginException
@@ -268,10 +264,10 @@ public class ElectricFlowPublishApplication extends Recorder implements SimpleBu
       logger.println("Warning: Error occurred during application creation: " + e.getMessage());
       log.warn("Error occurred during application creation: " + e.getMessage(), e);
 
-      return false;
+      return Result.FAILURE;
     }
 
-    return true;
+    return Result.SUCCESS;
   }
 
   /**
@@ -364,7 +360,11 @@ public class ElectricFlowPublishApplication extends Recorder implements SimpleBu
         }
 
         if (fileName.endsWith(MANIFEST_NAME)) {
-          String manifestPath = FileHelper.buildPath(workspaceDir, "/", fileName);
+          String deploymentPathInWorkspace = "/";
+          if (this.filePath != null && !this.filePath.equals("/")) {
+            deploymentPathInWorkspace = this.filePath;
+          }
+          String manifestPath = FileHelper.buildPath(workspaceDir, deploymentPathInWorkspace, fileName);
 
           try {
             byte[] encoded = Files.readAllBytes(Paths.get(manifestPath));

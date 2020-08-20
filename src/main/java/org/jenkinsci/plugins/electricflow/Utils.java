@@ -13,6 +13,7 @@ import static hudson.plugins.git.GitChangeSet.LOGGER;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import hudson.EnvVars;
 import hudson.model.BuildListener;
+import hudson.model.Result;
 import hudson.model.TaskListener;
 import hudson.slaves.EnvironmentVariablesNodeProperty;
 import hudson.slaves.NodeProperty;
@@ -37,6 +38,8 @@ import net.sf.json.JSONObject;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jenkinsci.plugins.electricflow.factories.ElectricFlowClientFactory;
+import org.jenkinsci.plugins.electricflow.models.cdrestdata.jobs.CdJobOutcome;
+import org.jenkinsci.plugins.electricflow.models.cdrestdata.jobs.CdPipelineStatus;
 import org.jenkinsci.plugins.electricflow.ui.FieldValidationStatus;
 import org.jenkinsci.plugins.electricflow.ui.HtmlUtils;
 import org.jenkinsci.plugins.electricflow.ui.SelectFieldUtils;
@@ -453,44 +456,27 @@ public class Utils {
     }
     return logger;
   }
-//  public static String getBranchName(Run run) {
-//    ItemGroup parent = run.getParent().getParent();
-//    if (parent instanceof MultiBranchProject) {
-//      BranchProjectFactory projectFactory = ((MultiBranchProject) parent).getProjectFactory();
-//      if (projectFactory.isProject(run.getParent())) {
-//        Branch branch = projectFactory.getBranch(run.getParent());
-//        SCMHead head = branch.getHead();
-//      }
-//    }
-//    return "";
-//  }
-//  public static String getBranchName(Run run, TaskListener tl) throws IOException {
-//    String branchName = "master";
-//    WorkflowRun wfrun = (WorkflowRun) run;
-//    SCMSource src = SCMSource.SourceByItem.findSource(run.getParent());
-//    SCMRevision rev = SCMRevisionAction.getRevision(src, run);
-//    // return branchName;
-//
-//    if (rev == null) {
-//      SCMHead head = SCMHead.HeadByItem.findHead(run.getParent());
-//      if (head != null) {
-//        LOGGER.fine(() -> "trying to find revision in " + run + " via " + head);
-//        try {
-//          rev = src.fetch(head, new LogTaskListener(LOGGER, Level.FINE));
-//        } catch (InterruptedException x) {
-//          throw new IOException(x);
-//        }
-//      } else {
-//        LOGGER.fine(() -> "could not find revision in " + run);
-//      }
-//    }
-//    // boolean isPr = rev instanceof PullRequestSCMRevision;
-//
-//    //if (isPr) {
-//      // branchName = build.getParent().getParent().getFullName() + "/" + ((PullRequestSCMHead) rev.getHead()).getBranchName();
-//    //} else {
-//    branchName = run.getParent().getParent().getFullName() + "/" + rev.getHead().getName();
-//    //}
-//    return branchName;
-//  }
+  
+  public static Result getCorrespondedCiBuildResult(CdPipelineStatus cdPipelineStatus) {
+    switch (cdPipelineStatus) {
+      case success:
+        return Result.SUCCESS;
+      case warning:
+        return Result.UNSTABLE;
+      default:
+        return Result.FAILURE;
+    }
+  }
+
+  public static Result getCorrespondedCiBuildResult(CdJobOutcome cdJobOutcome) {
+    switch (cdJobOutcome) {
+      case success:
+        return Result.SUCCESS;
+      case warning:
+        return Result.UNSTABLE;
+      default:
+        return Result.FAILURE;
+    }
+  }
+
 }

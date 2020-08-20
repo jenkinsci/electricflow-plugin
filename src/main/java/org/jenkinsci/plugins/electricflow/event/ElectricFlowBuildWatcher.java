@@ -15,6 +15,7 @@ import org.jenkinsci.plugins.electricflow.Utils;
 import org.jenkinsci.plugins.electricflow.action.CloudBeesCDPBABuildDetails;
 import org.jenkinsci.plugins.electricflow.causes.EFCause;
 import org.jenkinsci.plugins.electricflow.data.CloudBeesFlowBuildData;
+import org.jenkinsci.plugins.electricflow.factories.ElectricFlowClientFactory;
 import org.jenkinsci.plugins.electricflow.models.CIBuildDetail;
 import org.jenkinsci.plugins.electricflow.models.CIBuildDetail.BuildAssociationType;
 import org.jenkinsci.plugins.electricflow.models.CIBuildDetail.BuildTriggerSource;
@@ -109,9 +110,38 @@ public class ElectricFlowBuildWatcher extends RunListener<Run> {
         }
 
       } else if (cdPBABuildDetails != null) {
+        // If build details were sent using some configuration name there is no point
+        // in trying to send data to any other configuration.
+        if (cdPBABuildDetails.getOverriddenCredential() != null) {
+          electricFlowClient = ElectricFlowClientFactory.getElectricFlowClient(
+            tc.getConfigurationName(),
+            cdPBABuildDetails.getOverriddenCredential(),
+            null,
+            true
+          );
+        }
+        if (
+              cdPBABuildDetails.getConfigurationName() != null &&
+              !cdPBABuildDetails.getConfigurationName().equals(tc.getConfigurationName())
+        ) {
+          continue;
+        }
         details = new CIBuildDetail(cbf, cdPBABuildDetails.getProjectName());
         details.setFlowRuntimeId(cdPBABuildDetails.getFlowRuntimeId());
-        details.setAssociationType(BuildAssociationType.TRIGGERED_BY_CI);
+
+        // Handling forwarding of build association type
+        if (cdPBABuildDetails.getBuildAssociationType() != null) {
+          details.setAssociationType(cdPBABuildDetails.getBuildAssociationType());
+        }
+        else {
+          details.setAssociationType(BuildAssociationType.TRIGGERED_BY_CI);
+        }
+
+        // Handling forwarding of trigger source
+        if (cdPBABuildDetails.getTriggerSource() != null) {
+          details.setBuildTriggerSource(cdPBABuildDetails.getTriggerSource());
+        }
+
         if (!cdPBABuildDetails.getStageName().equals("null")) {
           details.setStageName(cdPBABuildDetails.getStageName());
         }

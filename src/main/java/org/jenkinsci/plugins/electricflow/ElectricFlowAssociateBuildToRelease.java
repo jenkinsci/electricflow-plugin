@@ -112,11 +112,15 @@ public class ElectricFlowAssociateBuildToRelease extends Recorder implements Sim
       try {
         CloudBeesCDPBABuildDetails.applyToRuntime(
                 run,
+                configuration,
+                overrideCredential,
                 flowRuntimeId,
                 null,
                 projectName,
                 releaseName,
-                null
+                null,
+                BuildTriggerSource.CI,
+                BuildAssociationType.ATTACHED
         );
       } catch(RuntimeException ignored) {}
       // Adding text to the summary page

@@ -95,6 +95,9 @@ All rights reserved.
             var json = JSON.parse(param);
 
             var table = document.querySelector("[descriptorid='electricFlowTriggerRelease'] table");
+            if (table == null) {
+                table = getElementByXpath("//select[@checkdependson='validationTrigger']/ancestor::table[@name]");
+            }
 
             if (json) {
 
@@ -212,6 +215,10 @@ All rights reserved.
 
         function triggerExtraValidationForTriggerRelease() {
             document.getElementById("ef_sr_validationTrigger").click();
+        }
+
+        function getElementByXpath(path) {
+            return document.evaluate(path, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
         }
     </script>
 
