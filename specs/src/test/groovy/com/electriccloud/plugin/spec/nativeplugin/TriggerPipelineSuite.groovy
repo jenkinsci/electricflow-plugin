@@ -53,6 +53,7 @@ class TriggerPipelineSuite extends JenkinsHelper {
             failedFormalParametersRetrieve: 'Error occurred during formal parameters fetch',
             pipelineIdFailed              : 'Failed to retrieve Id for pipeline',
             timing: "Waiting till CloudBees CD job is completed, checking every TIME seconds",
+            defaultTiming: "Waiting till CloudBees CD pipeline is completed, checking every 5 seconds",
             jobOutcome: "CD Pipeline Runtime Details Response Data: .* status=completed, outcome=OUTCOME"
     ]
 
@@ -170,6 +171,8 @@ class TriggerPipelineSuite extends JenkinsHelper {
         'C519159'   | ciConfigs.correct           | projects.correct | pipelines.runAndWait   | 'false'                | '5'                 | 'SUCCESS'        | 'error'           | '4'       | ''    | [logMessages.timing, logMessages.jobOutcome]
         'C519160'   | ciConfigs.correct           | projects.correct | pipelines.runAndWait   | 'true'                 | '15'                | 'SUCCESS'        | 'success'         | '4'       | ''    | [logMessages.timing, logMessages.jobOutcome]
         'C519155'   | ciConfigs.incorrectPassword | projects.correct | pipelines.runAndWait   | 'true'                 | '5'                 | 'SUCCESS'        | 'success'         | '4'       | '4'   | [logMessages.timing, logMessages.jobOutcome]
+        'NTPLGN-367'| ciConfigs.correct           | projects.correct | pipelines.runAndWait   | 'false'                | '5'                 | 'SUCCESS'        | 'success'         | '0'       | ''    | [logMessages.defaultTiming, logMessages.jobOutcome]
+        'NTPLGN-367'| ciConfigs.correct           | projects.correct | pipelines.runAndWait   | 'false'                | '5'                 | 'SUCCESS'        | 'success'         | '-1'      | ''    | [logMessages.defaultTiming, logMessages.jobOutcome]
     }
 
     @Unroll
