@@ -1,0 +1,97 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<flow-definition plugin="workflow-job@2.39">
+  <actions>
+    <org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobAction plugin="pipeline-model-definition@1.7.1"/>
+    <org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobPropertyTrackerAction plugin="pipeline-model-definition@1.7.1">
+      <jobProperties/>
+      <triggers/>
+      <parameters/>
+      <options/>
+    </org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobPropertyTrackerAction>
+  </actions>
+  <description></description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.StringParameterDefinition>
+          <name>configuration</name>
+          <description></description>
+          <defaultValue></defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>creds</name>
+          <description></description>
+          <defaultValue></defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>artifactName</name>
+          <description></description>
+          <defaultValue></defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>artifactVersion</name>
+          <description></description>
+          <defaultValue></defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>artifactPath</name>
+          <description></description>
+          <defaultValue></defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>relativeWorkspace</name>
+          <description></description>
+          <defaultValue></defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>repositoryName</name>
+          <description></description>
+          <defaultValue></defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+  </properties>
+  <definition class="org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition" plugin="workflow-cps@2.82">
+    <script>pipeline {
+    agent any
+    stages {
+        stage(&apos;Build&apos;) {
+            steps {
+                cleanWs()
+                sh &apos;echo &quot;=================== Run on jenkins side ====================&quot;&apos;
+                sh &apos;echo `pwd`&apos;
+                sh &apos;echo &quot;content1 of file1&quot; &gt;&gt; buildArtifact1.log&apos;
+                sh &apos;mkdir build&apos;
+                sh &apos;echo &quot;content2 of file2&quot; &gt;&gt; build/buildArtifact2.log&apos;
+                sh &apos;mkdir build2&apos;
+                sh &apos;mkdir build2/folder2&apos;
+                sh &apos;echo &quot;content3 of file3&quot; &gt;&gt; build2/folder2/buildArtifact3.log&apos;
+            }
+        }
+    }
+    post {
+        always {
+            script {
+                if (creds) {
+                    cloudBeesFlowPublishArtifact artifactName: &quot;${artifactName}&quot;, artifactVersion: &quot;${artifactVersion}&quot;, configuration: &quot;electricflow&quot;, filePath: &quot;${artifactPath}&quot;, overrideCredential: [credentialId: &quot;${creds}&quot;], relativeWorkspace: &quot;${relativeWorkspace}&quot;, repositoryName: &quot;${repositoryName}&quot;
+                }
+                else {
+                    cloudBeesFlowPublishArtifact artifactName: &quot;${artifactName}&quot;, artifactVersion: &quot;${artifactVersion}&quot;, configuration: &quot;electricflow&quot;, filePath: &quot;${artifactPath}&quot;, relativeWorkspace: &quot;${relativeWorkspace}&quot;, repositoryName: &quot;${repositoryName}&quot;
+                }
+            }
+        }
+    }
+}</script>
+    <sandbox>true</sandbox>
+  </definition>
+  <triggers/>
+  <disabled>false</disabled>
+</flow-definition>
