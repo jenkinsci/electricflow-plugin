@@ -36,7 +36,7 @@ class RunProcedureSuite extends JenkinsHelper {
     ]
 
     static def ciPipelinesNames = [
-            runAndWait: 'RunPipelineRunAndWaitPipeline',
+            runAndWait: 'RunProcedureRunAndWaitPipeline',
     ]
 
     @Shared
@@ -96,7 +96,7 @@ class RunProcedureSuite extends JenkinsHelper {
         ]
 
         when: 'Run pipeline and collect run properties'
-        JenkinsBuildJob ciJob = jjr.run("RunProcedureRunAndWaitPipeline", ciPipelineParameters)
+        JenkinsBuildJob ciJob = jjr.run(ciPipelinesNames.runAndWait, ciPipelineParameters)
 
         then: 'Collecting the result objects'
         assert ciJob.getCiJobOutcome() == ciJobOutcome
