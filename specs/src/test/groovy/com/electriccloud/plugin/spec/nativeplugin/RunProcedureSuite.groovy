@@ -35,10 +35,15 @@ class RunProcedureSuite extends JenkinsHelper {
             jobOutcome: "CD Job Status Response Data: .* status=completed, outcome=OUTCOME"
     ]
 
+    static def ciPipelinesNames = [
+            runAndWait: 'RunPipelineRunAndWaitPipeline',
+    ]
+
     @Shared
     String projectName, procedureName, caseId, logMessage
 
     def doSetupSpec() {
+        importJenkinsJob('RunProcedureRunAndWaitPipeline.xml', ciPipelinesNames.runAndWait)
         dslFile('dsl/RunAndWait/runAndWaitProcedure.dsl')
         // Do project import here
     }
