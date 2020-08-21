@@ -34,7 +34,7 @@ class TriggerPipelineSuite extends JenkinsHelper {
     def doSetupSpec() {
         importJenkinsJob('RunPipelineRunAndWaitPipeline.xml', ciPipelinesName.runAndWait)
         dslFile('dsl/RunAndWait/runAndWaitProcedure.dsl')
-        dslFile('dsl/ RunAndWait/runAndWaitPipeline.dsl')
+        dslFile('dsl/RunAndWait/runAndWaitPipeline.dsl')
         // Do project import here
     }
 
