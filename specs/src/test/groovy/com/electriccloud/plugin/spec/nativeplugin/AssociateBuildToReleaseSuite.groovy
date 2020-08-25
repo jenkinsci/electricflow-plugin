@@ -68,13 +68,7 @@ class AssociateBuildToReleaseSuite extends JenkinsHelper {
         dsl(new File(getClass().getResource('/dsl/RunAndWait/runAndWaitRelease.dsl').toURI()).text
                 .replace('TriggerReleaseRunAndWait', 'TriggerReleaseAssociateBuild'))
         dslFile('dsl/RunAndWait/runAndWaitProcedure.dsl')
-        dsl("""
-artifact 'test:AssociateBuildToRelease', artifactKey: 'AssociateBuildToRelease', {
-  description = ''
-  artifactVersionNameTemplate = ''
-  groupId = 'test'
-}
-""")
+        createArtifact("test", "AssociateBuildToRelease")
 
     }
 
