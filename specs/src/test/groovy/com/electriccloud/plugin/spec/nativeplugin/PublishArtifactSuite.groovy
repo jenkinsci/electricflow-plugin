@@ -68,13 +68,7 @@ class PublishArtifactSuite extends JenkinsHelper {
     def doSetupSpec() {
         importJenkinsJob('publishArtifactSuite.xml', ciPipelinesNames.relativeWorkspaces)
         dsl("deleteArtifact(artifactName: \"test:PublishArtifactWorkspace\")")
-        dsl("""
-artifact 'test:PublishArtifactWorkspace', artifactKey: 'PublishArtifactWorkspace', {
-  description = ''
-  artifactVersionNameTemplate = ''
-  groupId = 'test'
-}
-""")
+        createArtifact("test", "PublishArtifactWorkspace")
     }
 
     def "C499949. Publish artifact"() {

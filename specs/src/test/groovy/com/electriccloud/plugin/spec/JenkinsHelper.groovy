@@ -297,6 +297,15 @@ class JenkinsHelper extends PluginSpockTestSupport {
 
     }
 
+    def createArtifact(String groupId, String artifactKey) {
+        dsl("""
+            artifact '${groupId}:${artifactKey}', artifactKey: '${artifactKey}', {
+                description = ''
+                artifactVersionNameTemplate = ''
+                groupId = '${groupId}'
+            }""")
+    }
+
     //Fix http://jira.electric-cloud.com/browse/FLOWPLUGIN-7920
 
     String createResource(String hostname = "127.0.0.1", port = '7800', workspaceName = "default") {
