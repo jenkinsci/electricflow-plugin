@@ -15,49 +15,43 @@
     <hudson.model.ParametersDefinitionProperty>
       <parameterDefinitions>
         <hudson.model.StringParameterDefinition>
-          <name>flowConfigName</name>
-          <description></description>
-          <defaultValue>electricflow</defaultValue>
-          <trim>false</trim>
-        </hudson.model.StringParameterDefinition>
-        <hudson.model.StringParameterDefinition>
-          <name>creds</name>
-          <description></description>
-          <defaultValue>1</defaultValue>
-          <trim>false</trim>
-        </hudson.model.StringParameterDefinition>
-        <hudson.model.StringParameterDefinition>
-          <name>flowPipelineName</name>
-          <description></description>
-          <defaultValue>runProcedureRunAndWait</defaultValue>
-          <trim>false</trim>
-        </hudson.model.StringParameterDefinition>
-        <hudson.model.StringParameterDefinition>
-          <name>flowProjectName</name>
-          <description></description>
-          <defaultValue>pvNativeJenkinsProject01</defaultValue>
-          <trim>false</trim>
-        </hudson.model.StringParameterDefinition>
-        <hudson.model.StringParameterDefinition>
-          <name>procedureOutcome</name>
-          <description></description>
-          <defaultValue>success</defaultValue>
-          <trim>false</trim>
-        </hudson.model.StringParameterDefinition>
-        <hudson.model.StringParameterDefinition>
-          <name>sleepTime</name>
-          <description></description>
-          <defaultValue>10</defaultValue>
-          <trim>false</trim>
-        </hudson.model.StringParameterDefinition>
-        <hudson.model.StringParameterDefinition>
-          <name>runAndWaitInterval</name>
+          <name>configuration</name>
           <description></description>
           <defaultValue></defaultValue>
           <trim>false</trim>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
-          <name>dependOnCdJobOutcomeCh</name>
+          <name>creds</name>
+          <description></description>
+          <defaultValue></defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>artifactName</name>
+          <description></description>
+          <defaultValue></defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>artifactVersion</name>
+          <description></description>
+          <defaultValue></defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>artifactPath</name>
+          <description></description>
+          <defaultValue></defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>relativeWorkspace</name>
+          <description></description>
+          <defaultValue></defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>repositoryName</name>
           <description></description>
           <defaultValue></defaultValue>
           <trim>false</trim>
@@ -65,12 +59,8 @@
       </parameterDefinitions>
     </hudson.model.ParametersDefinitionProperty>
   </properties>
-  <definition class="org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition" plugin="workflow-cps@2.81">
-    <script>package projects.pipelines
-
-def jsonForReleaseParameters
-
-pipeline {
+  <definition class="org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition" plugin="workflow-cps@2.82">
+    <script>pipeline {
     agent any
     stages {
         stage(&apos;Build&apos;) {
@@ -78,6 +68,12 @@ pipeline {
                 cleanWs()
                 sh &apos;echo &quot;=================== Run on jenkins side ====================&quot;&apos;
                 sh &apos;echo `pwd`&apos;
+                sh &apos;echo &quot;content1 of file1&quot; &gt;&gt; buildArtifact1.log&apos;
+                sh &apos;mkdir build&apos;
+                sh &apos;echo &quot;content2 of file2&quot; &gt;&gt; build/buildArtifact2.log&apos;
+                sh &apos;mkdir build2&apos;
+                sh &apos;mkdir build2/folder2&apos;
+                sh &apos;echo &quot;content3 of file3&quot; &gt;&gt; build2/folder2/buildArtifact3.log&apos;
             }
         }
     }
@@ -85,16 +81,15 @@ pipeline {
         always {
             script {
                 if (creds) {
-                    cloudBeesFlowRunPipeline addParam: &apos;{&quot;pipeline&quot;:{&quot;pipelineName&quot;:&quot;$flowPipelineName&quot;,&quot;parameters&quot;:[{&quot;parameterName&quot;:&quot;procedureOutcome&quot;,&quot;parameterValue&quot;:&quot;$procedureOutcome&quot;},{&quot;parameterName&quot;:&quot;sleepTime&quot;,&quot;parameterValue&quot;:&quot;$sleepTime&quot;}]}}&apos;, configuration: &quot;$flowConfigName&quot;, overrideCredential: [credentialId: &quot;$creds&quot;], pipelineName: &quot;$flowPipelineName&quot;, projectName: &quot;$flowProjectName&quot;, runAndWaitOption: [checkInterval: &quot;$runAndWaitInterval&quot;, dependOnCdJobOutcome: &quot;$dependOnCdJobOutcomeCh&quot;]
+                    cloudBeesFlowPublishArtifact artifactName: &quot;${artifactName}&quot;, artifactVersion: &quot;${artifactVersion}&quot;, configuration: &quot;electricflow&quot;, filePath: &quot;${artifactPath}&quot;, overrideCredential: [credentialId: &quot;${creds}&quot;], relativeWorkspace: &quot;${relativeWorkspace}&quot;, repositoryName: &quot;${repositoryName}&quot;
                 }
                 else {
-                    cloudBeesFlowRunPipeline addParam: &apos;{&quot;pipeline&quot;:{&quot;pipelineName&quot;:&quot;$flowPipelineName&quot;,&quot;parameters&quot;:[{&quot;parameterName&quot;:&quot;procedureOutcome&quot;,&quot;parameterValue&quot;:&quot;$procedureOutcome&quot;},{&quot;parameterName&quot;:&quot;sleepTime&quot;,&quot;parameterValue&quot;:&quot;$sleepTime&quot;}]}}&apos;, configuration: &quot;$flowConfigName&quot;, pipelineName: &quot;$flowPipelineName&quot;, projectName: &quot;$flowProjectName&quot;, runAndWaitOption: [checkInterval: &quot;$runAndWaitInterval&quot;, dependOnCdJobOutcome: &quot;$dependOnCdJobOutcomeCh&quot;]
+                    cloudBeesFlowPublishArtifact artifactName: &quot;${artifactName}&quot;, artifactVersion: &quot;${artifactVersion}&quot;, configuration: &quot;electricflow&quot;, filePath: &quot;${artifactPath}&quot;, relativeWorkspace: &quot;${relativeWorkspace}&quot;, repositoryName: &quot;${repositoryName}&quot;
                 }
             }
         }
     }
-}
-</script>
+}</script>
     <sandbox>true</sandbox>
   </definition>
   <triggers/>

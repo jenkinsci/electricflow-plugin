@@ -6,6 +6,7 @@ import com.electriccloud.plugin.spec.core.pipeline.PipelineRun
 import com.electriccloud.plugin.spec.core.release.Release
 import com.electriccloud.plugin.spec.nativeplugin.utils.JenkinsBuildJob
 import com.electriccloud.plugin.spec.nativeplugin.utils.JenkinsJobRunner
+import spock.lang.Issue
 import spock.lang.Shared
 import spock.lang.Unroll
 
@@ -37,7 +38,8 @@ class AssociateBuildToReleaseSuite extends JenkinsHelper {
     static def releases = [
             correct  : 'pvRelease',
             incorrect: 'incorrect',
-            empty    : ''
+            empty    : '',
+            associateBuild: 'TriggerReleaseAssociateBuild',
     ]
 
     private static Release release
@@ -61,6 +63,13 @@ class AssociateBuildToReleaseSuite extends JenkinsHelper {
         assert pipelineRun != null: "Release should be started"
         flowRuntimeIds['correct'] = pipelineRun.getId() as String
         println("PIPELINE RUN ID: ${flowRuntimeIds['correct']}")
+
+        importJenkinsJob('AssociateBuildToRelease.xml', 'AssociateBuildToRelease')
+        dsl(new File(getClass().getResource('/dsl/RunAndWait/runAndWaitRelease.dsl').toURI()).text
+                .replace('TriggerReleaseRunAndWait', 'TriggerReleaseAssociateBuild'))
+        dslFile('dsl/RunAndWait/runAndWaitProcedure.dsl')
+        createArtifact("test", "AssociateBuildToRelease")
+
     }
 
     @Unroll
@@ -114,6 +123,85 @@ class AssociateBuildToReleaseSuite extends JenkinsHelper {
         'xx'   | pbasSequence.only          | '0'          | flowRuntimeIds.correct
         '2'    | pbasSequence.afterArtifact | '1'          | flowRuntimeIds.empty
         'xx'   | pbasSequence.afterArtifact | '1'          | flowRuntimeIds.correct
+    }
+
+    @Unroll
+    @Issue("NTVEPLUGIN-375")
+    def "AssociateBuildToRelease, check different status "() {
+        given: 'Parameters for the pipeline'
+
+        // Start release and receive a pipeline data
+        def pipelineReleaseInfo = dsl """
+                    startRelease(
+                        projectName: '${projects.correct}',
+                        releaseName: 'TriggerReleaseAssociateBuild',
+                        pipelineParameter: [procedureOutcome: 'success', sleepTime: '5'], 
+                    )
+        """
+        waitUntil {
+            pipelineCompleted(pipelineReleaseInfo)
+        }
+
+        flowRuntimeId = pipelineReleaseInfo.flowRuntime.flowRuntimeId
+
+        String projectName = projects.correct
+        String releaseName = releases.associateBuild
+
+        def ciPipelineParameters = [
+                flowConfigName : CI_CONFIG_NAME,
+                projectName: projectName,
+                releaseName: releaseName,
+                flowRuntimeId  : flowRuntimeId,
+                CIbuildResult: CIbuildResult
+        ]
+
+        when: 'Run pipeline and collect run properties'
+        JenkinsBuildJob ciJob = jjr.run('AssociateBuildToRelease', ciPipelineParameters)
+
+        then: 'Collecting the result objects'
+        assert ciJob.getCiJobOutcome() == CIbuildResult : "Pipeline on Jenkins is finished."
+
+        String buildName = ciJob.getJenkinsBuildDisplayName()
+        Release releaseCD = new Release(projects.correct, releases.associateBuild)
+        PipelineRun pipelineRunCD = releaseCD.getReleasePipeline().getLastRun()
+
+        CiBuildDetailInfo ciBuildDetailInfo = pipelineRunCD.findCiBuildDetailInfo(buildName)
+        CiBuildDetail cbd = ciBuildDetailInfo?.getCiBuildDetail()
+        ArtifactDetails artifact = ciBuildDetailInfo?.getArtifacts()?.get(0)
+
+        if (ciBuildDetailInfo == null) {
+            System.err.println(ciJob.getFullLogs())
+        }
+
+        // Receiving extended information about the CI build details
+        then: 'Checking the CiBuildDetail values'
+        verifyAll { // soft assert. Will show all the failed assertions
+            ciBuildDetailInfo['associationType'] == 'attached'
+            ciBuildDetailInfo['result'] == CIbuildResult
+            cbd['buildTriggerSource'] == "CI"
+        }
+
+        then: "Verify artifact info which is sent after PBA 'AssociateBuildToRelease'"
+        verifyAll {
+            artifact != null
+            artifact.getDisplayPath() == 'artifact.log'
+            artifact.getFileName() == 'artifact.log'
+            artifact.getHref() == "artifact.log"
+            artifact.getSize() != null
+
+            artifact.getArtifactName() == "test:AssociateBuildToRelease"
+            artifact.getRepositoryName() == "default"
+            artifact.getRepositoryType() == "Flow Artifact Repository"
+            artifact.getArtifactVersion() != null
+            artifact.getArtifactVersionName() != null
+            artifact.getUrl() != null
+        }
+
+        where:
+        caseId | CDReleaseOutcome | CIbuildResult
+        '1'    | 'success'        | "SUCCESS"
+        '2'    | 'success'        | "UNSTABLE"
+        '3'    | 'success'        | "FAILURE"
     }
 
     @Unroll
