@@ -1,4 +1,8 @@
-release 'TriggerReleaseRunAndWait', {
+package dsl
+
+def releaseName = args.releaseName
+
+release releaseName, {
   description = ''
   disableMultipleActiveRuns = '0'
   plannedEndDate = '2020-08-05'

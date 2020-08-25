@@ -65,8 +65,7 @@ class AssociateBuildToReleaseSuite extends JenkinsHelper {
         println("PIPELINE RUN ID: ${flowRuntimeIds['correct']}")
 
         importJenkinsJob('AssociateBuildToRelease.xml', 'AssociateBuildToRelease')
-        dsl(new File(getClass().getResource('/dsl/RunAndWait/runAndWaitRelease.dsl').toURI()).text
-                .replace('TriggerReleaseRunAndWait', 'TriggerReleaseAssociateBuild'))
+        dslFile('dsl/RunAndWait/runAndWaitRelease.dsl', [releaseName: releases.associateBuild])
         dslFile('dsl/RunAndWait/runAndWaitProcedure.dsl')
         createArtifact("test", "AssociateBuildToRelease")
 
@@ -134,7 +133,7 @@ class AssociateBuildToReleaseSuite extends JenkinsHelper {
         def pipelineReleaseInfo = dsl """
                     startRelease(
                         projectName: '${projects.correct}',
-                        releaseName: 'TriggerReleaseAssociateBuild',
+                        releaseName: '${releases.associateBuild}',
                         pipelineParameter: [procedureOutcome: 'success', sleepTime: '5'], 
                     )
         """

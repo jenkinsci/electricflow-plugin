@@ -66,7 +66,7 @@ class TriggerReleaseSuite extends JenkinsHelper {
     def doSetupSpec() {
         importJenkinsJob('TriggerReleaseRunAndWaitPipeline.xml', ciPipelinesNames.runAndWait)
         dslFile('dsl/RunAndWait/runAndWaitProcedure.dsl')
-        dslFile('dsl/RunAndWait/runAndWaitRelease.dsl')
+        dslFile('dsl/RunAndWait/runAndWaitRelease.dsl', [releaseName: flowReleases.runAndWait])
         // Do project import here
     }
 
