@@ -91,8 +91,14 @@ public class ElectricFlowRunProcedure extends Recorder implements SimpleBuildSte
 
     logger.println("Project name: " + projectName + ", Procedure name: " + procedureName);
 
-    JSONObject procedure = JSONObject.fromObject(procedureParameters).getJSONObject("procedure");
-    JSONArray parameter = JSONArray.fromObject(procedure.getString("parameters"));
+    JSONObject procedure;
+    JSONArray parameter;
+    if (procedureParameters == null) {
+      parameter = new JSONArray();
+    } else {
+      procedure = JSONObject.fromObject(procedureParameters).getJSONObject("procedure");
+      parameter = JSONArray.fromObject(procedure.getString("parameters"));
+    }
 
     try {
       logger.println("Preparing to run procedure...");
