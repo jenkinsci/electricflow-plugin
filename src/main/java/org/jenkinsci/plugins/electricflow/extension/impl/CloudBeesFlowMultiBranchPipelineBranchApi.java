@@ -22,21 +22,21 @@ public class CloudBeesFlowMultiBranchPipelineBranchApi extends CloudBeesFlowMult
             return;
         }
         // CEV-25644
-        if (parent instanceof MultiBranchProject) {
-            BranchProjectFactory projectFactory = ((MultiBranchProject) parent).getProjectFactory();
-            if (projectFactory.isProject(run.getParent())) {
-                Branch branch = projectFactory.getBranch(run.getParent());
-                SCMHead head = branch.getHead();
-                if (head instanceof ChangeRequestSCMHead) {
-                    // This logic will be executed if we're in pull request.
-                    SCMHead target = ((ChangeRequestSCMHead) head).getTarget();
-                    String targetBranchName = target.getName();
-                    this.setBranchName(targetBranchName);
-                }
-                else {
-                    this.setBranchName(head.getName());
-                }
+
+        BranchProjectFactory projectFactory = ((MultiBranchProject) parent).getProjectFactory();
+        if (projectFactory.isProject(run.getParent())) {
+            Branch branch = projectFactory.getBranch(run.getParent());
+            SCMHead head = branch.getHead();
+            if (head instanceof ChangeRequestSCMHead) {
+                // This logic will be executed if we're in pull request.
+                SCMHead target = ((ChangeRequestSCMHead) head).getTarget();
+                String targetBranchName = target.getName();
+                this.setBranchName(targetBranchName);
+            }
+            else {
+                this.setBranchName(head.getName());
             }
         }
+
     }
 }
