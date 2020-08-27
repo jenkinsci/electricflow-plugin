@@ -6,9 +6,11 @@ import hudson.model.Run;
 import jenkins.model.Jenkins;
 
 public class CloudBeesFlowMultiBranchPipeline implements ExtensionPoint {
-    protected String branchName = "";
+    protected String scmBranchName = "";
 
-    public CloudBeesFlowMultiBranchPipeline() {}
+    public CloudBeesFlowMultiBranchPipeline() {
+        this.scmBranchName = "";
+    }
     public static CloudBeesFlowMultiBranchPipeline build(Run run) {
         CloudBeesFlowMultiBranchPipeline retval = new CloudBeesFlowMultiBranchPipeline();
         final Jenkins jenkins = Jenkins.get();
@@ -16,8 +18,8 @@ public class CloudBeesFlowMultiBranchPipeline implements ExtensionPoint {
             final ExtensionList<CloudBeesFlowMultiBranchPipeline> makers = ExtensionList.lookup(CloudBeesFlowMultiBranchPipeline.class);
             for (CloudBeesFlowMultiBranchPipeline m : makers) {
                 m.populate(run);
-                if (m.getBranchName() != null && !m.getBranchName().equals("")) {
-                    retval.setBranchName(m.getBranchName());
+                if (m.getScmBranchName() != null && !m.getScmBranchName().equals("")) {
+                    retval.setScmBranchName(m.getScmBranchName());
                 }
             }
         }
@@ -26,11 +28,11 @@ public class CloudBeesFlowMultiBranchPipeline implements ExtensionPoint {
     // this method is required to use it in the optional extension
     public boolean isApplicable() {return false;}
 
-    public String getBranchName() {
-        return branchName;
+    public String getScmBranchName() {
+        return scmBranchName;
     }
-    public void setBranchName(String branchName) {
-        this.branchName = branchName;
+    public void setScmBranchName(String branchName) {
+        this.scmBranchName = branchName;
     }
-    public void populate(Run run) {}
+    public void populate(Run<?, ?> run) {}
 }

@@ -12,23 +12,33 @@ import org.jenkinsci.plugins.variant.OptionalExtension;
 
 @OptionalExtension(requirePlugins = {"branch-api", "scm-api"})
 public class CloudBeesFlowMultiBranchPipelineBranchApi extends CloudBeesFlowMultiBranchPipeline {
-    public void populate(Run run) {
+    public CloudBeesFlowMultiBranchPipelineBranchApi() {
+        this.scmBranchName = "";
+    }
+    public void populate(Run<?, ?> run) {
         ItemGroup parent = run.getParent().getParent();
-        if (parent instanceof MultiBranchProject) {
-            BranchProjectFactory projectFactory = ((MultiBranchProject) parent).getProjectFactory();
-            if (projectFactory.isProject(run.getParent())) {
-                Branch branch = projectFactory.getBranch(run.getParent());
-                SCMHead head = branch.getHead();
-                if (head instanceof ChangeRequestSCMHead) {
-                    // This logic will be executed if we're in pull request.
-                    SCMHead target = ((ChangeRequestSCMHead) head).getTarget();
-                    String targetBranchName = target.getName();
-                    this.setBranchName(targetBranchName);
-                }
-                else {
-                    this.setBranchName(head.getName());
-                }
+        // CEV-25644
+        // Explicit check for base class has been added to not populate any data if
+        // job is not a member of a MultiBranch project.
+        if (!(parent instanceof jenkins.branch.MultiBranchProject)) {
+            return;
+        }
+        // CEV-25644
+
+        BranchProjectFactory projectFactory = ((MultiBranchProject) parent).getProjectFactory();
+        if (projectFactory.isProject(run.getParent())) {
+            Branch branch = projectFactory.getBranch(run.getParent());
+            SCMHead head = branch.getHead();
+            if (head instanceof ChangeRequestSCMHead) {
+                // This logic will be executed if we're in pull request.
+                SCMHead target = ((ChangeRequestSCMHead) head).getTarget();
+                String targetBranchName = target.getName();
+                this.setScmBranchName(targetBranchName);
+            }
+            else {
+                this.setScmBranchName(head.getName());
             }
         }
+
     }
 }
