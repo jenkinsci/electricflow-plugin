@@ -32,5 +32,5 @@ public class CloudBeesFlowMultiBranchPipeline implements ExtensionPoint {
     public void setBranchName(String branchName) {
         this.branchName = branchName;
     }
-    public void populate(Run run) {}
+    public void populate(Run<?, ?> run) {}
 }

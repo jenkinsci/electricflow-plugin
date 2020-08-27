@@ -12,8 +12,16 @@ import org.jenkinsci.plugins.variant.OptionalExtension;
 
 @OptionalExtension(requirePlugins = {"branch-api", "scm-api"})
 public class CloudBeesFlowMultiBranchPipelineBranchApi extends CloudBeesFlowMultiBranchPipeline {
-    public void populate(Run run) {
+
+    public void populate(Run<?, ?> run) {
         ItemGroup parent = run.getParent().getParent();
+        // CEV-25644
+        // Explicit check for base class has been added to not populate any data if
+        // job is not a member of a MultiBranch project.
+        if (!(parent instanceof jenkins.branch.MultiBranchProject)) {
+            return;
+        }
+        // CEV-25644
         if (parent instanceof MultiBranchProject) {
             BranchProjectFactory projectFactory = ((MultiBranchProject) parent).getProjectFactory();
             if (projectFactory.isProject(run.getParent())) {
