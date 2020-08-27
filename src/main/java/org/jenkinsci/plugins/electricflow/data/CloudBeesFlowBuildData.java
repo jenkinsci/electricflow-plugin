@@ -106,7 +106,7 @@ public class CloudBeesFlowBuildData {
 
     // Getting multibranch pipeline data:
     CloudBeesFlowMultiBranchPipeline multiBranchPipeline = CloudBeesFlowMultiBranchPipeline.build(run);
-    this.setBranchName(multiBranchPipeline.getBranchName());
+    this.setBranchName(multiBranchPipeline.getScmBranchName());
     this.changeSets = new CloudBeesFlowSCMData(changeSets);
     this.testResult = new CloudBeesFlowTestResultData(run);
     this.artifacts = new CloudBeesFlowArtifactData(run);

@@ -12,7 +12,9 @@ import org.jenkinsci.plugins.variant.OptionalExtension;
 
 @OptionalExtension(requirePlugins = {"branch-api", "scm-api"})
 public class CloudBeesFlowMultiBranchPipelineBranchApi extends CloudBeesFlowMultiBranchPipeline {
-
+    public CloudBeesFlowMultiBranchPipelineBranchApi() {
+        this.scmBranchName = "";
+    }
     public void populate(Run<?, ?> run) {
         ItemGroup parent = run.getParent().getParent();
         // CEV-25644
@@ -31,10 +33,10 @@ public class CloudBeesFlowMultiBranchPipelineBranchApi extends CloudBeesFlowMult
                 // This logic will be executed if we're in pull request.
                 SCMHead target = ((ChangeRequestSCMHead) head).getTarget();
                 String targetBranchName = target.getName();
-                this.setBranchName(targetBranchName);
+                this.setScmBranchName(targetBranchName);
             }
             else {
-                this.setBranchName(head.getName());
+                this.setScmBranchName(head.getName());
             }
         }
 
