@@ -42,11 +42,7 @@ public class CloudBeesFlowSCM implements ExtensionPoint {
           }
           m.populate(obj);
           CloudBeesFlowSCM retval = m.generate();
-          // m.populate(obj);
           return retval;
-          //CloudBeesFlowSCM retval = new CloudBeesFlowSCM();
-          //retval.populate(obj);
-          //return retval;
         }
       }
     }

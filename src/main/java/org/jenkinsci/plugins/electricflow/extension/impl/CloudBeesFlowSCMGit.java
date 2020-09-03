@@ -32,7 +32,6 @@ public class CloudBeesFlowSCMGit extends CloudBeesFlowSCM {
   }
   public CloudBeesFlowSCM generate () {
     CloudBeesFlowSCM retval = new CloudBeesFlowSCM();
-    // retval.populate(obj);
 
     // author
     if (this.getAuthor() != null) {
