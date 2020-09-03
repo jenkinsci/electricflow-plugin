@@ -28,13 +28,15 @@ public class ElectricFlowBuildWatcher extends RunListener<Run> {
 
   @Override
   public void onStarted(Run run, TaskListener listener) {
-    // NOTE: Commented to be used for debug reasons.
+    // NOTE: Commented to be used for debug reasons during development later.
     // CloudBeesFlowBuildData cloudBeesFlowBuildData = new CloudBeesFlowBuildData(run);
     this.sendBuildDetailsToInstanceImproved(run, listener);
   }
 
   @Override
   public void onCompleted(Run run, TaskListener listener) {
+    // NOTE: Commented to be used for debug reasons during development later.
+    // CloudBeesFlowBuildData cloudBeesFlowBuildData = new CloudBeesFlowBuildData(run);
     this.sendBuildDetailsToInstanceImproved(run, listener);
   }
 
