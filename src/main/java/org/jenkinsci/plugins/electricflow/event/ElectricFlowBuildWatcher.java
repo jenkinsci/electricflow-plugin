@@ -154,9 +154,9 @@ public class ElectricFlowBuildWatcher extends RunListener<Run> {
 
       if (details != null) {
         try {
-          taskListener.getLogger().printf("Sending Build Details to CD:%n%s", details.toString());
+          taskListener.getLogger().printf("Sending Build Details to CD:%n%s%n", details.toString());
           JSONObject attachResult = electricFlowClient.attachCIBuildDetails(details);
-          taskListener.getLogger().printf("Send Build Details execution result:%n%s", attachResult.toString());
+          taskListener.getLogger().printf("Send Build Details execution result:%n%s%n", attachResult.toString());
 
 //          System.out.println(details.toString());
         } catch (IOException e) {
