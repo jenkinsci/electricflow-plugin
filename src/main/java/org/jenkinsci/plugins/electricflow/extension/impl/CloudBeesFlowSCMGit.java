@@ -30,7 +30,44 @@ public class CloudBeesFlowSCMGit extends CloudBeesFlowSCM {
     this.setTimestamp(object.getTimestamp());
     this.setScmType("git");
   }
+  public CloudBeesFlowSCM generate () {
+    CloudBeesFlowSCM retval = new CloudBeesFlowSCM();
 
+    // author
+    if (this.getAuthor() != null) {
+      retval.setAuthor(this.getAuthor());
+    }
+
+    // authorEmail
+    if (this.getAuthorEmail() != null) {
+      retval.setAuthorEmail(this.getAuthorEmail());
+    }
+
+    // commitMessage
+    if (this.getCommitMessage() != null) {
+      retval.setCommitMessage(this.getCommitMessage());
+    }
+
+    // scmReportUrl
+    if (this.getScmReportUrl() != null) {
+      retval.setScmReportUrl(this.getScmReportUrl());
+    }
+
+    // scmType
+    if (this.getScmType() != null) {
+      retval.setScmType(this.getScmType());
+    }
+
+    // commitId;
+    if (this.getCommitId() != null) {
+      retval.setCommitId(this.getCommitId());
+    }
+
+    // timestamp;
+    retval.setTimestamp(this.getTimestamp());
+
+    return retval;
+  }
   public boolean isApplicable(Object object) {
     return object instanceof GitChangeSet;
   }

@@ -40,9 +40,9 @@ public class CloudBeesFlowSCM implements ExtensionPoint {
           if (log.isDebugEnabled()) {
             log.debug("CloudBeesFlowSCM:: Applicable");
           }
-
           m.populate(obj);
-          return m;
+          CloudBeesFlowSCM retval = m.generate();
+          return retval;
         }
       }
     }
@@ -86,6 +86,9 @@ public class CloudBeesFlowSCM implements ExtensionPoint {
 
   // populate
   public void populate(Object object) {}
+  public CloudBeesFlowSCM generate() {
+    return null;
+  }
 
   /* getters and setters */
   public String getScmReportUrl() {
