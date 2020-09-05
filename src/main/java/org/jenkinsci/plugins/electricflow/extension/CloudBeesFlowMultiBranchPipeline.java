@@ -17,7 +17,7 @@ public class CloudBeesFlowMultiBranchPipeline implements ExtensionPoint {
         if (jenkins != null) {
             final ExtensionList<CloudBeesFlowMultiBranchPipeline> makers = ExtensionList.lookup(CloudBeesFlowMultiBranchPipeline.class);
             for (CloudBeesFlowMultiBranchPipeline m : makers) {
-                m.populate(run);
+                retval = m.generate(run);
                 if (m.getScmBranchName() != null && !m.getScmBranchName().equals("")) {
                     retval.setScmBranchName(m.getScmBranchName());
                 }
@@ -35,4 +35,5 @@ public class CloudBeesFlowMultiBranchPipeline implements ExtensionPoint {
         this.scmBranchName = branchName;
     }
     public void populate(Run<?, ?> run) {}
+    public CloudBeesFlowMultiBranchPipeline generate(Run<?, ?> run) { return null; }
 }
