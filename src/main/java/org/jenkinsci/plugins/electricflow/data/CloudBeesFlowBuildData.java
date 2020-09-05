@@ -155,7 +155,9 @@ public class CloudBeesFlowBuildData {
     }
 
     // adding branch object to the top level of JSON as per NTVEPLUGIN-377
-    json.put("ciJobBranchName", this.getBranchName());
+    if (this.getBranchName() != null && !this.getBranchName().equals("")) {
+      json.put("ciJobBranchName", this.getBranchName());
+    }
     // now adding object values to json
 
     // processing pipeline data
