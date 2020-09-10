@@ -9,6 +9,8 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import net.sf.json.JSONObject;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.jenkinsci.plugins.electricflow.Configuration;
 import org.jenkinsci.plugins.electricflow.ElectricFlowClient;
 import org.jenkinsci.plugins.electricflow.Utils;
@@ -22,6 +24,7 @@ import org.jenkinsci.plugins.electricflow.models.CIBuildDetail.BuildTriggerSourc
 
 @Extension
 public class ElectricFlowBuildWatcher extends RunListener<Run> {
+  private static final Log log = LogFactory.getLog(ElectricFlowBuildWatcher.class);
   public ElectricFlowBuildWatcher() {
     super(Run.class);
   }
@@ -154,14 +157,19 @@ public class ElectricFlowBuildWatcher extends RunListener<Run> {
 
       if (details != null) {
         try {
-          taskListener.getLogger().printf("Sending Build Details to CD:%n%s%n", details.toString());
+          if (log.isDebugEnabled()) {
+            taskListener.getLogger().printf("Sending Build Details to CD:%n%s%n", details.toString());
+          }
           JSONObject attachResult = electricFlowClient.attachCIBuildDetails(details);
-          taskListener.getLogger().printf("Send Build Details execution result:%n%s%n", attachResult.toString());
+          if (log.isDebugEnabled()) {
+            taskListener.getLogger().printf("Send Build Details execution result:%n%s%n", attachResult.toString());
+          }
 
 //          System.out.println(details.toString());
         } catch (IOException e) {
           continue;
         } catch (RuntimeException ex) {
+          taskListener.getLogger().printf("Sent Build Details to CD:%n%s%n", details.toString());
           taskListener
                   .getLogger()
                   .printf("[Configuration %s] Can't attach CiBuildData%n", tc.getConfigurationName());
