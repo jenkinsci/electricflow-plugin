@@ -12,7 +12,6 @@ import net.sf.json.JSONObject;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jenkinsci.plugins.electricflow.Configuration;
-import org.jenkinsci.plugins.electricflow.ElectricFlowAssociateBuildToRelease;
 import org.jenkinsci.plugins.electricflow.ElectricFlowClient;
 import org.jenkinsci.plugins.electricflow.Utils;
 import org.jenkinsci.plugins.electricflow.action.CloudBeesCDPBABuildDetails;
