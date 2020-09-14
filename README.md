@@ -347,6 +347,14 @@ node{
 
 # Release Notes
 
+## Version 1.1.18 (September 14, 2020)
+
+- Updated Publish Artifact by Relative Workspace parameter
+- Updated Run And Wait checkInterval by min value
+- Updated "Depend on CD job/pipeline outcome" functionality by association of CloudBees CD job/pipeline outcome "Warning" with CloudBees CI build result "Unstable"
+- Updated build summary links for Run Pipeline, Publish Artifact, Trigger Release
+- Fixed snippet generator UI for pipeline steps with extra parameters (Run Procedure, Trigger Release, Run Pipeline, Deploy Application)
+
 ## Version 1.1.17 (July 17, 2020)
 
 Improvements:
