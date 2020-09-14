@@ -324,16 +324,20 @@ class JenkinsHelper extends PluginSpockTestSupport {
         resName
     }
 
-    JenkinsCLIWrapper jenkinsCli() {
+    static JenkinsCLIWrapper jenkinsCli() {
         String username = System.getenv('JENKINS_USER')
         String password = System.getenv('JENKINS_PASSWORD')
 
-        String url = System.getenv('JENKINS_EXT_URL') ?: System.getenv('JENKINS_URL')
+        String url = getJenkinsExtUrl()
 
         String tempDir = System.getProperty('java.io.tmpdir')
         String cliPath = new File(tempDir, 'jenkins-cli.jar').getAbsolutePath()
 
         return new JenkinsCLIWrapper(url, username, password, cliPath, true)
+    }
+
+    static String getJenkinsExtUrl(){
+        return System.getenv('JENKINS_EXT_URL') ?: System.getenv('JENKINS_URL')
     }
 
     def importJenkinsJob(String fileResourceName, String jobName){
@@ -348,6 +352,43 @@ class JenkinsHelper extends PluginSpockTestSupport {
         def importResult = jenkinsCli().importJenkinsJob(jobName, xmlPath)
         println("Result of import: ${importResult}")
         return importResult
+    }
+
+    static def runJenkinsJob( String jobName, Map<String, String> parameters = null){
+
+        JenkinsCLIWrapper cli = jenkinsCli()
+
+        List<String> args = new ArrayList<>()
+
+        // Command
+        args.push('build')
+        args.push(jobName)
+
+        // Follow the build progress and stop if interrupted
+        args.push('-s')
+
+        // Print log to the STDOUT
+        args.push('-v')
+
+        // Specify the parameters
+        if (parameters != null && parameters.size() > 0){
+            parameters.each {k, v ->
+                String value = v
+
+                if (value != '') {
+                    args.push((String) "-p")
+                    args.push((String) "$k=$value")
+                }
+            }
+        }
+
+        def res = cli.executeCommand(args)
+
+        if (!res.isSuccess()){
+            println(res.toString())
+        }
+
+        return res
     }
 
 }

@@ -2,7 +2,7 @@ package com.electriccloud.plugin.spec.nativeplugin.utils
 
 import com.electriccloud.plugin.spec.core.Job
 
-class JenkinsBuildJob extends Job {
+class JenkinsProcedureJob extends Job implements JenkinsJob {
 
     @Lazy
     String jenkinsJobName = { getJobProperty("jobName") }()
@@ -35,7 +35,7 @@ class JenkinsBuildJob extends Job {
         _retrieveFullLogs()
     }()
 
-    JenkinsBuildJob(String jobId) {
+    JenkinsProcedureJob(String jobId) {
         super(jobId)
     }
 

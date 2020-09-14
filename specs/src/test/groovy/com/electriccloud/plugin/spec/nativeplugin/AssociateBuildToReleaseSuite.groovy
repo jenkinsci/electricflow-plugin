@@ -4,7 +4,7 @@ import com.electriccloud.plugin.spec.JenkinsHelper
 import com.electriccloud.plugin.spec.core.cibuilddetails.*
 import com.electriccloud.plugin.spec.core.pipeline.PipelineRun
 import com.electriccloud.plugin.spec.core.release.Release
-import com.electriccloud.plugin.spec.nativeplugin.utils.JenkinsBuildJob
+import com.electriccloud.plugin.spec.nativeplugin.utils.JenkinsProcedureJob
 import com.electriccloud.plugin.spec.nativeplugin.utils.JenkinsJobRunner
 import spock.lang.Issue
 import spock.lang.Shared
@@ -90,7 +90,7 @@ class AssociateBuildToReleaseSuite extends JenkinsHelper {
         ]
 
         when: 'Run pipeline and collect run properties'
-        JenkinsBuildJob ciJob = jjr.run(PIPELINE_NAME, ciPipelineParameters)
+        JenkinsProcedureJob ciJob = jjr.run(PIPELINE_NAME, ciPipelineParameters)
 
         then: 'Collecting the result objects'
         assert ciJob.isSuccess(): "Pipeline on Jenkins is finished."
@@ -155,7 +155,7 @@ class AssociateBuildToReleaseSuite extends JenkinsHelper {
         ]
 
         when: 'Run pipeline and collect run properties'
-        JenkinsBuildJob ciJob = jjr.run('AssociateBuildToRelease', ciPipelineParameters)
+        JenkinsProcedureJob ciJob = jjr.run('AssociateBuildToRelease', ciPipelineParameters)
 
         then: 'Collecting the result objects'
         assert ciJob.getCiJobOutcome() == CIbuildResult : "Pipeline on Jenkins is finished."
@@ -216,7 +216,7 @@ class AssociateBuildToReleaseSuite extends JenkinsHelper {
         ]
 
         when: 'Run pipeline and collect run properties'
-        JenkinsBuildJob ciJob = jjr.run(PIPELINE_NAME, ciPipelineParameters)
+        JenkinsProcedureJob ciJob = jjr.run(PIPELINE_NAME, ciPipelineParameters)
 
         then: 'Collecting the result objects'
         assert ciJob.getOutcome() == 'success': "Pipeline on Jenkins was started."

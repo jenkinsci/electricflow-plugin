@@ -57,7 +57,11 @@ class JenkinsJobRunner {
         loggerImported = true
     }
 
-    JenkinsBuildJob run(String jobName, Map<String, String> buildParameters = null, String parallelMode = '0') {
+    @Deprecated
+    /**
+     * Use runCLI() instead
+     */
+    JenkinsProcedureJob run(String jobName, Map<String, String> buildParameters = null, String parallelMode = '0') {
         runnerImported || initialize_runner()
 
         String buildParamsStr = buildParameters.collect({ k, v -> "$k=$v" }).join(',')
@@ -75,7 +79,7 @@ class JenkinsJobRunner {
                 )
         """
 
-        JenkinsBuildJob result = new JenkinsBuildJob(jh.dslWithTimeout(code)['jobId'] as String)
+        JenkinsProcedureJob result = new JenkinsProcedureJob(jh.dslWithTimeout(code)['jobId'] as String)
         println("Job Link: " + jh.getJobLink(result.jobId))
 
         if (result.getJobProperty('outcome') != 'success') {
@@ -94,6 +98,23 @@ class JenkinsJobRunner {
         println("Jenkins Job : " + result.getJenkinsBuildUrl())
 
         return result
+    }
+
+    JenkinsJob runCli(String jobName, Map<String, String> buildParameters = null){
+        def res = JenkinsHelper.runJenkinsJob(jobName, buildParameters)
+
+        JenkinsJob job = new JenkinsCLIJob(
+                jenkinsJobName: jobName,
+                jenkinsBuildLogs: res.getStdOut(),
+                jenkinsUrl: JenkinsHelper.getJenkinsExtUrl()
+//                jenkinsBuildUrl
+                // buildNumber
+                // displayName
+                // jenkinsBuildLogs
+//                jenkinsBuildNumber
+        )
+
+        return job
     }
 
     static String collectJenkinsLogs(String jobName, String buildNumber) {

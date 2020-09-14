@@ -1,7 +1,8 @@
 package com.electriccloud.plugin.spec.nativeplugin
 
 import com.electriccloud.plugin.spec.JenkinsHelper
-import com.electriccloud.plugin.spec.nativeplugin.utils.JenkinsBuildJob
+import com.electriccloud.plugin.spec.nativeplugin.utils.JenkinsCLIJob
+import com.electriccloud.plugin.spec.nativeplugin.utils.JenkinsJob
 import com.electriccloud.plugin.spec.nativeplugin.utils.JenkinsJobRunner
 import spock.lang.Shared
 import spock.lang.Unroll
@@ -65,7 +66,6 @@ class CallRestApiSuite extends JenkinsHelper {
 
         def pipelineParameters = [
                 runOnly                : testPbaName,
-                buildParameters        : 'assemble --rerun-tasks test',
                 flowConfigName         : CI_CONFIG_NAME,
                 flowHTTPBody           : httpBody,
                 flowEnvVarNameForResult: envVarName,
@@ -74,7 +74,7 @@ class CallRestApiSuite extends JenkinsHelper {
         ]
 
         when: 'Run pipeline and collect run properties'
-        JenkinsBuildJob ciJob = jjr.run(PIPELINE_NAME, pipelineParameters)
+        JenkinsJob ciJob = jjr.runCli(PIPELINE_NAME, pipelineParameters)
         assert ciJob.isSuccess(): "Pipeline on Jenkins is finished."
 
         then: 'Collecting the result objects'
@@ -105,7 +105,6 @@ class CallRestApiSuite extends JenkinsHelper {
 
         def pipelineParameters = [
                 runOnly                : testPbaName,
-                buildParameters        : 'assemble --rerun-tasks test',
                 flowConfigName         : CI_CONFIG_NAME,
                 flowHTTPBody           : httpBody,
                 flowEnvVarNameForResult: envVarName,
@@ -114,10 +113,7 @@ class CallRestApiSuite extends JenkinsHelper {
         ]
 
         when: 'Run pipeline and collect run properties'
-        JenkinsBuildJob ciJob = jjr.run(PIPELINE_NAME, pipelineParameters)
-        assert ciJob['jobId']
-        assert ciJob.getOutcome() == 'success': "Pipeline was run by EC-Jenkins"
-
+        JenkinsJob ciJob = jjr.runCli(PIPELINE_NAME, pipelineParameters)
 
         then:
         assert !ciJob.isSuccess()

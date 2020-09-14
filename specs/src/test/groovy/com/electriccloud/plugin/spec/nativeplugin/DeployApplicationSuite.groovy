@@ -2,7 +2,7 @@ package com.electriccloud.plugin.spec.nativeplugin
 
 import com.electriccloud.plugin.spec.JenkinsHelper
 import com.electriccloud.plugin.spec.core.application.Application
-import com.electriccloud.plugin.spec.nativeplugin.utils.JenkinsBuildJob
+import com.electriccloud.plugin.spec.nativeplugin.utils.JenkinsProcedureJob
 import com.electriccloud.plugin.spec.nativeplugin.utils.JenkinsJobRunner
 import spock.lang.Shared
 import spock.lang.Unroll
@@ -74,7 +74,7 @@ class DeployApplicationSuite extends JenkinsHelper {
         ]
 
         when: 'Run pipeline and collect run properties'
-        JenkinsBuildJob ciJob = jjr.run(PIPELINE_NAME, ciPipelineParameters)
+        JenkinsProcedureJob ciJob = jjr.run(PIPELINE_NAME, ciPipelineParameters)
 
         then: 'Collecting the result objects'
         assert ciJob.isSuccess(): "Pipeline on Jenkins is finished."
@@ -101,7 +101,7 @@ class DeployApplicationSuite extends JenkinsHelper {
         ]
 
         when: 'Run pipeline and collect run properties'
-        JenkinsBuildJob ciJob = jjr.run(PIPELINE_NAME, ciPipelineParameters)
+        JenkinsProcedureJob ciJob = jjr.run(PIPELINE_NAME, ciPipelineParameters)
 
         then: 'Collecting the result objects'
         assert !ciJob.isSuccess(): "Pipeline on Jenkins is finished with error"

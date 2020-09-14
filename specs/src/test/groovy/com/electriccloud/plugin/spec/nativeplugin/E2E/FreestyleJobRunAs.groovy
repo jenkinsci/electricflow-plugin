@@ -1,7 +1,7 @@
 package com.electriccloud.plugin.spec.nativeplugin.E2E
 
 import com.electriccloud.plugin.spec.JenkinsHelper
-import com.electriccloud.plugin.spec.nativeplugin.utils.JenkinsBuildJob
+import com.electriccloud.plugin.spec.nativeplugin.utils.JenkinsProcedureJob
 import com.electriccloud.plugin.spec.nativeplugin.utils.JenkinsJobRunner
 import com.electriccloud.plugins.annotations.Sanity
 
@@ -22,7 +22,7 @@ class FreestyleJobRunAs extends JenkinsHelper {
         def pipelineName = PIPELINE_NAME
 
         when: 'Run pipeline and collect run properties'
-        JenkinsBuildJob ciJob = jjr.run(pipelineName)
+        JenkinsProcedureJob ciJob = jjr.run(pipelineName)
 
         then: 'Assuming everything has finished with success'
         assert ciJob.isSuccess(): "Pipeline on Jenkins is finished with success."

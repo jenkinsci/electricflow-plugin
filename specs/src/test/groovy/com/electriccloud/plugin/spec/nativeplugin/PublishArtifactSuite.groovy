@@ -3,7 +3,7 @@ package com.electriccloud.plugin.spec.nativeplugin
 import com.electriccloud.plugin.spec.JenkinsHelper
 import com.electriccloud.plugin.spec.core.artifacts.Artifact
 import com.electriccloud.plugin.spec.core.artifacts.ArtifactVersion
-import com.electriccloud.plugin.spec.nativeplugin.utils.JenkinsBuildJob
+import com.electriccloud.plugin.spec.nativeplugin.utils.JenkinsProcedureJob
 import com.electriccloud.plugin.spec.nativeplugin.utils.JenkinsJobRunner
 import spock.lang.Issue
 import spock.lang.Shared
@@ -92,7 +92,7 @@ class PublishArtifactSuite extends JenkinsHelper {
         ]
 
         when: 'Run pipeline and collect run properties'
-        JenkinsBuildJob ciJob = jjr.run(PIPELINE_NAME, ciPipelineParameters)
+        JenkinsProcedureJob ciJob = jjr.run(PIPELINE_NAME, ciPipelineParameters)
 
         then: 'Collecting the result objects'
         assert ciJob.isSuccess(): "Pipeline on Jenkins is finished with success."
@@ -130,7 +130,7 @@ class PublishArtifactSuite extends JenkinsHelper {
         // if artifact exists, but artifactVersions don't , getVersions returns empty list
         String lastArtifactVersionBefore = artifact.getVersions() ? artifact.getVersions().last() : ''
 
-        JenkinsBuildJob ciJob = jjr.run(ciPipelinesNames.relativeWorkspaces, ciPipelineParameters)
+        JenkinsProcedureJob ciJob = jjr.run(ciPipelinesNames.relativeWorkspaces, ciPipelineParameters)
 
         then: 'Collecting the result objects'
         assert ciJob.isSuccess(): "Pipeline on Jenkins is finished with success."
@@ -172,7 +172,7 @@ class PublishArtifactSuite extends JenkinsHelper {
         Artifact artifact = new Artifact(artGroup, artName)
         def listOfArtifactsBeforeProcedureRun = artifact.getVersions().collect { it.getVersion() }.sort()
 
-        JenkinsBuildJob ciJob = jjr.run(ciPipelinesNames.relativeWorkspaces, ciPipelineParameters)
+        JenkinsProcedureJob ciJob = jjr.run(ciPipelinesNames.relativeWorkspaces, ciPipelineParameters)
         artifact.refresh()
         def listOfArtifactsAfterProcedureRun = artifact.getVersions().collect { it.getVersion() }.sort()
 
@@ -201,7 +201,7 @@ class PublishArtifactSuite extends JenkinsHelper {
         ]
 
         when: 'Run pipeline and collect run properties'
-        JenkinsBuildJob ciJob = jjr.run(PIPELINE_NAME, ciPipelineParameters)
+        JenkinsProcedureJob ciJob = jjr.run(PIPELINE_NAME, ciPipelineParameters)
 
         then: 'Collecting the result objects'
         assert ciJob.outcome == 'success': "Pipeline on Jenkins was started."
