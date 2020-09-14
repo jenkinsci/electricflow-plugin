@@ -354,6 +354,9 @@ node{
 - Updated "Depend on CD job/pipeline outcome" functionality by association of CloudBees CD job/pipeline outcome "Warning" with CloudBees CI build result "Unstable"
 - Updated build summary links for Run Pipeline, Publish Artifact, Trigger Release
 - Fixed snippet generator UI for pipeline steps with extra parameters (Run Procedure, Trigger Release, Run Pipeline, Deploy Application)
+- Event-based build watchers have been improved and now they are also sending build infomation after the build is finished.
+- CloudBees CD Multibranch Pipelines support has been improved.
+- Bug fixes and improvements
 
 ## Version 1.1.17 (July 17, 2020)
 
