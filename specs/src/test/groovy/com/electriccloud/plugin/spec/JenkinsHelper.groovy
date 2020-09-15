@@ -1,6 +1,7 @@
 package com.electriccloud.plugin.spec
 
 import com.electriccloud.cd.plugins.jenkinscliwrapper.JenkinsCLIWrapper
+import com.electriccloud.plugin.spec.nativeplugin.utils.GitHelper
 import com.electriccloud.spec.PluginSpockTestSupport
 import spock.util.concurrent.PollingConditions
 
@@ -8,6 +9,8 @@ class JenkinsHelper extends PluginSpockTestSupport {
     static def pluginName = "EC-Jenkins"
     static def automationTestsContextRun = System.getenv('AUTOMATION_TESTS_CONTEXT_RUN') ?: ''
     static def pluginVersion = System.getenv('PLUGIN_VERSION') ?: ''
+    // TODO: implementation can be changed when EC-Git will be added
+    static def gitHelper = new GitHelper()
 
     static final Map DEFAULT_JENKINS_PARAMS = [
             url     : 'http://jenkins:8080',
