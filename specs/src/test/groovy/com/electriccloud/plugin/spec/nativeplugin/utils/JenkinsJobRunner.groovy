@@ -42,6 +42,30 @@ class JenkinsJobRunner {
                 projectName, 'dsl/RunAndWait/Procedure.dsl',
                 [projectName: projectName]
         )
+        jh.importProject(
+                projectName, 'dsl/Common/RunProcedure.dsl',
+                [projectName: projectName, procedureName: 'JobAction', params: [
+                        config_name: '',
+                        job_name: '',
+                        action: ''
+                ]]
+        )
+        jh.importProject(
+                projectName, 'dsl/Common/RunProcedure.dsl',
+                [projectName: projectName, procedureName: 'GetBuildStatus', params: [
+                        config_name: '',
+                        job_name: '',
+                        wait_for_build: ''
+                ]]
+        )
+        jh.importProject(
+                projectName, 'dsl/Common/RunProcedure.dsl',
+                [projectName: projectName, procedureName: 'GetBuildDetails', params: [
+                        config_name: '',
+                        job_name: '',
+                        result_outpp: ''
+                ]]
+        )
 
         runnerImported = true
     }
@@ -94,6 +118,58 @@ class JenkinsJobRunner {
         println("Jenkins Job : " + result.getJenkinsBuildUrl())
 
         return result
+    }
+
+    JenkinsBuildJob scanMBPipeline(String jobName, String branchName){
+        runnerImported || initialize_runner()
+
+        def scanMBPipelineCode = """
+                runProcedure(
+                    projectName: '$projectName',
+                    procedureName: 'JobAction',
+                    actualParameter: [
+                        config_name:                '$configName',
+                        job_name:                   '$jobName',
+                        action:                     'build'
+                    ]
+                )
+        """
+        jh.dslWithTimeout(scanMBPipelineCode)
+        def waitMBPipelineCode = """
+                runProcedure(
+                    projectName: '$projectName',
+                    procedureName: 'GetBuildStatus',
+                    actualParameter: [
+                        config_name:                '$configName',
+                        job_name:                   '${jobName}/${branchName}',
+                        wait_for_build:              '1'
+                    ]
+                )
+        """
+        jh.dslWithTimeout(waitMBPipelineCode)
+        def getMBPipelineDetailsCode = """
+                runProcedure(
+                    projectName: '$projectName',
+                    procedureName: 'GetBuildDetails',
+                    actualParameter: [
+                        config_name:                '$configName',
+                        job_name:                   '${jobName}/${branchName}',
+                        result_outpp:               '/myJobStep/buildDetails'
+                    ]
+                )
+        """
+
+        JenkinsMultiBranchPipelineBuildJob result = new JenkinsMultiBranchPipelineBuildJob(jh.dslWithTimeout(getMBPipelineDetailsCode)['jobId'] as String)
+        println("Job Link: " + jh.getJobLink(result.jobId))
+
+        if (result.getJobProperty('outcome') != 'success') {
+            System.err.println("EC-Jenkins:RunAndWait job failed.")
+            System.err.println(result.logs)
+            return result
+        }
+
+        return result
+
     }
 
     static String collectJenkinsLogs(String jobName, String buildNumber) {
