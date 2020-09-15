@@ -8,6 +8,8 @@ import com.electriccloud.plugin.spec.core.pipeline.Pipeline
 import com.electriccloud.plugin.spec.core.pipeline.PipelineRun
 import com.electriccloud.plugin.spec.nativeplugin.utils.JenkinsBuildJob
 import com.electriccloud.plugin.spec.nativeplugin.utils.JenkinsJobRunner
+import com.electriccloud.plugin.spec.nativeplugin.utils.JenkinsMultiBranchPipelineBuildJob
+import groovy.json.JsonSlurper
 import spock.lang.Issue
 import spock.lang.Shared
 import spock.lang.Unroll
@@ -173,6 +175,93 @@ class TriggerPipelineSuite extends JenkinsHelper {
         'C519155'   | ciConfigs.incorrectPassword | projects.correct | pipelines.runAndWait   | 'true'                 | '5'                 | 'SUCCESS'        | 'success'         | '4'       | '4'   | [logMessages.timing, logMessages.jobOutcome]
         'NTPLGN-367'| ciConfigs.correct           | projects.correct | pipelines.runAndWait   | 'false'                | '5'                 | 'SUCCESS'        | 'success'         | '0'       | ''    | [logMessages.defaultTiming, logMessages.jobOutcome]
         'NTPLGN-367'| ciConfigs.correct           | projects.correct | pipelines.runAndWait   | 'false'                | '5'                 | 'SUCCESS'        | 'success'         | '-1'      | ''    | [logMessages.defaultTiming, logMessages.jobOutcome]
+    }
+
+    @Unroll
+    @Issue("NTVEPLUGIN-377")
+    // file "filesForCommit.txt" should exist for this case in the branch build/parametrizedQA
+    def "Run MultiBranch"() {
+        given: "Clone repository and make and push a commit to remote branch and Parameters for the pipeline"
+        def gitFolder = gitHelper.pullAndCheckoutToBranch()
+        def commitMessages = []
+        commitMessages += gitHelper.addNewChangeToFile("filesForCommit.txt", "changes1", gitFolder)
+        commitMessages += gitHelper.addNewChangeToFile("filesForCommit.txt", "changes2", gitFolder)
+        gitHelper.createGitUserConfig(gitFolder)
+        gitHelper.gitPushToRemoteRepository("build/parametrizedQA", gitFolder)
+
+        Pipeline pipeline = new Pipeline(flowProjectName, flowPipelineName)
+        PipelineRun previousPipelineRun = pipeline.getLastRun()
+
+        def ciPipelineParameters = [
+                flowConfigName  : ciConfig,
+                flowProjectName : flowProjectName,
+                flowPipelineName: flowPipelineName,
+                dependOnCdJobOutcomeCh: dependOnCdJobOutcomeCh,
+                runAndWaitInterval    : runAndWaitInterval,
+                procedureOutcome: procedureOutcome,
+                sleepTime: sleepTime,
+                creds: creds
+        ]
+
+        when: 'Run pipeline and collect run properties'
+
+        JenkinsBuildJob ciJob
+        if (launchByScan){
+            ciJob = jjr.scanMBPipeline("MultiBranchPipeline", "build%2FparametrizedQA")
+        }
+        else {
+            ciJob = jjr.run("MultiBranchPipeline/build%2FparametrizedQA", ciPipelineParameters)
+        }
+
+        then: 'Collecting the result objects'
+        println(ciJob.getClass())
+        assert ciJob.getCiJobOutcome() == ciJobOutcome
+
+        String buildNumber = ciJob.getJenkinsBuildNumber()
+        pipeline.refresh()
+        PipelineRun newPipelineRun = pipeline.pipelineRuns.last()
+        if (previousPipelineRun != null) {
+            int prevNumber = previousPipelineRun.getNumber()
+            int newNumber = newPipelineRun.getNumber()
+            assert newNumber > prevNumber: 'new number is greater than previous'
+        }
+
+        // NTVEPLUGIN-378
+        assert !(ciJob.logs.contains('Unauthorized'))
+
+        CiBuildDetailInfo ciBuildDetailInfo = newPipelineRun.findCiBuildDetailInfo("MultiBranch Pipeline » build/parametrizedQA #" + buildNumber)
+        CiBuildDetail cbd = ciBuildDetailInfo?.getCiBuildDetail()
+        def changesSets =  new JsonSlurper().parseText(ciBuildDetailInfo.ciBuildDetail.dslObject['buildData'])["changeSets"]
+
+        // Receiving extended information about the CI build details
+        expect: 'Checking the CiBuildDetail values'
+        println(ciBuildDetailInfo)
+        verifyAll { // soft assert. Will show all the failed cases
+            ciBuildDetailInfo['associationType'] == 'triggeredByCI'
+            changesSets.collect{ it['commitMessage'] }.sort() == commitMessages.sort()
+            if (dependOnCdJobOutcomeCh.toBoolean()){
+                ciBuildDetailInfo['result'] == ciJobOutcome
+            }
+            else {
+                ciBuildDetailInfo['result'] == "SUCCESS"
+            }
+            cbd['buildTriggerSource'] == "CI"
+            ciBuildDetailInfo['jobBranchName'] == "build/parametrizedQA"
+            ciBuildDetailInfo['displayName'] == "MultiBranch Pipeline » build/parametrizedQA #" + buildNumber
+
+            if (launchByScan) {
+                ciBuildDetailInfo['launchedBy'] == "Branch indexing"
+            }
+            else {
+                ciBuildDetailInfo['launchedBy'] == "Started by user admin"
+            }
+        }
+
+
+        where:
+        caseId      | ciConfig                    | flowProjectName  | flowPipelineName       | dependOnCdJobOutcomeCh | runAndWaitInterval  | ciJobOutcome     | procedureOutcome  | sleepTime | creds | launchByScan | logMessage
+        'C519154'   | ciConfigs.correct           | projects.correct | pipelines.runAndWait   | 'false'                | '5'                 | 'SUCCESS'        | 'success'         | '4'       | ''    | false        | [logMessages.timing, logMessages.jobOutcome]
+        'C519154'   | ciConfigs.correct           | projects.correct | pipelines.runAndWait   | 'false'                | '5'                 | 'SUCCESS'        | 'success'         | '4'       | ''    | true         | [logMessages.timing, logMessages.jobOutcome]
     }
 
     @Unroll
