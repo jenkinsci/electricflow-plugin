@@ -2,6 +2,7 @@ package com.electriccloud.plugin.spec.nativeplugin.utils
 
 import com.electriccloud.plugin.spec.JenkinsHelper
 import com.electriccloud.plugin.spec.core.Job
+import groovy.json.JsonSlurper
 
 /**
  * Singleton jobs runner (to prevent importing of the same procedure in every suite)
@@ -133,8 +134,7 @@ class JenkinsJobRunner {
                         action:                     'build'
                     ]
                 )
-        """
-        jh.dslWithTimeout(scanMBPipelineCode)
+            """
         def waitMBPipelineCode = """
                 runProcedure(
                     projectName: '$projectName',
@@ -145,8 +145,7 @@ class JenkinsJobRunner {
                         wait_for_build:              '1'
                     ]
                 )
-        """
-        jh.dslWithTimeout(waitMBPipelineCode)
+            """
         def getMBPipelineDetailsCode = """
                 runProcedure(
                     projectName: '$projectName',
@@ -157,11 +156,26 @@ class JenkinsJobRunner {
                         result_outpp:               '/myJobStep/buildDetails'
                     ]
                 )
-        """
+            """
+        JenkinsMultiBranchPipelineBuildJob previousResultOfMBPipeline = new JenkinsMultiBranchPipelineBuildJob(jh.dslWithTimeout(getMBPipelineDetailsCode)['jobId'] as String)
+        def prevBuildNumber = previousResultOfMBPipeline.getJenkinsBuildNumber()
 
-        JenkinsMultiBranchPipelineBuildJob result = new JenkinsMultiBranchPipelineBuildJob(jh.dslWithTimeout(getMBPipelineDetailsCode)['jobId'] as String)
+        jh.dslWithTimeout(scanMBPipelineCode)
+        jh.dslWithTimeout(waitMBPipelineCode)
+
+        JenkinsMultiBranchPipelineBuildJob result
+        for (int i=0; i<4; i++) {
+            result = new JenkinsMultiBranchPipelineBuildJob(jh.dslWithTimeout(getMBPipelineDetailsCode)['jobId'] as String)
+            def jsonBuildDetail = new JsonSlurper().parseText(result.buildDetails)
+
+            // Sometimes Jenkins response contains null value for field "result". The problem is solved by making request again
+            // or jenkins builds started by scan sometimes appear with delay, so we should be sure that new Jenkins build appeared
+            if (jsonBuildDetail['result'] && result.getJenkinsBuildNumber() > prevBuildNumber){
+                break
+            }
+            sleep(5000)
+        }
         println("Job Link: " + jh.getJobLink(result.jobId))
-
         if (result.getJobProperty('outcome') != 'success') {
             System.err.println("EC-Jenkins:RunAndWait job failed.")
             System.err.println(result.logs)
