@@ -184,6 +184,10 @@ class TriggerPipelineSuite extends JenkinsHelper {
         given: "Clone repository and make and push a commit to remote branch and Parameters for the pipeline"
         def gitFolder = gitHelper.pullAndCheckoutToBranch()
         def commitMessages = []
+        def commitChangeTypeMessage = gitHelper.replaceTypeLineInJenkinsFile("Jenkinsfile", "pipeline", gitFolder)
+        if (commitChangeTypeMessage) {
+            commitMessages += commitChangeTypeMessage
+        }
         commitMessages += gitHelper.addNewChangeToFile("filesForCommit.txt", "changes1", gitFolder)
         commitMessages += gitHelper.addNewChangeToFile("filesForCommit.txt", "changes2", gitFolder)
         gitHelper.createGitUserConfig(gitFolder)
@@ -200,7 +204,7 @@ class TriggerPipelineSuite extends JenkinsHelper {
                 runAndWaitInterval    : runAndWaitInterval,
                 procedureOutcome: procedureOutcome,
                 sleepTime: sleepTime,
-                creds: creds
+                type: "pipeline",
         ]
 
         when: 'Run pipeline and collect run properties'
@@ -214,7 +218,6 @@ class TriggerPipelineSuite extends JenkinsHelper {
         }
 
         then: 'Collecting the result objects'
-        println(ciJob.getClass())
         assert ciJob.getCiJobOutcome() == ciJobOutcome
 
         String buildNumber = ciJob.getJenkinsBuildNumber()
@@ -259,9 +262,9 @@ class TriggerPipelineSuite extends JenkinsHelper {
 
 
         where:
-        caseId      | ciConfig                    | flowProjectName  | flowPipelineName       | dependOnCdJobOutcomeCh | runAndWaitInterval  | ciJobOutcome     | procedureOutcome  | sleepTime | creds | launchByScan | logMessage
-        'C519154'   | ciConfigs.correct           | projects.correct | pipelines.runAndWait   | 'false'                | '5'                 | 'SUCCESS'        | 'success'         | '4'       | ''    | false        | [logMessages.timing, logMessages.jobOutcome]
-        'C519154'   | ciConfigs.correct           | projects.correct | pipelines.runAndWait   | 'false'                | '5'                 | 'SUCCESS'        | 'success'         | '4'       | ''    | true         | [logMessages.timing, logMessages.jobOutcome]
+        caseId      | ciConfig                    | flowProjectName  | flowPipelineName       | dependOnCdJobOutcomeCh | runAndWaitInterval  | ciJobOutcome     | procedureOutcome  | sleepTime | launchByScan | logMessage
+        'C519154_1' | ciConfigs.correct           | projects.correct | pipelines.runAndWait   | 'false'                | '5'                 | 'SUCCESS'        | 'success'         | '4'       | false        | [logMessages.timing, logMessages.jobOutcome]
+        'C519154_2' | ciConfigs.correct           | projects.correct | pipelines.runAndWait   | 'false'                | '5'                 | 'SUCCESS'        | 'success'         | '4'       | true         | [logMessages.timing, logMessages.jobOutcome]
     }
 
     @Unroll
