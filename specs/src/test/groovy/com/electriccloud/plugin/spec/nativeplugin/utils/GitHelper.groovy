@@ -68,6 +68,31 @@ class GitHelper {
         return commitMessage + '\n'
     }
 
+    String replaceTypeLineInJenkinsFile(String jenkisFileName="Jenkinsfile", String newType = "pipeline", String repositoryFolder) {
+        File jenkinsFile = new File("${repositoryFolder}/${jenkisFileName}")
+        String oldText = new File("${repositoryFolder}/${jenkisFileName}").text
+
+        def date = new Date()
+        String currTime = date.format("dd/MM/yyyy-HH:mm:ss")
+        def commitMessage = "changed_type_to_${newType}_${currTime}"
+
+        jenkinsFile.text = jenkinsFile.text.replaceAll("name: 'type', defaultValue: '.*'", "name: 'type', defaultValue: '${newType}'")
+        def commands = [
+                "git add ${jenkisFileName}",
+                "git commit -m ${commitMessage}"
+        ]
+
+        if (oldText != jenkinsFile.text) {
+            for (command in commands) {
+                this.executeGitCommand(command, repositoryFolder)
+            }
+        }
+        else {
+            return
+        }
+        return commitMessage + '\n'
+    }
+
     def gitPushToRemoteRepository(String remoteBranchName="build/parametrizedQA", String repositoryFolder){
         def commands = [
                 "git push origin ${remoteBranchName}",
