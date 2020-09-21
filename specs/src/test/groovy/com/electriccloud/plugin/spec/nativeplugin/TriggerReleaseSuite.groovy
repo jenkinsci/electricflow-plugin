@@ -208,7 +208,7 @@ class TriggerReleaseSuite extends JenkinsHelper {
         def gitFolder = gitHelper.pullAndCheckoutToBranch()
         gitHelper.createGitUserConfig(gitFolder)
         def commitMessages = []
-        def commitChangeTypeMessage = gitHelper.replaceTypeLineInJenkinsFile("Jenkinsfile", "release", gitFolder)
+        def commitChangeTypeMessage = gitHelper.replaceDefaultValueOfParameterInJenkinsFile("Jenkinsfile", "release", 'type', gitFolder)
         if (commitChangeTypeMessage) {
             commitMessages += commitChangeTypeMessage
         }

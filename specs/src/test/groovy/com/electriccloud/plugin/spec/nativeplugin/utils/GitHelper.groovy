@@ -68,15 +68,15 @@ class GitHelper {
         return commitMessage + '\n'
     }
 
-    String replaceTypeLineInJenkinsFile(String jenkisFileName="Jenkinsfile", String newType = "pipeline", String repositoryFolder) {
+    String replaceDefaultValueOfParameterInJenkinsFile(String jenkisFileName="Jenkinsfile", String newValue = "pipeline", String parameterName, String repositoryFolder) {
         File jenkinsFile = new File("${repositoryFolder}/${jenkisFileName}")
         String oldText = new File("${repositoryFolder}/${jenkisFileName}").text
 
         def date = new Date()
         String currTime = date.format("dd/MM/yyyy-HH:mm:ss")
-        def commitMessage = "changed_type_to_${newType}_${currTime}"
+        def commitMessage = "changed_${parameterName}_to_${newValue}_${currTime}"
 
-        jenkinsFile.text = jenkinsFile.text.replaceAll("name: 'type', defaultValue: '.*'", "name: 'type', defaultValue: '${newType}'")
+        jenkinsFile.text = jenkinsFile.text.replaceAll("name: '${parameterName}', defaultValue: '.*'", "name: '${parameterName}', defaultValue: '${newValue}'")
         def commands = [
                 "git add ${jenkisFileName}",
                 "git commit -m ${commitMessage}"

@@ -8,7 +8,6 @@ import com.electriccloud.plugin.spec.core.pipeline.Pipeline
 import com.electriccloud.plugin.spec.core.pipeline.PipelineRun
 import com.electriccloud.plugin.spec.nativeplugin.utils.JenkinsBuildJob
 import com.electriccloud.plugin.spec.nativeplugin.utils.JenkinsJobRunner
-import com.electriccloud.plugin.spec.nativeplugin.utils.JenkinsMultiBranchPipelineBuildJob
 import groovy.json.JsonSlurper
 import spock.lang.Issue
 import spock.lang.Shared
@@ -187,7 +186,7 @@ class TriggerPipelineSuite extends JenkinsHelper {
         def gitFolder = gitHelper.pullAndCheckoutToBranch()
         gitHelper.createGitUserConfig(gitFolder)
         def commitMessages = []
-        def commitChangeTypeMessage = gitHelper.replaceTypeLineInJenkinsFile("Jenkinsfile", "pipeline", gitFolder)
+        def commitChangeTypeMessage = gitHelper.replaceDefaultValueOfParameterInJenkinsFile("Jenkinsfile", "pipeline", "type", gitFolder)
         if (commitChangeTypeMessage) {
             commitMessages += commitChangeTypeMessage
         }
