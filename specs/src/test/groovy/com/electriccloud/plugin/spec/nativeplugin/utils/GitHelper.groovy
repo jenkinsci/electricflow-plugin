@@ -26,16 +26,17 @@ class GitHelper {
         for (command in commands){
             this.executeGitCommand(command, repositoryFolder)
         }
+        GitFolderExist = true
     }
 
     // TODO: change git console commands to EC-Git plugin when it will be added to CD installer
-    String pullAndCheckoutToBranch(String gitRepository= "https://github.com/electric-cloud/jenkinsfile-multibranch-test.git",
+    String pullAndCheckoutToBranch(String gitRepository= "https://github.com/cbpluginstest/jenkinsfile-multibranch-test",
                                    String destDirectory="/tmp", String remoteBranch="build/parametrizedQA"){
         def repositoryFolder = "${destDirectory}/${gitRepository.split('/')[-1] - '.git'}"
         if (GitFolderExist){
             return repositoryFolder
         }
-        def urlWithPassword = gitRepository.replace("://", "://${gitUsername}@${gitPassword}:")
+        def urlWithPassword = gitRepository.replace("://", "://${gitUsername}:${gitPassword}@")
         def commands = [
                 ["git clone $gitRepository", destDirectory],
                 ["git remote set-url origin ${urlWithPassword}", repositoryFolder],
@@ -45,7 +46,6 @@ class GitHelper {
         for (command in commands){
             this.executeGitCommand(command[0], command[1])
         }
-        GitFolderExist = true
         return repositoryFolder
     }
 
