@@ -29,6 +29,7 @@ class TriggerReleaseSuite extends JenkinsHelper {
 
     public static def ciPipelinesNames = [
             runAndWait: 'TriggerReleaseRunAndWaitPipeline',
+            MBPipeline: "MultiBranchPipeline2"
     ]
 
     private static JenkinsJobRunner jjr = JenkinsJobRunner.getInstance()
@@ -66,6 +67,7 @@ class TriggerReleaseSuite extends JenkinsHelper {
 
     def doSetupSpec() {
         importJenkinsJob('TriggerReleaseRunAndWaitPipeline.xml', ciPipelinesNames.runAndWait)
+        importJenkinsJob('MultiBranchPipeline2.xml', ciPipelinesNames.MBPipeline)
         dslFile('dsl/RunAndWait/runAndWaitProcedure.dsl')
         dslFile('dsl/RunAndWait/runAndWaitRelease.dsl', [releaseName: flowReleases.runAndWait])
         // Do project import here
@@ -204,6 +206,7 @@ class TriggerReleaseSuite extends JenkinsHelper {
     def "#caseId. TriggerRelease Run MultiBranch"() {
         given: 'Parameters for the pipeline'
         def gitFolder = gitHelper.pullAndCheckoutToBranch()
+        gitHelper.createGitUserConfig(gitFolder)
         def commitMessages = []
         def commitChangeTypeMessage = gitHelper.replaceTypeLineInJenkinsFile("Jenkinsfile", "release", gitFolder)
         if (commitChangeTypeMessage) {
@@ -211,7 +214,6 @@ class TriggerReleaseSuite extends JenkinsHelper {
         }
         commitMessages += gitHelper.addNewChangeToFile("filesForCommit.txt", "changes1", gitFolder)
         commitMessages += gitHelper.addNewChangeToFile("filesForCommit.txt", "changes2", gitFolder)
-        gitHelper.createGitUserConfig(gitFolder)
         gitHelper.gitPushToRemoteRepository("build/parametrizedQA", gitFolder)
 
         Release release = new Release(cdProjectName, releaseName)
@@ -235,10 +237,10 @@ class TriggerReleaseSuite extends JenkinsHelper {
 
         JenkinsBuildJob ciJob
         if (launchByScan){
-            ciJob = jjr.scanMBPipeline("MultiBranchPipeline", "build%2FparametrizedQA")
+            ciJob = jjr.scanMBPipeline(ciPipelinesNames.MBPipeline, "build%2FparametrizedQA")
         }
         else {
-            ciJob = jjr.run("MultiBranchPipeline/build%2FparametrizedQA", ciPipelineParameters)
+            ciJob = jjr.run("${ciPipelinesNames.MBPipeline}/build%2FparametrizedQA", ciPipelineParameters)
         }
 
         then: 'Collecting the result objects'
@@ -257,7 +259,7 @@ class TriggerReleaseSuite extends JenkinsHelper {
         // NTVEPLUGIN-378
         assert !(ciJob.logs.contains('Unauthorized'))
 
-        CiBuildDetailInfo ciBuildDetailInfo = newPipelineRun.findCiBuildDetailInfo("MultiBranch Pipeline » build/parametrizedQA #" + buildNumber)
+        CiBuildDetailInfo ciBuildDetailInfo = newPipelineRun.findCiBuildDetailInfo("${ciPipelinesNames.MBPipeline} » build/parametrizedQA #" + buildNumber)
         CiBuildDetail cbd = ciBuildDetailInfo?.getCiBuildDetail()
 
         def changesSets =  new JsonSlurper().parseText(ciBuildDetailInfo.ciBuildDetail.dslObject['buildData'])["changeSets"]
@@ -274,7 +276,7 @@ class TriggerReleaseSuite extends JenkinsHelper {
             }
             cbd['buildTriggerSource'] == "CI"
             ciBuildDetailInfo['jobBranchName'] == "build/parametrizedQA"
-            ciBuildDetailInfo['displayName'] == "MultiBranch Pipeline » build/parametrizedQA #" + buildNumber
+            ciBuildDetailInfo['displayName'] == "${ciPipelinesNames.MBPipeline} » build/parametrizedQA #" + buildNumber
 
             if (launchByScan) {
                 ciBuildDetailInfo['launchedBy'] == "Branch indexing"

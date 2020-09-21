@@ -29,12 +29,14 @@ class TriggerPipelineSuite extends JenkinsHelper {
 
     public static def ciPipelinesName = [
             runAndWait: 'RunPipelineRunAndWaitPipeline',
+            MBPipeline: "MultiBranchPipeline2",
     ]
 
     private static JenkinsJobRunner jjr = JenkinsJobRunner.getInstance()
 
     def doSetupSpec() {
         importJenkinsJob('RunPipelineRunAndWaitPipeline.xml', ciPipelinesName.runAndWait)
+        importJenkinsJob('MultiBranchPipeline2.xml', ciPipelinesName.MBPipeline)
         dslFile('dsl/RunAndWait/runAndWaitProcedure.dsl')
         dslFile('dsl/RunAndWait/runAndWaitPipeline.dsl')
         // Do project import here
@@ -183,6 +185,7 @@ class TriggerPipelineSuite extends JenkinsHelper {
     def "Run MultiBranch"() {
         given: "Clone repository and make and push a commit to remote branch and Parameters for the pipeline"
         def gitFolder = gitHelper.pullAndCheckoutToBranch()
+        gitHelper.createGitUserConfig(gitFolder)
         def commitMessages = []
         def commitChangeTypeMessage = gitHelper.replaceTypeLineInJenkinsFile("Jenkinsfile", "pipeline", gitFolder)
         if (commitChangeTypeMessage) {
@@ -190,7 +193,6 @@ class TriggerPipelineSuite extends JenkinsHelper {
         }
         commitMessages += gitHelper.addNewChangeToFile("filesForCommit.txt", "changes1", gitFolder)
         commitMessages += gitHelper.addNewChangeToFile("filesForCommit.txt", "changes2", gitFolder)
-        gitHelper.createGitUserConfig(gitFolder)
         gitHelper.gitPushToRemoteRepository("build/parametrizedQA", gitFolder)
 
         Pipeline pipeline = new Pipeline(flowProjectName, flowPipelineName)
@@ -211,10 +213,10 @@ class TriggerPipelineSuite extends JenkinsHelper {
 
         JenkinsBuildJob ciJob
         if (launchByScan){
-            ciJob = jjr.scanMBPipeline("MultiBranchPipeline", "build%2FparametrizedQA")
+            ciJob = jjr.scanMBPipeline(ciPipelinesName.MBPipeline, "build%2FparametrizedQA")
         }
         else {
-            ciJob = jjr.run("MultiBranchPipeline/build%2FparametrizedQA", ciPipelineParameters)
+            ciJob = jjr.run("${ciPipelinesName.MBPipeline}/build%2FparametrizedQA", ciPipelineParameters)
         }
 
         then: 'Collecting the result objects'
@@ -232,7 +234,7 @@ class TriggerPipelineSuite extends JenkinsHelper {
         // NTVEPLUGIN-378
         assert !(ciJob.logs.contains('Unauthorized'))
 
-        CiBuildDetailInfo ciBuildDetailInfo = newPipelineRun.findCiBuildDetailInfo("MultiBranch Pipeline » build/parametrizedQA #" + buildNumber)
+        CiBuildDetailInfo ciBuildDetailInfo = newPipelineRun.findCiBuildDetailInfo("${ciPipelinesName.MBPipeline} » build/parametrizedQA #" + buildNumber)
         CiBuildDetail cbd = ciBuildDetailInfo?.getCiBuildDetail()
         def changesSets =  new JsonSlurper().parseText(ciBuildDetailInfo.ciBuildDetail.dslObject['buildData'])["changeSets"]
 
@@ -250,7 +252,7 @@ class TriggerPipelineSuite extends JenkinsHelper {
             }
             cbd['buildTriggerSource'] == "CI"
             ciBuildDetailInfo['jobBranchName'] == "build/parametrizedQA"
-            ciBuildDetailInfo['displayName'] == "MultiBranch Pipeline » build/parametrizedQA #" + buildNumber
+            ciBuildDetailInfo['displayName'] == "${ciPipelinesName.MBPipeline} » build/parametrizedQA #" + buildNumber
 
             if (launchByScan) {
                 ciBuildDetailInfo['launchedBy'] == "Branch indexing"
