@@ -8,6 +8,7 @@ import com.electriccloud.plugin.spec.core.pipeline.Pipeline
 import com.electriccloud.plugin.spec.core.pipeline.PipelineRun
 import com.electriccloud.plugin.spec.nativeplugin.utils.JenkinsBuildJob
 import com.electriccloud.plugin.spec.nativeplugin.utils.JenkinsJobRunner
+import groovy.json.JsonSlurper
 import spock.lang.Issue
 import spock.lang.Shared
 import spock.lang.Unroll
@@ -27,12 +28,14 @@ class TriggerPipelineSuite extends JenkinsHelper {
 
     public static def ciPipelinesName = [
             runAndWait: 'RunPipelineRunAndWaitPipeline',
+            MBPipeline: "MultiBranchPipeline2",
     ]
 
     private static JenkinsJobRunner jjr = JenkinsJobRunner.getInstance()
 
     def doSetupSpec() {
         importJenkinsJob('RunPipelineRunAndWaitPipeline.xml', ciPipelinesName.runAndWait)
+        importJenkinsJob('MultiBranchPipeline2.xml', ciPipelinesName.MBPipeline)
         dslFile('dsl/RunAndWait/runAndWaitProcedure.dsl')
         dslFile('dsl/RunAndWait/runAndWaitPipeline.dsl')
         // Do project import here
@@ -173,6 +176,96 @@ class TriggerPipelineSuite extends JenkinsHelper {
         'C519155'   | ciConfigs.incorrectPassword | projects.correct | pipelines.runAndWait   | 'true'                 | '5'                 | 'SUCCESS'        | 'success'         | '4'       | '4'   | [logMessages.timing, logMessages.jobOutcome]
         'NTPLGN-367'| ciConfigs.correct           | projects.correct | pipelines.runAndWait   | 'false'                | '5'                 | 'SUCCESS'        | 'success'         | '0'       | ''    | [logMessages.defaultTiming, logMessages.jobOutcome]
         'NTPLGN-367'| ciConfigs.correct           | projects.correct | pipelines.runAndWait   | 'false'                | '5'                 | 'SUCCESS'        | 'success'         | '-1'      | ''    | [logMessages.defaultTiming, logMessages.jobOutcome]
+    }
+
+    @Unroll
+    @Issue("NTVEPLUGIN-377")
+    // file "filesForCommit.txt" should exist for this case in the branch build/parametrizedQA
+    def "Run MultiBranch"() {
+        given: "Clone repository and make and push a commit to remote branch and Parameters for the pipeline"
+        def gitFolder = gitHelper.pullAndCheckoutToBranch()
+        gitHelper.createGitUserConfig(gitFolder)
+        def commitMessages = []
+        def commitChangeTypeMessage = gitHelper.replaceDefaultValueOfParameterInJenkinsFile("Jenkinsfile", "pipeline", "type", gitFolder)
+        if (commitChangeTypeMessage) {
+            commitMessages += commitChangeTypeMessage
+        }
+        commitMessages += gitHelper.addNewChangeToFile("filesForCommit.txt", "changes1", gitFolder)
+        commitMessages += gitHelper.addNewChangeToFile("filesForCommit.txt", "changes2", gitFolder)
+        gitHelper.gitPushToRemoteRepository("build/parametrizedQA", gitFolder)
+
+        Pipeline pipeline = new Pipeline(flowProjectName, flowPipelineName)
+        PipelineRun previousPipelineRun = pipeline.getLastRun()
+
+        def ciPipelineParameters = [
+                flowConfigName  : ciConfig,
+                flowProjectName : flowProjectName,
+                flowPipelineName: flowPipelineName,
+                dependOnCdJobOutcomeCh: dependOnCdJobOutcomeCh,
+                runAndWaitInterval    : runAndWaitInterval,
+                procedureOutcome: procedureOutcome,
+                sleepTime: sleepTime,
+                type: "pipeline",
+        ]
+
+        when: 'Run pipeline and collect run properties'
+
+        JenkinsBuildJob ciJob
+        if (launchByScan){
+            ciJob = jjr.scanMBPipeline(ciPipelinesName.MBPipeline, "build%2FparametrizedQA")
+        }
+        else {
+            ciJob = jjr.run("${ciPipelinesName.MBPipeline}/build%2FparametrizedQA", ciPipelineParameters)
+        }
+
+        then: 'Collecting the result objects'
+        assert ciJob.getCiJobOutcome() == ciJobOutcome
+
+        String buildNumber = ciJob.getJenkinsBuildNumber()
+        pipeline.refresh()
+        PipelineRun newPipelineRun = pipeline.pipelineRuns.last()
+        if (previousPipelineRun != null) {
+            int prevNumber = previousPipelineRun.getNumber()
+            int newNumber = newPipelineRun.getNumber()
+            assert newNumber > prevNumber: 'new number is greater than previous'
+        }
+
+        // NTVEPLUGIN-378
+        assert !(ciJob.logs.contains('Unauthorized'))
+
+        CiBuildDetailInfo ciBuildDetailInfo = newPipelineRun.findCiBuildDetailInfo("${ciPipelinesName.MBPipeline} » build/parametrizedQA #" + buildNumber)
+        CiBuildDetail cbd = ciBuildDetailInfo?.getCiBuildDetail()
+        def changesSets =  new JsonSlurper().parseText(ciBuildDetailInfo.ciBuildDetail.dslObject['buildData'])["changeSets"]
+
+        // Receiving extended information about the CI build details
+        expect: 'Checking the CiBuildDetail values'
+        println(ciBuildDetailInfo)
+        verifyAll { // soft assert. Will show all the failed cases
+            ciBuildDetailInfo['associationType'] == 'triggeredByCI'
+            changesSets.collect{ it['commitMessage'] }.sort() == commitMessages.sort()
+            if (dependOnCdJobOutcomeCh.toBoolean()){
+                ciBuildDetailInfo['result'] == ciJobOutcome
+            }
+            else {
+                ciBuildDetailInfo['result'] == "SUCCESS"
+            }
+            cbd['buildTriggerSource'] == "CI"
+            ciBuildDetailInfo['jobBranchName'] == "build/parametrizedQA"
+            ciBuildDetailInfo['displayName'] == "${ciPipelinesName.MBPipeline} » build/parametrizedQA #" + buildNumber
+
+            if (launchByScan) {
+                ciBuildDetailInfo['launchedBy'] == "Branch indexing"
+            }
+            else {
+                ciBuildDetailInfo['launchedBy'] == "Started by user admin"
+            }
+        }
+
+
+        where:
+        caseId      | ciConfig                    | flowProjectName  | flowPipelineName       | dependOnCdJobOutcomeCh | runAndWaitInterval  | ciJobOutcome     | procedureOutcome  | sleepTime | launchByScan | logMessage
+        'C519154_1' | ciConfigs.correct           | projects.correct | pipelines.runAndWait   | 'false'                | '5'                 | 'SUCCESS'        | 'success'         | '4'       | false        | [logMessages.timing, logMessages.jobOutcome]
+        'C519154_2' | ciConfigs.correct           | projects.correct | pipelines.runAndWait   | 'false'                | '5'                 | 'SUCCESS'        | 'success'         | '4'       | true         | [logMessages.timing, logMessages.jobOutcome]
     }
 
     @Unroll

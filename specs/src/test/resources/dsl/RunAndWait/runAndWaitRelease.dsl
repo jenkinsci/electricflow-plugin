@@ -1,6 +1,7 @@
 package dsl
 
 def releaseName = args.releaseName
+def pipelineReleaseName = "pipeline_${releaseName}"
 
 release releaseName, {
   description = ''
@@ -10,14 +11,14 @@ release releaseName, {
   projectName = 'pvNativeJenkinsProject01'
   timeZone = null
 
-  pipeline 'pipeline_TriggerReleaseRunAndWait', {
+  pipeline pipelineReleaseName, {
     disableMultipleActiveRuns = '0'
     disableRestart = '0'
     enabled = '1'
     overrideWorkspace = '0'
     pipelineRunNameTemplate = null
     projectName = 'pvNativeJenkinsProject01'
-    releaseName = 'TriggerReleaseRunAndWait'
+    releaseName = releaseName
     skipStageMode = 'ENABLED'
     templatePipelineName = null
     templatePipelineProjectName = null
@@ -54,7 +55,7 @@ release releaseName, {
       condition = null
       duration = null
       parallelToPrevious = null
-      pipelineName = 'pipeline_TriggerReleaseRunAndWait'
+      pipelineName = pipelineReleaseName
       plannedEndDate = null
       plannedStartDate = null
       precondition = null

@@ -6,6 +6,7 @@ import com.electriccloud.plugin.spec.core.pipeline.PipelineRun
 import com.electriccloud.plugin.spec.core.release.Release
 import com.electriccloud.plugin.spec.nativeplugin.utils.JenkinsBuildJob
 import com.electriccloud.plugin.spec.nativeplugin.utils.JenkinsJobRunner
+import groovy.json.JsonSlurper
 import spock.lang.Issue
 import spock.lang.Shared
 import spock.lang.Unroll
@@ -42,6 +43,11 @@ class AssociateBuildToReleaseSuite extends JenkinsHelper {
             associateBuild: 'TriggerReleaseAssociateBuild',
     ]
 
+    public static def ciPipelinesNames = [
+            associated: 'AssociateBuildToRelease',
+            MBPipeline: "MultiBranchPipeline2"
+    ]
+
     private static Release release
     private static PipelineRun pipelineRun
 
@@ -65,6 +71,7 @@ class AssociateBuildToReleaseSuite extends JenkinsHelper {
         println("PIPELINE RUN ID: ${flowRuntimeIds['correct']}")
 
         importJenkinsJob('AssociateBuildToRelease.xml', 'AssociateBuildToRelease')
+        importJenkinsJob('MultiBranchPipeline2.xml', ciPipelinesNames.MBPipeline)
         dslFile('dsl/RunAndWait/runAndWaitRelease.dsl', [releaseName: releases.associateBuild])
         dslFile('dsl/RunAndWait/runAndWaitProcedure.dsl')
         createArtifact("test", "AssociateBuildToRelease")
@@ -201,6 +208,93 @@ class AssociateBuildToReleaseSuite extends JenkinsHelper {
         '1'    | 'success'        | "SUCCESS"
         '2'    | 'success'        | "UNSTABLE"
         '3'    | 'success'        | "FAILURE"
+    }
+
+    @Unroll
+    @Issue("NTVEPLUGIN-377")
+    def "AssociateBuildToRelease, MultiBranch Pipeline "() {
+        given: 'Make some git commits Parameters for the pipeline'
+        // Start release and receive a pipeline data
+        def pipelineReleaseInfo = dsl """
+                    startRelease(
+                        projectName: '${projects.correct}',
+                        releaseName: '${releases.associateBuild}',
+                        pipelineParameter: [procedureOutcome: 'success', sleepTime: '5'], 
+                    )
+        """
+        waitUntil {
+            pipelineCompleted(pipelineReleaseInfo)
+        }
+
+        flowRuntimeId = pipelineReleaseInfo.flowRuntime.flowRuntimeId
+
+        def gitFolder = gitHelper.pullAndCheckoutToBranch()
+        gitHelper.createGitUserConfig(gitFolder)
+        def commitMessages = []
+        def commitChangeTypeMessage = gitHelper.replaceDefaultValueOfParameterInJenkinsFile("Jenkinsfile", "associate", "type", gitFolder)
+        commitMessages += gitHelper.replaceDefaultValueOfParameterInJenkinsFile("Jenkinsfile", flowRuntimeId, "flowRuntimeId", gitFolder)
+        if (commitChangeTypeMessage) {
+            commitMessages += commitChangeTypeMessage
+        }
+        commitMessages += gitHelper.addNewChangeToFile("filesForCommit.txt", "changes1", gitFolder)
+        commitMessages += gitHelper.addNewChangeToFile("filesForCommit.txt", "changes2", gitFolder)
+        gitHelper.gitPushToRemoteRepository("build/parametrizedQA", gitFolder)
+
+
+        String projectName = projects.correct
+        String releaseName = releases.associateBuild
+
+        def ciPipelineParameters = [
+                flowConfigName : CI_CONFIG_NAME,
+                flowProjectName: projectName,
+                flowReleaseName: releaseName,
+                flowRuntimeId  : flowRuntimeId,
+                type: "associate",
+        ]
+
+        when: 'Run pipeline and collect run properties'
+        JenkinsBuildJob ciJob
+        if (launchByScan){
+            ciJob = jjr.scanMBPipeline(ciPipelinesNames.MBPipeline, "build%2FparametrizedQA")
+        }
+        else {
+            ciJob = jjr.run("${ciPipelinesNames.MBPipeline}/build%2FparametrizedQA", ciPipelineParameters)
+        }
+
+        then: 'Collecting the result objects'
+        assert ciJob.getCiJobOutcome() == "SUCCESS" : "Pipeline on Jenkins is finished."
+        String buildNumber = ciJob.getJenkinsBuildNumber()
+
+        Release releaseCD = new Release(projects.correct, releases.associateBuild)
+        PipelineRun pipelineRunCD = releaseCD.getReleasePipeline().getLastRun()
+
+        CiBuildDetailInfo ciBuildDetailInfo = pipelineRunCD.findCiBuildDetailInfo("${ciPipelinesNames.MBPipeline} » build/parametrizedQA #" + buildNumber)
+        CiBuildDetail cbd = ciBuildDetailInfo?.getCiBuildDetail()
+
+        def changesSets =  new JsonSlurper().parseText(ciBuildDetailInfo.ciBuildDetail.dslObject['buildData'])["changeSets"]
+
+        if (ciBuildDetailInfo == null) {
+            System.err.println(ciJob.getFullLogs())
+        }
+
+        // Receiving extended information about the CI build details
+        then: 'Checking the CiBuildDetail values'
+        verifyAll { // soft assert. Will show all the failed assertions
+            ciBuildDetailInfo['associationType'] == 'attached'
+            cbd['buildTriggerSource'] == "CI"
+            changesSets.collect{ it['commitMessage'] }.sort() == commitMessages.sort()
+            if (launchByScan) {
+                ciBuildDetailInfo['launchedBy'] == "Branch indexing"
+            }
+            else {
+                ciBuildDetailInfo['launchedBy'] == "Started by user admin"
+            }
+        }
+
+        where:
+        caseId | launchByScan
+        '1'    | false
+//        '2'    | true
     }
 
     @Unroll
