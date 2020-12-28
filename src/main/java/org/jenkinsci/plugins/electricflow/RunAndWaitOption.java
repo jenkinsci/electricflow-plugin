@@ -11,7 +11,10 @@ public class RunAndWaitOption extends AbstractDescribableImpl<RunAndWaitOption> 
   private static final int CHECK_INTERVAL_MIN = 1;
   private static final int CHECK_INTERVAL_DEFAULT = 5;
   private static final boolean DEPEND_ON_CD_JOB_OUTCOME_DEFAULT = true;
+  private static final boolean THROW_EXCEPTION_IF_FAILED_DEFAULT = true;
+
   private boolean dependOnCdJobOutcome = DEPEND_ON_CD_JOB_OUTCOME_DEFAULT;
+  private boolean throwExceptionIfFailed = THROW_EXCEPTION_IF_FAILED_DEFAULT;
   private int checkInterval = CHECK_INTERVAL_DEFAULT;
 
   @DataBoundConstructor
@@ -22,8 +25,17 @@ public class RunAndWaitOption extends AbstractDescribableImpl<RunAndWaitOption> 
   }
 
   @DataBoundSetter
-  public void setDependOnCdJobOutcome(boolean dependOnCdJobOutcome) {
-    this.dependOnCdJobOutcome = dependOnCdJobOutcome;
+  public void setDependOnCdJobOutcome(boolean value) {
+    this.dependOnCdJobOutcome = value;
+  }
+
+  public boolean isThrowExceptionIfFailed() {
+    return throwExceptionIfFailed;
+  }
+
+  @DataBoundSetter
+  public void setThrowExceptionIfFailed(boolean value) {
+    this.throwExceptionIfFailed = value;
   }
 
   public int getCheckInterval() {

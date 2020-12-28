@@ -46,6 +46,7 @@ import net.sf.json.JSONObject;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jenkinsci.Symbol;
+import org.jenkinsci.plugins.electricflow.exceptions.FlowRuntimeException;
 import org.jenkinsci.plugins.electricflow.exceptions.PluginException;
 import org.jenkinsci.plugins.electricflow.factories.ElectricFlowClientFactory;
 import org.jenkinsci.plugins.electricflow.models.cdrestdata.jobs.CdJobStatus;
@@ -156,27 +157,37 @@ public class ElectricFlowDeployApplication extends Recorder implements SimpleBui
                 + " seconds");
 
         String jobId = JSONObject.fromObject(result).getString("jobId");
-        GetJobStatusResponseData getJobStatusResponseData;
+        GetJobStatusResponseData responseData;
         do {
           TimeUnit.SECONDS.sleep(checkInterval);
 
-          getJobStatusResponseData = efClient.getCdJobStatus(jobId);
-          logger.println(getJobStatusResponseData);
+          responseData = efClient.getCdJobStatus(jobId);
+          logger.println(responseData);
 
-          summaryHtml = getSummaryHtml(efClient, parameter, args, getJobStatusResponseData);
+          summaryHtml = getSummaryHtml(efClient, parameter, args, responseData);
           action = new SummaryTextAction(run, summaryHtml);
           run.addOrReplaceAction(action);
           run.save();
-          if (getJobStatusResponseData.getStatus() == CdJobStatus.unknown) {
+          if (responseData.getStatus() == CdJobStatus.unknown) {
             throw new PluginException("Unexpected format of CD job status response");
           }
-        } while (getJobStatusResponseData.getStatus() != CdJobStatus.completed);
+        } while (responseData.getStatus() != CdJobStatus.completed);
 
         logger.println(
-            "CD job completed with " + getJobStatusResponseData.getOutcome() + " outcome");
+            "CD job completed with " + responseData.getOutcome() + " outcome");
+
         if (runAndWaitOption.isDependOnCdJobOutcome()) {
-          return Utils.getCorrespondedCiBuildResult(getJobStatusResponseData.getOutcome());
+
+          Result ciBuildResult = Utils.getCorrespondedCiBuildResult(responseData.getOutcome());
+
+          if (!ciBuildResult.equals(Result.SUCCESS) && runAndWaitOption.isThrowExceptionIfFailed()) {
+            throw new FlowRuntimeException(responseData);
+          }
+
+          return ciBuildResult;
+
         }
+
       }
     } catch (PluginException | InterruptedException | IOException e) {
       logger.println(e.getMessage());

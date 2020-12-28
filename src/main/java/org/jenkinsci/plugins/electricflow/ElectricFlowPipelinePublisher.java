@@ -51,6 +51,7 @@ import org.apache.commons.logging.LogFactory;
 import org.jenkinsci.Symbol;
 import org.jenkinsci.plugins.electricflow.action.CloudBeesCDPBABuildDetails;
 import org.jenkinsci.plugins.electricflow.data.CloudBeesFlowBuildData;
+import org.jenkinsci.plugins.electricflow.exceptions.FlowRuntimeException;
 import org.jenkinsci.plugins.electricflow.factories.ElectricFlowClientFactory;
 import org.jenkinsci.plugins.electricflow.models.CIBuildDetail;
 import org.jenkinsci.plugins.electricflow.models.CIBuildDetail.BuildAssociationType;
@@ -221,29 +222,34 @@ public class ElectricFlowPipelinePublisher extends Recorder implements SimpleBui
                 + checkInterval
                 + " seconds");
 
-        GetPipelineRuntimeDetailsResponseData getPipelineRuntimeDetailsResponseData;
+        GetPipelineRuntimeDetailsResponseData responseData;
         do {
           TimeUnit.SECONDS.sleep(checkInterval);
 
-          getPipelineRuntimeDetailsResponseData =
+          responseData =
               efClient.getCdPipelineRuntimeDetails(flowRuntimeId);
-          logger.println(getPipelineRuntimeDetailsResponseData);
+          logger.println(responseData);
 
           summaryHtml =
               getSummaryHtml(
-                  efClient, pipelineResult, parameters, getPipelineRuntimeDetailsResponseData);
+                  efClient, pipelineResult, parameters, responseData);
           action = new SummaryTextAction(run, summaryHtml);
           run.addOrReplaceAction(action);
           run.save();
-        } while (!getPipelineRuntimeDetailsResponseData.isCompleted());
+        } while (!responseData.isCompleted());
 
         logger.println(
             "CD pipeline completed with "
-                + getPipelineRuntimeDetailsResponseData.getStatus()
+                + responseData.getStatus()
                 + " status");
         if (runAndWaitOption.isDependOnCdJobOutcome()) {
-          return Utils.getCorrespondedCiBuildResult(
-              getPipelineRuntimeDetailsResponseData.getStatus());
+          Result ciBuildResult = Utils.getCorrespondedCiBuildResult(responseData.getStatus());
+
+          if (!ciBuildResult.equals(Result.SUCCESS) && runAndWaitOption.isThrowExceptionIfFailed()) {
+            throw new FlowRuntimeException(responseData);
+          }
+
+          return ciBuildResult;
         }
       }
 

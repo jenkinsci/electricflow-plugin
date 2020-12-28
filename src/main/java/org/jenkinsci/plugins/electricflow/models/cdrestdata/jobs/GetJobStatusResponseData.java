@@ -5,9 +5,10 @@ import static org.jenkinsci.plugins.electricflow.Utils.formatJsonOutput;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.io.IOException;
+import org.jenkinsci.plugins.electricflow.Utils;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class GetJobStatusResponseData {
+public class GetJobStatusResponseData implements FlowRuntimeResponseData {
 
   @JsonProperty() private String jobId;
   @JsonProperty() private CdJobStatus status = CdJobStatus.unknown;
@@ -65,4 +66,25 @@ public class GetJobStatusResponseData {
         + outcome
         + '}';
   }
+
+  @Override
+  public Boolean isCompleted() {
+    return status.equals(CdJobStatus.completed);
+  }
+
+  @Override
+  public String getRuntimeOutcome() {
+    return getOutcome().toString();
+  }
+
+  @Override
+  public String getRuntimeStatus() {
+    return getStatus().toString();
+  }
+
+  @Override
+  public String getRuntimeId() {
+    return getJobId();
+  }
+
 }
