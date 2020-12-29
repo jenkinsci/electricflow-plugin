@@ -51,6 +51,7 @@ import org.apache.commons.logging.LogFactory;
 import org.jenkinsci.Symbol;
 import org.jenkinsci.plugins.electricflow.action.CloudBeesCDPBABuildDetails;
 import org.jenkinsci.plugins.electricflow.data.CloudBeesFlowBuildData;
+import org.jenkinsci.plugins.electricflow.exceptions.FlowRuntimeException;
 import org.jenkinsci.plugins.electricflow.factories.ElectricFlowClientFactory;
 import org.jenkinsci.plugins.electricflow.models.CIBuildDetail;
 import org.jenkinsci.plugins.electricflow.models.CIBuildDetail.BuildAssociationType;
@@ -179,37 +180,37 @@ public class ElectricFlowTriggerRelease extends Recorder implements SimpleBuildS
                 + checkInterval
                 + " seconds");
 
-        GetPipelineRuntimeDetailsResponseData getPipelineRuntimeDetailsResponseData;
+        GetPipelineRuntimeDetailsResponseData responseData;
         do {
           TimeUnit.SECONDS.sleep(checkInterval);
 
-          getPipelineRuntimeDetailsResponseData =
-              efClient.getCdPipelineRuntimeDetails(flowRuntimeId);
-          logger.println(getPipelineRuntimeDetailsResponseData);
+          responseData = efClient.getCdPipelineRuntimeDetails(flowRuntimeId);
+          logger.println(responseData.toString());
 
           summaryHtml =
-              getSummaryHtml(
-                  efClient,
-                  flowRuntime,
-                  pipelineParameters,
-                  stagesToRun,
-                  getPipelineRuntimeDetailsResponseData);
+              getSummaryHtml(efClient, flowRuntime, pipelineParameters, stagesToRun, responseData);
           action = new SummaryTextAction(run, summaryHtml);
+
           run.addOrReplaceAction(action);
           run.save();
-        } while (!getPipelineRuntimeDetailsResponseData.isCompleted());
 
-        logger.println(
-            "CD pipeline completed with "
-                + getPipelineRuntimeDetailsResponseData.getStatus()
-                + " status");
+        } while (!responseData.isCompleted());
+
+        logger.println("CD pipeline completed with " + responseData.getStatus() + " status");
+
         if (runAndWaitOption.isDependOnCdJobOutcome()) {
-          Result result =
-              Utils.getCorrespondedCiBuildResult(getPipelineRuntimeDetailsResponseData.getStatus());
-          if (result != Result.SUCCESS) {
+          Result result = Utils.getCorrespondedCiBuildResult(responseData.getStatus());
+
+          if (!result.equals(Result.SUCCESS)) {
+            if (runAndWaitOption.isThrowExceptionIfFailed()) {
+              throw new FlowRuntimeException(responseData);
+            }
+
             run.setResult(result);
           }
+
         }
+
       }
 
     } catch (IOException | InterruptedException e) {

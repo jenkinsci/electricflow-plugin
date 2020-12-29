@@ -9,6 +9,10 @@
       help="/plugin/electricflow/runAndWaitOption/help-dependOnCdJobOutcome.html">
       <f:checkbox default="true" checked="${instance.runAndWaitOption.dependOnCdJobOutcome}"/>
     </f:entry>
+    <f:entry title="Throw exception if failed" field="throwExceptionIfFailed"
+      help="/plugin/electricflow/runAndWaitOption/help-throwExceptionIfFailed.html">
+      <f:checkbox default="false" checked="${instance.runAndWaitOption.throwExceptionIfFailed}"/>
+    </f:entry>
     <f:entry title="Check Interval" field="checkInterval"
       help="/plugin/electricflow/runAndWaitOption/help-checkInterval.html">
       <f:number min="1" default="5" value="${instance.runAndWaitOption.checkInterval}"/>

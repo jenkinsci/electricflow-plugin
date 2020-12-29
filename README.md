@@ -344,8 +344,43 @@ node{
 ```
 
 
+**Example of the Run Procedure call with failed result handling (pipeline script)**
+
+Note: This script relies on the Pipeline Stage API improvements and requires Jenkins 2.138.4 or newer. 
+Other required plugin versions are noted here: [https://www.jenkins.io/blog/2019/07/05/jenkins-pipeline-stage-result-visualization-improvements/](https://www.jenkins.io/blog/2019/07/05/jenkins-pipeline-stage-result-visualization-improvements/)
+
+```groovy
+//...
+script {
+    try {
+        // Note that both 'dependOnCdJobOutcome' and 'throwExceptionIfFailed' properties of the RunAndWait option should be set to true.
+        cloudBeesFlowRunProcedure configuration: 'electricflow', procedureName: 'prepareDeployment', procedureParameters: '{"procedure":{"procedureName":"prepareDeployment","parameters":[]}}', projectName: 'CloudBees', runAndWaitOption: [dependOnCdJobOutcome: true, throwExceptionIfFailed: true]
+    } catch (RuntimeException ex) {
+        if (ex.getMessage() =~ 'outcome=warning') {
+            unstable("The 'prepareDeployment' CD job was finished with warning. This needs further investigation.")
+            currentBuild.result = 'UNSTABLE'
+        } else if (ex.getMessage() =~ 'outcome=error') {
+            currentBuild.result = 'FAILURE'
+            unstable("The 'prepareDeployment' CD job was finished with error and the CI build should be stopped.")
+            throw ex
+        }
+    }
+}
+//...
+```
+
+
 
 # Release Notes
+
+## Version 1.1.19 (December 28, 2020)
+
+- Updated Run And Wait option to allow interruption of the build when Flow runtime was not finished successfully. This enhancement is applied to the following methods:
+    - Trigger Release
+    - Run Pipeline
+    - Run Procedure
+    - Publish Application
+    - Create and Deploy Application from Deployment Package
 
 ## Version 1.1.18 (September 14, 2020)
 
@@ -354,7 +389,7 @@ node{
 - Updated "Depend on CD job/pipeline outcome" functionality by association of CloudBees CD job/pipeline outcome "Warning" with CloudBees CI build result "Unstable"
 - Updated build summary links for Run Pipeline, Publish Artifact, Trigger Release
 - Fixed snippet generator UI for pipeline steps with extra parameters (Run Procedure, Trigger Release, Run Pipeline, Deploy Application)
-- Event-based build watchers have been improved and now they are also sending build infomation after the build is finished.
+- Event-based build watchers have been improved and now they are also sending build information after the build is finished.
 - CloudBees CD Multibranch Pipelines support has been improved.
 - Bug fixes and improvements
 
@@ -365,6 +400,7 @@ Improvements:
 - Updated the following post build actions by Run and Wait option with possibility to depend on CD job or pipeline outcome:
   - Run Pipeline
   - Trigger Release
+  - Run Procedure
   - Deploy Application
   - Create and Deploy Application from Deployment Package
 

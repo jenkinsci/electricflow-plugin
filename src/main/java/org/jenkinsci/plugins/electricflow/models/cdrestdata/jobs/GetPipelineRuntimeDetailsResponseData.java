@@ -11,7 +11,7 @@ import org.jenkinsci.plugins.electricflow.utils.JsonUtils.NumericBooleanDeserial
 import org.jenkinsci.plugins.electricflow.utils.JsonUtils.NumericBooleanSerializer;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class GetPipelineRuntimeDetailsResponseData {
+public class GetPipelineRuntimeDetailsResponseData  implements FlowRuntimeResponseData  {
 
   @JsonProperty private String flowRuntimeId;
 
@@ -33,6 +33,22 @@ public class GetPipelineRuntimeDetailsResponseData {
 
   public Boolean isCompleted() {
     return completed;
+  }
+
+  // TODO: Get the pipeline failed stage Error summary
+  @Override
+  public String getRuntimeOutcome() {
+    return status.toString();
+  }
+
+  @Override
+  public String getRuntimeStatus() {
+    return status.toString();
+  }
+
+  @Override
+  public String getRuntimeId() {
+    return flowRuntimeId;
   }
 
   public void setCompleted(Boolean completed) {
