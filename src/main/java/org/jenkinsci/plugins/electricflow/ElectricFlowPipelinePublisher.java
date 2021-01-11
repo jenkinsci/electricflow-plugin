@@ -252,8 +252,7 @@ public class ElectricFlowPipelinePublisher extends Recorder implements SimpleBui
           return ciBuildResult;
         }
       }
-
-    } catch (Exception e) {
+    } catch (IOException | InterruptedException e) {
       logger.println(e.getMessage());
       log.error(e.getMessage(), e);
 
