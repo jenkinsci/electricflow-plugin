@@ -108,7 +108,7 @@ public class ElectricFlowClient {
     return runRestAPI(requestEndpoint, POST, obj.toString());
   }
 
-  public String runPipeline(String projectName, String pipelineName) throws Exception {
+  public String runPipeline(String projectName, String pipelineName) throws IOException {
     String requestEndpoint =
         "/pipelines?pipelineName="
             + Utils.encodeURL(pipelineName)
