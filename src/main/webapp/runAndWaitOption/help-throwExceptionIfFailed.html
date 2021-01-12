@@ -1,4 +1,8 @@
 <div>
-  Throw exception if CD Job outcome is error.
-  This allows flexible negative pipeline flow when using the <i>warnError</i> and <i>unstable</i> steps.
+  <p>Throw exception if the CloudBees CD Runtime was finished with warning or error.
+    Other steps and stages will not be executed unless the exception is handled.</p>
+
+  <p>This allows flexible negative pipeline flow when using the <i>warnError</i> and <i>unstable</i>
+    steps.
+    In Freestyle projects PBAs are failing separately so this will not affect it's execution.</p>
 </div>
