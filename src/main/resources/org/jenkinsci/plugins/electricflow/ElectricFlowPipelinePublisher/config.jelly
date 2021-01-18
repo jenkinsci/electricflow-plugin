@@ -109,18 +109,38 @@ All rights reserved.
                         json = json.pipeline.parameters;
                     }
 
-                    var row1 = table.insertRow(table.rows.length - 2);
-                    row1.className = "_ef_row";
-                    if (json.length) {
-                        row1.appendChild(createTitleForRunPipeline());
-                        json.forEach(function (elem) {
-                            var row = table.insertRow(table.rows.length - 2);
-                            row.className = "_ef_parameters _ef_row";
-                            addParameterRowForRunPipeline(row, elem.parameterName, elem.parameterValue);
-                        });
+                    if (table == null) {
+                        if (json.length) {
+                            var el = document.createElement("div");
+                            el.innerHTML = "&lt;br&gt;&lt;b&gt;Pipeline Parameters&lt;/b&gt;";
+                            el.className = "_ef_row";
+                            var div = getElementByXpath("//*[@id=\"pipelineN\"]");
+                            div = insertAfter(div, el);
+                            json.forEach(function (elem) {
+                                var el_param = document.createElement("div");
+                                el_param.className = "_ef_parameters _ef_row";
+                                div = insertAfter(div, el_param);
+                                addParameterRowForRunPipeline(el_param, elem.parameterName, elem.parameterValue, false);
+                            });
+                        }
+                    } else {
+                        var row1 = table.insertRow(table.rows.length - 2);
+                        row1.className = "_ef_row";
+                        if (json.length) {
+                            row1.appendChild(createTitleForRunPipeline());
+                            json.forEach(function (elem) {
+                                var row = table.insertRow(table.rows.length - 2);
+                                row.className = "_ef_parameters _ef_row";
+                                addParameterRowForRunPipeline(row, elem.parameterName, elem.parameterValue, true);
+                            });
+                        }
                     }
                 }
             }
+        }
+
+        function insertAfter(referenceNode, newNode) {
+            return referenceNode.parentNode.insertBefore(newNode, referenceNode.nextSibling);
         }
 
         function updateJson() {
@@ -147,18 +167,18 @@ All rights reserved.
             return td;
         }
 
-        function addParameterRowForRunPipeline(row, label, value) {
-            var td1 = document.createElement('td');
+        function addParameterRowForRunPipeline(row, label, value, isTable) {
+            var td1 = document.createElement(isTable ? 'td' : 'div');
             td1.className = 'setting-leftspace';
             td1.textContent = '';
             row.appendChild(td1);
 
-            var td2 = document.createElement('td');
+            var td2 = document.createElement(isTable ? 'td' : 'div');
             td2.className = 'setting-name';
             td2.textContent = label;
             row.appendChild(td2);
 
-            var td3 = document.createElement('td');
+            var td3 = document.createElement(isTable ? 'td' : 'div');
             td3.className = 'setting-main';
             var input1 = document.createElement('input');
             input1.name = 'parameterName';
@@ -168,7 +188,7 @@ All rights reserved.
             td3.appendChild(input1);
             row.appendChild(td3);
 
-            var td4 = document.createElement('td');
+            var td4 = document.createElement(isTable ? 'td' : 'div');
             td4.className = 'setting-no-help';
             row.appendChild(td4);
         }
