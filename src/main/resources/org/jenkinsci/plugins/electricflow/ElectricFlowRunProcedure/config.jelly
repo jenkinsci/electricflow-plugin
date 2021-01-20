@@ -109,12 +109,12 @@ All rights reserved.
                             var el = document.createElement("div");
                             el.innerHTML = "&lt;br&gt;&lt;b&gt;Procedure Parameters&lt;/b&gt;";
                             el.className = "_ef_rp_row";
-                            var div = getElementByXpath("//*[@id=\"ef_rp_procedureName\"]");
-                            div = insertAfter(div, el);
+                            var div = document.getElementById("ef_rp_procedureName");
+                            div = cbcd_insertAfter(div, el);
                             parameters.forEach(function (elem) {
                                 var el_param = document.createElement("div");
                                 el_param.className = "_ef_rp_parameters _ef_rp_row";
-                                div = insertAfter(div, el_param);
+                                div = cbcd_insertAfter(div, el_param);
                                 addParameterRowForRunProcedure(el_param, elem.actualParameterName, elem.value, false, false);
                             });
                         }
@@ -134,7 +134,7 @@ All rights reserved.
             }
         }
 
-        function insertAfter(referenceNode, newNode) {
+        function cbcd_insertAfter(referenceNode, newNode) {
             return referenceNode.parentNode.insertBefore(newNode, referenceNode.nextSibling);
         }
 

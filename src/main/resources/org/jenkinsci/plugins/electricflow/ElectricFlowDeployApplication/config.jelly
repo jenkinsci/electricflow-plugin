@@ -122,12 +122,12 @@ All rights reserved.
                             var el = document.createElement("div");
                             el.innerHTML = "&lt;br&gt;&lt;b&gt;Deploy Parameters&lt;/b&gt;";
                             el.className = "_ef_da_row";
-                            var div = getElementByXpath("//*[@id=\"ef_da_environmentName\"]");
-                            div = insertAfter(div, el);
+                            var div = document.getElementById("ef_da_environmentName");
+                            div = cbcd_insertAfter(div, el);
                             parameters.forEach(function (elem) {
                                 var el_param = document.createElement("div");
                                 el_param.className = "_ef_da_parameters _ef_da_row";
-                                div = insertAfter(div, el_param);
+                                div = cbcd_insertAfter(div, el_param);
                                 addParameterRowForDeployApplication(el_param, elem.actualParameterName, elem.value, false, false);
                             });
                         }
@@ -147,7 +147,7 @@ All rights reserved.
             }
         }
 
-        function insertAfter(referenceNode, newNode) {
+        function cbcd_insertAfter(referenceNode, newNode) {
             return referenceNode.parentNode.insertBefore(newNode, referenceNode.nextSibling);
         }
 

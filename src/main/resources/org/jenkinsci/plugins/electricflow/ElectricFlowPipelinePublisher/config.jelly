@@ -114,12 +114,12 @@ All rights reserved.
                             var el = document.createElement("div");
                             el.innerHTML = "&lt;br&gt;&lt;b&gt;Pipeline Parameters&lt;/b&gt;";
                             el.className = "_ef_row";
-                            var div = getElementByXpath("//*[@id=\"pipelineN\"]");
-                            div = insertAfter(div, el);
+                            var div = document.getElementById("pipelineN");
+                            div = cbcd_insertAfter(div, el);
                             json.forEach(function (elem) {
                                 var el_param = document.createElement("div");
                                 el_param.className = "_ef_parameters _ef_row";
-                                div = insertAfter(div, el_param);
+                                div = cbcd_insertAfter(div, el_param);
                                 addParameterRowForRunPipeline(el_param, elem.parameterName, elem.parameterValue, false);
                             });
                         }
@@ -139,7 +139,7 @@ All rights reserved.
             }
         }
 
-        function insertAfter(referenceNode, newNode) {
+        function cbcd_insertAfter(referenceNode, newNode) {
             return referenceNode.parentNode.insertBefore(newNode, referenceNode.nextSibling);
         }
 
