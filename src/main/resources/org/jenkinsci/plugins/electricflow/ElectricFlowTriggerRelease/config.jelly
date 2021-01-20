@@ -102,27 +102,6 @@ All rights reserved.
             if (json) {
 
                 if (json.release) {
-                    var stages;
-                    try {
-                        stages = JSON.parse(json.release.stages);
-                    }
-                    catch (error) {
-                        stages = json.release.stages;
-                    }
-
-
-                    var row1 = table.insertRow(table.rows.length - 2);
-                    row1.className = "_ef_st_row";
-                    if (stages.length) {
-                        row1.appendChild(createTitleForTriggerRelease("Stages to run"));
-                        stages.forEach(function (elem) {
-                            var row = table.insertRow(table.rows.length - 2);
-                            row.className = "_ef_sr_stages _ef_st_row";
-                            addParameterRowForTriggerRelease(row, elem.stageName, elem.stageValue, true);
-                        });
-                    }
-
-
                     var parameters;
                     try {
                         parameters = JSON.parse(json.release.parameters);
@@ -131,19 +110,73 @@ All rights reserved.
                         parameters = json.release.parameters;
                     }
 
+                    if (table == null) {
+                        if (parameters.length) {
+                            var el = document.createElement("div");
+                            el.innerHTML = "&lt;br&gt;&lt;b&gt;Release pipeline parameters&lt;/b&gt;";
+                            el.className = "_ef_st_row";
+                            var div = document.getElementById("ef_sr_startingStage");
+                            div = cbcd_insertAfter(div, el);
+                            parameters.forEach(function (elem) {
+                                var el_param = document.createElement("div");
+                                el_param.className = "_ef_sr_parameters _ef_st_row";
+                                div = cbcd_insertAfter(div, el_param);
+                                addParameterRowForTriggerRelease(el_param, elem.parameterName, elem.parameterValue, false, false);
+                            });
+                        }
+                    } else {
+                        var row1 = table.insertRow(table.rows.length - 2);
+                        row1.className = "_ef_st_row";
+                        if (parameters.length) {
+                            row1.appendChild(createTitleForTriggerRelease("Release pipeline parameters"));
+                            parameters.forEach(function (elem) {
+                                var row = table.insertRow(table.rows.length - 2);
+                                row.className = "_ef_sr_parameters _ef_st_row";
+                                addParameterRowForTriggerRelease(row, elem.parameterName, elem.parameterValue, false, true);
+                            });
+                        }
+                    }
 
-                    var row1 = table.insertRow(table.rows.length - 2);
-                    row1.className = "_ef_st_row";
-                    if (parameters.length) {
-                        row1.appendChild(createTitleForTriggerRelease("Release pipeline parameters"));
-                        parameters.forEach(function (elem) {
-                            var row = table.insertRow(table.rows.length - 2);
-                            row.className = "_ef_sr_parameters _ef_st_row";
-                            addParameterRowForTriggerRelease(row, elem.parameterName, elem.parameterValue, false);
-                        });
+                    var stages;
+                    try {
+                        stages = JSON.parse(json.release.stages);
+                    }
+                    catch (error) {
+                        stages = json.release.stages;
+                    }
+
+                    if (table == null) {
+                        if (stages.length) {
+                            var el = document.createElement("div");
+                            el.innerHTML = "&lt;br&gt;&lt;b&gt;Stages to run&lt;/b&gt;";
+                            el.className = "_ef_st_row";
+                            var div = document.getElementById("ef_sr_startingStage");
+                            div = cbcd_insertAfter(div, el);
+                            stages.forEach(function (elem) {
+                                var el_param = document.createElement("div");
+                                el_param.className = "_ef_sr_stages _ef_st_row";
+                                div = cbcd_insertAfter(div, el_param);
+                                addParameterRowForTriggerRelease(el_param, elem.stageName, elem.stageValue, true, false);
+                            });
+                        }
+                    } else {
+                        var row1 = table.insertRow(table.rows.length - 2);
+                        row1.className = "_ef_st_row";
+                        if (stages.length) {
+                            row1.appendChild(createTitleForTriggerRelease("Stages to run"));
+                            stages.forEach(function (elem) {
+                                var row = table.insertRow(table.rows.length - 2);
+                                row.className = "_ef_sr_stages _ef_st_row";
+                                addParameterRowForTriggerRelease(row, elem.stageName, elem.stageValue, true, true);
+                            });
+                        }
                     }
                 }
             }
+        }
+
+        function cbcd_insertAfter(referenceNode, newNode) {
+            return referenceNode.parentNode.insertBefore(newNode, referenceNode.nextSibling);
         }
 
         function updateReleaseJson() {
@@ -180,18 +213,18 @@ All rights reserved.
             return td;
         }
 
-        function addParameterRowForTriggerRelease(row, label, value, isCheckbox) {
-            var td1 = document.createElement('td');
+        function addParameterRowForTriggerRelease(row, label, value, isCheckbox, isTable) {
+            var td1 = document.createElement(isTable ? 'td' : 'div');
             td1.className = 'setting-leftspace';
             td1.textContent = '';
             row.appendChild(td1);
 
-            var td2 = document.createElement('td');
+            var td2 = document.createElement(isTable ? 'td' : 'div');
             td2.className = 'setting-name';
             td2.textContent = label;
             row.appendChild(td2);
 
-            var td3 = document.createElement('td');
+            var td3 = document.createElement(isTable ? 'td' : 'div');
             td3.className = 'setting-main';
             var input1 = document.createElement('input');
             input1.name = 'parameterName';
@@ -208,7 +241,7 @@ All rights reserved.
             td3.appendChild(input1);
             row.appendChild(td3);
 
-            var td4 = document.createElement('td');
+            var td4 = document.createElement(isTable ? 'td' : 'div');
             td4.className = 'setting-no-help';
             row.appendChild(td4);
         }

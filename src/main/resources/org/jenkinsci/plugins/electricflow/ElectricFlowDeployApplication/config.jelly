@@ -24,7 +24,7 @@ All rights reserved.
         <f:select id="ef_da_applicationProcessName" onchange="fillDeployApplicationParameters()"/>
     </f:entry>
     <f:entry title="Environment Name" field="environmentName" >
-        <f:select/>
+        <f:select id="ef_da_environmentName"/>
     </f:entry>
     <f:entry title="" field="deployParameters" >
         <f:select id="ef_da_parameters" onchange="fillDeployApplicationParameters()" style="display:none;"/>
@@ -117,18 +117,38 @@ All rights reserved.
                     }
 
 
-                    var row1 = table.insertRow(table.rows.length - 2);
-                    row1.className = "_ef_da_row";
-                    if (parameters.length) {
-                        row1.appendChild(createTitleForDeployApplication("Deploy Parameters"));
-                        parameters.forEach(function (elem) {
-                            var row = table.insertRow(table.rows.length - 2);
-                            row.className = "_ef_da_parameters _ef_da_row";
-                            addParameterRowForDeployApplication(row, elem.actualParameterName, elem.value, false);
-                        });
+                    if (table == null) {
+                        if (parameters.length) {
+                            var el = document.createElement("div");
+                            el.innerHTML = "&lt;br&gt;&lt;b&gt;Deploy Parameters&lt;/b&gt;";
+                            el.className = "_ef_da_row";
+                            var div = document.getElementById("ef_da_environmentName");
+                            div = cbcd_insertAfter(div, el);
+                            parameters.forEach(function (elem) {
+                                var el_param = document.createElement("div");
+                                el_param.className = "_ef_da_parameters _ef_da_row";
+                                div = cbcd_insertAfter(div, el_param);
+                                addParameterRowForDeployApplication(el_param, elem.actualParameterName, elem.value, false, false);
+                            });
+                        }
+                    } else {
+                        var row1 = table.insertRow(table.rows.length - 2);
+                        row1.className = "_ef_da_row";
+                        if (parameters.length) {
+                            row1.appendChild(createTitleForDeployApplication("Deploy Parameters"));
+                            parameters.forEach(function (elem) {
+                                var row = table.insertRow(table.rows.length - 2);
+                                row.className = "_ef_da_parameters _ef_da_row";
+                                addParameterRowForDeployApplication(row, elem.actualParameterName, elem.value, false, true);
+                            });
+                        }
                     }
                 }
             }
+        }
+
+        function cbcd_insertAfter(referenceNode, newNode) {
+            return referenceNode.parentNode.insertBefore(newNode, referenceNode.nextSibling);
         }
 
         function updateDeployJson() {
@@ -160,18 +180,18 @@ All rights reserved.
             return td;
         }
 
-        function addParameterRowForDeployApplication(row, label, value, isCheckbox) {
-            var td1 = document.createElement('td');
+        function addParameterRowForDeployApplication(row, label, value, isCheckbox, isTable) {
+            var td1 = document.createElement(isTable ? 'td' : 'div');
             td1.className = 'setting-leftspace';
             td1.textContent = '';
             row.appendChild(td1);
 
-            var td2 = document.createElement('td');
+            var td2 = document.createElement(isTable ? 'td' : 'div');
             td2.className = 'setting-name';
             td2.textContent = label;
             row.appendChild(td2);
 
-            var td3 = document.createElement('td');
+            var td3 = document.createElement(isTable ? 'td' : 'div');
             td3.className = 'setting-main';
             var input1 = document.createElement('input');
             input1.name = 'parameterName';
@@ -186,7 +206,7 @@ All rights reserved.
             td3.appendChild(input1);
             row.appendChild(td3);
 
-            var td4 = document.createElement('td');
+            var td4 = document.createElement(isTable ? 'td' : 'div');
             td4.className = 'setting-no-help';
             row.appendChild(td4);
         }
