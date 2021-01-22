@@ -446,22 +446,6 @@ public class ElectricFlowPublishApplication extends Recorder implements SimpleBu
   // an extension point.
   public static final class DescriptorImpl extends BuildStepDescriptor<Publisher> {
 
-    // ~ Instance fields ----------------------------------------------------
-
-    /**
-     * To persist global configuration information, simply store it in a field and call save().
-     *
-     * <p>
-     *
-     * <p>If you don't want fields to be persisted, use {@code transient}.
-     */
-    private String electricFlowUrl;
-
-    private String electricFlowUser;
-    private String electricFlowPassword;
-
-    // ~ Constructors -------------------------------------------------------
-
     /**
      * In order to load the persisted global configuration, you have to call load() in the
      * constructor.
@@ -471,17 +455,6 @@ public class ElectricFlowPublishApplication extends Recorder implements SimpleBu
     }
 
     // ~ Methods ------------------------------------------------------------
-
-    @Override
-    public boolean configure(StaplerRequest req, JSONObject formData) throws FormException {
-      electricFlowUrl = formData.getString("electricFlowUrl");
-      electricFlowUser = formData.getString("electricFlowUser");
-      electricFlowPassword = formData.getString("electricFlowPassword");
-
-      save();
-
-      return super.configure(req, formData);
-    }
 
     public FormValidation doCheckConfiguration(
         @QueryParameter String value, @AncestorInPath Item item) {
@@ -517,18 +490,6 @@ public class ElectricFlowPublishApplication extends Recorder implements SimpleBu
     @Override
     public String getDisplayName() {
       return "CloudBees CD - Create/Deploy Application from Deployment Package";
-    }
-
-    public String getElectricFlowPassword() {
-      return electricFlowPassword;
-    }
-
-    public String getElectricFlowUrl() {
-      return electricFlowUrl;
-    }
-
-    public String getElectricFlowUser() {
-      return electricFlowUser;
     }
 
     @Override
