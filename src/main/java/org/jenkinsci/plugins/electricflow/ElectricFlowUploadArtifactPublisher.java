@@ -299,20 +299,6 @@ public class ElectricFlowUploadArtifactPublisher extends Recorder implements Sim
 
     private static final Log log = LogFactory.getLog(DescriptorImpl.class);
 
-    // ~ Instance fields ----------------------------------------------------
-
-    /**
-     * To persist global configuration information, simply store it in a field and call save().
-     *
-     * <p>If you don't want fields to be persisted, use {@code transient}.
-     */
-    private String electricFlowUrl;
-
-    private String electricFlowUser;
-    private String electricFlowPassword;
-
-    // ~ Constructors -------------------------------------------------------
-
     /**
      * In order to load the persisted global configuration, you have to call load() in the
      * constructor.
@@ -322,17 +308,6 @@ public class ElectricFlowUploadArtifactPublisher extends Recorder implements Sim
     }
 
     // ~ Methods ------------------------------------------------------------
-
-    @Override
-    public boolean configure(StaplerRequest req, JSONObject formData) throws FormException {
-      electricFlowUrl = formData.getString("electricFlowUrl");
-      electricFlowUser = formData.getString("electricFlowUser");
-      electricFlowPassword = formData.getString("electricFlowPassword");
-
-      save();
-
-      return super.configure(req, formData);
-    }
 
     public FormValidation doCheckArtifactName(
         @QueryParameter String value, @AncestorInPath Item item) {
@@ -433,18 +408,6 @@ public class ElectricFlowUploadArtifactPublisher extends Recorder implements Sim
     @Override
     public String getDisplayName() {
       return "CloudBees CD - Publish Artifact";
-    }
-
-    public String getElectricFlowPassword() {
-      return electricFlowPassword;
-    }
-
-    public String getElectricFlowUrl() {
-      return electricFlowUrl;
-    }
-
-    public String getElectricFlowUser() {
-      return electricFlowUser;
     }
 
     @Override
