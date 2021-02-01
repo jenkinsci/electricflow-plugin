@@ -74,6 +74,7 @@ public class ElectricFlowDeployApplication extends Recorder implements SimpleBui
   private String projectName;
   private String applicationName;
   private String applicationProcessName;
+  private String environmentProjectName;
   private String environmentName;
   private String deployParameters;
 
@@ -101,12 +102,14 @@ public class ElectricFlowDeployApplication extends Recorder implements SimpleBui
     PrintStream logger = taskListener.getLogger();
 
     logger.println(
-        "Project name: "
+        "Application project name: "
             + projectName
             + ", Application name: "
             + applicationName
             + ", Application process name: "
             + applicationProcessName
+            + ", Environment project name: "
+            + environmentProjectName
             + ", Environment name: "
             + environmentName);
 
@@ -124,7 +127,7 @@ public class ElectricFlowDeployApplication extends Recorder implements SimpleBui
 
       String result =
           efClient.runProcess(
-              projectName, applicationName, applicationProcessName, environmentName, parameter);
+              projectName, applicationName, applicationProcessName, environmentProjectName, environmentName, parameter);
       JSONObject process =
           efClient.getProcess(projectName, applicationName, applicationProcessName);
 
@@ -267,6 +270,19 @@ public class ElectricFlowDeployApplication extends Recorder implements SimpleBui
 
   public String getStoredDeployParameters() {
     return deployParameters;
+  }
+
+  public String getEnvironmentProjectName() {
+    return environmentProjectName;
+  }
+
+  @DataBoundSetter
+  public void setEnvironmentProjectName(String environmentProjectName) {
+    this.environmentProjectName = getSelectItemValue(environmentProjectName);
+  }
+
+  public String getStoredEnvironmentProjectName() {
+    return environmentProjectName;
   }
 
   public String getEnvironmentName() {
@@ -464,6 +480,19 @@ public class ElectricFlowDeployApplication extends Recorder implements SimpleBui
         return SelectFieldUtils.getFormValidationBasedOnSelectItemValidationWrapper(value);
       }
       return Utils.validateValueOnEmpty(value, "Application process name");
+    }
+
+    public FormValidation doCheckEnvironmentProjectName(
+        @QueryParameter String value,
+        @QueryParameter boolean validationTrigger,
+        @AncestorInPath Item item) {
+      if (item == null || !item.hasPermission(Item.CONFIGURE)) {
+        return FormValidation.ok();
+      }
+      if (isSelectItemValidationWrapper(value)) {
+        return SelectFieldUtils.getFormValidationBasedOnSelectItemValidationWrapper(value);
+      }
+      return FormValidation.ok();
     }
 
     public FormValidation doCheckEnvironmentName(
@@ -673,11 +702,24 @@ public class ElectricFlowDeployApplication extends Recorder implements SimpleBui
       }
     }
 
+    public ListBoxModel doFillEnvironmentProjectNameItems(
+        @QueryParameter String configuration,
+        @QueryParameter boolean overrideCredential,
+        @QueryParameter @RelativePath("overrideCredential") String credentialId,
+        @AncestorInPath Item item) {
+      if (item == null || !item.hasPermission(Item.CONFIGURE)) {
+        return new ListBoxModel();
+      }
+      Credential overrideCredentialObj = overrideCredential ? new Credential(credentialId) : null;
+      return Utils.getProjects(configuration, overrideCredentialObj);
+    }
+
     public ListBoxModel doFillEnvironmentNameItems(
         @QueryParameter String configuration,
         @QueryParameter boolean overrideCredential,
         @QueryParameter @RelativePath("overrideCredential") String credentialId,
         @QueryParameter String projectName,
+        @QueryParameter String environmentProjectName,
         @AncestorInPath Item item) {
       if (item == null || !item.hasPermission(Item.CONFIGURE)) {
         return new ListBoxModel();
@@ -687,15 +729,17 @@ public class ElectricFlowDeployApplication extends Recorder implements SimpleBui
 
         m.add("Select environment", "");
 
+        String actualEnvironmentProjectName = environmentProjectName !=null && !environmentProjectName.isEmpty() ? environmentProjectName : projectName;
+
         if (!configuration.isEmpty()
-            && !projectName.isEmpty()
-            && SelectFieldUtils.checkAllSelectItemsAreNotValidationWrappers(projectName)) {
+            && !actualEnvironmentProjectName.isEmpty()
+            && SelectFieldUtils.checkAllSelectItemsAreNotValidationWrappers(actualEnvironmentProjectName)) {
           Credential overrideCredentialObj =
               overrideCredential ? new Credential(credentialId) : null;
           ElectricFlowClient client =
               ElectricFlowClientFactory.getElectricFlowClient(
                   configuration, overrideCredentialObj, null, true);
-          List<String> environments = client.getEnvironments(projectName);
+          List<String> environments = client.getEnvironments(actualEnvironmentProjectName);
 
           for (String environment : environments) {
             m.add(environment);
@@ -749,12 +793,14 @@ public class ElectricFlowDeployApplication extends Recorder implements SimpleBui
         @QueryParameter("projectName") final String projectName,
         @QueryParameter("applicationName") final String applicationName,
         @QueryParameter("applicationProcessName") final String applicationProcessName,
+        @QueryParameter("environmentProjectName") final String environmentProjectName,
         @QueryParameter("environmentName") final String environmentName,
         @QueryParameter("deployParameters") final String deployParameters,
         @QueryParameter("storedConfiguration") final String storedConfiguration,
         @QueryParameter("storedProjectName") final String storedProjectName,
         @QueryParameter("storedApplicationName") final String storedApplicationName,
         @QueryParameter("storedApplicationProcessName") final String storedApplicationProcessName,
+        @QueryParameter("storedEnvironmentProjectName") final String storedEnvironmentProjectName,
         @QueryParameter("storedEnvironmentName") final String storedEnvironmentName,
         @QueryParameter("storedDeployParameters") final String storedDeployParameters,
         @AncestorInPath Item item) {
@@ -765,6 +811,7 @@ public class ElectricFlowDeployApplication extends Recorder implements SimpleBui
       String projectNameValue = getSelectItemValue(projectName);
       String applicationNameValue = getSelectItemValue(applicationName);
       String applicationProcessNameValue = getSelectItemValue(applicationProcessName);
+      String environmentProjectNameValue = getSelectItemValue(environmentProjectName);
       String environmentNameValue = getSelectItemValue(environmentName);
       String deployParametersValue = getSelectItemValue(deployParameters);
 
@@ -776,13 +823,15 @@ public class ElectricFlowDeployApplication extends Recorder implements SimpleBui
           "<table>"
               + getValidationComparisonHeaderRow()
               + getValidationComparisonRow("Configuration", storedConfiguration, configurationValue)
-              + getValidationComparisonRow("Project Name", storedProjectName, projectNameValue)
+              + getValidationComparisonRow("Application Project Name", storedProjectName, projectNameValue)
               + getValidationComparisonRow(
                   "Application Name", storedApplicationName, applicationNameValue)
               + getValidationComparisonRow(
                   "Application Process Name",
                   storedApplicationProcessName,
                   applicationProcessNameValue)
+              + getValidationComparisonRow(
+              "Environment Project Name", storedEnvironmentProjectName, environmentProjectNameValue)
               + getValidationComparisonRow(
                   "Environment Name", storedEnvironmentName, environmentNameValue)
               + getValidationComparisonRowsForExtraParameters(
@@ -793,6 +842,7 @@ public class ElectricFlowDeployApplication extends Recorder implements SimpleBui
           && projectNameValue.equals(storedProjectName)
           && applicationNameValue.equals(storedApplicationName)
           && applicationProcessNameValue.equals(storedApplicationProcessName)
+          && environmentProjectNameValue.equals(storedEnvironmentProjectName)
           && environmentNameValue.equals(storedEnvironmentName)
           && deployParamsMap.equals(storedDeployParamsMap)) {
         return FormValidation.okWithMarkup("No changes detected:<br>" + comparisonTable);
