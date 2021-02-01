@@ -729,7 +729,12 @@ public class ElectricFlowDeployApplication extends Recorder implements SimpleBui
 
         m.add("Select environment", "");
 
-        String actualEnvironmentProjectName = environmentProjectName !=null && !environmentProjectName.isEmpty() ? environmentProjectName : projectName;
+        String actualEnvironmentProjectName =
+            environmentProjectName != null
+                    && !environmentProjectName.isEmpty()
+                    && !isSelectItemValidationWrapper(environmentProjectName)
+                ? environmentProjectName
+                : projectName;
 
         if (!configuration.isEmpty()
             && !actualEnvironmentProjectName.isEmpty()
