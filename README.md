@@ -241,6 +241,8 @@ This post build action takes the following parameters:
 - Application Process Name: Specify the CloudBees CD application process
 name
 
+- (Optional) Environment Project Name: Specify the CloudBees CD environment project name if it is different than project for application
+
 - Environment Name: Specify the CloudBees CD environment name
 
 - (Optional) Deploy Parameters

@@ -142,6 +142,7 @@ public class ElectricFlowClient {
       String projectName,
       String applicationName,
       String processName,
+      String environmentProjectName,
       String environmentName,
       JSONArray actualParameters)
       throws IOException {
@@ -150,6 +151,9 @@ public class ElectricFlowClient {
     obj.put("projectName", projectName);
     obj.put("applicationName", applicationName);
     obj.put("processName", processName);
+    if (environmentProjectName != null && !environmentProjectName.isEmpty()) {
+      obj.put("environmentProjectName", environmentProjectName);
+    }
     obj.put("environmentName", environmentName);
     obj.put(
         "actualParameter",

@@ -23,6 +23,9 @@ All rights reserved.
     <f:entry  title="Application Process Name" field="applicationProcessName">
         <f:select id="ef_da_applicationProcessName" onchange="fillDeployApplicationParameters()"/>
     </f:entry>
+    <f:entry title="Environment Project Name" field="environmentProjectName" >
+        <f:select id="ef_da_environmentProjectName"/>
+    </f:entry>
     <f:entry title="Environment Name" field="environmentName" >
         <f:select id="ef_da_environmentName"/>
     </f:entry>
@@ -45,6 +48,9 @@ All rights reserved.
     </f:invisibleEntry>
     <f:invisibleEntry>
         <f:readOnlyTextbox field="storedApplicationProcessName"/>
+    </f:invisibleEntry>
+    <f:invisibleEntry>
+        <f:readOnlyTextbox field="storedEnvironmentProjectName"/>
     </f:invisibleEntry>
     <f:invisibleEntry>
         <f:readOnlyTextbox field="storedEnvironmentName"/>
@@ -72,7 +78,7 @@ All rights reserved.
             <f:validateButton title="Compare Before Apply"
                               progress="Comparing values..."
                               method="showOldValues"
-                              with="configuration,projectName,applicationName,applicationProcessName,environmentName,deployParameters,storedConfiguration,storedProjectName,storedApplicationName,storedApplicationProcessName,storedEnvironmentName,storedDeployParameters" />
+                              with="configuration,projectName,applicationName,applicationProcessName,environmentProjectName,environmentName,deployParameters,storedConfiguration,storedProjectName,storedApplicationName,storedApplicationProcessName,storedEnvironmentProjectName,storedEnvironmentName,storedDeployParameters" />
         </j:if>
     </f:entry>
 
