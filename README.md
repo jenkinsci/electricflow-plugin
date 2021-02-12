@@ -375,7 +375,7 @@ script {
 
 # Release Notes
 
-## Version 1.1.19 (December 28, 2020)
+## Version 1.1.19 (February 11, 2021)
 
 - Updated Run And Wait option to allow interruption of the build when Flow runtime was not finished successfully. This enhancement is applied to the following methods:
     - Trigger Release
@@ -383,6 +383,8 @@ script {
     - Run Procedure
     - Publish Application
     - Create and Deploy Application from Deployment Package
+- Updated Deploy application by possibility to specify project for environment if it is othe than project for application
+- Fixed the following procedures for new Jenkins (2.264+) according to Jenkins forms tabular to div changes: Run Procedure, Run Pipeline, Deploy Application, Trigger Release 
 
 ## Version 1.1.18 (September 14, 2020)
 
