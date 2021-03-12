@@ -375,6 +375,14 @@ script {
 
 # Release Notes
 
+## Version 1.1.21 (March 12, 2021)
+
+- Updated dependencies
+
+## Version 1.1.20 (March 10, 2021)
+
+- Updated dependencies
+
 ## Version 1.1.19 (February 11, 2021)
 
 - Updated Run And Wait option to allow interruption of the build when Flow runtime was not finished successfully. This enhancement is applied to the following methods:
