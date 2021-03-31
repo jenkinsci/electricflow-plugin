@@ -33,6 +33,7 @@ public class ElectricFlowBuildWatcher extends RunListener<Run> {
   public void onStarted(Run run, TaskListener listener) {
     // NOTE: Commented to be used for debug reasons during development later.
     // CloudBeesFlowBuildData cloudBeesFlowBuildData = new CloudBeesFlowBuildData(run);
+    this.addActionForBuildsTriggeredByCD(run);
     this.sendBuildDetailsToInstanceImproved(run, listener);
   }
 
@@ -182,5 +183,33 @@ public class ElectricFlowBuildWatcher extends RunListener<Run> {
     return true;
   }
 
+  /**
+   * CI builds triggered by CD primarily store related information in {@link EFCause}, whereas CD pipelines, releases,
+   * and attachments triggered by CI store related information in {@link CloudBeesCDPBABuildDetails}.
+   *
+   * <p>This method adds a {@link CloudBeesCDPBABuildDetails} action corresponding the the {@link EFCause} if one is
+   * present so that all CD-related associations can be viewed in the Jenkins REST API just by browsing the
+   * {@link CloudBeesCDPBABuildDetails} actions attached to a build.
+   *
+   * <p>{@link EFCause} takes priority in {@link #sendBuildDetailsToInstanceImproved} so this should not affect existing
+   * behavior.
+   */
+  private void addActionForBuildsTriggeredByCD(Run<?, ?> run) {
+    EFCause cause = run.getCause(EFCause.class);
+    if (cause != null) {
+      CloudBeesCDPBABuildDetails.applyToRuntime(
+          run,
+          null,
+          null,
+          cause.getFlowRuntimeId(),
+          cause.getFlowRuntimeStateId(),
+          cause.getProjectName(),
+          cause.getReleaseName(),
+          cause.getStageName(),
+          BuildTriggerSource.FLOW,
+          BuildAssociationType.TRIGGERED_BY_FLOW
+      );
+    }
+  }
 
 }
