@@ -1,5 +1,9 @@
 package org.jenkinsci.plugins.electricflow.extension;
 
+import org.kohsuke.stapler.export.Exported;
+import org.kohsuke.stapler.export.ExportedBean;
+
+@ExportedBean
 public class ArtifactUploadData {
 
   // ~ Instance fields --------------------------------------------------------
@@ -14,6 +18,7 @@ public class ArtifactUploadData {
 
   // ~ Methods ----------------------------------------------------------------
 
+  @Exported
   public String getArtifactName() {
     return artifactName;
   }
@@ -22,6 +27,7 @@ public class ArtifactUploadData {
     this.artifactName = artifactName;
   }
 
+  @Exported
   public String getArtifactVersion() {
     return artifactVersion;
   }
@@ -30,6 +36,7 @@ public class ArtifactUploadData {
     this.artifactVersion = artifactVersion;
   }
 
+  @Exported
   public String getArtifactVersionName() {
     return artifactVersionName;
   }
@@ -38,6 +45,7 @@ public class ArtifactUploadData {
     this.artifactVersionName = artifactVersionName;
   }
 
+  @Exported
   public String getArtifactUrl() {
     return artifactUrl;
   }
@@ -46,6 +54,7 @@ public class ArtifactUploadData {
     this.artifactUrl = artifactUrl;
   }
 
+  @Exported
   public String getRepositoryName() {
     return repositoryName;
   }
@@ -54,6 +63,7 @@ public class ArtifactUploadData {
     this.repositoryName = repositoryName;
   }
 
+  @Exported
   public String getRepositoryType() {
     return repositoryType;
   }
@@ -62,6 +72,7 @@ public class ArtifactUploadData {
     this.repositoryType = repositoryType;
   }
 
+  @Exported
   public String getFilePath() {
     return filePath;
   }
