@@ -55,6 +55,7 @@ import org.jenkinsci.plugins.electricflow.exceptions.FlowRuntimeException;
 import org.jenkinsci.plugins.electricflow.factories.ElectricFlowClientFactory;
 import org.jenkinsci.plugins.electricflow.models.CIBuildDetail;
 import org.jenkinsci.plugins.electricflow.models.CIBuildDetail.BuildAssociationType;
+import org.jenkinsci.plugins.electricflow.models.CIBuildDetail.BuildTriggerSource;
 import org.jenkinsci.plugins.electricflow.models.cdrestdata.jobs.GetPipelineRuntimeDetailsResponseData;
 import org.jenkinsci.plugins.electricflow.ui.FieldValidationStatus;
 import org.jenkinsci.plugins.electricflow.ui.HtmlUtils;
@@ -203,7 +204,7 @@ public class ElectricFlowPipelinePublisher extends Recorder implements SimpleBui
                 projectName,
                 null,
                 null,
-                null,
+                BuildTriggerSource.CI,
                 BuildAssociationType.TRIGGERED_BY_CI
         );
       } catch (RuntimeException exception) {

@@ -8,8 +8,10 @@ import org.jenkinsci.plugins.electricflow.Credential;
 import org.jenkinsci.plugins.electricflow.causes.EFCause;
 import org.jenkinsci.plugins.electricflow.models.CIBuildDetail;
 import org.kohsuke.stapler.export.Exported;
+import org.kohsuke.stapler.export.ExportedBean;
 
 // TODO: Since we have now 2 classes that are doing pretty match the same
+@ExportedBean
 public class CloudBeesCDPBABuildDetails implements Action {
   @Exported public String flowRuntimeId = "";
   @Exported public String projectName = "";
