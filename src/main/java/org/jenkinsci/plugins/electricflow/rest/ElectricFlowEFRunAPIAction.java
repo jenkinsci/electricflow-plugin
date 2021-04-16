@@ -3,6 +3,7 @@ package org.jenkinsci.plugins.electricflow.rest;
 import hudson.model.Action;
 import hudson.model.Cause;
 import hudson.model.CauseAction;
+import hudson.model.Item;
 import hudson.model.Job;
 import hudson.model.ParameterDefinition;
 import hudson.model.ParameterValue;
@@ -73,6 +74,28 @@ public class ElectricFlowEFRunAPIAction<T extends Job<?, ?> & Queue.Task> implem
       // @QueryParameter("value") final String value,
       // JSONObject formData
       ) throws IOException, ServletException {
+
+    if (!project.hasPermission(Item.BUILD)){
+      String message = String.format(
+          "User is not authorized to queue builds for project '%s'", project.getDisplayName()
+      );
+
+      JSONObject responseObject = new JSONObject();
+
+      rsp.setStatus(403);
+      responseObject.put("status", "fail");
+      responseObject.put("reason", message);
+
+      OutputStream out = rsp.getOutputStream();
+      String responseString = responseObject.toString();
+      byte[] responseBytes = responseString.getBytes("UTF-8");
+      rsp.setContentLength(responseBytes.length);
+      out.write(responseBytes);
+      out.flush();
+
+      return;
+    }
+
     rsp.setStatus(201);
     // ServletInputStream is = req.getInputStream();
     BufferedReader br = req.getReader();
