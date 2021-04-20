@@ -177,12 +177,14 @@ public class CIBuildDetail {
 
   public enum BuildTriggerSource {
     CI,
-    FLOW
+    FLOW, // Backward compatibility for Actions created before 1.1.22
+    CD
   }
 
   public enum BuildAssociationType {
     ATTACHED,
-    TRIGGERED_BY_FLOW,
+    TRIGGERED_BY_FLOW, // Backward compatibility for Actions created before 1.1.22
+    TRIGGERED_BY_CD,
     TRIGGERED_BY_CI,
   }
 }
