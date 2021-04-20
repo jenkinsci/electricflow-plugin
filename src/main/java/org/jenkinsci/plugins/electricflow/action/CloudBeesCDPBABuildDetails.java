@@ -156,4 +156,15 @@ public class CloudBeesCDPBABuildDetails implements Action {
     }
     run.addAction(cdpbaBuildDetails);
   }
+
+  Object readResolve() {
+    // Required for backward compatibility of the serialized data
+    if (this.buildAssociationType == CIBuildDetail.BuildAssociationType.TRIGGERED_BY_FLOW){
+      this.buildAssociationType = CIBuildDetail.BuildAssociationType.TRIGGERED_BY_CD;
+    }
+    if (this.triggerSource == CIBuildDetail.BuildTriggerSource.FLOW){
+      this.triggerSource = CIBuildDetail.BuildTriggerSource.CD;
+    }
+    return this;
+  }
 }
