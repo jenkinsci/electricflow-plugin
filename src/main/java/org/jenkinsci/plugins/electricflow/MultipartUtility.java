@@ -16,6 +16,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
+import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.charset.StandardCharsets;
@@ -38,7 +39,7 @@ public class MultipartUtility {
 
   private final String boundary;
   private final String charset;
-  private HttpsURLConnection httpConn;
+  private HttpURLConnection httpConn;
   private OutputStream outputStream;
   private PrintWriter writer;
 
@@ -62,22 +63,23 @@ public class MultipartUtility {
 
     URL url = new URL(requestURL);
 
-    httpConn = (HttpsURLConnection) url.openConnection();
+    httpConn = (HttpURLConnection) url.openConnection();
 
     httpConn.setUseCaches(false);
     httpConn.setDoOutput(true); // indicates POST method
     httpConn.setDoInput(true);
     httpConn.setRequestProperty("Content-Type", "multipart/form-data; boundary=" + boundary);
 
-    if (ignoreSslConnectionErrors) {
+    if (ignoreSslConnectionErrors && httpConn instanceof HttpsURLConnection) {
+      HttpsURLConnection httpsConn = (HttpsURLConnection) httpConn;
       try {
-        httpConn.setSSLSocketFactory(RelaxedSSLContext.getInstance().getSocketFactory());
+        httpsConn.setSSLSocketFactory(RelaxedSSLContext.getInstance().getSocketFactory());
       } catch (KeyManagementException | NoSuchAlgorithmException e) {
         if (log.isDebugEnabled()) {
           log.debug(e.getMessage(), e);
         }
       }
-      httpConn.setHostnameVerifier(RelaxedSSLContext.allHostsValid);
+      httpsConn.setHostnameVerifier(RelaxedSSLContext.allHostsValid);
     }
 
     outputStream = httpConn.getOutputStream();

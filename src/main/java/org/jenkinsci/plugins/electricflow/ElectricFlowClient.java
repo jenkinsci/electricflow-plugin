@@ -17,6 +17,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.PrintStream;
+import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.security.KeyManagementException;
@@ -232,22 +233,23 @@ public class ElectricFlowClient {
       urlPath = "/" + urlPath;
     }
 
-    HttpsURLConnection conn = this.getConnection(apiVersion + urlPath);
+    HttpURLConnection conn = this.getConnection(apiVersion + urlPath);
 
     conn.setRequestMethod(httpMethod.name());
     conn.setUseCaches(false);
     conn.setDoInput(true);
     conn.setDoOutput(true);
 
-    if (this.getIgnoreSslConnectionErrors()) {
+    if (this.getIgnoreSslConnectionErrors() && conn instanceof HttpsURLConnection) {
+      HttpsURLConnection sslConn = (HttpsURLConnection) conn;
       try {
-        conn.setSSLSocketFactory(RelaxedSSLContext.getInstance().getSocketFactory());
+        sslConn.setSSLSocketFactory(RelaxedSSLContext.getInstance().getSocketFactory());
       } catch (KeyManagementException | NoSuchAlgorithmException e) {
         if (log.isDebugEnabled()) {
           log.debug(e.getMessage(), e);
         }
       }
-      conn.setHostnameVerifier(RelaxedSSLContext.allHostsValid);
+      sslConn.setHostnameVerifier(RelaxedSSLContext.allHostsValid);
     }
 
     if (!GET.equals(httpMethod)) {
@@ -499,14 +501,14 @@ public class ElectricFlowClient {
     return repositories;
   }
 
-  private HttpsURLConnection getConnection(String endpoint) throws IOException {
+  private HttpURLConnection getConnection(String endpoint) throws IOException {
     URL url = new URL(this.electricFlowUrl + endpoint);
 
     if (log.isDebugEnabled()) {
       log.debug("Endpoint: " + url.toString());
     }
 
-    HttpsURLConnection conn = (HttpsURLConnection) url.openConnection();
+    HttpURLConnection conn = (HttpURLConnection) url.openConnection();
     String authString = this.userName + ":" + this.password;
 
     //
