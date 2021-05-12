@@ -105,8 +105,8 @@ public class ElectricFlowBuildWatcher extends RunListener<Run> {
       if (efCause != null) {
         details = new CIBuildDetail(cbf, efCause.getProjectName());
         details.setFlowRuntimeId(efCause.getFlowRuntimeId());
-        details.setAssociationType(BuildAssociationType.TRIGGERED_BY_FLOW);
-        details.setBuildTriggerSource(BuildTriggerSource.FLOW);
+        details.setAssociationType(BuildAssociationType.TRIGGERED_BY_CD);
+        details.setBuildTriggerSource(BuildTriggerSource.CD);
 
         if (!efCause.getStageName().equals("null")) {
           details.setStageName(efCause.getStageName());
@@ -206,8 +206,8 @@ public class ElectricFlowBuildWatcher extends RunListener<Run> {
           cause.getProjectName(),
           cause.getReleaseName(),
           cause.getStageName(),
-          BuildTriggerSource.FLOW,
-          BuildAssociationType.TRIGGERED_BY_FLOW
+          BuildTriggerSource.CD,
+          BuildAssociationType.TRIGGERED_BY_CD
       );
     }
   }
