@@ -95,18 +95,60 @@ public class ElectricFlowTriggerRelease extends Recorder implements SimpleBuildS
       @Nonnull FilePath filePath,
       @Nonnull Launcher launcher,
       @Nonnull TaskListener taskListener) {
-    JSONObject release = JSONObject.fromObject(parameters).getJSONObject("release");
-    JSONArray stages = JSONArray.fromObject(release.getString("stages"));
-    JSONArray pipelineParameters = JSONArray.fromObject(release.getString("parameters"));
+
+    EnvReplacer env;
+    ElectricFlowClient efClient;
+    try {
+      env = new EnvReplacer(run, taskListener);
+      efClient = ElectricFlowClientFactory.getElectricFlowClient(
+                    configuration, overrideCredential, run, env, false);
+    } catch (RuntimeException | InterruptedException | IOException e) {
+      log.info("Can't create ElectricFlow client");
+      throw new RuntimeException("Can't create ElectricFlowClient object: " + e.getMessage());
+    }
+    JSONObject release; // = JSONObject.fromObject(parameters).getJSONObject("release");
+    JSONArray stages; // = JSONArray.fromObject(release.getString("stages"));
+    JSONArray pipelineParameters; // = JSONArray.fromObject(release.getString("parameters"));
+
+    if (parameters == null) {
+      pipelineParameters = new JSONArray();
+      stages = new JSONArray();
+    }
+    else {
+      release = JSONObject.fromObject(parameters).getJSONObject("release");
+      stages = JSONArray.fromObject(release.getString("stages"));
+      pipelineParameters = JSONArray.fromObject(release.getString("parameters"));
+    }
     List<String> stagesToRun = new ArrayList<>();
 
-    if (startingStage.isEmpty()) {
-
-      for (int i = 0; i < stages.size(); i++) {
-        JSONObject stage = stages.getJSONObject(i);
-        if (stage.getBoolean("stageValue")) {
-          stagesToRun.add(stage.getString("stageName"));
+    if (startingStage == null) {
+      /* Now we are handling the following logic.
+       1. If there are no startingStage AND the stages object is non-empty:
+       we are going to read the stages and find the starting stages from array
+       2. If there are no startingStage and stages is empty we will try to read this from
+       CB CD
+       */
+      if (stages.size() > 0) {
+        for (int i = 0; i < stages.size(); i++) {
+          JSONObject stage = stages.getJSONObject(i);
+          if (stage.getBoolean("stageValue")) {
+            stagesToRun.add(stage.getString("stageName"));
+          }
         }
+        this.startingStage = stagesToRun.get(0);
+      }
+      else {
+        Release releaseInfo;
+
+        try {
+          releaseInfo = efClient.getRelease(this.configuration, this.projectName, this.releaseName);
+        } catch (Exception e) {
+          log.info("Can't get release information");
+          throw new RuntimeException("Can't get release information.");
+        }
+        List<String> releaseInfoStages = releaseInfo.getStartStages();
+        stagesToRun.addAll(releaseInfoStages);
+        this.startingStage = stagesToRun.get(0);
       }
     }
 
@@ -114,12 +156,6 @@ public class ElectricFlowTriggerRelease extends Recorder implements SimpleBuildS
 
     try {
       logger.println("Preparing to triggerRelease...");
-
-      EnvReplacer env = new EnvReplacer(run, taskListener);
-      ElectricFlowClient efClient =
-          ElectricFlowClientFactory.getElectricFlowClient(
-              configuration, overrideCredential, run, env, false);
-
       expandParameters(pipelineParameters, env);
 
       String releaseResult =
