@@ -306,17 +306,20 @@ public class Utils {
       return false;
     }
   }
-
   public static ListBoxModel getProjects(String configuration, Credential overrideCredential) {
+    return getProjects(configuration, overrideCredential, true);
+  }
+  public static ListBoxModel getProjects(String configuration, Credential overrideCredential, boolean warnOnSelectProject) {
     try {
       ListBoxModel m = new ListBoxModel();
 
-      m.add(
-          "Select project",
-          new SelectItemValidationWrapper(
-                  FieldValidationStatus.WARN, "Project name field should not be empty.", "")
-              .getJsonStr());
-
+      if (warnOnSelectProject) {
+        m.add(
+            "Select project",
+            new SelectItemValidationWrapper(
+                    FieldValidationStatus.WARN, "Project name field should not be empty.", "")
+                .getJsonStr());
+      }
       if (!configuration.isEmpty()) {
         ElectricFlowClient efClient =
             ElectricFlowClientFactory.getElectricFlowClient(

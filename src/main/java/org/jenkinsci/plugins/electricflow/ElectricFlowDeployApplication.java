@@ -711,7 +711,7 @@ public class ElectricFlowDeployApplication extends Recorder implements SimpleBui
         return new ListBoxModel();
       }
       Credential overrideCredentialObj = overrideCredential ? new Credential(credentialId) : null;
-      return Utils.getProjects(configuration, overrideCredentialObj);
+      return Utils.getProjects(configuration, overrideCredentialObj, false);
     }
 
     public ListBoxModel doFillEnvironmentNameItems(
