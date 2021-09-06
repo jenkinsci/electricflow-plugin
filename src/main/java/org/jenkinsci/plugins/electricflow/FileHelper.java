@@ -11,6 +11,8 @@ package org.jenkinsci.plugins.electricflow;
 import hudson.FilePath;
 import hudson.model.Run;
 import hudson.model.TaskListener;
+import hudson.util.DirScanner;
+import hudson.util.FileVisitor;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -25,8 +27,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
-import org.apache.maven.shared.utils.io.DirectoryScanner;
-
 public class FileHelper {
 
   // ~ Methods ----------------------------------------------------------------
@@ -130,6 +130,31 @@ public class FileHelper {
     return fileList;
   }
 
+  static List<File> getFilesFromDirectoryWildcardDirScanner(
+          FilePath basePath,
+          String includePattern,
+          boolean fullPath,
+          String fullPathValue
+  ) throws IOException {
+    DirScanner ds = new DirScanner.Glob(includePattern, "");
+    List<File> readFileList = new ArrayList<File>();
+    File t = new File(basePath.getRemote());
+    ds.scan(t, new FileVisitor() {
+      @Override
+      public void visit(File file, String s) throws IOException {
+        String fileString;
+        if (fullPath) {
+          fileString = fullPathValue + "/" + s;
+        }
+        else {
+          fileString = s;
+        }
+        File retFile = new File(fileString);
+        readFileList.add(retFile);
+      }
+    });
+    return readFileList;
+  }
   static List<File> getFilesFromDirectoryWildcard(
       Run build, TaskListener listener, final FilePath basePath, final String path)
       throws IOException, InterruptedException {
@@ -149,9 +174,8 @@ public class FileHelper {
       boolean copyToMasterBuildDir)
       throws IOException, InterruptedException {
     PrintStream logger = listener.getLogger();
-    String[] splitResult = splitPath(path);
-    List<File> result = new ArrayList<>();
-    DirectoryScanner scanner = new DirectoryScanner();
+    // String[] splitResult = splitPath(path);
+    // List<File> result = new ArrayList<>();
 
     String basePathActual = basePathInitial.getRemote();
 
@@ -166,25 +190,7 @@ public class FileHelper {
       basePathActual = basePathOnMaster.getRemote();
     }
 
-    scanner.setBasedir(basePathActual);
-
-    // Now let's locate files
-
-    scanner.setIncludes(splitResult);
-    scanner.setCaseSensitive(false);
-    scanner.scan();
-
-    String[] files = scanner.getIncludedFiles();
-
-    for (String str : files) {
-
-      if (fullPath) {
-        result.add(new File(buildPath(basePathActual, "/", str)));
-      } else {
-        result.add(new File(str));
-      }
-    }
-
+    List<File> result = getFilesFromDirectoryWildcardDirScanner(basePathInitial, path, fullPath, basePathActual);
     if (result.isEmpty()) {
       throw new InterruptedException(
           "Upload result:  No files were found in path \""
