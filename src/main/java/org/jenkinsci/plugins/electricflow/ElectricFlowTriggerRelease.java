@@ -106,7 +106,7 @@ public class ElectricFlowTriggerRelease extends Recorder implements SimpleBuildS
       log.info("Can't create ElectricFlow client");
       throw new RuntimeException("Can't create ElectricFlowClient object: " + e.getMessage());
     }
-    JSONObject release; // = JSONObject.fromObject(parameters).getJSONObject("release");
+    JSONObject release = new JSONObject(); // = JSONObject.fromObject(parameters).getJSONObject("release");
     JSONArray stages; // = JSONArray.fromObject(release.getString("stages"));
     JSONArray pipelineParameters; // = JSONArray.fromObject(release.getString("parameters"));
 
@@ -116,11 +116,23 @@ public class ElectricFlowTriggerRelease extends Recorder implements SimpleBuildS
     }
     else {
       release = JSONObject.fromObject(parameters).getJSONObject("release");
-      stages = JSONArray.fromObject(release.getString("stages"));
+      if (release.containsKey("stages")) {
+        stages = JSONArray.fromObject(release.getString("stages"));
+      }
+      else {
+        stages = new JSONArray();
+      }
       pipelineParameters = JSONArray.fromObject(release.getString("parameters"));
     }
     List<String> stagesToRun = new ArrayList<>();
-
+    if (this.getReleaseName() == null) {
+      if (!release.containsKey("releaseName")) {
+        throw new RuntimeException("Can't determine release name from parameters.");
+      }
+      else {
+        this.setReleaseName(release.getString("releaseName"));
+      }
+    }
     if (startingStage == null) {
       /* Now we are handling the following logic.
        1. If there are no startingStage AND the stages object is non-empty:
