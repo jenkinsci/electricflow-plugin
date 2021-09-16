@@ -1,0 +1,26 @@
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
+    <span>
+        CloudBees CD Triggered this build:
+        <j:if test="${!empty(it.flowRuntimeId)}">
+            <br/>
+            Flow Runtime ID: ${it.flowRuntimeId}
+        </j:if>
+        <j:if test="${!empty(it.projectName)}">
+            <br/>
+            Project Name: ${it.projectName}
+        </j:if>
+        <j:if test="${!empty(it.releaseName)}">
+            <br/>
+            Release Name: ${it.releaseName}
+        </j:if>
+        <j:if test="${!empty(it.flowRuntimeStateId)}">
+            <br/>
+            Flow Runtime State ID: ${it.flowRuntimeStateId}
+        </j:if>
+        <j:if test="${!empty(it.stageName)}">
+            <br/>
+            Stage Name: ${it.stageName}
+        </j:if>
+    </span>
+</j:jelly>
