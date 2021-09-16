@@ -55,36 +55,7 @@ public class EFCause extends hudson.model.Cause {
   }
 
   public String getShortDescription() {
-    StringBuilder shortDescription = new StringBuilder();
-    shortDescription.append("CloudBees CD Triggered this build:");
-
-    String flowRuntimeId = this.getFlowRuntimeId();
-    String projectName = this.getProjectName();
-    String releaseName = this.getReleaseName();
-    String flowRuntimeStateId = this.getFlowRuntimeStateId();
-    String stageName = this.getStageName();
-
-    if (!isEmptyOrNullString(flowRuntimeId)) {
-      shortDescription.append("<br/>");
-      shortDescription.append("Flow Runtime ID: ").append(flowRuntimeId);
-    }
-    if (!isEmptyOrNullString(projectName)) {
-      shortDescription.append("<br/>");
-      shortDescription.append("Project Name: ").append(projectName);
-    }
-    if (!isEmptyOrNullString(releaseName)) {
-      shortDescription.append("<br/>");
-      shortDescription.append("Release Name: ").append(releaseName);
-    }
-    if (!isEmptyOrNullString(flowRuntimeStateId)) {
-      shortDescription.append("<br/>");
-      shortDescription.append("Flow Runtime State ID: ").append(flowRuntimeStateId);
-    }
-    if (!isEmptyOrNullString(stageName)) {
-      shortDescription.append("<br/>");
-      shortDescription.append("Stage Name: ").append(stageName);
-    }
-    return shortDescription.toString();
+    return "CloudBees CD Triggered this build";
   }
   public String getLaunchedByText() {
     return this.LAUNCHED_BY_CD_TEXT;
