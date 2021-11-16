@@ -4,6 +4,7 @@ import static com.cloudbees.plugins.credentials.CredentialsProvider.lookupCreden
 
 import com.cloudbees.plugins.credentials.CredentialsMatchers;
 import com.cloudbees.plugins.credentials.CredentialsProvider;
+import com.cloudbees.plugins.credentials.common.StandardListBoxModel;
 import com.cloudbees.plugins.credentials.common.StandardUsernameListBoxModel;
 import com.cloudbees.plugins.credentials.common.StandardUsernamePasswordCredentials;
 import com.cloudbees.plugins.credentials.domains.SchemeRequirement;
@@ -16,6 +17,7 @@ import hudson.security.ACL;
 import hudson.util.ListBoxModel;
 import java.util.Collections;
 import jenkins.model.Jenkins;
+import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 public class Credential extends AbstractDescribableImpl<Credential> {
@@ -72,20 +74,22 @@ public class Credential extends AbstractDescribableImpl<Credential> {
   @Extension
   public static class DescriptorImpl extends Descriptor<Credential> {
 
-    public static ListBoxModel doFillCredentialIdItems(Item item) {
-      if (item == null || !item.hasPermission(Item.CONFIGURE)) {
-        return new ListBoxModel();
+    public static ListBoxModel doFillCredentialIdItems(@AncestorInPath Item item) {
+      
+      if (item == null && !Jenkins.get().hasPermission(Jenkins.ADMINISTER)) {
+        return new StandardListBoxModel();
       }
-      if (!item.hasPermission(Item.EXTENDED_READ)
+      if (item != null 
+          && !item.hasPermission(Item.EXTENDED_READ) /*implied by Item.CONFIGURE*/ 
           && !item.hasPermission(CredentialsProvider.USE_ITEM)) {
-        return new ListBoxModel();
+        return new StandardListBoxModel();
       }
 
       return new StandardUsernameListBoxModel()
           .includeEmptyValue()
           .includeMatchingAs(
               ACL.SYSTEM,
-              Jenkins.get(),
+              item,
               StandardUsernamePasswordCredentials.class,
               Collections.emptyList(),
               CredentialsMatchers.always());
