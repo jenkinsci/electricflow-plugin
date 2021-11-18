@@ -122,6 +122,7 @@ public class ElectricFlowBuildWatcher extends RunListener<Run> {
           electricFlowClient = ElectricFlowClientFactory.getElectricFlowClient(
             tc.getConfigurationName(),
             cdPBABuildDetails.getOverriddenCredential(),
+            run,
             null,
             true
           );
