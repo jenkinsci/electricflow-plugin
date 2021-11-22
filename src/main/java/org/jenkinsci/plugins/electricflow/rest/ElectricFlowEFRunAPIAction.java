@@ -1,5 +1,7 @@
 package org.jenkinsci.plugins.electricflow.rest;
 
+import hudson.Plugin;
+import hudson.PluginManager;
 import hudson.model.Action;
 import hudson.model.Cause;
 import hudson.model.CauseAction;
@@ -14,15 +16,19 @@ import hudson.model.StringParameterValue;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import javax.servlet.ServletException;
+
 import jenkins.model.Jenkins;
 import net.sf.json.JSONException;
 import net.sf.json.JSONObject;
 import org.jenkinsci.plugins.electricflow.causes.EFCause;
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.StaplerResponse;
+import org.kohsuke.stapler.verb.GET;
 import org.kohsuke.stapler.verb.POST;
 
 // public class ElectricFlowEFRunAPIAction<T extends Job<?, ?> &
@@ -55,26 +61,24 @@ public class ElectricFlowEFRunAPIAction<T extends Job<?, ?> & Queue.Task> implem
   // end of interface methods.
 
   // action methods
-  @POST
+  @GET @POST
   public void doIndex(StaplerRequest req, StaplerResponse rsp)
       throws IOException, ServletException {
     rsp.setStatus(201);
-    String responseString = "Hello World";
-    byte[] responseBytes = responseString.getBytes("UTF-8");
-    rsp.setContentLength(responseBytes.length);
-    OutputStream out = rsp.getOutputStream();
-    out.write(responseBytes);
-    out.flush();
-    // out.close();
+    JSONObject jsonObject = this.getEFRunIndexResponse();
+    this.sendJSONResponse(rsp, jsonObject);
   }
 
-  @POST
+  @POST @GET
   public void doBuild(StaplerRequest req, StaplerResponse rsp
       // @QueryParameter final JSONObject json
       // @QueryParameter("value") final String value,
       // JSONObject formData
       ) throws IOException, ServletException {
-
+    if (!Objects.equals(req.getMethod(), "POST")) {
+      this.sendJSONResponse(rsp, this.getEFRunIndexBuildResponse());
+      return;
+    }
     if (!project.hasPermission(Item.BUILD)){
       String message = String.format(
           "User is not authorized to queue builds for project '%s'", project.getDisplayName()
@@ -218,5 +222,30 @@ public class ElectricFlowEFRunAPIAction<T extends Job<?, ?> & Queue.Task> implem
       return property.getParameterDefinitions();
     }
     return new ArrayList<ParameterDefinition>();
+  }
+
+  private void sendJSONResponse(StaplerResponse rsp, JSONObject responseObject)
+          throws IOException, ServletException {
+    rsp.setStatus(201);
+    String responseString = responseObject.toString();
+    byte[] responseBytes = responseString.getBytes(StandardCharsets.UTF_8);
+    rsp.setContentLength(responseBytes.length);
+    OutputStream out = rsp.getOutputStream();
+    out.write(responseBytes);
+    out.flush();
+  }
+
+  private JSONObject getEFRunIndexBuildResponse() {
+    JSONObject jsonObject = new JSONObject();
+    jsonObject.put("status", "ok");
+    jsonObject.put("description", "efrun/build: Use POST method to trigger the build.");
+    return jsonObject;
+  }
+
+  private JSONObject getEFRunIndexResponse() {
+    JSONObject jsonObject = new JSONObject();
+    jsonObject.put("status", "ok");
+    jsonObject.put("description", "EFRun API is running and available");
+    return jsonObject;
   }
 }
