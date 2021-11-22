@@ -67,13 +67,6 @@ public class ElectricFlowEFRunAPIAction<T extends Job<?, ?> & Queue.Task> implem
     rsp.setStatus(201);
     JSONObject jsonObject = this.getEFRunIndexResponse();
     this.sendJSONResponse(rsp, jsonObject);
-//    String responseString = this.getEFRunIndexResponse();
-//    byte[] responseBytes = responseString.getBytes(StandardCharsets.UTF_8);
-//    rsp.setContentLength(responseBytes.length);
-//    OutputStream out = rsp.getOutputStream();
-//    out.write(responseBytes);
-//    out.flush();
-//    // out.close();
   }
 
   @POST @GET
