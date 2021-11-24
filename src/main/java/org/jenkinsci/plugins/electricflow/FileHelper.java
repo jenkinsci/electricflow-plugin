@@ -138,7 +138,7 @@ public class FileHelper {
   ) throws IOException, InterruptedException {
     DirScanner ds = new DirScanner.Glob(includePattern, "");
     List<File> readFileList = new ArrayList<File>();
-    File t = new File(basePath.toURI().getPath());
+    File t = new File(basePath.toURI());
     ds.scan(t, new FileVisitor() {
       @Override
       public void visit(File file, String s) throws IOException {
