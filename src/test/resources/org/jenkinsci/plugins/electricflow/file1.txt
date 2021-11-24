@@ -1,0 +1,14 @@
+
+this is a test
+with newline
+and fancy !@#$%^&*()_+{}:"<>? chars
+and another newline
+and empty line comming
+
+  and indented content
+
+and some escaped newlines 
+
+ 
+
+and we're done
