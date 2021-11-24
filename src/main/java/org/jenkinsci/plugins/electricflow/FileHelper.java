@@ -135,10 +135,10 @@ public class FileHelper {
           String includePattern,
           boolean fullPath,
           String fullPathValue
-  ) throws IOException {
+  ) throws IOException, InterruptedException {
     DirScanner ds = new DirScanner.Glob(includePattern, "");
     List<File> readFileList = new ArrayList<File>();
-    File t = new File(basePath.getRemote());
+    File t = new File(basePath.toURI().getPath());
     ds.scan(t, new FileVisitor() {
       @Override
       public void visit(File file, String s) throws IOException {
