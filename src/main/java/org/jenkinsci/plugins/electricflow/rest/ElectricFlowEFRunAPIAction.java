@@ -114,7 +114,7 @@ public class ElectricFlowEFRunAPIAction<T extends Job<?, ?> & Queue.Task> implem
       jsonObject = JSONObject.fromObject(sb.toString());
     } catch (JSONException e) {
       JSONObject jsonResponse = this.getErrorResponse(e.getMessage());
-      this.sendJSONResponse(rsp, jsonResponse);
+      this.sendJSONResponse(500, rsp, jsonResponse);
       return;
     }
 
@@ -238,9 +238,12 @@ public class ElectricFlowEFRunAPIAction<T extends Job<?, ?> & Queue.Task> implem
     return new ArrayList<ParameterDefinition>();
   }
 
-  private void sendJSONResponse(StaplerResponse rsp, JSONObject responseObject)
+  private void sendJSONResponse(StaplerResponse rsp, JSONObject responseObject) throws IOException, ServletException {
+    this.sendJSONResponse(201, rsp, responseObject);
+  }
+  private void sendJSONResponse(int responseCode, StaplerResponse rsp, JSONObject responseObject)
           throws IOException, ServletException {
-    rsp.setStatus(201);
+    rsp.setStatus(responseCode);
     String responseString = responseObject.toString();
     byte[] responseBytes = responseString.getBytes(StandardCharsets.UTF_8);
     rsp.setContentLength(responseBytes.length);
