@@ -108,7 +108,15 @@ public class ElectricFlowEFRunAPIAction<T extends Job<?, ?> & Queue.Task> implem
     while ((strCurrentLine = br.readLine()) != null) {
       sb.append(strCurrentLine);
     }
-    JSONObject jsonObject = JSONObject.fromObject(sb.toString());
+    JSONObject jsonObject = null;
+
+    try {
+      jsonObject = JSONObject.fromObject(sb.toString());
+    } catch (JSONException e) {
+      JSONObject jsonResponse = this.getErrorResponse(e.getMessage());
+      this.sendJSONResponse(rsp, jsonResponse);
+      return;
+    }
 
     String flowRuntimeId = "";
     String projectName = "";
@@ -155,6 +163,9 @@ public class ElectricFlowEFRunAPIAction<T extends Job<?, ?> & Queue.Task> implem
       //                hasBuildParams = true;
       //            }
     } catch (JSONException e) {
+//      JSONObject jsonResponse = this.getErrorResponse(e.getMessage());
+//      this.sendJSONResponse(rsp, jsonResponse);
+//      return;
     }
     ;
 
@@ -189,6 +200,9 @@ public class ElectricFlowEFRunAPIAction<T extends Job<?, ?> & Queue.Task> implem
           StringParameterValue spv = new StringParameterValue(parameterName, formValue);
           parameterValues.add(spv);
         } catch (JSONException e) {
+//          JSONObject jsonResponse = this.getErrorResponse(e.getMessage());
+//          this.sendJSONResponse(rsp, jsonResponse);
+//          return;
         }
         ;
       }
@@ -246,6 +260,13 @@ public class ElectricFlowEFRunAPIAction<T extends Job<?, ?> & Queue.Task> implem
     JSONObject jsonObject = new JSONObject();
     jsonObject.put("status", "ok");
     jsonObject.put("description", "EFRun API is running and available");
+    return jsonObject;
+  }
+
+  private JSONObject getErrorResponse(String msg) {
+    JSONObject jsonObject = new JSONObject();
+    jsonObject.put("status", "error");
+    jsonObject.put("description", msg);
     return jsonObject;
   }
 }
