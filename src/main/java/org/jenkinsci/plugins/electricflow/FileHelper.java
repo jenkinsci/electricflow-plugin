@@ -131,15 +131,13 @@ public class FileHelper {
   }
 
   static List<File> getFilesFromDirectoryWildcardDirScanner(
-          FilePath basePath,
           String includePattern,
           boolean fullPath,
           String fullPathValue
   ) throws IOException {
     DirScanner ds = new DirScanner.Glob(includePattern, "");
     List<File> readFileList = new ArrayList<File>();
-    File t = new File(basePath.getRemote());
-    ds.scan(t, new FileVisitor() {
+    ds.scan(new File(fullPathValue), new FileVisitor() {
       @Override
       public void visit(File file, String s) throws IOException {
         String fileString;
@@ -190,7 +188,7 @@ public class FileHelper {
       basePathActual = basePathOnMaster.getRemote();
     }
 
-    List<File> result = getFilesFromDirectoryWildcardDirScanner(basePathInitial, path, fullPath, basePathActual);
+    List<File> result = getFilesFromDirectoryWildcardDirScanner(path, fullPath, basePathActual);
     if (result.isEmpty()) {
       throw new InterruptedException(
           "Upload result:  No files were found in path \""
