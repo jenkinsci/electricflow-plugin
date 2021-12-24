@@ -129,7 +129,7 @@ public class MultipartUtility {
 
       outputStream.flush();
       inputStream.close();
-      writer.flush();
+      writer.append(LINE_FEED).flush();
     } catch (IOException e) {
       throw new IOException(e);
     }
@@ -175,7 +175,6 @@ public class MultipartUtility {
   public List<String> finish() throws IOException {
     List<String> response = new ArrayList<>();
 
-    writer.append(LINE_FEED).flush();
     writer.append("--").append(boundary).append("--").append(LINE_FEED);
     writer.close();
 
