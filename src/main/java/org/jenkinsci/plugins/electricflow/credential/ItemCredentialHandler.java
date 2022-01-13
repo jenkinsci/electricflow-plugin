@@ -10,7 +10,7 @@ import hudson.security.ACL;
 
 public class ItemCredentialHandler implements CredentialHandler {
 
-  Item item;
+  private Item item;
 
   public ItemCredentialHandler(Item item) {
     this.item = item;

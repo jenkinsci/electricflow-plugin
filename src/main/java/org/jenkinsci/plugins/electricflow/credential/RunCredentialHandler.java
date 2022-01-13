@@ -7,7 +7,7 @@ import java.util.Collections;
 
 public class RunCredentialHandler implements CredentialHandler {
 
-  Run run;
+  private Run run;
 
   public RunCredentialHandler(Run run) {
     this.run = run;
