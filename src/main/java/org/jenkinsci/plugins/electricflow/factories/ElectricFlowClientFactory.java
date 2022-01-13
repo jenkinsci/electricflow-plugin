@@ -8,9 +8,9 @@ import org.jenkinsci.plugins.electricflow.Credential;
 import org.jenkinsci.plugins.electricflow.ElectricFlowClient;
 import org.jenkinsci.plugins.electricflow.EnvReplacer;
 import org.jenkinsci.plugins.electricflow.Utils;
-import org.jenkinsci.plugins.electricflow.credential.CredentialHandler;
-import org.jenkinsci.plugins.electricflow.credential.ItemCredentialHandler;
-import org.jenkinsci.plugins.electricflow.credential.RunCredentialHandler;
+import org.jenkinsci.plugins.electricflow.credentials.CredentialHandler;
+import org.jenkinsci.plugins.electricflow.credentials.ItemCredentialHandler;
+import org.jenkinsci.plugins.electricflow.credentials.RunCredentialHandler;
 
 public class ElectricFlowClientFactory {
 

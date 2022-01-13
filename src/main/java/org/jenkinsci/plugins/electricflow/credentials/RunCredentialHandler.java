@@ -1,4 +1,4 @@
-package org.jenkinsci.plugins.electricflow.credential;
+package org.jenkinsci.plugins.electricflow.credentials;
 
 import com.cloudbees.plugins.credentials.CredentialsProvider;
 import com.cloudbees.plugins.credentials.common.StandardUsernamePasswordCredentials;

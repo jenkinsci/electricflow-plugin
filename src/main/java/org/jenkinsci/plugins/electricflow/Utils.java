@@ -8,8 +8,6 @@
 
 package org.jenkinsci.plugins.electricflow;
 
-import static hudson.plugins.git.GitChangeSet.LOGGER;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import hudson.EnvVars;
 import hudson.model.BuildListener;
@@ -39,9 +37,9 @@ import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.jenkinsci.plugins.electricflow.credential.CredentialHandler;
-import org.jenkinsci.plugins.electricflow.credential.ItemCredentialHandler;
-import org.jenkinsci.plugins.electricflow.credential.RunCredentialHandler;
+import org.jenkinsci.plugins.electricflow.credentials.CredentialHandler;
+import org.jenkinsci.plugins.electricflow.credentials.ItemCredentialHandler;
+import org.jenkinsci.plugins.electricflow.credentials.RunCredentialHandler;
 import org.jenkinsci.plugins.electricflow.factories.ElectricFlowClientFactory;
 import org.jenkinsci.plugins.electricflow.models.cdrestdata.jobs.CdJobOutcome;
 import org.jenkinsci.plugins.electricflow.models.cdrestdata.jobs.CdPipelineStatus;
