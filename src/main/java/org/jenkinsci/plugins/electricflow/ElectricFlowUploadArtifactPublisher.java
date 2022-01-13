@@ -122,7 +122,7 @@ public class ElectricFlowUploadArtifactPublisher extends Recorder implements Sim
       // Uploading artifact
       ElectricFlowClient efClient =
           ElectricFlowClientFactory.getElectricFlowClient(
-              configuration, overrideCredential, run, env, false);
+              configuration, overrideCredential, run, env);
 
       String result =
           efClient.uploadArtifact(
@@ -379,7 +379,7 @@ public class ElectricFlowUploadArtifactPublisher extends Recorder implements Sim
         Credential overrideCredentialObj = overrideCredential ? new Credential(credentialId) : null;
         ElectricFlowClient efClient =
             ElectricFlowClientFactory.getElectricFlowClient(
-                configuration, overrideCredentialObj, null, true);
+                configuration, overrideCredentialObj, item, null);
         List<String> repositories;
 
         repositories = efClient.getArtifactRepositories();

@@ -40,8 +40,7 @@ public class CallRestApiUtils {
               callRestApiModel.getConfiguration(),
               callRestApiModel.getOverrideCredential(),
               run,
-              envReplacer,
-              false);
+              envReplacer);
 
       String result =
           efClient.runRestAPI(
