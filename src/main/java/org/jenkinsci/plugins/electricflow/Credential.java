@@ -12,7 +12,6 @@ import hudson.Extension;
 import hudson.model.AbstractDescribableImpl;
 import hudson.model.Descriptor;
 import hudson.model.Item;
-import hudson.model.Run;
 import hudson.security.ACL;
 import hudson.util.ListBoxModel;
 import java.util.Collections;
@@ -45,16 +44,6 @@ public class Credential extends AbstractDescribableImpl<Credential> {
         CredentialsMatchers.withId(credentialsId));
   }
 
-  private static StandardUsernamePasswordCredentials
-      getStandardUsernamePasswordCredentialsByIdAndRun(String credentialsId, Run run) {
-    if (credentialsId == null) {
-      return null;
-    }
-
-    return CredentialsProvider.findCredentialById(
-        credentialsId, StandardUsernamePasswordCredentials.class, run, Collections.emptyList());
-  }
-
   public String getCredentialId(EnvReplacer envReplacer) {
     return envReplacer == null ? getCredentialId() : envReplacer.expandEnv(getCredentialId());
   }
@@ -63,24 +52,16 @@ public class Credential extends AbstractDescribableImpl<Credential> {
     return credentialId;
   }
 
-  public StandardUsernamePasswordCredentials getUsernamePasswordBasedOnCredentialId(
-      EnvReplacer envReplacer, Run run) {
-    String credentialIdResolved = getCredentialId(envReplacer);
-    return run == null
-        ? getStandardUsernamePasswordCredentialsById(credentialIdResolved)
-        : getStandardUsernamePasswordCredentialsByIdAndRun(credentialIdResolved, run);
-  }
-
   @Extension
   public static class DescriptorImpl extends Descriptor<Credential> {
 
     public static ListBoxModel doFillCredentialIdItems(@AncestorInPath Item item) {
-      
+
       if (item == null && !Jenkins.get().hasPermission(Jenkins.ADMINISTER)) {
         return new StandardListBoxModel();
       }
-      if (item != null 
-          && !item.hasPermission(Item.EXTENDED_READ) /*implied by Item.CONFIGURE*/ 
+      if (item != null
+          && !item.hasPermission(Item.EXTENDED_READ) /*implied by Item.CONFIGURE*/
           && !item.hasPermission(CredentialsProvider.USE_ITEM)) {
         return new StandardListBoxModel();
       }

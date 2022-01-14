@@ -123,8 +123,7 @@ public class ElectricFlowBuildWatcher extends RunListener<Run> {
             tc.getConfigurationName(),
             cdPBABuildDetails.getOverriddenCredential(),
             run,
-            null,
-            true
+            null
           );
         }
         if (

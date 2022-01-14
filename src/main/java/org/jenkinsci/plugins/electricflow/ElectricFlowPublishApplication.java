@@ -198,7 +198,7 @@ public class ElectricFlowPublishApplication extends Recorder implements SimpleBu
     try {
       ElectricFlowClient efClient =
           ElectricFlowClientFactory.getElectricFlowClient(
-              configuration, overrideCredential, run, env, false);
+              configuration, overrideCredential, run, env);
       List<File> fileList = new ArrayList<>();
       fileList.add(archive);
 

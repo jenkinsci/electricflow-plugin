@@ -105,7 +105,7 @@ public class ElectricFlowBuildWatcherTest {
         try(MockedStatic<ElectricFlowClientFactory> factoryMock = mockStatic(ElectricFlowClientFactory.class, Mockito.CALLS_REAL_METHODS)) {
             ElectricFlowBuildWatcher electricFlowBuildWatcher = jenkinsRule.jenkins.getExtensionList(ElectricFlowBuildWatcher.class).get(0);
             electricFlowBuildWatcher.sendBuildDetailsToInstanceImproved(wRun2, TaskListener.NULL);
-            factoryMock.verify(() -> ElectricFlowClientFactory.getElectricFlowClient("local-cd", flowFolderCred, wRun2, null, true));
+            factoryMock.verify(() -> ElectricFlowClientFactory.getElectricFlowClient("local-cd", flowFolderCred, wRun2, null));
         }
     }
 }

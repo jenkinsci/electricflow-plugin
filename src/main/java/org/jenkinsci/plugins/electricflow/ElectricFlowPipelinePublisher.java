@@ -117,7 +117,7 @@ public class ElectricFlowPipelinePublisher extends Recorder implements SimpleBui
       env = new EnvReplacer(run, taskListener);
       efClient =
           ElectricFlowClientFactory.getElectricFlowClient(
-              configuration, overrideCredential, run, env, false);
+              configuration, overrideCredential, run, env);
     } catch (Exception e) {
       logger.println("Cannot create CloudBees CD client. Error: " + e.getMessage());
       log.error("Cannot create CloudBees CD client. Error: " + e.getMessage(), e);
@@ -575,7 +575,7 @@ public class ElectricFlowPipelinePublisher extends Recorder implements SimpleBui
         Credential overrideCredentialObj = overrideCredential ? new Credential(credentialId) : null;
         ElectricFlowClient efClient =
             ElectricFlowClientFactory.getElectricFlowClient(
-                configuration, overrideCredentialObj, null, true);
+                configuration, overrideCredentialObj, item, null);
         List<String> parameters = efClient.getPipelineFormalParameters(projectName, pipelineName);
         JSONObject main =
             JSONObject.fromObject(
@@ -596,7 +596,7 @@ public class ElectricFlowPipelinePublisher extends Recorder implements SimpleBui
         SelectItemValidationWrapper selectItemValidationWrapper;
 
         Credential overrideCredentialObj = overrideCredential ? new Credential(credentialId) : null;
-        if (Utils.isEflowAvailable(configuration, overrideCredentialObj)) {
+        if (Utils.isEflowAvailable(configuration, overrideCredentialObj, item)) {
           log.error(
               "Error when fetching set of pipeline parameters. Error message: " + e.getMessage(),
               e);
@@ -638,7 +638,7 @@ public class ElectricFlowPipelinePublisher extends Recorder implements SimpleBui
         return new ListBoxModel();
       }
       Credential overrideCredentialObj = overrideCredential ? new Credential(credentialId) : null;
-      return Utils.getPipelines(configuration, overrideCredentialObj, projectName);
+      return Utils.getPipelines(configuration, overrideCredentialObj, item, projectName);
     }
 
     public ListBoxModel doFillProjectNameItems(
@@ -650,7 +650,7 @@ public class ElectricFlowPipelinePublisher extends Recorder implements SimpleBui
         return new ListBoxModel();
       }
       Credential overrideCredentialObj = overrideCredential ? new Credential(credentialId) : null;
-      return Utils.getProjects(configuration, overrideCredentialObj);
+      return Utils.getProjects(configuration, overrideCredentialObj, item, true);
     }
 
     @Override

@@ -122,7 +122,7 @@ public class ElectricFlowDeployApplication extends Recorder implements SimpleBui
       EnvReplacer env = new EnvReplacer(run, taskListener);
       ElectricFlowClient efClient =
           ElectricFlowClientFactory.getElectricFlowClient(
-              configuration, overrideCredential, run, env, false);
+              configuration, overrideCredential, run, env);
       expandParameters(parameter, env, "value");
 
       String result =
@@ -529,7 +529,7 @@ public class ElectricFlowDeployApplication extends Recorder implements SimpleBui
               overrideCredential ? new Credential(credentialId) : null;
           ElectricFlowClient client =
               ElectricFlowClientFactory.getElectricFlowClient(
-                  configuration, overrideCredentialObj, null, true);
+                  configuration, overrideCredentialObj, item, null);
 
           List<String> applications = client.getApplications(projectName);
 
@@ -541,7 +541,7 @@ public class ElectricFlowDeployApplication extends Recorder implements SimpleBui
         return m;
       } catch (Exception e) {
         Credential overrideCredentialObj = overrideCredential ? new Credential(credentialId) : null;
-        if (Utils.isEflowAvailable(configuration, overrideCredentialObj)) {
+        if (Utils.isEflowAvailable(configuration, overrideCredentialObj, item)) {
           log.error(
               "Error when fetching values for this parameter - application. Error message: "
                   + e.getMessage(),
@@ -577,7 +577,7 @@ public class ElectricFlowDeployApplication extends Recorder implements SimpleBui
               overrideCredential ? new Credential(credentialId) : null;
           ElectricFlowClient client =
               ElectricFlowClientFactory.getElectricFlowClient(
-                  configuration, overrideCredentialObj, null, true);
+                  configuration, overrideCredentialObj,  item, null);
           List<String> processes = client.getProcesses(projectName, applicationName);
 
           for (String process : processes) {
@@ -588,7 +588,7 @@ public class ElectricFlowDeployApplication extends Recorder implements SimpleBui
         return m;
       } catch (Exception e) {
         Credential overrideCredentialObj = overrideCredential ? new Credential(credentialId) : null;
-        if (Utils.isEflowAvailable(configuration, overrideCredentialObj)) {
+        if (Utils.isEflowAvailable(configuration, overrideCredentialObj, item)) {
           log.error(
               "Error when fetching values for this parameter - application process. Error message: "
                   + e.getMessage(),
@@ -640,7 +640,7 @@ public class ElectricFlowDeployApplication extends Recorder implements SimpleBui
         Credential overrideCredentialObj = overrideCredential ? new Credential(credentialId) : null;
         ElectricFlowClient client =
             ElectricFlowClientFactory.getElectricFlowClient(
-                configuration, overrideCredentialObj, null, true);
+                configuration, overrideCredentialObj, item, null);
 
         Map<String, String> storedParams = new HashMap<>();
 
@@ -682,7 +682,7 @@ public class ElectricFlowDeployApplication extends Recorder implements SimpleBui
         SelectItemValidationWrapper selectItemValidationWrapper;
 
         Credential overrideCredentialObj = overrideCredential ? new Credential(credentialId) : null;
-        if (Utils.isEflowAvailable(configuration, overrideCredentialObj)) {
+        if (Utils.isEflowAvailable(configuration, overrideCredentialObj, item)) {
           log.error(
               "Error when fetching set of deploy parameters. Error message: " + e.getMessage(), e);
           selectItemValidationWrapper =
@@ -711,7 +711,7 @@ public class ElectricFlowDeployApplication extends Recorder implements SimpleBui
         return new ListBoxModel();
       }
       Credential overrideCredentialObj = overrideCredential ? new Credential(credentialId) : null;
-      return Utils.getProjects(configuration, overrideCredentialObj, false);
+      return Utils.getProjects(configuration, overrideCredentialObj, item,false);
     }
 
     public ListBoxModel doFillEnvironmentNameItems(
@@ -743,7 +743,7 @@ public class ElectricFlowDeployApplication extends Recorder implements SimpleBui
               overrideCredential ? new Credential(credentialId) : null;
           ElectricFlowClient client =
               ElectricFlowClientFactory.getElectricFlowClient(
-                  configuration, overrideCredentialObj, null, true);
+                  configuration, overrideCredentialObj, item, null);
           List<String> environments = client.getEnvironments(actualEnvironmentProjectName);
 
           for (String environment : environments) {
@@ -754,7 +754,7 @@ public class ElectricFlowDeployApplication extends Recorder implements SimpleBui
         return m;
       } catch (Exception e) {
         Credential overrideCredentialObj = overrideCredential ? new Credential(credentialId) : null;
-        if (Utils.isEflowAvailable(configuration, overrideCredentialObj)) {
+        if (Utils.isEflowAvailable(configuration, overrideCredentialObj, item)) {
           log.error(
               "Error when fetching values for this parameter - environment. Error message: "
                   + e.getMessage(),

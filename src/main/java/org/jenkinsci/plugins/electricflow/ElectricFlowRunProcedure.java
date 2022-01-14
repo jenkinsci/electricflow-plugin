@@ -110,7 +110,7 @@ public class ElectricFlowRunProcedure extends Recorder implements SimpleBuildSte
 
       ElectricFlowClient efClient =
           ElectricFlowClientFactory.getElectricFlowClient(
-              configuration, overrideCredential, run, env, false);
+              configuration, overrideCredential, run, env);
 
       String result = efClient.runProcedure(projectName, procedureName, parameter);
       logger.println("Run procedure launched. Response JSON: " + formatJsonOutput(result));
@@ -418,7 +418,7 @@ public class ElectricFlowRunProcedure extends Recorder implements SimpleBuildSte
               overrideCredential ? new Credential(credentialId) : null;
           ElectricFlowClient client =
               ElectricFlowClientFactory.getElectricFlowClient(
-                  configuration, overrideCredentialObj, null, true);
+                  configuration, overrideCredentialObj, item, null);
 
           List<String> procedures = client.getProcedures(projectName);
 
@@ -430,7 +430,7 @@ public class ElectricFlowRunProcedure extends Recorder implements SimpleBuildSte
         return m;
       } catch (Exception e) {
         Credential overrideCredentialObj = overrideCredential ? new Credential(credentialId) : null;
-        if (Utils.isEflowAvailable(configuration, overrideCredentialObj)) {
+        if (Utils.isEflowAvailable(configuration, overrideCredentialObj, item)) {
           log.error(
               "Error when fetching values for this parameter - procedure. Error message: "
                   + e.getMessage(),
@@ -468,7 +468,7 @@ public class ElectricFlowRunProcedure extends Recorder implements SimpleBuildSte
         Credential overrideCredentialObj = overrideCredential ? new Credential(credentialId) : null;
         ElectricFlowClient client =
             ElectricFlowClientFactory.getElectricFlowClient(
-                configuration, overrideCredentialObj, null, true);
+                configuration, overrideCredentialObj, item, null);
 
         Map<String, String> storedParams = new HashMap<>();
 
@@ -503,7 +503,7 @@ public class ElectricFlowRunProcedure extends Recorder implements SimpleBuildSte
         SelectItemValidationWrapper selectItemValidationWrapper;
 
         Credential overrideCredentialObj = overrideCredential ? new Credential(credentialId) : null;
-        if (Utils.isEflowAvailable(configuration, overrideCredentialObj)) {
+        if (Utils.isEflowAvailable(configuration, overrideCredentialObj, item)) {
           log.error(
               "Error when fetching set of procedure parameters. Error message: " + e.getMessage(),
               e);

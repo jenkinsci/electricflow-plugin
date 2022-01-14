@@ -101,7 +101,7 @@ public class ElectricFlowTriggerRelease extends Recorder implements SimpleBuildS
     try {
       env = new EnvReplacer(run, taskListener);
       efClient = ElectricFlowClientFactory.getElectricFlowClient(
-                    configuration, overrideCredential, run, env, false);
+                    configuration, overrideCredential, run, env);
     } catch (RuntimeException | InterruptedException | IOException e) {
       log.info("Can't create ElectricFlow client");
       throw new RuntimeException("Can't create ElectricFlowClient object: " + e.getMessage());
@@ -643,7 +643,7 @@ public class ElectricFlowTriggerRelease extends Recorder implements SimpleBuildS
               overrideCredential ? new Credential(credentialId) : null;
           ElectricFlowClient client =
               ElectricFlowClientFactory.getElectricFlowClient(
-                  configuration, overrideCredentialObj, null, true);
+                  configuration, overrideCredentialObj, item, null);
           Release release = client.getRelease(configuration, projectName, releaseName);
           List<String> stages = release.getStartStages();
           List<String> pipelineParameters = release.getPipelineParameters();
@@ -680,7 +680,7 @@ public class ElectricFlowTriggerRelease extends Recorder implements SimpleBuildS
         SelectItemValidationWrapper selectItemValidationWrapper;
 
         Credential overrideCredentialObj = overrideCredential ? new Credential(credentialId) : null;
-        if (Utils.isEflowAvailable(configuration, overrideCredentialObj)) {
+        if (Utils.isEflowAvailable(configuration, overrideCredentialObj, item)) {
           log.error("Error when fetching set of parameters. Error message: " + e.getMessage(), e);
           selectItemValidationWrapper =
               new SelectItemValidationWrapper(
@@ -733,7 +733,7 @@ public class ElectricFlowTriggerRelease extends Recorder implements SimpleBuildS
               overrideCredential ? new Credential(credentialId) : null;
           ElectricFlowClient client =
               ElectricFlowClientFactory.getElectricFlowClient(
-                  configuration, overrideCredentialObj, null, true);
+                  configuration, overrideCredentialObj, item, null);
 
           // List<String> releasesList = client.getReleases(configuration, projectName);
           List<String> releasesList = client.getReleaseNames(configuration, projectName);
@@ -746,7 +746,7 @@ public class ElectricFlowTriggerRelease extends Recorder implements SimpleBuildS
         return m;
       } catch (Exception e) {
         Credential overrideCredentialObj = overrideCredential ? new Credential(credentialId) : null;
-        if (Utils.isEflowAvailable(configuration, overrideCredentialObj)) {
+        if (Utils.isEflowAvailable(configuration, overrideCredentialObj, item)) {
           log.error(
               "Error when fetching values for this parameter - release. Error message: "
                   + e.getMessage(),
@@ -784,7 +784,7 @@ public class ElectricFlowTriggerRelease extends Recorder implements SimpleBuildS
         Credential overrideCredentialObj = overrideCredential ? new Credential(credentialId) : null;
         ElectricFlowClient client =
             ElectricFlowClientFactory.getElectricFlowClient(
-                configuration, overrideCredentialObj, null, true);
+                configuration, overrideCredentialObj, item, null);
 
         Release release = client.getRelease(configuration, projectName, releaseName);
 
@@ -801,7 +801,7 @@ public class ElectricFlowTriggerRelease extends Recorder implements SimpleBuildS
         return m;
       } catch (Exception e) {
         Credential overrideCredentialObj = overrideCredential ? new Credential(credentialId) : null;
-        if (Utils.isEflowAvailable(configuration, overrideCredentialObj)) {
+        if (Utils.isEflowAvailable(configuration, overrideCredentialObj, item)) {
           log.error(
               "Error when fetching values for this parameter - starting stage. Error message: "
                   + e.getMessage(),
