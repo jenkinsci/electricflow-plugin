@@ -377,7 +377,7 @@ script {
 
 ## Version 1.1.25 (January 14, 2022)
 
-- Added support folder credentials which now can be used within override credentials functionaloty
+- Added support of folder credentials which now can be used within override credentials functionality
 - Fixed Upload Artifact when using agent 
 - Improved integration of CloudBees CI and CD
 
