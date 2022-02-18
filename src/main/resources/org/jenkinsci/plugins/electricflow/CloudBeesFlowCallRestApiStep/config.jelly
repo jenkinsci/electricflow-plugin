@@ -24,7 +24,7 @@ All rights reserved.
             Key:
             <f:textbox field="key" style="width: 40%"/>
             Value:
-            <f:textbox field="value" style="width: 40%; position: absolute"/>
+            <f:textbox field="value" style="width: 40%;"/>
             <div align="right">
                 <f:repeatableDeleteButton/>
             </div>
