@@ -21,10 +21,10 @@ All rights reserved.
   </f:entry>
   <f:entry field="parameters" title="Parameters">
     <f:repeatable field="parameters">
-          Key:
-          <f:textbox field="key" style="width: 40%"/>
-          Value:
-          <f:textbox field="value" style="width: 40%; position: absolute"/>
+        <fieldset style="display: flex; align-items: baseline; gap: 1rem; border: none;">
+            <div>${%Key}</div><f:textbox field="key" style="flex-basis: 40%"/>
+            <div>${%Value}</div><f:textbox field="value" style="flex-basis: 40%"/>
+        </fieldset>
         <div align="right">
             <f:repeatableDeleteButton/>
         </div>
