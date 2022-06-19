@@ -25,6 +25,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
 import javax.net.ssl.HttpsURLConnection;
+import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -33,6 +34,7 @@ public class MultipartUtility {
   // ~ Static fields/initializers ---------------------------------------------
 
   private static final String LINE_FEED = "\r\n";
+  private static final String CHARSET = "UTF-8";
   private static final Log log = LogFactory.getLog(MultipartUtility.class);
 
   // ~ Instance fields --------------------------------------------------------
