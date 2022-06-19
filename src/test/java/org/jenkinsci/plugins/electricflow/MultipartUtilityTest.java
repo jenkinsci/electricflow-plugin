@@ -44,7 +44,9 @@ public class MultipartUtilityTest {
         MultipartUtility utility = new MultipartUtility(
             wireMockRule.url("/commander/cgi-bin/publishArtifactAPI.cgi"),
             StandardCharsets.UTF_8.name(),
-            true);
+            true,
+            "",
+            "");
 
         try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
              OutputStreamWriter osWriter = new OutputStreamWriter(baos, StandardCharsets.UTF_8.name())) {
