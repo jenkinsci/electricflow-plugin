@@ -54,7 +54,7 @@ public class MultipartUtility {
    * @param ignoreSslConnectionErrors Override Electric Flow SSL Validation Check
    * @throws IOException Exception
    */
-  public MultipartUtility(String requestURL, String charset, boolean ignoreSslConnectionErrors)
+  public MultipartUtility(String requestURL, String charset, boolean ignoreSslConnectionErrors, String userName, String password)
       throws IOException {
     this.charset = charset;
 
@@ -64,6 +64,13 @@ public class MultipartUtility {
     URL url = new URL(requestURL);
 
     httpConn = (HttpURLConnection) url.openConnection();
+    String authString = userName + ":" + password;
+
+    byte[] encodedBytes = Base64.encodeBase64(authString.getBytes(CHARSET));
+    String encoded = new String(encodedBytes, StandardCharsets.UTF_8);
+
+    httpConn.setRequestProperty("Authorization", "Basic " + encoded);
+    httpConn.setRequestProperty("Accept", "application/json");
 
     httpConn.setUseCaches(false);
     httpConn.setDoOutput(true); // indicates POST method

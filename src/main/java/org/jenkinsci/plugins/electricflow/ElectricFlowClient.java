@@ -388,7 +388,7 @@ public class ElectricFlowClient {
     String requestURL = this.electricFlowUrl + "/commander/cgi-bin/publishArtifactAPI.cgi";
 
     MultipartUtility multipart =
-        new MultipartUtility(requestURL, CHARSET, this.getIgnoreSslConnectionErrors());
+        new MultipartUtility(requestURL, CHARSET, this.getIgnoreSslConnectionErrors(), this.userName, this.password);
 
     multipart.addFormField("artifactName", name);
     multipart.addFormField("artifactVersionVersion", version);
