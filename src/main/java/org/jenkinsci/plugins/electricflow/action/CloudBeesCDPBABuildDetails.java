@@ -1,11 +1,9 @@
 package org.jenkinsci.plugins.electricflow.action;
 
+import edu.umd.cs.findbugs.annotations.CheckForNull;
 import hudson.model.Action;
 import hudson.model.Run;
-import javax.annotation.CheckForNull;
-
 import org.jenkinsci.plugins.electricflow.Credential;
-import org.jenkinsci.plugins.electricflow.causes.EFCause;
 import org.jenkinsci.plugins.electricflow.models.CIBuildDetail;
 import org.kohsuke.stapler.export.Exported;
 import org.kohsuke.stapler.export.ExportedBean;

@@ -14,6 +14,7 @@ import static org.jenkinsci.plugins.electricflow.Utils.getValidationComparisonRo
 import static org.jenkinsci.plugins.electricflow.ui.SelectFieldUtils.getSelectItemValue;
 import static org.jenkinsci.plugins.electricflow.ui.SelectFieldUtils.isSelectItemValidationWrapper;
 
+import edu.umd.cs.findbugs.annotations.NonNull;
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
@@ -35,7 +36,6 @@ import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import javax.annotation.Nonnull;
 import jenkins.model.Jenkins;
 import jenkins.tasks.SimpleBuildStep;
 import net.sf.json.JSONObject;
@@ -55,8 +55,6 @@ import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.QueryParameter;
 
-// import hudson.model.Run.ArtifactList
-
 public class ElectricFlowAssociateBuildToRelease extends Recorder implements SimpleBuildStep {
 
   private static final Log log = LogFactory.getLog(ElectricFlowAssociateBuildToRelease.class);
@@ -72,10 +70,10 @@ public class ElectricFlowAssociateBuildToRelease extends Recorder implements Sim
 
   @Override
   public void perform(
-      @Nonnull Run<?, ?> run,
-      @Nonnull FilePath filePath,
-      @Nonnull Launcher launcher,
-      @Nonnull TaskListener taskListener) {
+      @NonNull Run<?, ?> run,
+      @NonNull FilePath filePath,
+      @NonNull Launcher launcher,
+      @NonNull TaskListener taskListener) {
 
     try {
       CloudBeesFlowBuildData cloudBeesFlowBuildData = new CloudBeesFlowBuildData(run);
