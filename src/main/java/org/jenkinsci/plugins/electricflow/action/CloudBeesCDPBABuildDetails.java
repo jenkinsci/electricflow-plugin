@@ -2,7 +2,7 @@ package org.jenkinsci.plugins.electricflow.action;
 
 import hudson.model.Action;
 import hudson.model.Run;
-import javax.annotation.CheckForNull;
+import edu.umd.cs.findbugs.annotations.CheckForNull;
 
 import org.jenkinsci.plugins.electricflow.Credential;
 import org.jenkinsci.plugins.electricflow.causes.EFCause;

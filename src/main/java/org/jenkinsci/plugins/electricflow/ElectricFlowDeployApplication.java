@@ -39,7 +39,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
-import javax.annotation.Nonnull;
+import edu.umd.cs.findbugs.annotations.NonNull;
 import jenkins.tasks.SimpleBuildStep;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
@@ -87,10 +87,10 @@ public class ElectricFlowDeployApplication extends Recorder implements SimpleBui
 
   @Override
   public void perform(
-      @Nonnull Run<?, ?> run,
-      @Nonnull FilePath filePath,
-      @Nonnull Launcher launcher,
-      @Nonnull TaskListener taskListener)
+      @NonNull Run<?, ?> run,
+      @NonNull FilePath filePath,
+      @NonNull Launcher launcher,
+      @NonNull TaskListener taskListener)
       throws InterruptedException, IOException {
     Result result = runProcess(run, taskListener);
     if (result != Result.SUCCESS) {
@@ -98,7 +98,7 @@ public class ElectricFlowDeployApplication extends Recorder implements SimpleBui
     }
   }
 
-  private Result runProcess(@Nonnull Run<?, ?> run, @Nonnull TaskListener taskListener) {
+  private Result runProcess(@NonNull Run<?, ?> run, @NonNull TaskListener taskListener) {
     PrintStream logger = taskListener.getLogger();
 
     logger.println(

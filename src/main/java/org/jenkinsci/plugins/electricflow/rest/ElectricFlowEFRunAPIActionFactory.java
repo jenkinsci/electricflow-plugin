@@ -5,7 +5,7 @@ import hudson.model.Action;
 import hudson.model.Job;
 import java.util.Collection;
 import java.util.Collections;
-import javax.annotation.Nonnull;
+import edu.umd.cs.findbugs.annotations.NonNull;
 import jenkins.model.TransientActionFactory;
 
 @Extension
@@ -15,10 +15,10 @@ public class ElectricFlowEFRunAPIActionFactory extends TransientActionFactory<Jo
     return Job.class;
   }
 
-  @Nonnull
+  @NonNull
   @Override
   // @SuppressWarnings("unchecked")
-  public Collection<? extends Action> createFor(@Nonnull Job target) {
+  public Collection<? extends Action> createFor(@NonNull Job target) {
     return Collections.singletonList(new ElectricFlowEFRunAPIAction(target));
     // return Collections.emptyList();
   }
