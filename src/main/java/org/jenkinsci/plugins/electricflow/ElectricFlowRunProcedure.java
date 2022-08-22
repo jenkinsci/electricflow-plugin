@@ -19,6 +19,7 @@ import static org.jenkinsci.plugins.electricflow.ui.SelectFieldUtils.checkAnySel
 import static org.jenkinsci.plugins.electricflow.ui.SelectFieldUtils.getSelectItemValue;
 import static org.jenkinsci.plugins.electricflow.ui.SelectFieldUtils.isSelectItemValidationWrapper;
 
+import edu.umd.cs.findbugs.annotations.NonNull;
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
@@ -40,7 +41,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
-import javax.annotation.Nonnull;
 import jenkins.tasks.SimpleBuildStep;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
@@ -50,7 +50,6 @@ import org.jenkinsci.Symbol;
 import org.jenkinsci.plugins.electricflow.exceptions.FlowRuntimeException;
 import org.jenkinsci.plugins.electricflow.exceptions.PluginException;
 import org.jenkinsci.plugins.electricflow.factories.ElectricFlowClientFactory;
-import org.jenkinsci.plugins.electricflow.models.cdrestdata.jobs.CdJobOutcome;
 import org.jenkinsci.plugins.electricflow.models.cdrestdata.jobs.CdJobStatus;
 import org.jenkinsci.plugins.electricflow.models.cdrestdata.jobs.GetJobStatusResponseData;
 import org.jenkinsci.plugins.electricflow.ui.FieldValidationStatus;
@@ -78,17 +77,17 @@ public class ElectricFlowRunProcedure extends Recorder implements SimpleBuildSte
 
   @Override
   public void perform(
-      @Nonnull Run<?, ?> run,
-      @Nonnull FilePath filePath,
-      @Nonnull Launcher launcher,
-      @Nonnull TaskListener taskListener) {
+      @NonNull Run<?, ?> run,
+      @NonNull FilePath filePath,
+      @NonNull Launcher launcher,
+      @NonNull TaskListener taskListener) {
     Result result = runProcedure(run, taskListener);
     if (result != Result.SUCCESS) {
       run.setResult(result);
     }
   }
 
-  private Result runProcedure(@Nonnull Run<?, ?> run, @Nonnull TaskListener taskListener) {
+  private Result runProcedure(@NonNull Run<?, ?> run, @NonNull TaskListener taskListener) {
     PrintStream logger = taskListener.getLogger();
 
     logger.println("Project name: " + projectName + ", Procedure name: " + procedureName);

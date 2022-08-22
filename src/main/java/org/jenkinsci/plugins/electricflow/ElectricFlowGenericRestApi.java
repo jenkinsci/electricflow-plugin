@@ -8,6 +8,7 @@
 
 package org.jenkinsci.plugins.electricflow;
 
+import edu.umd.cs.findbugs.annotations.NonNull;
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
@@ -23,7 +24,6 @@ import hudson.util.ListBoxModel;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import javax.annotation.Nonnull;
 import jenkins.tasks.SimpleBuildStep;
 import org.jenkinsci.plugins.electricflow.models.CallRestApiModel;
 import org.jenkinsci.plugins.electricflow.utils.CallRestApiUtils;
@@ -54,10 +54,10 @@ public class ElectricFlowGenericRestApi extends Recorder
 
   @Override
   public void perform(
-      @Nonnull Run<?, ?> run,
-      @Nonnull FilePath filePath,
-      @Nonnull Launcher launcher,
-      @Nonnull TaskListener taskListener)
+      @NonNull Run<?, ?> run,
+      @NonNull FilePath filePath,
+      @NonNull Launcher launcher,
+      @NonNull TaskListener taskListener)
       throws InterruptedException, IOException {
 
     CallRestApiUtils.perform(this, run, taskListener);

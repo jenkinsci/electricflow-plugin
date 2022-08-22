@@ -1,10 +1,10 @@
 package org.jenkinsci.plugins.electricflow.envvars;
 
+import edu.umd.cs.findbugs.annotations.CheckForNull;
+import edu.umd.cs.findbugs.annotations.NonNull;
 import hudson.EnvVars;
 import hudson.model.EnvironmentContributingAction;
 import hudson.model.Run;
-import javax.annotation.CheckForNull;
-import javax.annotation.Nonnull;
 
 public class VariableInjectionAction implements EnvironmentContributingAction {
 
@@ -35,7 +35,7 @@ public class VariableInjectionAction implements EnvironmentContributingAction {
   }
 
   @Override
-  public void buildEnvironment(@Nonnull Run<?, ?> run, @Nonnull EnvVars envVars) {
+  public void buildEnvironment(@NonNull Run<?, ?> run, @NonNull EnvVars envVars) {
     if (key != null && value != null) {
       envVars.put(key, value);
     }

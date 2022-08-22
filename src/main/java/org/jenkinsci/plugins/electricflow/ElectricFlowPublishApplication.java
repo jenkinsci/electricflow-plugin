@@ -10,6 +10,7 @@ package org.jenkinsci.plugins.electricflow;
 
 import static org.jenkinsci.plugins.electricflow.FileHelper.getPublishArtifactWorkspaceOnMaster;
 
+import edu.umd.cs.findbugs.annotations.NonNull;
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
@@ -40,7 +41,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-import javax.annotation.Nonnull;
 import jenkins.tasks.SimpleBuildStep;
 import net.sf.json.JSONObject;
 import org.apache.commons.logging.Log;
@@ -56,7 +56,6 @@ import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.QueryParameter;
-import org.kohsuke.stapler.StaplerRequest;
 
 public class ElectricFlowPublishApplication extends Recorder implements SimpleBuildStep {
 
@@ -139,10 +138,10 @@ public class ElectricFlowPublishApplication extends Recorder implements SimpleBu
 
   @Override
   public void perform(
-      @Nonnull Run<?, ?> run,
-      @Nonnull FilePath workspace,
-      @Nonnull Launcher launcher,
-      @Nonnull TaskListener taskListener) {
+      @NonNull Run<?, ?> run,
+      @NonNull FilePath workspace,
+      @NonNull Launcher launcher,
+      @NonNull TaskListener taskListener) {
     Result result = runProcess(run, taskListener, workspace);
     if (result != Result.SUCCESS) {
       run.setResult(result);
@@ -150,7 +149,7 @@ public class ElectricFlowPublishApplication extends Recorder implements SimpleBu
   }
 
   private Result runProcess(
-      @Nonnull Run<?, ?> run, @Nonnull TaskListener taskListener, @Nonnull FilePath workspace) {
+          @NonNull Run<?, ?> run, @NonNull TaskListener taskListener, @NonNull FilePath workspace) {
     PrintStream logger = taskListener.getLogger();
 
     @SuppressWarnings("WrapperTypeMayBePrimitive")

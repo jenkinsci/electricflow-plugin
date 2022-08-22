@@ -1,5 +1,6 @@
 package org.jenkinsci.plugins.electricflow;
 
+import edu.umd.cs.findbugs.annotations.NonNull;
 import hudson.Extension;
 import hudson.model.Item;
 import hudson.model.Run;
@@ -9,7 +10,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
-import javax.annotation.Nonnull;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jenkinsci.plugins.electricflow.models.CallRestApiModel;
@@ -123,7 +123,7 @@ public class CloudBeesFlowCallRestApiStep extends Step implements CallRestApiMod
     private static final long serialVersionUID = 1L;
     private transient CloudBeesFlowCallRestApiStep step;
 
-    Execution(@Nonnull StepContext context, @Nonnull CloudBeesFlowCallRestApiStep step) {
+    Execution(@NonNull StepContext context, @NonNull CloudBeesFlowCallRestApiStep step) {
       super(context);
       this.step = step;
     }
