@@ -9,7 +9,7 @@ import org.jenkinsci.plugins.electricflow.extension.CloudBeesFlowPipeline;
 import org.jenkinsci.plugins.variant.OptionalExtension;
 import org.jenkinsci.plugins.workflow.job.WorkflowRun;
 
-@OptionalExtension(requirePlugins = "pipeline-rest-api")
+@OptionalExtension(requirePlugins = {"pipeline-rest-api","workflow-job"})
 public class CloudBeesFlowPipelineRest extends CloudBeesFlowPipeline {
 
   @Override

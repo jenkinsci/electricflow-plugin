@@ -28,7 +28,7 @@ import java.io.PrintStream;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
-import javax.annotation.Nonnull;
+import edu.umd.cs.findbugs.annotations.NonNull;
 import jenkins.tasks.SimpleBuildStep;
 import net.sf.json.JSONObject;
 import org.apache.commons.logging.Log;
@@ -79,10 +79,10 @@ public class ElectricFlowUploadArtifactPublisher extends Recorder implements Sim
 
   @Override
   public void perform(
-      @Nonnull Run<?, ?> run,
-      @Nonnull FilePath workspace,
-      @Nonnull Launcher launcher,
-      @Nonnull TaskListener taskListener)
+      @NonNull Run<?, ?> run,
+      @NonNull FilePath workspace,
+      @NonNull Launcher launcher,
+      @NonNull TaskListener taskListener)
       throws InterruptedException, IOException {
     boolean isSuccess = runProcess(run, taskListener, workspace);
     if (!isSuccess) {
@@ -91,7 +91,7 @@ public class ElectricFlowUploadArtifactPublisher extends Recorder implements Sim
   }
 
   private boolean runProcess(
-      @Nonnull Run<?, ?> run, @Nonnull TaskListener taskListener, @Nonnull FilePath workspace) {
+      @NonNull Run<?, ?> run, @NonNull TaskListener taskListener, @NonNull FilePath workspace) {
     PrintStream logger = Utils.getLogger(null, taskListener);
 
     try {
