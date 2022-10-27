@@ -64,7 +64,9 @@ public class ElectricFlowBuildWatcherTest {
                 Secret.fromString("global-password"),
                 "electricFlowApiVersion",
                 true,
-                false))
+                false,
+                    null,
+                    null))
         );
 
         // No overrideCredentials provided

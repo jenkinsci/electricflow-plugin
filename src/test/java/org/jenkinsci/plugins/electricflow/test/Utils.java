@@ -20,7 +20,7 @@ public class Utils {
 
     Configuration configuration =
         new Configuration(
-            configName, "localhost", "user", Secret.fromString("password"), "/rest/path", true, false);
+            configName, "localhost", "user", Secret.fromString("password"), "/rest/path", true, false, null, null);
 
     electricFlowGlobalConfiguration.configurations.add(configuration);
     electricFlowGlobalConfiguration.save();

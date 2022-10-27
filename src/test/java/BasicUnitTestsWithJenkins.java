@@ -48,7 +48,9 @@ public class BasicUnitTestsWithJenkins {
             FLOW_USER,
             Secret.fromString(FLOW_PASSWORD),
             FLOW_REST_API_URI_PATH,
-            true, false);
+            true,
+            false,
+            null, null);
 
     electricFlowGlobalConfiguration.configurations.add(configuration);
     electricFlowGlobalConfiguration.save();
