@@ -285,7 +285,7 @@ public class ElectricFlowAssociateBuildToRelease extends Recorder implements Sim
       if (item == null || !item.hasPermission(Item.CONFIGURE)) {
         return FormValidation.ok();
       }
-      return Utils.validateConfiguration(value);
+      return Utils.validateConfiguration(value, item);
     }
 
     public FormValidation doCheckProjectName(

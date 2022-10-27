@@ -46,35 +46,11 @@ public class ElectricFlowClient {
   private String electricFlowUrl;
   private String userName;
   private String password;
+  private String secret;
   private String apiVersion;
   private boolean ignoreSslConnectionErrors;
   private List<Release> releasesList = new ArrayList<>();
   private EnvReplacer envReplacer;
-
-  public ElectricFlowClient(String configurationName, EnvReplacer envReplacer) {
-    this(configurationName);
-    this.envReplacer = envReplacer;
-  }
-
-  @Deprecated
-  public ElectricFlowClient(String configurationName, String workspaceDir) {
-    this(configurationName);
-  }
-
-  public ElectricFlowClient(String configurationName) {
-    Configuration cred = Utils.getConfigurationByName(configurationName);
-
-    if (cred != null) {
-      electricFlowUrl = cred.getElectricFlowUrl();
-      userName = cred.getElectricFlowUser();
-      password = cred.getElectricFlowPassword().getPlainText();
-      ignoreSslConnectionErrors = cred.getIgnoreSslConnectionErrors();
-
-      String electricFlowApiVersion = cred.getElectricFlowApiVersion();
-
-      apiVersion = electricFlowApiVersion != null ? electricFlowApiVersion : "";
-    }
-  }
 
   public ElectricFlowClient(
       String url,
@@ -90,6 +66,21 @@ public class ElectricFlowClient {
 
     if (userName.isEmpty() || password.isEmpty()) {
       log.warn("User name and password should not be empty.");
+    }
+  }
+
+  public ElectricFlowClient(
+          String url,
+          String secret,
+          String apiVersion,
+          boolean ignoreSslConnectionErrors) {
+    this.electricFlowUrl = url;
+    this.secret = secret;
+    this.apiVersion = apiVersion;
+    this.ignoreSslConnectionErrors = ignoreSslConnectionErrors;
+
+    if (secret.isEmpty()) {
+      log.warn("Secret should not be empty.");
     }
   }
 
@@ -509,16 +500,32 @@ public class ElectricFlowClient {
     }
 
     HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-    String authString = this.userName + ":" + this.password;
 
-    //
-    byte[] encodedBytes = Base64.encodeBase64(authString.getBytes(CHARSET));
-    String encoded = new String(encodedBytes, StandardCharsets.UTF_8);
+    if (isUserNameAndPasswordCreds()) {
+      String authString = this.userName + ":" + this.password;
 
-    conn.setRequestProperty("Authorization", "Basic " + encoded);
-    conn.setRequestProperty("Accept", "application/json");
+      //
+      byte[] encodedBytes = Base64.encodeBase64(authString.getBytes(CHARSET));
+      String encoded = new String(encodedBytes, StandardCharsets.UTF_8);
 
-    return conn;
+      conn.setRequestProperty("Authorization", "Basic " + encoded);
+      conn.setRequestProperty("Accept", "application/json");
+
+      return conn;
+    } else if (isSecretCreds()) {
+      conn.setRequestProperty("Cookie", "sessionId=" + secret);
+      conn.setRequestProperty("Accept", "application/json");
+      return conn;
+    }
+    throw new RuntimeException("Credentials are not provided");
+  }
+
+  public boolean isUserNameAndPasswordCreds() {
+    return userName != null && password != null && !userName.isEmpty() && !password.isEmpty();
+  }
+
+  public boolean isSecretCreds() {
+    return secret != null && !secret.isEmpty();
   }
 
   public String getElectricFlowUrl() {
@@ -944,8 +951,10 @@ public class ElectricFlowClient {
     String requestEndpoint = "/sessions";
     JSONObject requestObject = new JSONObject();
 
-    requestObject.put("userName", this.userName);
-    requestObject.put("password", this.password);
+    if (this.userName != null) {
+      requestObject.put("userName", this.userName);
+      requestObject.put("password", this.password);
+    }
 
     String result = runRestAPI(requestEndpoint, POST, requestObject.toString());
     JSONObject jsonObject = JSONObject.fromObject(result);

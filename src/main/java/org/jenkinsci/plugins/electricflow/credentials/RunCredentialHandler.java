@@ -1,8 +1,11 @@
 package org.jenkinsci.plugins.electricflow.credentials;
 
 import com.cloudbees.plugins.credentials.CredentialsProvider;
+import com.cloudbees.plugins.credentials.common.StandardCredentials;
 import com.cloudbees.plugins.credentials.common.StandardUsernamePasswordCredentials;
 import hudson.model.Run;
+import org.jenkinsci.plugins.plaincredentials.StringCredentials;
+
 import java.util.Collections;
 
 public class RunCredentialHandler implements CredentialHandler {
@@ -14,13 +17,20 @@ public class RunCredentialHandler implements CredentialHandler {
   }
 
   @Override
-  public StandardUsernamePasswordCredentials getStandardUsernamePasswordCredentialsById(
+  public StandardCredentials getStandardCredentialsById(
       String credentialsId) {
     if (credentialsId == null) {
       return null;
     }
 
-    return CredentialsProvider.findCredentialById(
+    StandardCredentials credentials = CredentialsProvider.findCredentialById(
         credentialsId, StandardUsernamePasswordCredentials.class, run, Collections.emptyList());
+
+    if (credentials != null) {
+      return credentials;
+    }
+
+    return CredentialsProvider.findCredentialById(
+            credentialsId, StringCredentials.class, run, Collections.emptyList());
   }
 }

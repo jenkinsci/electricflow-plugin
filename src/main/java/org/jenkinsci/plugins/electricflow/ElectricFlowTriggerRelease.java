@@ -533,7 +533,7 @@ public class ElectricFlowTriggerRelease extends Recorder implements SimpleBuildS
       if (item == null || !item.hasPermission(Item.CONFIGURE)) {
         return FormValidation.ok();
       }
-      return Utils.validateConfiguration(value);
+      return Utils.validateConfiguration(value, item);
     }
 
     public FormValidation doCheckProjectName(

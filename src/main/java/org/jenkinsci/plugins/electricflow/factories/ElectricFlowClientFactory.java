@@ -1,6 +1,7 @@
 package org.jenkinsci.plugins.electricflow.factories;
 
-import com.cloudbees.plugins.credentials.common.StandardUsernamePasswordCredentials;
+import com.cloudbees.plugins.credentials.common.StandardCredentials;
+import com.cloudbees.plugins.credentials.common.UsernamePasswordCredentials;
 import hudson.model.Item;
 import hudson.model.Run;
 import org.jenkinsci.plugins.electricflow.Configuration;
@@ -11,6 +12,8 @@ import org.jenkinsci.plugins.electricflow.Utils;
 import org.jenkinsci.plugins.electricflow.credentials.CredentialHandler;
 import org.jenkinsci.plugins.electricflow.credentials.ItemCredentialHandler;
 import org.jenkinsci.plugins.electricflow.credentials.RunCredentialHandler;
+import org.jenkinsci.plugins.electricflow.exceptions.PluginException;
+import org.jenkinsci.plugins.plaincredentials.StringCredentials;
 
 public class ElectricFlowClientFactory {
 
@@ -31,35 +34,61 @@ public class ElectricFlowClientFactory {
       Credential overrideCredential,
       CredentialHandler credentialHandler,
       EnvReplacer envReplacer) {
-    Configuration cred = Utils.getConfigurationByName(configurationName);
+    Configuration config = Utils.getConfigurationByName(configurationName);
 
-    if (cred == null) {
+    if (config == null) {
       throw new RuntimeException("Cannot find CloudBees CD configuration " + configurationName);
     }
 
-    String electricFlowUrl = cred.getElectricFlowUrl();
-    boolean ignoreSslConnectionErrors = cred.getIgnoreSslConnectionErrors();
-    String electricFlowApiVersion = cred.getElectricFlowApiVersion();
+    String electricFlowUrl = config.getElectricFlowUrl();
+    boolean ignoreSslConnectionErrors = config.getIgnoreSslConnectionErrors();
+    String electricFlowApiVersion = config.getElectricFlowApiVersion();
     String apiVersion = electricFlowApiVersion != null ? electricFlowApiVersion : "";
 
-    String username;
-    String password;
     if (overrideCredential == null) {
-      username = cred.getElectricFlowUser();
-      password = cred.getElectricFlowPassword().getPlainText();
+      if (config.getCredsType() != null && config.getCredsType().equals("storedCreds")) {
+        StandardCredentials creds = credentialHandler.getStandardCredentialsById(config.getOverrideCredential().getCredentialId(envReplacer));
+        if (creds == null) {
+          throw new RuntimeException("Override credentials are not found by provided credential id");
+        } else {
+          return ElectricFlowClientFactory.getElectricFlowClient(electricFlowUrl, creds, apiVersion, ignoreSslConnectionErrors);
+        }
+      } else {
+        String username = config.getElectricFlowUser();
+        String password = config.getElectricFlowPassword().getPlainText();
+        return new ElectricFlowClient(
+                electricFlowUrl, username, password, apiVersion, ignoreSslConnectionErrors);
+      }
     } else {
-      String credentialIdResolved = overrideCredential.getCredentialId(envReplacer);
-      StandardUsernamePasswordCredentials creds =
-          credentialHandler.getStandardUsernamePasswordCredentialsById(credentialIdResolved);
+      StandardCredentials creds = credentialHandler.getStandardCredentialsById(overrideCredential.getCredentialId(envReplacer));
       if (creds == null) {
         throw new RuntimeException("Override credentials are not found by provided credential id");
       } else {
-        username = creds.getUsername();
-        password = creds.getPassword().getPlainText();
+        return ElectricFlowClientFactory.getElectricFlowClient(electricFlowUrl, creds, apiVersion, ignoreSslConnectionErrors);
       }
     }
+  }
 
-    return new ElectricFlowClient(
-        electricFlowUrl, username, password, apiVersion, ignoreSslConnectionErrors);
+  public static ElectricFlowClient getElectricFlowClient(
+          String url,
+          StandardCredentials creds,
+          String apiVersion,
+          boolean ignoreSslConnectionErrors)  {
+
+    if (creds instanceof StringCredentials) {
+      String secret = ((StringCredentials) creds).getSecret().getPlainText();
+      return new ElectricFlowClient(
+              url, secret, apiVersion, ignoreSslConnectionErrors);
+    }
+
+    if (creds instanceof UsernamePasswordCredentials) {
+      String username = ((UsernamePasswordCredentials) creds).getUsername();
+      String password = ((UsernamePasswordCredentials) creds).getPassword().getPlainText();
+      return new ElectricFlowClient(
+              url, username, password, apiVersion, ignoreSslConnectionErrors);
+    }
+
+    throw new RuntimeException("Unexpected type of creds");
   }
 }
+
