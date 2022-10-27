@@ -29,7 +29,7 @@ All rights reserved.
 
               <f:entry
                       title="Credentials Type"
-                      description="Provide Username and Password (the old way) or use Stored Credential which can be easier Username and Password of Secret Text (Token)">
+                      description="Provide Username and Password (the old way) or use Stored Credential which can be either Username and Password of Secret Text (Token)">
                   <f:radioBlock inline="true" name="credsType" checked="${instance.electricFlowUser != null}" title="Username and Password" value="usernameAndPassword">
                       <f:nested>
                           <f:entry title="User Name:" field="electricFlowUser">
