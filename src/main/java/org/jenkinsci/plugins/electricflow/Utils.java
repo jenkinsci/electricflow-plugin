@@ -148,7 +148,7 @@ public class Utils {
     }
   }
 
-  public static FormValidation validateConfiguration(String configuration) {
+  public static FormValidation validateConfiguration(String configuration, Item item) {
     if (configuration == null || configuration.isEmpty()) {
       return FormValidation.warning("Configuration field should not be empty.");
     }
@@ -158,7 +158,12 @@ public class Utils {
     }
 
     try {
-      new ElectricFlowClient(configuration).testConnection();
+      ElectricFlowClientFactory.getElectricFlowClient(
+              configuration,
+              null,
+              item,
+              null
+      ).testConnection();
     } catch (Exception e) {
       log.error(
           "Connection to CloudBees CD Server Failed. Please fix connection information and reload this page. Error message: "

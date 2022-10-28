@@ -64,7 +64,9 @@ public class ElectricFlowBuildWatcherTest {
                 Secret.fromString("global-password"),
                 "electricFlowApiVersion",
                 true,
-                false))
+                false,
+                    null,
+                    null))
         );
 
         // No overrideCredentials provided
@@ -84,7 +86,7 @@ public class ElectricFlowBuildWatcherTest {
         try(MockedStatic<ElectricFlowClientFactory> factoryMock = mockStatic(ElectricFlowClientFactory.class, Mockito.CALLS_REAL_METHODS)) {
             ElectricFlowBuildWatcher electricFlowBuildWatcher = jenkinsRule.jenkins.getExtensionList(ElectricFlowBuildWatcher.class).get(0);
             electricFlowBuildWatcher.sendBuildDetailsToInstanceImproved(wRun1, TaskListener.NULL);
-            factoryMock.verifyNoInteractions();
+            factoryMock.verify(() -> ElectricFlowClientFactory.getElectricFlowClient("local-cd", null, wRun1, null));
         }
 
         // overrideCredentials provided, make sure the run context is passed in 

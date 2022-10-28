@@ -495,7 +495,7 @@ public class ElectricFlowPipelinePublisher extends Recorder implements SimpleBui
       if (item == null || !item.hasPermission(Item.CONFIGURE)) {
         return FormValidation.ok();
       }
-      return Utils.validateConfiguration(value);
+      return Utils.validateConfiguration(value, item);
     }
 
     public FormValidation doCheckPipelineName(

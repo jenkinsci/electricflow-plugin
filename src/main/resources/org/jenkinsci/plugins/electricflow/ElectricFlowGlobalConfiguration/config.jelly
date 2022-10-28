@@ -8,7 +8,7 @@ All rights reserved.
 -->
 
 <?jelly escape-by-default='true'?>
-<j:jelly xmlns:j="jelly:core"  xmlns:f="/lib/form">
+<j:jelly xmlns:j="jelly:core"  xmlns:f="/lib/form" xmlns:st="jelly:stapler">
 
   <f:section title="CloudBees CD">
 
@@ -26,23 +26,39 @@ All rights reserved.
               <f:entry title="REST API Version:" field="electricFlowApiVersion">
                   <f:select />
               </f:entry>
-              <f:entry title="User Name:" field="electricFlowUser">
-                  <f:textbox />
-              </f:entry>
 
-              <f:entry title="User Password:" field="electricFlowPassword">
-                  <f:password />
+              <f:entry
+                      title="Credentials Type"
+                      description="Provide Username and Password (the old way) or use Stored Credential which can be either Username and Password of Secret Text (Token)">
+                  <f:radioBlock inline="true" name="credsType" checked="${instance.electricFlowUser != null}" title="Username and Password" value="usernameAndPassword">
+                      <f:nested>
+                          <f:entry title="User Name:" field="electricFlowUser">
+                              <f:textbox />
+                          </f:entry>
+                          <f:entry title="User Password:" field="electricFlowPassword">
+                              <f:password />
+                          </f:entry>
+                      </f:nested>
+                  </f:radioBlock>
+                  <f:radioBlock inline="true" name="credsType" checked="${instance.overrideCredential.credentialId != null}" title="Stored Credential" value="storedCreds">
+                      <f:nested>
+                          <st:include
+                                  class="org.jenkinsci.plugins.electricflow.Credential"
+                                  page="credential.jelly"/>
+                      </f:nested>
+                  </f:radioBlock>
               </f:entry>
 
               <f:entry title="Do not send build details to CloudBees CD" field="doNotSendBuildDetails">
-              <f:checkbox />
+                  <f:checkbox />
               </f:entry>
 
               <f:entry title="Override CloudBees CD SSL Validation Check" field="ignoreSslConnectionErrors">
               <f:checkbox />
               </f:entry>
 
-              <f:validateButton title="Test Connection" progress="Testing..." method="testConnection" with="electricFlowUrl,electricFlowUser,electricFlowPassword,electricFlowApiVersion,ignoreSslConnectionErrors" />
+              <f:validateButton title="Test Connection" progress="Testing..." method="testConnection" with="electricFlowUrl,electricFlowUser,electricFlowPassword,electricFlowApiVersion,ignoreSslConnectionErrors,credsType,credentialId" />
+
               <f:entry>
                   <div align="right">
                       <f:repeatableDeleteButton/>

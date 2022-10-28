@@ -8,9 +8,12 @@
 
 package org.jenkinsci.plugins.electricflow;
 
+import com.cloudbees.plugins.credentials.common.StandardCredentials;
 import hudson.Extension;
+import hudson.RelativePath;
 import hudson.model.AbstractDescribableImpl;
 import hudson.model.Descriptor;
+import hudson.model.Item;
 import hudson.util.FormValidation;
 import hudson.util.ListBoxModel;
 import hudson.util.Secret;
@@ -18,6 +21,9 @@ import java.io.IOException;
 import jenkins.model.Jenkins;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jenkinsci.plugins.electricflow.credentials.ItemCredentialHandler;
+import org.jenkinsci.plugins.electricflow.factories.ElectricFlowClientFactory;
+import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.interceptor.RequirePOST;
@@ -34,6 +40,8 @@ public class Configuration extends AbstractDescribableImpl<Configuration> {
   private final String electricFlowApiVersion;
   private final boolean ignoreSslConnectionErrors;
   private final boolean doNotSendBuildDetails;
+  private final Credential overrideCredential;
+  private final String credsType;
 
   // ~ Constructors -----------------------------------------------------------
 
@@ -45,16 +53,26 @@ public class Configuration extends AbstractDescribableImpl<Configuration> {
       Secret electricFlowPassword,
       String electricFlowApiVersion,
       boolean ignoreSslConnectionErrors,
-      boolean doNotSendBuildDetails) {
+      boolean doNotSendBuildDetails,
+      String credentialId,
+      String credsType) {
     this.configurationName = configurationName;
     // Removing trailing slashes if any.
     electricFlowUrl = electricFlowUrl.replaceAll("/+$", "");
     this.electricFlowUrl = electricFlowUrl;
-    this.electricFlowUser = electricFlowUser;
-    this.electricFlowPassword = electricFlowPassword;
     this.electricFlowApiVersion = electricFlowApiVersion;
     this.ignoreSslConnectionErrors = ignoreSslConnectionErrors;
     this.doNotSendBuildDetails = doNotSendBuildDetails;
+    this.credsType = credsType;
+    if (credsType != null && credsType.equals("storedCreds")) {
+      this.overrideCredential = new Credential(credentialId);
+      this.electricFlowUser = null;
+      this.electricFlowPassword = null;
+    } else {
+      this.electricFlowUser = electricFlowUser;
+      this.electricFlowPassword = electricFlowPassword;
+      this.overrideCredential = null;
+    }
   }
 
   // ~ Methods ----------------------------------------------------------------
@@ -85,6 +103,14 @@ public class Configuration extends AbstractDescribableImpl<Configuration> {
 
   public String getElectricFlowUser() {
     return this.electricFlowUser;
+  }
+
+  public Credential getOverrideCredential() {
+    return overrideCredential;
+  }
+
+  public String getCredsType() {
+    return credsType;
   }
 
   // ~ Inner Classes ----------------------------------------------------------
@@ -147,37 +173,58 @@ public class Configuration extends AbstractDescribableImpl<Configuration> {
       return m;
     }
 
+    public ListBoxModel doFillCredentialIdItems(@AncestorInPath Item item) {
+      return Credential.DescriptorImpl.doFillCredentialIdItems(item);
+    }
+
     @RequirePOST
     public FormValidation doTestConnection(
-        @QueryParameter("electricFlowUrl") final String electricFlowUrl,
-        @QueryParameter("electricFlowUser") final String electricFlowUser,
-        @QueryParameter("electricFlowPassword") final String electricFlowPassword,
-        @QueryParameter("electricFlowApiVersion") final String electricFlowApiVersion,
-        @QueryParameter("ignoreSslConnectionErrors") final boolean ignoreSslConnectionErrors)
+            @QueryParameter("electricFlowUrl") final String electricFlowUrl,
+            @QueryParameter("electricFlowUser") final String electricFlowUser,
+            @QueryParameter("electricFlowPassword") final String electricFlowPassword,
+            @QueryParameter("electricFlowApiVersion") final String electricFlowApiVersion,
+            @QueryParameter("ignoreSslConnectionErrors") final boolean ignoreSslConnectionErrors,
+            @QueryParameter @RelativePath("overrideCredential") String credentialId,
+            @QueryParameter("credsType") String credsType,
+            @AncestorInPath Item item)
         throws IOException {
       if (!Jenkins.get().hasPermission(Jenkins.ADMINISTER)) {
         return FormValidation.ok();
       }
 
       if (electricFlowUrl.isEmpty()
-          || electricFlowUser.isEmpty()
-          || electricFlowPassword.isEmpty()
           || electricFlowApiVersion.isEmpty()) {
         return FormValidation.error("Please fill required fields");
       }
 
-      try {
-        String decryptedPassword = Secret.fromString(electricFlowPassword).getPlainText();
-        ElectricFlowClient efClient =
-            new ElectricFlowClient(
+      ElectricFlowClient efClient;
+      if (credsType != null && credsType.equals("storedCreds")) {
+        if (credentialId == null || credentialId.isEmpty()) {
+          return FormValidation.error("Credentials are not provided");
+        }
+        StandardCredentials creds = new ItemCredentialHandler(item).getStandardCredentialsById(credentialId);
+        efClient = ElectricFlowClientFactory.getElectricFlowClient(
                 electricFlowUrl,
-                electricFlowUser,
-                decryptedPassword,
+                creds,
                 electricFlowApiVersion,
                 ignoreSslConnectionErrors);
+      } else {
+        if (electricFlowUser == null || electricFlowUser.isEmpty()
+            || electricFlowPassword == null || electricFlowPassword.isEmpty()) {
+          return FormValidation.error("Credentials are not provided");
+        }
+        String decryptedPassword = Secret.fromString(electricFlowPassword).getPlainText();
+        efClient =
+                new ElectricFlowClient(
+                        electricFlowUrl,
+                        electricFlowUser,
+                        decryptedPassword,
+                        electricFlowApiVersion,
+                        ignoreSslConnectionErrors);
+      }
 
+      try {
         efClient.testConnection();
-
         return FormValidation.ok("Success");
       } catch (Exception e) {
         log.warn("Wrong configuration - connection to CloudBees CD server failed", e);

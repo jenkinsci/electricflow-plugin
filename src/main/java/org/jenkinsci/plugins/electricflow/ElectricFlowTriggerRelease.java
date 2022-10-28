@@ -133,7 +133,7 @@ public class ElectricFlowTriggerRelease extends Recorder implements SimpleBuildS
         this.setReleaseName(release.getString("releaseName"));
       }
     }
-    if (startingStage == null) {
+    if (startingStage == null || startingStage.isEmpty()) {
       /* Now we are handling the following logic.
        1. If there are no startingStage AND the stages object is non-empty:
        we are going to read the stages and find the starting stages from array
@@ -147,7 +147,6 @@ public class ElectricFlowTriggerRelease extends Recorder implements SimpleBuildS
             stagesToRun.add(stage.getString("stageName"));
           }
         }
-        this.startingStage = stagesToRun.get(0);
       }
       else {
         Release releaseInfo;
@@ -533,7 +532,7 @@ public class ElectricFlowTriggerRelease extends Recorder implements SimpleBuildS
       if (item == null || !item.hasPermission(Item.CONFIGURE)) {
         return FormValidation.ok();
       }
-      return Utils.validateConfiguration(value);
+      return Utils.validateConfiguration(value, item);
     }
 
     public FormValidation doCheckProjectName(

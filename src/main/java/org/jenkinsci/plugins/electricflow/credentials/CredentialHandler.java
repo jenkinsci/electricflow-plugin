@@ -1,8 +1,8 @@
 package org.jenkinsci.plugins.electricflow.credentials;
 
-import com.cloudbees.plugins.credentials.common.StandardUsernamePasswordCredentials;
+import com.cloudbees.plugins.credentials.common.StandardCredentials;
 
 public interface CredentialHandler {
-  StandardUsernamePasswordCredentials getStandardUsernamePasswordCredentialsById(
+  StandardCredentials getStandardCredentialsById(
       String credentialsId);
 }

@@ -96,7 +96,12 @@ public class ElectricFlowBuildWatcher extends RunListener<Run> {
     // 2. Getting iterator out of configs list.
     for (Configuration tc : cfgs) {
       // 3. Getting configuration from iterator to create efclient out of it later.
-      ElectricFlowClient electricFlowClient = new ElectricFlowClient(tc.getConfigurationName());
+      ElectricFlowClient electricFlowClient = ElectricFlowClientFactory.getElectricFlowClient(
+              tc.getConfigurationName(),
+              null,
+              run,
+              null
+      );
       // 4. Creating CloudBeesFlowBuildData object out of run:
       CloudBeesFlowBuildData cbf = new CloudBeesFlowBuildData(run);
       // EFCause has higher priority. It means that if we have EFCause object and
