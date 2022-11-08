@@ -371,6 +371,13 @@ script {
 //...
 ```
 
+# Known issues
+## Adding credentials to a new CloudBees CD configuration  
+[BEE-27725] When creating a new Cloudbees CD configuration, you cannot add a new credential using the "Add" button.
+### Workarounds
+The following workarounds may be used instead of the "Add" button to help you add a credential:
+- The "Add" button works for existing configurations. So, create your configuration without the credential and then edit the configuration.
+- Add your credential in any other place. 
 
 
 # Release Notes
