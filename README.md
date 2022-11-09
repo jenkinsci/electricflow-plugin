@@ -377,7 +377,7 @@ script {
 ### Workarounds
 The following workarounds may be used instead of the "Add" button to help you add a credential:
 - The "Add" button works for existing configurations. So, create your configuration without the credential and then edit the configuration.
-- Add your credential in any other place. 
+- Add your credentials as described in Jenkins' [Configuring credentials](https://www.jenkins.io/doc/book/using/using-credentials/#configuring-credentials).
 
 
 # Release Notes
