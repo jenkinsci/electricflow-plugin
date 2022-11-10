@@ -42,11 +42,9 @@ following attributes need to be specified:
 -   Server URL: CloudBees CD Server URL
 
 -   REST API Version: CloudBees CD Server Rest API Version
-
--   User Name: CloudBees CD user name for Connection
-
--   User Password: CloudBees CD password for Connection
-
+-   Credentials Type:
+    -   Username and Password: CloudBees CD username and passport for Connection
+    -   Stored Credential: Used to configured authentication via stored credentials, which can be username/password or secret types, such as tokens 
 -   Do not send build details to CloudBees CD:
     By default, if the build has been triggered by CloudBees CD using CI configuration build details will be sent.
     Use this setting if you do not want to be sending build details to this CloudBees CD instance.
