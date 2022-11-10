@@ -59,6 +59,33 @@ following attributes need to be specified:
 
 ![](docs/images/Configuration.png)
 
+## Configuring an SSO session ID token
+The CloudBees CD plugin allows you to authenticate actions using an SSO session ID token. 
+> **_TIP:_**  If you have not generated a CloudBees SSO session ID token, refer to [Generate an SSO session ID token](https://docs.cloudbees.com/docs/cloudbees-cd/latest/intro/sign-in-cd#_generate_a_sso_session_id_token) for help. 
+
+The following steps will help you to configure a CloudBees SSO session ID token. To do so, you must have a CloudBees SSO session ID token generated. 
+
+1. Login to your Jenkins instance and navigate to **Manage Jenkins** > **Configure System**.
+2. Under **CloudBees CD** > **Configurations**, select **Add**.
+3. In the new configuration, enter a **Configuration Name** for your SSO session ID token, your **Server URL**, and select the **REST API Version**. 
+4. Select **Save** to confirm the new configuration.
+5. If you are redirected to another page, navigate back to **Manage Jenkins** > **Configure System** and find your SSO session ID token's configuration. 
+6. Under **Credentials Type**, select **Stored Credential** and a new entry field will appear.
+7. For **Stored Credential**, select **Add** and **Jenkins**. A new window should appear for the **Jenkins Credential Provider**.
+8. By default, the **Domain** field is set to *Global credentials (unrestricted)* and in unchangeable. 
+9. For **Kind**, select **Secret text**. 
+10. Select the **Scope** you want to use your token for. 
+11. In the **Secret** field enter your CloudBees SSO session ID token. 
+12. The **ID** field is **optional**. If you want to provide and **ID**, select the **?** and read the message to ensure you understand the purpose and requirements of this field.
+13. The **Description** field is **optional**. However, it is suggested to provide one  to help you keep track of the token configuration as it used as the **Credentials** > **Name** in your profile.
+
+> **_NOTE:_**  Ensure the information for the token is correct before moving to the next step. If you add the credential with incorrect information, you cannot edit it and will have to delete the incorrect credential and reconfigure a new one. 
+
+14. Select **Add** to save the configuration. You will be returned to the configurations page.
+    > **_TIP:_**  You can check in your profile to ensure your credential was added and manage it. 
+15. Select **Test Connection** to ensure your credential is working correctly. If you receive a ``Success`` message, your SSO session ID token is ready to use. If you receive an error code, ensure your **Server URL** is correct. If it is, typically there was an error in the credential configuration and the configuration should be configured with a new credential.  
+
+
 # Supported Post Build Actions
 
 Following post build actions are available in CloudBees CD
