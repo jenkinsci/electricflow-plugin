@@ -14,13 +14,13 @@ predictable and auditable way.
 
 With the CloudBees CD plugin you can:
 -   [Connect to your CloudBees CD server](#connecting-to-your-cloudbees-cd-server)
--   [Trigger releases](#triggering-releases-in-cloudbees-cd)
--   [Trigger pipelines](#triggering-pipelines-in-cloudbees-cd)
+-   [Call CloudBees CD REST APIs](#calling-cloudbees-cd-rest-api)  
+-   [Create applications from deployment packages](#creating-and-deploying-applications-from-deployment-packages-to-cloudbees-cd) 
 -   [Deploy applications](#deploying-applications-using-cloudbees-cd)
 -   [Publish artifacts](#publishing-artifacts-to-cloudbees-cd)
+-   [Run pipelines](#triggering-pipelines-in-cloudbees-cd)
 -   [Run procedures](#running-procedures-in-cloudbees-cd)
--   [Call CloudBees CD REST APIs](#calling-cloudbees-cd-rest-api)
--   [Create applications from deployment packages](#creating-applications-from-deployment-packages-to-cloudbees-cd)
+-   [Trigger releases](#triggering-releases-in-cloudbees-cd)
 
 # Connecting to your CloudBees CD server
 
@@ -76,107 +76,11 @@ The following steps will help you configure a CloudBees SSO session ID token wit
 
 Following post build actions are available in CloudBees CD
 Plugin. These actions can be executed separately or combined
-sequentially.
+sequentially. 
 
-## Creating applications from Deployment Packages to CloudBees CD
+> **_NOTE:_** To manage **Post-build Actions**, navigate to your Jenkins job's **Configuration** > **Post-build Actions**. 
 
-This integration allows you to create and deploy Java, .NET or any other
-application to any environment in CloudBees CD. Deployment package
-would be generated as part of your Jenkins CI build, and contain a
-Manifest file and artifacts to be deployed. 
-
-Sample manifest.json file can be found
-at [https://github.com/electric-cloud/DeploymentPackageManager/tree/master/SampleManifests](https://github.com/electric-cloud/DeploymentPackageManager/tree/master/SampleManifests). 
-
-This post build action has following parameters:
-
--   Configuration: Name of the CloudBees CD configuration
-
--   Override Credential: Connect to CloudBees CD as a User other than the one mentioned in the electricflow Plugin Connection Configuration
-
--   Deployment Package Path: Location or path for the deployment package
-    to be published to CloudBees CD. For e.g., MyProject/target
-
-![](docs/images/CreateDeplApp.png)
-
-**Create and Deploy Application from Deployment Package (Pipeline Script)**
-
-``` syntaxhighlighter-pre
-node {
-    cloudBeesFlowCreateAndDeployAppFromJenkinsPackage configuration: 'CdConfiguration', filePath: 'CdProject/target/'
-}
-```
-
-## Publishing artifacts to CloudBees CD
-
-This integration allows you to publish the artifact for your application
-to CloudBees CD. The Artifact will be generated as part of your
-Jenkins CI build. 
-
-This post build action takes the following parameters:
-
--   Configuration: Name of the CloudBees CD configuration
-
--   Override Credential: Connect to CloudBees CD as a User other than the one mentioned in the electricflow Plugin Connection Configuration
-
--   Relative Workspace: Specify the relative workspace (relative to workspace root) for artifact path.
-
--   Artifact Path: Location or path for the artifact files to be
-    published to CloudBees CD. For
-    e.g., MyProject/\*\*/\*-$BUILD\_NUMBER.war
-
--   Artifact Name: Name of the application artifact using the format
-    \<group\_id\>:\<artifact\_key\>. For e.g., "com.example:helloworld"
-
--   Artifact Version: Version of the application artifact. For e.g., you
-    can specify 1.0 or 1.0-$BUILD\_TAG that is based on Jenkins
-    environment variable
-
--   CloudBees CD Repository Name: Name of the CloudBees CD
-    Repository
-
-![](docs/images/PublishArtifact.png)
-
-**Publish Artifact (Pipeline Script)**
-
-``` syntaxhighlighter-pre
-node {
-    cloudBeesFlowPublishArtifact artifactName: 'application:jpetstore', artifactVersion: '1.0', configuration: 'CdConfiguration', filePath: 'CdProject/target/jpetstore.war', repositoryName: 'default'
-}
-```
-
-## Triggering pipelines in CloudBees CD
-
-This integration allows you to run a pipeline in CloudBees CD.
-
-This post build action takes the following parameters:
-
-- Configuration: Name of the CloudBees CD configuration
-
-- Override Credential: Connect to CloudBees CD as a User other than the one mentioned in the electricflow Plugin Connection Configuration
-
-- Project Name: Name of the CloudBees CD project
-
-- Pipeline Name: Name of the CloudBees CD pipeline
-
-- (Optional) Pipeline Parameters
-
-  -   Parameter name will be displayed as Label
-
-  -   Parameter value to be specified will be displayed as text input
-    field
-
-![](docs/images/RunPipeline.png)
-
-**Run Pipeline Example (Pipeline Script)**
-
-``` syntaxhighlighter-pre
-node{
-    cloudBeesFlowRunPipeline addParam: '{"pipeline":{"pipelineName":"CdPipeline","parameters":[{"parameterName":"PipelineParam","parameterValue":"185"}]}}', configuration: 'CdConfiguration', pipelineName: 'CdPipeline', projectName: 'CloudBees'
-}
-```
-
-## Calling CloudBees CD REST API 
+## Calling CloudBees CD REST API
 
 This integration allows you to call the CloudBees CD REST API.
 Available as Post Build Action and Pipeline Step as well.
@@ -237,6 +141,35 @@ pipeline{
 }
 ```
 
+## Creating and deploying applications from Deployment Packages to CloudBees CD
+
+This integration allows you to create and deploy Java, .NET or any other
+application to any environment in CloudBees CD. Deployment package
+would be generated as part of your Jenkins CI build, and contain a
+Manifest file and artifacts to be deployed. 
+
+Sample manifest.json file can be found
+at [https://github.com/electric-cloud/DeploymentPackageManager/tree/master/SampleManifests](https://github.com/electric-cloud/DeploymentPackageManager/tree/master/SampleManifests). 
+
+This post build action has following parameters:
+
+-   Configuration: Name of the CloudBees CD configuration
+
+-   Override Credential: Connect to CloudBees CD as a User other than the one mentioned in the electricflow Plugin Connection Configuration
+
+-   Deployment Package Path: Location or path for the deployment package
+    to be published to CloudBees CD. For e.g., MyProject/target
+
+![](docs/images/CreateDeplApp.png)
+
+**Create and Deploy Application from Deployment Package (Pipeline Script)**
+
+``` syntaxhighlighter-pre
+node {
+    cloudBeesFlowCreateAndDeployAppFromJenkinsPackage configuration: 'CdConfiguration', filePath: 'CdProject/target/'
+}
+```
+
 ## Deploying applications using CloudBees CD
 
 This integration allows you to deploy an application using CloudBees CD.
@@ -274,47 +207,73 @@ node{
    cloudBeesFlowDeployApplication applicationName: 'DemoApplication', applicationProcessName: 'RunCommand', configuration: 'CdConfiguration', deployParameters: '{"runProcess":{"applicationName":"DemoApplication","applicationProcessName":"RunCommand","parameter":[{"actualParameterName":"Parameter1","value":"value1"},{"actualParameterName":"Parameter2","value":"value2"}]}}', environmentName: 'CdEnvironment', projectName: 'CloudBees'
 }
 ```
+## Publishing artifacts to CloudBees CD
 
-## Triggering releases in CloudBees CD
+This integration allows you to publish the artifact for your application
+to CloudBees CD. The Artifact will be generated as part of your
+Jenkins CI build. 
 
-This Integration allows you to trigger a release in CloudBees CD.
+This post build action takes the following parameters:
 
-This post build action has following parameters:
+-   Configuration: Name of the CloudBees CD configuration
 
-- Configuration: Specify the name of the CloudBees CD configuration
+-   Override Credential: Connect to CloudBees CD as a User other than the one mentioned in the electricflow Plugin Connection Configuration
+
+-   Relative Workspace: Specify the relative workspace (relative to workspace root) for artifact path.
+
+-   Artifact Path: Location or path for the artifact files to be
+    published to CloudBees CD. For
+    e.g., MyProject/\*\*/\*-$BUILD\_NUMBER.war
+
+-   Artifact Name: Name of the application artifact using the format
+    \<group\_id\>:\<artifact\_key\>. For e.g., "com.example:helloworld"
+
+-   Artifact Version: Version of the application artifact. For e.g., you
+    can specify 1.0 or 1.0-$BUILD\_TAG that is based on Jenkins
+    environment variable
+
+-   CloudBees CD Repository Name: Name of the CloudBees CD
+    Repository
+
+![](docs/images/PublishArtifact.png)
+
+**Publish Artifact (Pipeline Script)**
+
+``` syntaxhighlighter-pre
+node {
+    cloudBeesFlowPublishArtifact artifactName: 'application:jpetstore', artifactVersion: '1.0', configuration: 'CdConfiguration', filePath: 'CdProject/target/jpetstore.war', repositoryName: 'default'
+}
+```
+## Running pipelines in CloudBees CD
+
+This integration allows you to run a pipeline in CloudBees CD.
+
+This post build action takes the following parameters:
+
+- Configuration: Name of the CloudBees CD configuration
 
 - Override Credential: Connect to CloudBees CD as a User other than the one mentioned in the electricflow Plugin Connection Configuration
 
-- Project Name: Specify the CloudBees CD project name
+- Project Name: Name of the CloudBees CD project
 
-- Release Name: Specify the CloudBees CD release name
+- Pipeline Name: Name of the CloudBees CD pipeline
 
-- Starting Stage: Specify starting stage to run in the CloudBees CD release pipeline
+- (Optional) Pipeline Parameters
 
-  -   Parameter is required if ‘Stages to run’ is not used.
+    -   Parameter name will be displayed as Label
 
-- Stages to run: Specify stages to run in the CloudBees CD release pipeline
+    -   Parameter value to be specified will be displayed as text input
+        field
 
-  -   Parameter is required if ‘Starting Stage’ is not used.
-  -   Parameter is ignored if ‘Starting Stage’ is used.
+![](docs/images/RunPipeline.png)
 
-- (Optional) Pipeline parameters: Specify parameters for the CloudBees CD pipeline
-
-  -   Parameter name will be displayed as Label
-
-  -   Parameter value to be specified should go in the text input field
-
-![](docs/images/TriggerRelease.png)
-
-**Trigger Release Example (Pipeline Script)**
+**Run Pipeline Example (Pipeline Script)**
 
 ``` syntaxhighlighter-pre
 node{
-    cloudBeesFlowTriggerRelease configuration: 'CdConfiguration', parameters: '{"release":{"releaseName":"CdRelease1.1.5","stages":[{"stageName":"Stage 1","stageValue":false},{"stageName":"Stage 2","stageValue":true}],"pipelineName":"pipeline_CdRelease1.1.5","parameters":[{"parameterName":"ReleaseParam","parameterValue":"test"}]}}', projectName: 'CloudBees', releaseName: 'CdRelease1.1.5', startingStage: ''
+    cloudBeesFlowRunPipeline addParam: '{"pipeline":{"pipelineName":"CdPipeline","parameters":[{"parameterName":"PipelineParam","parameterValue":"185"}]}}', configuration: 'CdConfiguration', pipelineName: 'CdPipeline', projectName: 'CloudBees'
 }
 ```
-
-Details for this build will be attached to the Release Run (if supported by CloudBees CD server).
 
 ## Running procedures in CloudBees CD
 
@@ -383,6 +342,46 @@ script {
 }
 //...
 ```
+## Triggering releases in CloudBees CD
+
+This Integration allows you to trigger a release in CloudBees CD.
+
+This post build action has following parameters:
+
+- Configuration: Specify the name of the CloudBees CD configuration
+
+- Override Credential: Connect to CloudBees CD as a User other than the one mentioned in the electricflow Plugin Connection Configuration
+
+- Project Name: Specify the CloudBees CD project name
+
+- Release Name: Specify the CloudBees CD release name
+
+- Starting Stage: Specify starting stage to run in the CloudBees CD release pipeline
+
+    -   Parameter is required if ‘Stages to run’ is not used.
+
+- Stages to run: Specify stages to run in the CloudBees CD release pipeline
+
+    -   Parameter is required if ‘Starting Stage’ is not used.
+    -   Parameter is ignored if ‘Starting Stage’ is used.
+
+- (Optional) Pipeline parameters: Specify parameters for the CloudBees CD pipeline
+
+    -   Parameter name will be displayed as Label
+
+    -   Parameter value to be specified should go in the text input field
+
+![](docs/images/TriggerRelease.png)
+
+**Trigger Release Example (Pipeline Script)**
+
+``` syntaxhighlighter-pre
+node{
+    cloudBeesFlowTriggerRelease configuration: 'CdConfiguration', parameters: '{"release":{"releaseName":"CdRelease1.1.5","stages":[{"stageName":"Stage 1","stageValue":false},{"stageName":"Stage 2","stageValue":true}],"pipelineName":"pipeline_CdRelease1.1.5","parameters":[{"parameterName":"ReleaseParam","parameterValue":"test"}]}}', projectName: 'CloudBees', releaseName: 'CdRelease1.1.5', startingStage: ''
+}
+```
+
+Details for this build will be attached to the Release Run (if supported by CloudBees CD server).
 
 # Known issues
 ## Adding credentials to a new CloudBees CD configuration  
