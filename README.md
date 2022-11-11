@@ -8,86 +8,75 @@ that simplifies provisioning, build and release of multi-tiered
 applications. Our model-driven approach to managing environments and
 applications allows teams to collaborate on and coordinate multiple
 pipelines and releases across hybrid infrastructure in an efficient,
-predictable and auditable way. 
+predictable and auditable way.
 
 # Features
 
 With the CloudBees CD plugin you can:
 
--   Trigger a release in CloudBees CD
+-   [Trigger a release in CloudBees CD](#trigger-release-in-cloudbees-cd)
 -   Trigger a pipeline in CloudBees CD
 -   Deploy an application in CloudBees CD
 -   Publish an artifact from Jenkins into the CloudBees CD artifact
     repository
--   Run a Procedure in CloudBees CD
+-   Run a Procedure in CloudBees CD
 -   Call a REST API to invoke any action in CloudBees CD
 -   Create Application in CloudBees CD from Deployment Package
 
-# Connection Configurations
+# Connecting to your CloudBees CD server
 
-In order to use and integrate with CloudBees CD, you would have to
-create a connection configuration in Jenkins, that stores connection
-information of the CloudBees CD Server you are connecting to. You can
-create one or more connection configurations depending on the number of
-Servers or Environments you are integrating with.
+To use and integrate with CloudBees CD, you must
+create a connection configuration in Jenkins to store your CloudBees CD Server information. Depending on the number of servers or environments you are integrating with, you can create one or more connection configurations that allow you to connect to them and call CloudBees CD APIs.
 
-Navigate to Manage Jenkins / Configure System and go to CloudBees CD
-section. One or more configurations can be created to connect to and
-call APIs into CloudBees CD system. For each configuration, the
-following attributes need to be specified:
+To create and configure your connection:
+1. Login into your Jenkins instance and navigate to **Manage Jenkins** > **Configure System**.
+2. Find the **CloudBees CD** section and under **Configurations**, select **Add**. 
+3. Specify the following information for your configuration:
+   - **Configuration Name:** Name you want to give this configuration
 
--   Configuration Name: Specify the name to store this configuration,
-    which is used to connect to the CloudBees CD Server.
+   - **Server URL**: CloudBees CD Server URL
 
--   Server URL: CloudBees CD Server URL
+   - **REST API Version**: CloudBees CD Server Rest API Version
+4. Select **Save** in the Jenkins UI to confirm your configuration.
+5. Add your **Credentials Type**:
+    -   **Username and Password**: CloudBees CD username and passport for Connection
 
--   REST API Version: CloudBees CD Server Rest API Version
--   Credentials Type:
-    -   Username and Password: CloudBees CD username and passport for Connection
-    -   Stored Credential: Used to configure authentication via stored credentials, which can be username/password or secret text, which supports an SSO session ID token
--   Do not send build details to CloudBees CD:
-    By default, if the build has been triggered by CloudBees CD using CI configuration build details will be sent.
-    Use this setting if you do not want to be sending build details to this CloudBees CD instance.
+    - **Stored Credential**: Used to configure authentication via stored credentials, which can be username/password or secret text, which supports an SSO session ID token
+    > **_TIP:_**  To configure a connection using an SSO session ID token, refer to [Configuring an SSO session ID token for CloudBees CD](#configuring-an-sso-session-id-token-for-cloudbees-cd).
 
--   Override CloudBees CD SSL Validation Check: By default SSL
-    Validation Check will be performed. Choose this setting to override
-    the check. If you do not want to override this check, perform the
-    SSL certificate setup required in Jenkins and CloudBees CD as per
-    the CloudBees CD Server documentation.
+6. Both **Do not send build details to CloudBees CD** and **Override CloudBees CD SSL Validation Check** are **optional** settings. You can select **?** icon for both and read the description to decide if you want to use these features.   
+7. Select **Test Connection** to ensure your credential is working correctly. If you receive a ``Success`` message, your SSO session ID token is ready to use. If you receive an error code, ensure your **Server URL** is correct. If it is, typically there was an error in the credential configuration and the configuration should be reconfigured with a new credential.
+ 
+![CloudBees CD Configuration](docs/images/Configuration.png)
 
-![](docs/images/Configuration.png)
+## Configuring an SSO session ID token for CloudBees CD
+The CloudBees CD plugin allows you to authenticate actions using an SSO session ID token. Before starting:
+- You must have a generated CloudBees SSO session ID token. If you have not generated a CloudBees SSO session ID token, refer to [Generate an SSO session ID token](https://docs.cloudbees.com/docs/cloudbees-cd/latest/intro/sign-in-cd#_generate_a_sso_session_id_token) for help.
+- You must have already set up a **CloudBees CD** configuration and saved it to Jenkins. If not, follow the steps in [Connecting to your CloudBees CD server](#connecting-to-your-cloudbees-cd-server) until **Credentials Type**. 
 
-## Configuring an SSO session ID token
-The CloudBees CD plugin allows you to authenticate actions using an SSO session ID token. 
-> **_TIP:_**  If you have not generated a CloudBees SSO session ID token, refer to [Generate an SSO session ID token](https://docs.cloudbees.com/docs/cloudbees-cd/latest/intro/sign-in-cd#_generate_a_sso_session_id_token) for help. 
+The following steps will help you configure a CloudBees SSO session ID token within a CloudBees CD configuration.
 
-The following steps will help you configure a CloudBees SSO session ID token. To do so, you must have a CloudBees SSO session ID token generated. 
-
-1. Login to your Jenkins instance, and navigate to **Manage Jenkins** > **Configure System**.
-2. Under **CloudBees CD** > **Configurations**, select **Add**.
-3. In the new configuration, enter a **Configuration Name** for your SSO session ID token, your **Server URL**, and select the **REST API Version**. 
-4. Select **Save** to confirm the new configuration.
-5. If you are redirected to another page, navigate back to **Manage Jenkins** > **Configure System** and find your SSO session ID token's configuration. 
-6. Under **Credentials Type**, select **Stored Credential** and a new entry field will appear.
-7. For **Stored Credential**, select **Add** and **Jenkins**. A new window should appear for the **Jenkins Credential Provider**.
-8. By default, the **Domain** field is set to *Global credentials (unrestricted)* and is unchangeable. 
-9. For **Kind**, select **Secret text**. 
-10. Select the **Scope** you want to use your token for. 
-11. In the **Secret** field, enter your CloudBees SSO session ID token. 
-12. The **ID** field is **optional**. If you want to provide and **ID**, select the **?** icon and read the message to ensure you understand the purpose and requirements of this field.
-13. The **Description** field is **optional**. However, it is suggested to provide one  to help you keep track of the token configuration as it used as the **Credentials** > **Name** in your profile.
+1. Navigate to **Manage Jenkins** > **Configure System** and under **CloudBees CD** > **Configurations**, find the configuration you want to add an SSO session ID token to. 
+2. Under **Credentials Type**, select **Stored Credential** and a new entry field will appear.
+3. For **Stored Credential**, select **Add** and **Jenkins**. A new window should appear for the **Jenkins Credential Provider**.
+4. By default, the **Domain** field is set to *Global credentials (unrestricted)* and is unchangeable. 
+5. For **Kind**, select **Secret text**. 
+6. Select the **Scope** you want to use your token for. 
+7. In the **Secret** field, enter your CloudBees SSO session ID token. 
+8. The **ID** field is **optional**. If you want to provide and **ID**, select the **?** icon and read the message to ensure you understand the purpose and requirements of this field.
+9. The **Description** field is **optional**. However, it is suggested to provide one  to help you keep track of the token configuration as it used as the **Credentials** > **Name** in your profile.
 
 > **_NOTE:_**  Ensure the information for your credential is correct before moving to the next step. If you add the credential with incorrect information, you cannot edit it and will have to delete the incorrect credential and reconfigure a new one. 
 
-14. Select **Add** to save the configuration. You will be returned to the system configurations page.
-    > **_TIP:_**  You can check in your profile to ensure your credential was added and manage it. 
-15. Select **Test Connection** to ensure your credential is working correctly. If you receive a ``Success`` message, your SSO session ID token is ready to use. If you receive an error code, ensure your **Server URL** is correct. If it is, typically there was an error in the credential configuration and the configuration should be reconfigured with a new credential.  
+10. Select **Add** to save the configuration. You will be returned to the system configurations page.
+> **_TIP:_**  You can check in your profile to ensure your credential was added and manage it. 
+11. Select **Test Connection** to ensure your credential is working correctly. If you receive a ``Success`` message, your configuration ready to use. If you receive an error code, ensure your **Server URL** is correct. If it is, typically there was an error in the credential configuration and the configuration should be reconfigured.  
 
 
 # Supported Post Build Actions
 
 Following post build actions are available in CloudBees CD
-Plugin. These actions can be executed separately or combined
+Plugin. These actions can be executed separately or combined
 sequentially.
 
 ## Create Application from Deployment Package to CloudBees CD
