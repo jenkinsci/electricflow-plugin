@@ -13,15 +13,14 @@ predictable and auditable way.
 # Features
 
 With the CloudBees CD plugin you can:
-
--   [Trigger a release in CloudBees CD](#trigger-release-in-cloudbees-cd)
--   Trigger a pipeline in CloudBees CD
--   Deploy an application in CloudBees CD
--   Publish an artifact from Jenkins into the CloudBees CD artifact
-    repository
--   Run a Procedure in CloudBees CD
--   Call a REST API to invoke any action in CloudBees CD
--   Create Application in CloudBees CD from Deployment Package
+-   [Connect to your CloudBees CD server](#connecting-to-your-cloudbees-cd-server)
+-   [Trigger releases](#triggering-releases-in-cloudbees-cd)
+-   [Trigger pipelines](#triggering-pipelines-in-cloudbees-cd)
+-   [Deploy applications](#deploying-applications-using-cloudbees-cd)
+-   [Publish artifacts](#publishing-artifacts-to-cloudbees-cd)
+-   [Run procedures](#running-procedures-in-cloudbees-cd)
+-   [Call CloudBees CD REST APIs](#calling-cloudbees-cd-rest-api)
+-   [Create applications from deployment packages](#creating-applications-from-deployment-packages-to-cloudbees-cd)
 
 # Connecting to your CloudBees CD server
 
@@ -79,7 +78,7 @@ Following post build actions are available in CloudBees CD
 Plugin. These actions can be executed separately or combined
 sequentially.
 
-## Create Application from Deployment Package to CloudBees CD
+## Creating applications from Deployment Packages to CloudBees CD
 
 This integration allows you to create and deploy Java, .NET or any other
 application to any environment in CloudBees CD. Deployment package
@@ -108,7 +107,7 @@ node {
 }
 ```
 
-## Publish Artifact to CloudBees CD
+## Publishing artifacts to CloudBees CD
 
 This integration allows you to publish the artifact for your application
 to CloudBees CD. The Artifact will be generated as part of your
@@ -146,7 +145,7 @@ node {
 }
 ```
 
-## Run Pipeline in CloudBees CD
+## Triggering pipelines in CloudBees CD
 
 This integration allows you to run a pipeline in CloudBees CD.
 
@@ -177,7 +176,7 @@ node{
 }
 ```
 
-## Call REST API of CloudBees CD
+## Calling CloudBees CD REST API 
 
 This integration allows you to call the CloudBees CD REST API.
 Available as Post Build Action and Pipeline Step as well.
@@ -238,7 +237,7 @@ pipeline{
 }
 ```
 
-## Deploy Application using CloudBees CD
+## Deploying applications using CloudBees CD
 
 This integration allows you to deploy an application using CloudBees CD.
 
@@ -276,7 +275,7 @@ node{
 }
 ```
 
-## Trigger Release in CloudBees CD
+## Triggering releases in CloudBees CD
 
 This Integration allows you to trigger a release in CloudBees CD.
 
@@ -317,7 +316,7 @@ node{
 
 Details for this build will be attached to the Release Run (if supported by CloudBees CD server).
 
-## Run Procedure in CloudBees CD
+## Running procedures in CloudBees CD
 
 This Integration allows you run a procedure in CloudBees CD.
 
