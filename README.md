@@ -69,7 +69,6 @@ The following steps will help you configure a CloudBees SSO session ID token wit
 > **_TIP:_**  You can check in your profile to ensure your credential was added and manage it. 
 11. Select **Test Connection** to ensure your credential is working correctly. If you receive a ``Success`` message, your configuration ready to use. If you receive an error code, ensure your **Server URL** is correct. If it is, typically there was an error in the credential configuration and the configuration should be reconfigured.  
 
-
 # Supported Post Build Actions
 
 The CloudBees CD plugin enables you to perform Post-build actions for your Jenkins jobs. These actions can be executed separately or combined sequentially. 
@@ -98,6 +97,7 @@ node{
     }
 }
 ```
+
 ### Pipeline script example for REST API calls in a Declarative Pipeline step
 
 ``` syntaxhighlighter-pre
@@ -133,7 +133,6 @@ To set up this post-build action:
 3. In filter, enter `CloudBees CD - Create/Deploy Application from Deployment Package`.
 4. Fill in the fields with your configuration. To see information on the field, select the **?** icon (selecting the **?** will open an additional dialog).
 5. To apply the configuration to your job, select **Save** in the Jenkins UI.
-
 
 ### Pipeline script example to create and deploy an application from a deployment package
 
@@ -210,7 +209,7 @@ To set up this post-build action:
 4. Fill in the fields with your configuration. To see information on the field, select the **?** icon (selecting the **?** will open an additional dialog).
 5. To apply the configuration to your job, select **Save** in the Jenkins UI.
 
-### Pipeline script example to run a procedure 
+### Pipeline script examples to run a procedure 
 
 ``` syntaxhighlighter-pre
 node{
@@ -223,7 +222,6 @@ node{
     cloudBeesFlowRunProcedure configuration: 'CdConfiguration', overrideCredential: [credentialId: 'CREDS_PARAM'], procedureName: 'TomcatCheckServer', procedureParameters: '{"procedure":{"procedureName":"TomcatCheckServer","parameters":[{"actualParameterName":"max_time","value":"10"},{"actualParameterName":"tomcat_config_name","value":"Tomcat configuration"}]}}', projectName: 'CloudBees', runAndWaitOption: [checkInterval: 5, dependOnCdJobOutcome: true]
 }
 ```
-
 
 ### Pipeline script example for running a Procedure call with failed result handling
 
@@ -278,7 +276,6 @@ Details for this build will be attached to the Release Run (if supported by Clou
 The following workarounds may be used instead of the **Add** button to help you add a credential:
 - The "Add" button works for existing configurations. So, create and save your configuration without the credential. You can then return to the configuration and add the credential using the **Add** button.
 - Add your credentials as described in Jenkins' [Configuring credentials](https://www.jenkins.io/doc/book/using/using-credentials/#configuring-credentials).
-
 
 # Release Notes
 
