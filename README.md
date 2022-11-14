@@ -4,11 +4,11 @@ CloudBees CD Application Release Orchestration.
 # Overview
 
 CloudBees CD is an enterprise-grade DevOps Release Automation platform
-that simplifies provisioning, build and release of multi-tiered
+that simplifies the provisioning, building, and releasing of multi-tiered
 applications. Our model-driven approach to managing environments and
 applications allows teams to collaborate on and coordinate multiple
 pipelines and releases across hybrid infrastructure in an efficient,
-predictable and auditable way.
+predictable, and auditable way.
 
 # Features
 
@@ -29,61 +29,62 @@ create a connection configuration in Jenkins to store your CloudBees CD Server i
 
 To create and configure your connection:
 1. Login into your Jenkins instance and navigate to **Manage Jenkins** > **Configure System**.
-2. Find the **CloudBees CD** section and under **Configurations**, and select **Add**. 
+2. Under **Configurations**, find the **CloudBees CD** section and select **Add**. 
 3. Specify the following information for your configuration:
    - **Configuration Name:** Name you want to give this configuration
 
-   - **Server URL**: CloudBees CD Server URL
+   - **Server URL**: CloudBees CD server URL
 
-   - **REST API Version**: CloudBees CD Server Rest API Version
+   - **REST API Version**: CloudBees CD Server REST API version
 4. Select **Save** in the Jenkins UI to confirm your configuration.
-5. Add your **Credentials Type**:
-    -   **Username and Password**: CloudBees CD username and passport for Connection
+5. If you are redirected to another page, navigate back to Manage Jenkins > Configure System and under CloudBees CD > Configurations, and find the configuration you just created.
+6. Add your **Credentials Type**:
+    -   **Username and Password**: CloudBees CD username and password for your connection
 
-    - **Stored Credential**: Used to configure authentication via stored credentials, which can be username/password or secret text, which supports an SSO session ID token
+    - **Stored Credential**: Used to configure authentication via stored credentials, which can be a username/password or secret text that supports an SSO session ID token
     > **_TIP:_**  To configure a connection using an SSO session ID token, refer to [Configuring an SSO session ID token for CloudBees CD](#configuring-an-sso-session-id-token-for-cloudbees-cd).
 
-6. Both **Do not send build details to CloudBees CD** and **Override CloudBees CD SSL Validation Check** are **optional** settings. You can select the **?** icon for both and read the description to decide if you want to use these features.   
-7. Select **Test Connection** to ensure your credential is working correctly. If you receive a ``Success`` message, your configuration is ready to use. If you receive an error code, ensure your **Server URL** is correct. If it is, typically there was an error in the credential configuration and the configuration should be reconfigured.
+7. Both **Do not send build details to CloudBees CD** and **Override CloudBees CD SSL Validation Check** are **optional** settings. You can select their **?** icons and read the descriptions to decide if you want to use these features.   
+8. Select **Test Connection** to ensure your credential is working correctly. If you receive a ``Success`` message, your configuration is ready to use. If you receive an error code, ensure your **Server URL** is correct. If it is, typically there was an error in the credential configuration and the configuration should be reconfigured.
 
 ## Configuring an SSO session ID token for CloudBees CD
 The CloudBees CD plugin allows you to authenticate actions using an SSO session ID token. Before starting:
 - You must have a generated CloudBees SSO session ID token. If you have not generated a CloudBees SSO session ID token, refer to [Generate an SSO session ID token](https://docs.cloudbees.com/docs/cloudbees-cd/latest/intro/sign-in-cd#_generate_a_sso_session_id_token) for help.
 - You must have already set up a **CloudBees CD** configuration and saved it to Jenkins. If not, follow the steps in [Connecting to your CloudBees CD server](#connecting-to-your-cloudbees-cd-server) until **Credentials Type**. 
 
-The following steps will help you configure a CloudBees SSO session ID token within a CloudBees CD configuration.
+The following steps describe how to configure a CloudBees SSO session ID token within a CloudBees CD configuration.
 
-1. Navigate to **Manage Jenkins** > **Configure System** and under **CloudBees CD** > **Configurations**, and find the configuration you want to add an SSO session ID token to. 
-2. Under **Credentials Type**, select **Stored Credential** and a new entry field will appear.
-3. For **Stored Credential**, select **Add** and **Jenkins**. A new window should appear for the **Jenkins Credential Provider**.
+1. Navigate to **Manage Jenkins** > **Configure System**. Under **CloudBees CD** > **Configurations**, find the configuration to which you want to add an SSO session ID token. 
+2. Under **Credentials Type**, select **Stored Credential**. A new entry field opens.
+3. For **Stored Credential**, select **Add** and **Jenkins**. A new window opens for the **Jenkins Credential Provider**.
 4. By default, the **Domain** field is set to *Global credentials (unrestricted)* and is unchangeable. 
 5. For **Kind**, select **Secret text**. 
 6. Select the **Scope** you want to use your token for. 
 7. In the **Secret** field, enter your CloudBees SSO session ID token. 
-8. The **ID** field is **optional**. If you want to provide and **ID**, select the **?** icon and read the message to ensure you understand the purpose and requirements of this field.
-9. The **Description** field is **optional**. However, it is suggested to provide one  to help you keep track of the token configuration as it used as the **Credentials** > **Name** in your profile.
+8. The **ID** field is **optional**. If you want to provide an **ID**, select the **?** icon and read the message to ensure you understand the purpose and requirements of this field.
+9. The **Description** field is **optional**. However, it is suggested to provide one to help you keep track of the token configuration in your **Credentials**  profile.
 
-> **_NOTE:_**  Ensure the information for your credential is correct before moving to the next step. If you add the credential with incorrect information, you cannot edit it and will have to delete the incorrect credential and reconfigure a new one. 
+> **_NOTE:_** Ensure the information for your credential is correct before moving to the next step. If you add the credential with incorrect information, you cannot edit it and will have to delete the incorrect credential and reconfigure a new one. 
 
-10. Select **Add** to save the configuration. You will be returned to the system configurations page.
-> **_TIP:_**  You can check in your profile to ensure your credential was added and manage it. 
-11. Select **Test Connection** to ensure your credential is working correctly. If you receive a ``Success`` message, your configuration ready to use. If you receive an error code, ensure your **Server URL** is correct. If it is, typically there was an error in the credential configuration and the configuration should be reconfigured.  
+10. Select **Add** to save the configuration. You are returned to the system configurations page.
+> **_TIP:_**  You can check your profile to ensure your credential was added and manage it. 
+11. Select **Test Connection** to ensure your credential is working correctly. If you receive a ``Success`` message, your configuration is ready to use. If you receive an error code, ensure your **Server URL** is correct. If it is, typically there was an error in the credential configuration, and the configuration should be reconfigured.  
 
 # Supported Post Build Actions
 
-The CloudBees CD plugin enables you to perform Post-build actions for your Jenkins jobs. These actions can be executed separately or combined sequentially. 
+The CloudBees CD plugin enables you to perform post-build actions for your Jenkins jobs. These actions can be executed separately or combined sequentially. 
 
 > **_NOTE:_** To manage **Post-build Actions**, navigate to your Jenkins job's **Configuration** > **Post-build Actions**. 
 
 ## Calling CloudBees CD REST API
 
-The CloudBees CD plugin allows you to make calls to CloudBees CD's REST API. These calls can be made for post-build actions and as pipeline steps.
+The CloudBees CD plugin allows you to make calls to CloudBees CD's REST API. You can make for post-build actions and as pipeline steps.
 
 To configure a calls to CloudBees CD's REST API:
 1. Navigate to your job's **Configuration** > **Post-build Actions** menu.
-2. Select **Add post-build action**
-3. In filter, enter `CloudBees CD - Call REST API`. 
-4. Fill in the fields with your configuration. To see information on the field, select the **?** icon (selecting the **?** will open an additional dialog). 
+2. Select **Add post-build action**.
+3. In the filter field, enter `CloudBees CD - Call REST API`. 
+4. Complete the fields with your configuration details. Select the **?** icon to view field information in a new dialog. 
 5. To apply the configuration to your job, select **Save** in the Jenkins UI.
 
 ### Pipeline script example for REST API calls in a Scripted Pipeline step
@@ -129,9 +130,9 @@ application to any environment in CloudBees CD.
 
 To set up this post-build action:
 1. Navigate to your job's **Configuration** > **Post-build Actions** menu.
-2. Select **Add post-build action**
-3. In filter, enter `CloudBees CD - Create/Deploy Application from Deployment Package`.
-4. Fill in the fields with your configuration. To see information on the field, select the **?** icon (selecting the **?** will open an additional dialog).
+2. Select **Add post-build action**.
+3. In the filter field, enter `CloudBees CD - Create/Deploy Application from Deployment Package`.
+4. Complete the fields with your configuration details. Select the **?** icon to view field information in a new dialog.
 5. To apply the configuration to your job, select **Save** in the Jenkins UI.
 
 ### Pipeline script example to create and deploy an application from a deployment package
@@ -148,9 +149,9 @@ The CloudBees CD plugin enables you to deploy applications.
 
 To set up this post-build action:
 1. Navigate to your job's **Configuration** > **Post-build Actions** menu.
-2. Select **Add post-build action**
-3. In filter, enter `CloudBees CD - Deploy Application`.
-4. Fill in the fields with your configuration. To see information on the field, select the **?** icon (selecting the **?** will open an additional dialog).
+2. Select **Add post-build action**.
+3. In the filter field, enter `CloudBees CD - Deploy Application`.
+4. Complete the fields with your configuration details. Select the **?** icon to view field information in a new dialog.
 5. To apply the configuration to your job, select **Save** in the Jenkins UI.
 
 ### Pipeline script example to deploy an application
@@ -166,9 +167,9 @@ The CloudBees CD plugin allows you to publish artifacts for your applications ge
 
 To set up this post-build action:
 1. Navigate to your job's **Configuration** > **Post-build Actions** menu.
-2. Select **Add post-build action**
-3. In filter, enter `CloudBees CD - Publish Artifact`.
-4. Fill in the fields with your configuration. To see information on the field, select the **?** icon (selecting the **?** will open an additional dialog).
+2. Select **Add post-build action**.
+3. In the filter field, enter `CloudBees CD - Publish Artifact`.
+4. Complete the fields with your configuration details. Select the **?** icon to view field information in a new dialog.
 5. To apply the configuration to your job, select **Save** in the Jenkins UI.
 
 
@@ -185,9 +186,9 @@ The CloudBees plugin allows you to run pipelines in CloudBees CD.
 
 To set up this post-build action:
 1. Navigate to your job's **Configuration** > **Post-build Actions** menu.
-2. Select **Add post-build action**
-3. In filter, enter `CloudBees CD - Run Pipeline`.
-4. Fill in the fields with your configuration. To see information on the field, select the **?** icon (selecting the **?** will open an additional dialog).
+2. Select **Add post-build action**.
+3. In the filter field, enter `CloudBees CD - Run Pipeline`.
+4. Complete the fields with your configuration details. Select the **?** icon to view field information in a new dialog.
 5. To apply the configuration to your job, select **Save** in the Jenkins UI.
 
 ### Pipeline script example to run a pipeline
@@ -204,9 +205,9 @@ The CloudBees CD plugin allows you to run procedures in CloudBees CD.
 
 To set up this post-build action:
 1. Navigate to your job's **Configuration** > **Post-build Actions** menu.
-2. Select **Add post-build action**
-3. In filter, enter `CloudBees CD - Run Procedure`.
-4. Fill in the fields with your configuration. To see information on the field, select the **?** icon (selecting the **?** will open an additional dialog).
+2. Select **Add post-build action**.
+3. In the filter field, enter `CloudBees CD - Run Procedure`.
+4. Complete the fields with your configuration details. Select the **?** icon to view field information in a new dialog.
 5. To apply the configuration to your job, select **Save** in the Jenkins UI.
 
 ### Pipeline script examples to run a procedure 
@@ -254,9 +255,9 @@ This Integration allows you to trigger a release in CloudBees CD.
 
 To set up this post-build action:
 1. Navigate to your job's **Configuration** > **Post-build Actions** menu.
-2. Select **Add post-build action**
-3. In filter, enter `CloudBees CD - Trigger Release`.
-4. Fill in the fields with your configuration. To see information on the field, select the **?** icon (selecting the **?** will open an additional dialog).
+2. Select **Add post-build action**.
+3. In the filter field, enter `CloudBees CD - Trigger Release`.
+4. Complete the fields with your configuration details. Select the **?** icon to view field information in a new dialog.
 5. To apply the configuration to your job, select **Save** in the Jenkins UI.
 
 ### Pipeline script example for triggering a release
@@ -267,14 +268,14 @@ node{
 }
 ```
 
-Details for this build will be attached to the Release Run (if supported by CloudBees CD server).
+Details for this build are be attached to the Release Run (if supported by CloudBees CD server).
 
 # Known issues
 ## Adding credentials to a new CloudBees CD configuration  
 [BEE-27725] When creating a new CloudBees CD configuration, you cannot add a new credential using the "Add" button.
 ### Workarounds
-The following workarounds may be used instead of the **Add** button to help you add a credential:
-- The "Add" button works for existing configurations. So, create and save your configuration without the credential. You can then return to the configuration and add the credential using the **Add** button.
+You can use the following workarounds instead of the **Add** button to help you add a credential:
+- The "Add" button works for existing configurations. Create and save your configuration without the credential. You can then return to the configuration and add the credential using the **Add** button.
 - Add your credentials as described in Jenkins' [Configuring credentials](https://www.jenkins.io/doc/book/using/using-credentials/#configuring-credentials).
 
 # Release Notes
