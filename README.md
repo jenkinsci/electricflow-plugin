@@ -280,6 +280,13 @@ You can use the following workarounds instead of the **Add** button to help you 
 
 # Release Notes
 
+## Version 1.1.28 (November 15, 2022)
+
+- Updated plugin's global configuration by possibility to use stored credentials. Username and password or secret text (token) can be used for connecting to CloudBees CD
+- Added support of cloudbees cd tokens which now can be configured as stored credential (secret text) for main or override configurations;
+- Improved handling of override credentials
+- Fixed handling of stages in Trigger Release
+
 ## Version 1.1.25 (January 14, 2022)
 
 - Added support of folder credentials which now can be used within override credentials functionality
