@@ -280,6 +280,10 @@ You can use the following workarounds instead of the **Add** button to help you 
 
 # Release Notes
 
+## Version 1.1.29 (November 25, 2022)
+
+- Fixed plugin dependencies
+
 ## Version 1.1.28 (November 15, 2022)
 
 - Updated plugin's global configuration by possibility to use stored credentials. Username and password or secret text (token) can be used for connecting to CloudBees CD
