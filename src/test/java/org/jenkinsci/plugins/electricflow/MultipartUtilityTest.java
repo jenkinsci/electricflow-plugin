@@ -33,7 +33,7 @@ public class MultipartUtilityTest {
     public void testMultipartUploadMultipleFile() throws NoSuchFieldException, IllegalAccessException, IOException {
         wireMockRule.resetAll();
 
-        stubFor(post(urlEqualTo("/commander/cgi-bin/publishArtifactAPI.cgi"))
+        stubFor(post(urlEqualTo("/commander/publishArtifact.php"))
             .willReturn(aResponse()
                 .withStatus(200)));
 
@@ -42,7 +42,7 @@ public class MultipartUtilityTest {
         File file3 = new File(Objects.requireNonNull(MultipartUtilityTest.class.getResource("file3.xml")).getFile());
 
         MultipartUtility utility = new MultipartUtility(
-            wireMockRule.url("/commander/cgi-bin/publishArtifactAPI.cgi"),
+            wireMockRule.url("/commander/publishArtifact.php"),
             StandardCharsets.UTF_8.name(),
             true);
 
@@ -85,14 +85,14 @@ public class MultipartUtilityTest {
     public void testMultipartUploadSingleFile() throws NoSuchFieldException, IllegalAccessException, IOException {
         wireMockRule.resetAll();
 
-        stubFor(post(urlEqualTo("/commander/cgi-bin/publishArtifactAPI.cgi"))
+        stubFor(post(urlEqualTo("/commander/publishArtifact.php"))
             .willReturn(aResponse()
                 .withStatus(200)));
 
         File file1 = new File(Objects.requireNonNull(MultipartUtilityTest.class.getResource("file1.txt")).getFile());
 
         MultipartUtility utility = new MultipartUtility(
-            wireMockRule.url("/commander/cgi-bin/publishArtifactAPI.cgi"),
+            wireMockRule.url("/commander/publishArtifact.php"),
             StandardCharsets.UTF_8.name(),
             true);
 
