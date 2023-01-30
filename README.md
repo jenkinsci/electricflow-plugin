@@ -29,7 +29,7 @@ With the CloudBees CD/RO plugin you can:
 
 # Connecting to your CloudBees CD/RO server
 
-To use and integrate with CloudBees CD, you must
+To use and integrate with CloudBees CD/RO,  you must
 create a connection configuration in Jenkins to store your CloudBees CD/RO Server information. Depending on the number of servers or environments you are integrating with, you can create one or more connection configurations that allow you to connect to them and call CloudBees CD/RO APIs.
 
 To create and configure your connection:
