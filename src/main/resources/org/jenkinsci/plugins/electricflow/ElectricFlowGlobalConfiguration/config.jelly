@@ -10,7 +10,7 @@ All rights reserved.
 <?jelly escape-by-default='true'?>
 <j:jelly xmlns:j="jelly:core"  xmlns:f="/lib/form" xmlns:st="jelly:stapler">
 
-  <f:section title="CloudBees CD">
+  <f:section title="CloudBees CD/RO">
 
   <f:entry title="Configurations" field="configurations">
       <f:repeatable field="configurations" minimum="${0}">
@@ -49,11 +49,11 @@ All rights reserved.
                   </f:radioBlock>
               </f:entry>
 
-              <f:entry title="Do not send build details to CloudBees CD" field="doNotSendBuildDetails">
+              <f:entry title="Do not send build details to CloudBees CD/RO" field="doNotSendBuildDetails">
                   <f:checkbox />
               </f:entry>
 
-              <f:entry title="Override CloudBees CD SSL Validation Check" field="ignoreSslConnectionErrors">
+              <f:entry title="Override CloudBees CD/RO SSL Validation Check" field="ignoreSslConnectionErrors">
               <f:checkbox />
               </f:entry>
 

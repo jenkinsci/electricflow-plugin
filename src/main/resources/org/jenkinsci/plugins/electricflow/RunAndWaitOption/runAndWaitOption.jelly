@@ -1,11 +1,11 @@
 <?jelly escape-by-default='true'?>
 <j:jelly xmlns:j="jelly:core" xmlns:f="/lib/form">
   <f:optionalBlock
-    title="Wait for CD Job Completed"
+    title="Wait for CloudBees CD/RO Job Completed"
     name="runAndWaitOption"
     help="/plugin/electricflow/runAndWaitOption/help-runAndWaitOption.html"
     checked="${instance.runAndWaitOption != null}">
-    <f:entry title="Depend on CD Job Outcome" field="dependOnCdJobOutcome"
+    <f:entry title="Depend on CloudBees CD/RO Job Outcome" field="dependOnCdJobOutcome"
       help="/plugin/electricflow/runAndWaitOption/help-dependOnCdJobOutcome.html">
       <f:checkbox default="true" checked="${instance.runAndWaitOption.dependOnCdJobOutcome}"/>
     </f:entry>
