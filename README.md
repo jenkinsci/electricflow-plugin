@@ -8,12 +8,11 @@ that simplifies provisioning, build and release of multi-tiered
 applications. Our model-driven approach to managing environments and
 applications allows teams to collaborate on and coordinate multiple
 pipelines and releases across hybrid infrastructure in an efficient,
-predictable and auditable way. 
+predictable, and auditable way.
 
 # CloudBees CD/RO version dependencies
 
 Starting with CloudBees CD/RO v2023.01.0, you must upgrade to CloudBees CD/RO Native Jenkins plugin v1.1.30. Failure to do so will result in failed plugin procedures. v1.1.30 is also backwards compatible with previous CloudBees CD/RO releases.     
-
 
 # Features
 
@@ -206,7 +205,7 @@ node{
 
 ## Running procedures in CloudBees CD
 
-The CloudBees CD/RO plugin allows you to run procedures in CloudBees CD.
+The CloudBees CD/RO plugin allows you to run procedures in CloudBees CD/RO.
 
 To set up this post-build action:
 1. Navigate to your job's **Configuration** > **Post-build Actions** menu.
@@ -273,6 +272,7 @@ node{
 }
 ```
 
+
 Details for this build are be attached to the Release Run (if supported by CloudBees CD/RO server).
 
 # Known issues
@@ -285,6 +285,7 @@ You can use the following workarounds instead of the **Add** button to help you 
 
 # Release Notes
 
+
 ## Version 1.1.30 (January 27, 2023)
 
 - Removed CGI scripts
@@ -296,6 +297,7 @@ You can use the following workarounds instead of the **Add** button to help you 
 ## Version 1.1.28 (November 15, 2022)
 
 - Updated plugin's global configuration by possibility to use stored credentials. Username and password or secret text (token) can be used for connecting to CloudBees CD
+
 - Added support of CloudBees CD/RO tokens which now can be configured as stored credential (secret text) for main or override configurations;
 - Improved handling of override credentials
 - Fixed handling of stages in Trigger Release
@@ -323,6 +325,7 @@ You can use the following workarounds instead of the **Add** button to help you 
     - Publish Application
     - Create and Deploy Application from Deployment Package
 - Updated Deploy application by possibility to specify project for environment if it is other than project for application
+
 - Fixed the following procedures for new Jenkins (2.264+) according to Jenkins forms tabular to div changes: Run Procedure, Run Pipeline, Deploy Application, Trigger Release
 
 ## Version 1.1.18 (September 14, 2020)
@@ -408,6 +411,7 @@ Updated "CloudBees Flow - Publish Artifact"
 - Fixed support of running on agents
 
 Updated "CloudBees Flow - Create and Deploy Application from Deployment Package"
+
 - Added pipeline compatibility
 - Fixed support of running on agents
 - Added link to CloudBees Flow job within summary of a build

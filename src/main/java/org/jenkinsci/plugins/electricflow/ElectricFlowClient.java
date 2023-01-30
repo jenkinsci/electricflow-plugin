@@ -7,6 +7,7 @@ import static org.jenkinsci.plugins.electricflow.HttpMethod.PUT;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.sun.istack.NotNull;
 import hudson.FilePath;
 import hudson.model.Run;
 import hudson.model.TaskListener;
@@ -224,24 +225,7 @@ public class ElectricFlowClient {
       urlPath = "/" + urlPath;
     }
 
-    HttpURLConnection conn = this.getConnection(apiVersion + urlPath);
-
-    conn.setRequestMethod(httpMethod.name());
-    conn.setUseCaches(false);
-    conn.setDoInput(true);
-    conn.setDoOutput(true);
-
-    if (this.getIgnoreSslConnectionErrors() && conn instanceof HttpsURLConnection) {
-      HttpsURLConnection sslConn = (HttpsURLConnection) conn;
-      try {
-        sslConn.setSSLSocketFactory(RelaxedSSLContext.getInstance().getSocketFactory());
-      } catch (KeyManagementException | NoSuchAlgorithmException e) {
-        if (log.isDebugEnabled()) {
-          log.debug(e.getMessage(), e);
-        }
-      }
-      sslConn.setHostnameVerifier(RelaxedSSLContext.allHostsValid);
-    }
+    HttpURLConnection conn = getHttpURLConnection(apiVersion + urlPath, httpMethod, this.getIgnoreSslConnectionErrors());
 
     if (!GET.equals(httpMethod)) {
       byte[] outputInBytes = new byte[0];
@@ -318,6 +302,33 @@ public class ElectricFlowClient {
     }
   }
 
+  private HttpURLConnection getHttpURLConnection(
+          @NotNull String     urlPath,
+          @NotNull HttpMethod httpMethod,
+          boolean             ignoreSsl) throws IOException {
+
+    HttpURLConnection conn = this.getConnection(urlPath);
+
+    conn.setRequestMethod(httpMethod.name());
+    conn.setUseCaches(false);
+    conn.setDoInput(true);
+    conn.setDoOutput(true);
+
+    if (ignoreSsl && conn instanceof HttpsURLConnection) {
+      HttpsURLConnection sslConn = (HttpsURLConnection) conn;
+      try {
+        sslConn.setSSLSocketFactory(RelaxedSSLContext.getInstance().getSocketFactory());
+      } catch (KeyManagementException | NoSuchAlgorithmException e) {
+        if (log.isDebugEnabled()) {
+          log.debug(e.getMessage(), e);
+        }
+      }
+      sslConn.setHostnameVerifier(RelaxedSSLContext.allHostsValid);
+    }
+
+    return conn;
+  }
+
   public JSONObject attachCIBuildDetails(CIBuildDetail details) throws IOException {
     String endpoint = "/ciBuildDetails?request=setCiBuildDetail";
     String result = runRestAPI(endpoint, POST, details.toJsonObject().toString());
@@ -376,7 +387,9 @@ public class ElectricFlowClient {
 
     // to make it working, this file should be installed:
     // http://swarm/reviews/137432/
-    String requestURL = this.electricFlowUrl + "/commander/cgi-bin/publishArtifactAPI.cgi";
+    String phpUrl = this.electricFlowUrl + "/commander/publishArtifact.php";
+    String cgiUrl = this.electricFlowUrl + "/commander/cgi-bin/publishArtifactAPI.cgi";
+    String requestURL = checkIfEndpointReachable("/commander/publishArtifact.php") ? phpUrl : cgiUrl;
 
     MultipartUtility multipart =
         new MultipartUtility(requestURL, CHARSET, this.getIgnoreSslConnectionErrors());
@@ -418,6 +431,27 @@ public class ElectricFlowClient {
     }
 
     return resultLine;
+  }
+
+  private boolean checkIfEndpointReachable(String destination) {
+
+    try {
+      HttpURLConnection httpURLConnection = getHttpURLConnection(destination, GET, true);
+      int responseCode = httpURLConnection.getResponseCode();
+      if(log.isDebugEnabled()) {
+        log.debug("Response: " + responseCode);
+      }
+
+      // publishArtifact.php can return code 400.
+      return responseCode == 400 || responseCode == 200;
+    }
+    catch (IOException e) {
+      if(log.isDebugEnabled()) {
+        log.error("Connection error. URL: " + destination + ". " + e.getMessage());
+      }
+
+      return false;
+    }
   }
 
   private String expandVariable(String var) {
