@@ -18,211 +18,81 @@ Starting with CloudBees CD/RO v2023.01.0, you must upgrade to CloudBees CD/RO Na
 # Features
 
 With the CloudBees CD/RO plugin you can:
+-   [Connect to your CloudBees CD/RO server](#connecting-to-your-cloudbees-cd-server)
+-   [Call CloudBees CD/RO REST APIs](#calling-cloudbees-cd-rest-api)
+-   [Create applications from deployment packages](#creating-and-deploying-applications-from-deployment-packages-to-cloudbees-cd)
+-   [Deploy applications](#deploying-applications-using-cloudbees-cd)
+-   [Publish artifacts](#publishing-artifacts-to-cloudbees-cd)
+-   [Run pipelines](#running-pipelines-in-cloudbees-cd)
+-   [Run procedures](#running-procedures-in-cloudbees-cd)
+-   [Trigger releases](#triggering-releases-in-cloudbees-cd)
 
--   Trigger a release in CloudBees CD/RO
--   Trigger a pipeline in CloudBees CD/RO
--   Deploy an application in CloudBees CD/RO
--   Publish an artifact from Jenkins into the CloudBees CD/RO artifact
-    repository
--   Run a Procedure in CloudBees CD/RO
--   Call a REST API to invoke any action in CloudBees CD/RO
--   Create Application in CloudBees CD/RO from Deployment Package
+# Connecting to your CloudBees CD/RO server
 
-# Connection Configurations
+To use and integrate with CloudBees CD, you must
+create a connection configuration in Jenkins to store your CloudBees CD/RO Server information. Depending on the number of servers or environments you are integrating with, you can create one or more connection configurations that allow you to connect to them and call CloudBees CD/RO APIs.
 
-In order to use and integrate with CloudBees CD/RO, you would have to
-create a connection configuration in Jenkins, that stores connection
-information of the CloudBees CD/RO server you are connecting to. You can
-create one or more connection configurations depending on the number of
-Servers or Environments you are integrating with.
+To create and configure your connection:
+1. Login into your Jenkins instance and navigate to **Manage Jenkins** > **Configure System**.
+2. Under **Configurations**, find the **CloudBees CD** section and select **Add**.
+3. Specify the following information for your configuration:
+    - **Configuration Name:** Name you want to give this configuration
 
-Navigate to Manage Jenkins / Configure System and go to CloudBees CD/RO
-section. One or more configurations can be created to connect to and
-call APIs into CloudBees CD/RO system. For each configuration, the
-following attributes need to be specified:
+    - **Server URL**: CloudBees CD/RO server URL
 
--   Configuration Name: Specify the name to store this configuration,
-    which is used to connect to the CloudBees CD/RO Server.
+    - **REST API Version**: CloudBees CD/RO Server REST API version
+4. Select **Save** in the Jenkins UI to confirm your configuration.
+5. If you are redirected to another page, navigate back to Manage Jenkins > Configure System and under CloudBees CD/RO > Configurations, and find the configuration you just created.
+6. Add your **Credentials Type**:
+    -   **Username and Password**: CloudBees CD/RO username and password for your connection
 
--   Server URL: CloudBees CD/RO Server URL
+    - **Stored Credential**: Used to configure authentication via stored credentials, which can be a username/password or secret text that supports an SSO session ID token
+   > **_TIP:_**  To configure a connection using an SSO session ID token, refer to [Configuring an SSO session ID token for CloudBees CD](#configuring-an-sso-session-id-token-for-cloudbees-cd).
 
--   REST API Version: CloudBees CD/RO Server Rest API Version
--   Credentials Type:
-    -   Username and Password: CloudBees CD/RO username and passport for connection
-    -   Stored Credential: Used to configure authentication via stored credentials, which can be username/password or secret text, which supports an SSO session ID token
--   Do not send build details to CloudBees CD/RO:
-    By default, if the build has been triggered by CloudBees CD/RO using CI configuration build details will be sent.
-    Use this setting if you do not want to be sending build details to this CloudBees CD/RO instance.
+7. Both **Do not send build details to CloudBees CD** and **Override CloudBees CD/RO SSL Validation Check** are **optional** settings. You can select their **?** icons and read the descriptions to decide if you want to use these features.
+8. Select **Test Connection** to ensure your credential is working correctly. If you receive a ``Success`` message, your configuration is ready to use. If you receive an error code, ensure your **Server URL** is correct. If it is, typically there was an error in the credential configuration and the configuration should be reconfigured.
 
--   Override CloudBees CD/RO SSL Validation Check: By default SSL
-    Validation Check will be performed. Choose this setting to override
-    the check. If you do not want to override this check, perform the
-    SSL certificate setup required in Jenkins and CloudBees CD/RO as per
-    the CloudBees CD/RO Server documentation.
+## Configuring an SSO session ID token for CloudBees CD
+The CloudBees CD/RO plugin allows you to authenticate actions using an SSO session ID token. Before starting:
+- You must have a generated CloudBees SSO session ID token. If you have not generated a CloudBees SSO session ID token, refer to [Generate an SSO session ID token](https://docs.cloudbees.com/docs/cloudbees-cd/latest/intro/sign-in-cd#_generate_a_sso_session_id_token) for help.
+- You must have already set up a **CloudBees CD** configuration and saved it to Jenkins. If not, follow the steps in [Connecting to your CloudBees CD/RO server](#connecting-to-your-cloudbees-cd-server) until **Credentials Type**.
 
-![](docs/images/Configuration.png)
+The following steps describe how to configure a CloudBees SSO session ID token within a CloudBees CD/RO configuration.
 
-## Configuring an SSO session ID token
-The CloudBees CD/RO Native Jenkins plugin allows you to authenticate actions using an SSO session ID token. 
-> **_TIP:_**  If you have not generated a CloudBees SSO session ID token, refer to [Generate an SSO session ID token](https://docs.cloudbees.com/docs/cloudbees-cd/latest/intro/sign-in-cd#_generate_a_sso_session_id_token) for help. 
+1. Navigate to **Manage Jenkins** > **Configure System**. Under **CloudBees CD** > **Configurations**, find the configuration to which you want to add an SSO session ID token.
+2. Under **Credentials Type**, select **Stored Credential**. A new entry field opens.
+3. For **Stored Credential**, select **Add** and **Jenkins**. A new window opens for the **Jenkins Credential Provider**.
+4. By default, the **Domain** field is set to *Global credentials (unrestricted)* and is unchangeable.
+5. For **Kind**, select **Secret text**.
+6. Select the **Scope** you want to use your token for.
+7. In the **Secret** field, enter your CloudBees SSO session ID token.
+8. The **ID** field is **optional**. If you want to provide an **ID**, select the **?** icon and read the message to ensure you understand the purpose and requirements of this field.
+9. The **Description** field is **optional**. However, it is suggested to provide one to help you keep track of the token configuration in your **Credentials**  profile.
 
-The following steps will help you configure a CloudBees SSO session ID token. To do so, you must have a CloudBees SSO session ID token generated. 
+> **_NOTE:_** Ensure the information for your credential is correct before moving to the next step. If you add the credential with incorrect information, you cannot edit it and will have to delete the incorrect credential and reconfigure a new one.
 
-1. Login to your Jenkins instance, and navigate to **Manage Jenkins** > **Configure System**.
-2. Under **CloudBees CD/RO** > **Configurations**, select **Add**.
-3. In the new configuration, enter a **Configuration Name** for your SSO session ID token, your **Server URL**, and select the **REST API Version**. 
-4. Select **Save** to confirm the new configuration.
-5. If you are redirected to another page, navigate back to **Manage Jenkins** > **Configure System** and find your SSO session ID token's configuration. 
-6. Under **Credentials Type**, select **Stored Credential** and a new entry field will appear.
-7. For **Stored Credential**, select **Add** and **Jenkins**. A new window should appear for the **Jenkins Credential Provider**.
-8. By default, the **Domain** field is set to *Global credentials (unrestricted)* and is unchangeable. 
-9. For **Kind**, select **Secret text**. 
-10. Select the **Scope** you want to use your token for. 
-11. In the **Secret** field, enter your CloudBees SSO session ID token. 
-12. The **ID** field is **optional**. If you want to provide and **ID**, select the **?** icon and read the message to ensure you understand the purpose and requirements of this field.
-13. The **Description** field is **optional**. However, it is suggested to provide one  to help you keep track of the token configuration as it used as the **Credentials** > **Name** in your profile.
-
-> **_NOTE:_**  Ensure the information for your credential is correct before moving to the next step. If you add the credential with incorrect information, you cannot edit it and will have to delete the incorrect credential and reconfigure a new one. 
-
-14. Select **Add** to save the configuration. You will be returned to the system configurations page.
-    > **_TIP:_**  You can check in your profile to ensure your credential was added and manage it. 
-15. Select **Test Connection** to ensure your credential is working correctly. If you receive a ``Success`` message, your SSO session ID token is ready to use. If you receive an error code, ensure your **Server URL** is correct. If it is, typically there was an error in the credential configuration and the configuration should be reconfigured with a new credential.  
-
+10. Select **Add** to save the configuration. You are returned to the system configurations page.
+> **_TIP:_**  You can check your profile to ensure your credential was added and manage it.
+11. Select **Test Connection** to ensure your credential is working correctly. If you receive a ``Success`` message, your configuration is ready to use. If you receive an error code, ensure your **Server URL** is correct. If it is, typically there was an error in the credential configuration, and the configuration should be reconfigured.
 
 # Supported Post Build Actions
 
-Following post build actions are available in CloudBees CD/RO
-Plugin. These actions can be executed separately or combined
-sequentially.
+The CloudBees CD/RO plugin enables you to perform post-build actions for your Jenkins jobs. These actions can be executed separately or combined sequentially.
 
-## Create Application from Deployment Package to CloudBees CD/RO
+> **_NOTE:_** To manage **Post-build Actions**, navigate to your Jenkins job's **Configuration** > **Post-build Actions**.
 
-This integration allows you to create and deploy Java, .NET or any other
-application to any environment in CloudBees CD/RO. Deployment package
-would be generated as part of your Jenkins CI build, and contain a
-Manifest file and artifacts to be deployed. 
+## Calling CloudBees CD/RO REST API
 
-Sample manifest.json file can be found
-at [https://github.com/electric-cloud/DeploymentPackageManager/tree/master/SampleManifests](https://github.com/electric-cloud/DeploymentPackageManager/tree/master/SampleManifests). 
+The CloudBees CD/RO plugin allows you to make calls to CloudBees CD's REST API. You can make for post-build actions and as pipeline steps.
 
-This post build action has following parameters:
+To configure a calls to CloudBees CD's REST API:
+1. Navigate to your job's **Configuration** > **Post-build Actions** menu.
+2. Select **Add post-build action**.
+3. In the filter field, enter `CloudBees CD/RO - Call REST API`.
+4. Complete the fields with your configuration details. Select the **?** icon to view field information in a new dialog.
+5. To apply the configuration to your job, select **Save** in the Jenkins UI.
 
--   Configuration: Name of the CloudBees CD/RO configuration
-
--   Override Credential: Connect to CloudBees CD/RO as a User other than the one mentioned in the electricflow Plugin Connection Configuration
-
--   Deployment Package Path: Location or path for the deployment package
-    to be published to CloudBees CD/RO. For e.g., MyProject/target
-
-![](docs/images/CreateDeplApp.png)
-
-**Create and Deploy Application from Deployment Package (Pipeline Script)**
-
-``` syntaxhighlighter-pre
-node {
-    cloudBeesFlowCreateAndDeployAppFromJenkinsPackage configuration: 'CdConfiguration', filePath: 'CdProject/target/'
-}
-```
-
-## Publish Artifact to CloudBees CD/RO
-
-This integration allows you to publish the artifact for your application
-to CloudBees CD/RO The Artifact will be generated as part of your
-Jenkins CI build. 
-
-This post build action takes the following parameters:
-
--   Configuration: Name of the CloudBees CD/RO configuration
-
--   Override Credential: Connect to CloudBees CD/RO as a User other than the one mentioned in the electricflow Plugin Connection Configuration
-
--   Relative Workspace: Specify the relative workspace (relative to workspace root) for artifact path.
-
--   Artifact Path: Location or path for the artifact files to be
-    published to CloudBees CD/RO. For
-    e.g., MyProject/\*\*/\*-$BUILD\_NUMBER.war
-
--   Artifact Name: Name of the application artifact using the format
-    \<group\_id\>:\<artifact\_key\>. For e.g., "com.example:helloworld"
-
--   Artifact Version: Version of the application artifact. For e.g., you
-    can specify 1.0 or 1.0-$BUILD\_TAG that is based on Jenkins
-    environment variable
-
--   CloudBees CD/RO Repository Name: Name of the CloudBees CD/RO
-    Repository
-
-![](docs/images/PublishArtifact.png)
-
-**Publish Artifact (Pipeline Script)**
-
-``` syntaxhighlighter-pre
-node {
-    cloudBeesFlowPublishArtifact artifactName: 'application:jpetstore', artifactVersion: '1.0', configuration: 'CdConfiguration', filePath: 'CdProject/target/jpetstore.war', repositoryName: 'default'
-}
-```
-
-## Run Pipeline in CloudBees CD/RO
-
-This integration allows you to run a pipeline in CloudBees CD/RO.
-
-This post build action takes the following parameters:
-
-- Configuration: Name of the CloudBees CD/RO configuration
-
-- Override Credential: Connect to CloudBees CD/RO as a User other than the one mentioned in the electricflow Plugin Connection Configuration
-
-- Project Name: Name of the CloudBees CD/RO project
-
-- Pipeline Name: Name of the CloudBees CD/RO pipeline
-
-- (Optional) Pipeline Parameters
-
-  -   Parameter name will be displayed as Label
-
-  -   Parameter value to be specified will be displayed as text input
-    field
-
-![](docs/images/RunPipeline.png)
-
-**Run Pipeline Example (Pipeline Script)**
-
-``` syntaxhighlighter-pre
-node{
-    cloudBeesFlowRunPipeline addParam: '{"pipeline":{"pipelineName":"CdPipeline","parameters":[{"parameterName":"PipelineParam","parameterValue":"185"}]}}', configuration: 'CdConfiguration', pipelineName: 'CdPipeline', projectName: 'CloudBees'
-}
-```
-
-## Call REST API of CloudBees CD/RO
-
-This integration allows you to call the CloudBees CD/RO REST API.
-Available as Post Build Action and Pipeline Step as well.
-
-This post build action takes the following parameters:
-
--   Configuration: Specify the name of the CloudBees CD/RO configuration.
-
--   Override Credential: Connect to CloudBees CD/RO as a User other than the one mentioned in the electricflow Plugin Connection Configuration
-
--   URL Path: Specify the URL Path for the REST API
-
--   HTTP Method: Specify the HTTP Method
-
--   Parameters: Specify the parameters for the REST API. Parameters are
-    transformed into JSON object and used within body of HTTP request.
-
--   Body: Specify the body for the REST API. This parameter is not used
-    if 'Parameters' are provided.
-
--   Environment variable name for storing result: If provided, result of
-    calling CloudBees REST API (JSON output) will be stored within
-    provided environment variable available within build.
-
-![](docs/images/image2019-9-27_16-51-9.png)
-
-![](docs/images/image2019-9-27_16-58-46.png)
-
-**Call REST API Example Pipeline Step \#1 (Scripted Pipeline)**
+### Pipeline script example for REST API calls in a Scripted Pipeline step
 
 ``` syntaxhighlighter-pre
 node{
@@ -234,7 +104,7 @@ node{
 }
 ```
 
-**Call REST API Example Pipeline Step \#2 (Declarative Pipeline)**
+### Pipeline script example for REST API calls in a Declarative Pipeline step
 
 ``` syntaxhighlighter-pre
 pipeline{
@@ -254,114 +124,98 @@ pipeline{
 }
 ```
 
-## Deploy Application using CloudBees CD/RO
+## Creating and deploying applications from Deployment Packages to CloudBees CD
 
-This integration allows you to deploy an application using CloudBees CD/RO.
+Using deployment packages generated from your Jenkins CI builds, the CloudBees CD/RO plugin allows you to create and deploy Java, .NET, or any other
+application to any environment in CloudBees CD.
 
-This post build action takes the following parameters:
+> **_IMPORTANT:_** To create and deploy applications from a deployment package, the deployment package must contain a JSON manifest file and the artifacts to deploy.
+>
+> Sample manifest.json files can be found in the [CloudBees CD/RO plug repo](https://github.com/electric-cloud/DeploymentPackageManager/tree/master/SampleManifests).
 
-- Configuration: Specify the name of the CloudBees CD/RO configuration
+To set up this post-build action:
+1. Navigate to your job's **Configuration** > **Post-build Actions** menu.
+2. Select **Add post-build action**.
+3. In the filter field, enter `CloudBees CD/RO - Create/Deploy Application from Deployment Package`.
+4. Complete the fields with your configuration details. Select the **?** icon to view field information in a new dialog.
+5. To apply the configuration to your job, select **Save** in the Jenkins UI.
 
-- Override Credential: Connect to CloudBees CD/RO as a User other than the one mentioned in the electricflow Plugin Connection Configuration
+### Pipeline script example to create and deploy an application from a deployment package
 
-- Project Name: Specify the CloudBees CD/RO project name
+``` syntaxhighlighter-pre
+node {
+    cloudBeesFlowCreateAndDeployAppFromJenkinsPackage configuration: 'CdConfiguration', filePath: 'CdProject/target/'
+}
+```
 
-- Application Name: Specify the CloudBees CD/RO application name
+## Deploying applications using CloudBees CD
 
-- Application Process Name: Specify the CloudBees CD/RO application process
-name
+The CloudBees CD/RO plugin enables you to deploy applications.
 
-- (Optional) Environment Project Name: Specify the CloudBees CD/RO environment project name if it is different than project for application
+To set up this post-build action:
+1. Navigate to your job's **Configuration** > **Post-build Actions** menu.
+2. Select **Add post-build action**.
+3. In the filter field, enter `CloudBees CD/RO - Deploy Application`.
+4. Complete the fields with your configuration details. Select the **?** icon to view field information in a new dialog.
+5. To apply the configuration to your job, select **Save** in the Jenkins UI.
 
-- Environment Name: Specify the CloudBees CD/RO environment name
-
-- (Optional) Deploy Parameters
-
-  -   Parameter name will be displayed as Label
-
-  -   Parameter value to be specified will be displayed as text input
-    field
-
-![](docs/images/DeployApplication.png)
-
-**Deploy Application Example (Pipeline Script)**
+### Pipeline script example to deploy an application
 
 ``` syntaxhighlighter-pre
 node{
    cloudBeesFlowDeployApplication applicationName: 'DemoApplication', applicationProcessName: 'RunCommand', configuration: 'CdConfiguration', deployParameters: '{"runProcess":{"applicationName":"DemoApplication","applicationProcessName":"RunCommand","parameter":[{"actualParameterName":"Parameter1","value":"value1"},{"actualParameterName":"Parameter2","value":"value2"}]}}', environmentName: 'CdEnvironment', projectName: 'CloudBees'
 }
 ```
+## Publishing artifacts to CloudBees CD
 
-## Trigger Release in CloudBees CD/RO
+The CloudBees CD/RO plugin allows you to publish artifacts for your applications generated as part of your Jenkins CI jobs directly to CloudBees CD.
 
-This Integration allows you to trigger a release in CloudBees CD/RO.
+To set up this post-build action:
+1. Navigate to your job's **Configuration** > **Post-build Actions** menu.
+2. Select **Add post-build action**.
+3. In the filter field, enter `CloudBees CD/RO - Publish Artifact`.
+4. Complete the fields with your configuration details. Select the **?** icon to view field information in a new dialog.
+5. To apply the configuration to your job, select **Save** in the Jenkins UI.
 
-This post build action has following parameters:
 
-- Configuration: Specify the name of the CloudBees CD/RO configuration
+### Pipeline script example tp publish artifacts
 
-- Override Credential: Connect to CloudBees CD/RO as a User other than the one mentioned in the electricflow Plugin Connection Configuration
+``` syntaxhighlighter-pre
+node {
+    cloudBeesFlowPublishArtifact artifactName: 'application:jpetstore', artifactVersion: '1.0', configuration: 'CdConfiguration', filePath: 'CdProject/target/jpetstore.war', repositoryName: 'default'
+}
+```
+## Running pipelines in CloudBees CD
 
-- Project Name: Specify the CloudBees CD/RO project name
+The CloudBees plugin allows you to run pipelines in CloudBees CD.
 
-- Release Name: Specify the CloudBees CD/RO release name
+To set up this post-build action:
+1. Navigate to your job's **Configuration** > **Post-build Actions** menu.
+2. Select **Add post-build action**.
+3. In the filter field, enter `CloudBees CD/RO - Run Pipeline`.
+4. Complete the fields with your configuration details. Select the **?** icon to view field information in a new dialog.
+5. To apply the configuration to your job, select **Save** in the Jenkins UI.
 
-- Starting Stage: Specify starting stage to run in the CloudBees CD/RO release pipeline
-
-  -   Parameter is required if ‘Stages to run’ is not used.
-
-- Stages to run: Specify stages to run in the CloudBees CD/RO release pipeline
-
-  -   Parameter is required if ‘Starting Stage’ is not used.
-  -   Parameter is ignored if ‘Starting Stage’ is used.
-
-- (Optional) Pipeline parameters: Specify parameters for the CloudBees CD/RO pipeline
-
-  -   Parameter name will be displayed as Label
-
-  -   Parameter value to be specified should go in the text input field
-
-![](docs/images/TriggerRelease.png)
-
-**Trigger Release Example (Pipeline Script)**
+### Pipeline script example to run a pipeline
 
 ``` syntaxhighlighter-pre
 node{
-    cloudBeesFlowTriggerRelease configuration: 'CdConfiguration', parameters: '{"release":{"releaseName":"CdRelease1.1.5","stages":[{"stageName":"Stage 1","stageValue":false},{"stageName":"Stage 2","stageValue":true}],"pipelineName":"pipeline_CdRelease1.1.5","parameters":[{"parameterName":"ReleaseParam","parameterValue":"test"}]}}', projectName: 'CloudBees', releaseName: 'CdRelease1.1.5', startingStage: ''
+    cloudBeesFlowRunPipeline addParam: '{"pipeline":{"pipelineName":"CdPipeline","parameters":[{"parameterName":"PipelineParam","parameterValue":"185"}]}}', configuration: 'CdConfiguration', pipelineName: 'CdPipeline', projectName: 'CloudBees'
 }
 ```
 
-Details for this build will be attached to the Release Run (if supported by CloudBees CD/RO server).
+## Running procedures in CloudBees CD
 
-## Run Procedure in CloudBees CD/RO
+The CloudBees CD/RO plugin allows you to run procedures in CloudBees CD.
 
-This Integration allows you run a procedure in CloudBees CD/RO.
+To set up this post-build action:
+1. Navigate to your job's **Configuration** > **Post-build Actions** menu.
+2. Select **Add post-build action**.
+3. In the filter field, enter `CloudBees CD/RO - Run Procedure`.
+4. Complete the fields with your configuration details. Select the **?** icon to view field information in a new dialog.
+5. To apply the configuration to your job, select **Save** in the Jenkins UI.
 
-This post build action has the following parameters:
-
-- Configuration: Specify the name of the CloudBees CD/RO configuration
-
-- Override Credential: Connect to CloudBees CD/RO as a User other than the one mentioned in the electricflow Plugin Connection Configuration
-
-- Wait for CD Job Completed: Wait till launched CD job is completed
-
-  - Depend on CD Job Outcome: Mark CI build as failed if CD Job outcome is error or unknown
-  
-  - Check Interval: Specify the CloudBees CD/RO procedure name
-
-- Project Name: Specify the CloudBees CD/RO project name
-
-- Procedure Name: Specify the CloudBees CD/RO procedure name
-
-- (Optional) Procedure Parameters
-
-  -   Parameter name will be displayed as Label
-
-  -   Parameter value to be specified should go in the text input field
-
-![](docs/images/RunProcedure.png)
-
-**Run Procedure Example (Pipeline Script)**
+### Pipeline script examples to run a procedure
 
 ``` syntaxhighlighter-pre
 node{
@@ -375,11 +229,11 @@ node{
 }
 ```
 
+### Pipeline script example for running a Procedure call with failed result handling
 
-**Example of the Run Procedure call with failed result handling (pipeline script)**
-
-Note: This script relies on the Pipeline Stage API improvements and requires Jenkins 2.138.4 or newer. 
-Other required plugin versions are noted here: [https://www.jenkins.io/blog/2019/07/05/jenkins-pipeline-stage-result-visualization-improvements/](https://www.jenkins.io/blog/2019/07/05/jenkins-pipeline-stage-result-visualization-improvements/)
+> **_IMPORTANT:_** This script relies on the Pipeline Stage API improvements and requires Jenkins 2.138.4 or newer.
+>
+> Other required plugin versions are noted here: [https://www.jenkins.io/blog/2019/07/05/jenkins-pipeline-stage-result-visualization-improvements/](https://www.jenkins.io/blog/2019/07/05/jenkins-pipeline-stage-result-visualization-improvements/).
 
 ```groovy
 //...
@@ -400,15 +254,34 @@ script {
 }
 //...
 ```
+## Triggering releases in CloudBees CD
+
+This Integration allows you to trigger a release in CloudBees CD.
+
+To set up this post-build action:
+1. Navigate to your job's **Configuration** > **Post-build Actions** menu.
+2. Select **Add post-build action**.
+3. In the filter field, enter `CloudBees CD/RO - Trigger Release`.
+4. Complete the fields with your configuration details. Select the **?** icon to view field information in a new dialog.
+5. To apply the configuration to your job, select **Save** in the Jenkins UI.
+
+### Pipeline script example for triggering a release
+
+``` syntaxhighlighter-pre
+node{
+    cloudBeesFlowTriggerRelease configuration: 'CdConfiguration', parameters: '{"release":{"releaseName":"CdRelease1.1.5","stages":[{"stageName":"Stage 1","stageValue":false},{"stageName":"Stage 2","stageValue":true}],"pipelineName":"pipeline_CdRelease1.1.5","parameters":[{"parameterName":"ReleaseParam","parameterValue":"test"}]}}', projectName: 'CloudBees', releaseName: 'CdRelease1.1.5', startingStage: ''
+}
+```
+
+Details for this build are be attached to the Release Run (if supported by CloudBees CD/RO server).
 
 # Known issues
 ## Adding credentials to a new CloudBees CD/RO configuration  
 [BEE-27725] When creating a new CloudBees CD/RO configuration, you cannot add a new credential using the "Add" button.
 ### Workarounds
-The following workarounds may be used instead of the "Add" button to help you add a credential:
-- The "Add" button works for existing configurations. So, create your configuration without the credential and then edit the configuration.
+You can use the following workarounds instead of the **Add** button to help you add a credential:
+- The "Add" button works for existing configurations. Create and save your configuration without the credential. You can then return to the configuration and add the credential using the **Add** button.
 - Add your credentials as described in Jenkins' [Configuring credentials](https://www.jenkins.io/doc/book/using/using-credentials/#configuring-credentials).
-
 
 # Release Notes
 
@@ -422,16 +295,16 @@ The following workarounds may be used instead of the "Add" button to help you ad
 
 ## Version 1.1.28 (November 15, 2022)
 
-- Updated plugin's global configuration by possibility to use stored credentials. Username and password or secret text (token) can be used for connecting to CloudBees CD/RO
-- Added support of Cloudbees CD/RO tokens which now can be configured as stored credential (secret text) for main or override configurations;
+- Updated plugin's global configuration by possibility to use stored credentials. Username and password or secret text (token) can be used for connecting to CloudBees CD
+- Added support of CloudBees CD/RO tokens which now can be configured as stored credential (secret text) for main or override configurations;
 - Improved handling of override credentials
 - Fixed handling of stages in Trigger Release
 
 ## Version 1.1.25 (January 14, 2022)
 
 - Added support of folder credentials which now can be used within override credentials functionality
-- Fixed Upload Artifact when using agent 
-- Improved integration of CloudBees CI and CD/RO
+- Fixed Upload Artifact when using agent
+- Improved integration of CloudBees CI and CD
 
 ## Version 1.1.21 (March 12, 2021)
 
@@ -449,8 +322,8 @@ The following workarounds may be used instead of the "Add" button to help you ad
     - Run Procedure
     - Publish Application
     - Create and Deploy Application from Deployment Package
-- Updated Deploy application by possibility to specify project for environment if it is othe than project for application
-- Fixed the following procedures for new Jenkins (2.264+) according to Jenkins forms tabular to div changes: Run Procedure, Run Pipeline, Deploy Application, Trigger Release 
+- Updated Deploy application by possibility to specify project for environment if it is other than project for application
+- Fixed the following procedures for new Jenkins (2.264+) according to Jenkins forms tabular to div changes: Run Procedure, Run Pipeline, Deploy Application, Trigger Release
 
 ## Version 1.1.18 (September 14, 2020)
 
@@ -468,11 +341,11 @@ The following workarounds may be used instead of the "Add" button to help you ad
 Improvements:
 
 - Updated the following post build actions by Run and Wait option with possibility to depend on CD job or pipeline outcome:
-  - Run Pipeline
-  - Trigger Release
-  - Run Procedure
-  - Deploy Application
-  - Create and Deploy Application from Deployment Package
+    - Run Pipeline
+    - Trigger Release
+    - Run Procedure
+    - Deploy Application
+    - Create and Deploy Application from Deployment Package
 
 ## Version 1.1.16 (June 26, 2020)
 
@@ -488,8 +361,8 @@ Bugfixes:
 - Fixed an issue when Publish Artifact has been creating a wrong repository structure if the artifact has been published from the Jenkins agent node
 - Fixed an error when CD Artifacts URL had a double slash under some conditions
 - Deploy Application PBA now has a link to the exact application that has been deployed instead of a link to all applications on customer instance
-- Fixed an issue in EC-Jenkins when artifacts could URL could not be retrieved for the Report stage of Run And Monitor and Run And Wait under certain conditions
-- The release retrieval code has been fixed
+- Fixed an issue in EC-Jenkins when artifacts URL could not be retrieved for the Report stage of Run And Monitor and Run And Wait under certain conditions
+- Fixed release retrieval code
 - Fixed an error when "Publish Artifacts" was turning a successful build into failed build under some conditions
 - Fixed a bug when parameter "Stages to run" has been ignored and all stages were running
 
@@ -501,28 +374,28 @@ Documentation, help tips and labels:
 
 ## Version 1.1.15 (June 1, 2020)
 
-  - Added support for new CI Build Detail APIs:
+- Added support for new CI Build Detail APIs:
     - New Post Build Action - Associate Build To Release to allow attaching CI Build Data of the independent builds to releases or release runs
     - Run Pipeline now attaches CI Build Data to the triggered pipeline run
     - Trigger Release now attaches CI Build Data to the triggered release pipeline run
-    
-  - Improved integration with CloudBees CD/RO:
+
+- Improved integration with CloudBees CD:
     - CI Build Data infrastructure has been created
-    - Event-based watchers have been created to send build data to CloudBees CD/RO automatically if build has been triggered by CloudBees CD/RO.
-    
-  - Re-branding: renaming from "CloudBees Flow" to "CloudBees CD/RO"
+    - Event-based watchers have been created to send build data to CloudBees CD/RO automatically if build has been triggered by CloudBees CD.
+
+- Re-branding: renaming from "CloudBees Flow" to "CloudBees CD"
 
 ## Version 1.1.14 (May 6, 2020)
 
-  - Added support of Configuration as Code
-  - Updated plugin dependencies
+- Added support of Configuration as Code
+- Updated plugin dependencies
 
 ## Version 1.1.13 (Apr 21, 2020)
 
-  - All Post Build Actions now have the ability to connect to CloudBees Flow as a user other than the one mentioned in the electricflow Plugin configuration, under "Manage Jenkins".  These credentials which are used to override the connection credential at the level of the PBA only supports global credentials at this time.
-  - Fixed parameters collision for pipelines with the same name in the following Post Build Actions: Trigger Release, Run Pipeline
-  - Fixed corrupted artifact uploading in the following Post Build Actions: Publish Artifact
-  - Updated plugin dependencies
+- All Post Build Actions now have the ability to connect to CloudBees Flow as a user other than the one mentioned in the electricflow Plugin configuration, under "Manage Jenkins".  These credentials which are used to override the connection credential at the level of the PBA only supports global credentials at this time.
+- Fixed parameters collision for pipelines with the same name in the following Post Build Actions: Trigger Release, Run Pipeline
+- Fixed corrupted artifact uploading in the following Post Build Actions: Publish Artifact
+- Updated plugin dependencies
 
 ## Version 1.1.12 (Dec 17, 2019)
 
@@ -531,22 +404,22 @@ Migrated plugin documentation from Wiki to GitHub
 ## Version 1.1.11 (Dec 11, 2019)
 
 Updated "CloudBees Flow - Publish Artifact"
-  - Added pipeline compatibility
-  - Fixed support of running on agents
-  
+- Added pipeline compatibility
+- Fixed support of running on agents
+
 Updated "CloudBees Flow - Create and Deploy Application from Deployment Package"
-  - Added pipeline compatibility
-  - Fixed support of running on agents
-  - Added link to CloubBees Flow job within summary of a build
-  
+- Added pipeline compatibility
+- Fixed support of running on agents
+- Added link to CloudBees Flow job within summary of a build
+
 Added pipeline function aliases for all post build actions.
 
 Added expand environment variable functionality for the following post build actions:
-  - CloudBees Flow - Call REST API
-  - CloudBees Flow - Run Procedure
-  - CloudBees Flow - Deploy Application
+- CloudBees Flow - Call REST API
+- CloudBees Flow - Run Procedure
+- CloudBees Flow - Deploy Application
 
-Added simple Jenkinsfile to the plugin repository
+Added a sample Jenkinsfile to the plugin repository
 
 ## Version 1.1.10 (Sep 26, 2019)
 
@@ -643,4 +516,3 @@ General clean up of code.
 ## Version 1.0 (Apr 26, 2017)
 
 Initial Release.
-
