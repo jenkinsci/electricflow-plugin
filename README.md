@@ -282,7 +282,7 @@ You can use the following workarounds instead of the **Add** button to help you 
 
 ## Version 1.1.30 (January 27, 2023)
 
-- Removed CGI scripts
+- Removed dependencies on platform CGI scripts
 
 ## Version 1.1.29 (November 25, 2022)
 
