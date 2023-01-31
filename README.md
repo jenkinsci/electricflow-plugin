@@ -12,7 +12,7 @@ predictable, and auditable way.
 
 # CloudBees CD/RO version dependencies
 
-Starting with CloudBees CD/RO v2023.01.0, you must upgrade to CloudBees CD/RO Native Jenkins plugin v1.1.30. Failure to do so will result in failed plugin procedures. v1.1.30 is also backwards compatible with previous CloudBees CD/RO releases.     
+Starting with CloudBees CD/RO v2023.02.0, you must upgrade to CloudBees CD/RO Native Jenkins plugin v1.1.30. Failure to do so will result in failed plugin procedures. v1.1.30 is also backwards compatible with previous CloudBees CD/RO releases.     
 
 # Features
 
@@ -28,7 +28,7 @@ With the CloudBees CD/RO plugin you can:
 
 # Connecting to your CloudBees CD/RO server
 
-To use and integrate with CloudBees CD/RO,  you must
+To use and integrate with CloudBees CD/RO, you must
 create a connection configuration in Jenkins to store your CloudBees CD/RO Server information. Depending on the number of servers or environments you are integrating with, you can create one or more connection configurations that allow you to connect to them and call CloudBees CD/RO APIs.
 
 To create and configure your connection:
@@ -51,7 +51,7 @@ To create and configure your connection:
 7. Both **Do not send build details to CloudBees CD** and **Override CloudBees CD/RO SSL Validation Check** are **optional** settings. You can select their **?** icons and read the descriptions to decide if you want to use these features.
 8. Select **Test Connection** to ensure your credential is working correctly. If you receive a ``Success`` message, your configuration is ready to use. If you receive an error code, ensure your **Server URL** is correct. If it is, typically there was an error in the credential configuration and the configuration should be reconfigured.
 
-## Configuring an SSO session ID token for CloudBees CD
+## Configuring an SSO session ID token for CloudBees CD/RO
 The CloudBees CD/RO plugin allows you to authenticate actions using an SSO session ID token. Before starting:
 - You must have a generated CloudBees SSO session ID token. If you have not generated a CloudBees SSO session ID token, refer to [Generate an SSO session ID token](https://docs.cloudbees.com/docs/cloudbees-cd/latest/intro/sign-in-cd#_generate_a_sso_session_id_token) for help.
 - You must have already set up a **CloudBees CD** configuration and saved it to Jenkins. If not, follow the steps in [Connecting to your CloudBees CD/RO server](#connecting-to-your-cloudbees-cd-server) until **Credentials Type**.
@@ -123,7 +123,7 @@ pipeline{
 }
 ```
 
-## Creating and deploying applications from Deployment Packages to CloudBees CD
+## Creating and deploying applications from Deployment Packages to CloudBees CD/RO
 
 Using deployment packages generated from your Jenkins CI builds, the CloudBees CD/RO plugin allows you to create and deploy Java, .NET, or any other
 application to any environment in CloudBees CD.
@@ -147,7 +147,7 @@ node {
 }
 ```
 
-## Deploying applications using CloudBees CD
+## Deploying applications using CloudBees CD/RO
 
 The CloudBees CD/RO plugin enables you to deploy applications.
 
@@ -165,7 +165,7 @@ node{
    cloudBeesFlowDeployApplication applicationName: 'DemoApplication', applicationProcessName: 'RunCommand', configuration: 'CdConfiguration', deployParameters: '{"runProcess":{"applicationName":"DemoApplication","applicationProcessName":"RunCommand","parameter":[{"actualParameterName":"Parameter1","value":"value1"},{"actualParameterName":"Parameter2","value":"value2"}]}}', environmentName: 'CdEnvironment', projectName: 'CloudBees'
 }
 ```
-## Publishing artifacts to CloudBees CD
+## Publishing artifacts to CloudBees CD/RO
 
 The CloudBees CD/RO plugin allows you to publish artifacts for your applications generated as part of your Jenkins CI jobs directly to CloudBees CD.
 
@@ -184,7 +184,7 @@ node {
     cloudBeesFlowPublishArtifact artifactName: 'application:jpetstore', artifactVersion: '1.0', configuration: 'CdConfiguration', filePath: 'CdProject/target/jpetstore.war', repositoryName: 'default'
 }
 ```
-## Running pipelines in CloudBees CD
+## Running pipelines in CloudBees CD/RO
 
 The CloudBees plugin allows you to run pipelines in CloudBees CD.
 
@@ -203,7 +203,7 @@ node{
 }
 ```
 
-## Running procedures in CloudBees CD
+## Running procedures in CloudBees CD/RO
 
 The CloudBees CD/RO plugin allows you to run procedures in CloudBees CD/RO.
 
@@ -253,7 +253,7 @@ script {
 }
 //...
 ```
-## Triggering releases in CloudBees CD
+## Triggering releases in CloudBees CD/RO
 
 This Integration allows you to trigger a release in CloudBees CD.
 
@@ -296,7 +296,7 @@ You can use the following workarounds instead of the **Add** button to help you 
 
 ## Version 1.1.28 (November 15, 2022)
 
-- Updated plugin's global configuration by possibility to use stored credentials. Username and password or secret text (token) can be used for connecting to CloudBees CD
+- Updated plugin's global configuration by possibility to use stored credentials. Username and password or secret text (token) can be used for connecting to CloudBees CD/RO
 
 - Added support of CloudBees CD/RO tokens which now can be configured as stored credential (secret text) for main or override configurations;
 - Improved handling of override credentials
@@ -306,7 +306,7 @@ You can use the following workarounds instead of the **Add** button to help you 
 
 - Added support of folder credentials which now can be used within override credentials functionality
 - Fixed Upload Artifact when using agent
-- Improved integration of CloudBees CI and CD
+- Improved integration of CloudBees CI and CD/RO
 
 ## Version 1.1.21 (March 12, 2021)
 
