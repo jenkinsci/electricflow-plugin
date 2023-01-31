@@ -12,7 +12,7 @@ predictable, and auditable way.
 
 # CloudBees CD/RO version dependencies
 
-Starting with CloudBees CD/RO v2023.02.0, you must upgrade to CloudBees CD plugin v1.1.30. Failure to do so will result in failed plugin procedures. v1.1.30 is also backwards compatible with previous CloudBees CD/RO releases.
+Starting with CloudBees CD/RO v2023.02.0, you must upgrade to CloudBees CD plugin v1.1.30. Failure to do so will result in failed plugin procedures. v1.1.30 is backwards compatible with previous CloudBees CD/RO releases.
 
 # Features
 
