@@ -16,7 +16,7 @@ Starting with CloudBees CD/RO v2023.02.0, you must upgrade to CloudBees CD/RO Na
 
 # Features
 
-With the CloudBees CD/RO plugin you can:
+With the CloudBees CD/RO Native Jenkins plugin you can:
 -   [Connect to your CloudBees CD/RO server](#connecting-to-your-cloudbees-cd-server)
 -   [Call CloudBees CD/RO REST APIs](#calling-cloudbees-cd-rest-api)
 -   [Create applications from deployment packages](#creating-and-deploying-applications-from-deployment-packages-to-cloudbees-cd)
@@ -52,7 +52,7 @@ To create and configure your connection:
 8. Select **Test Connection** to ensure your credential is working correctly. If you receive a ``Success`` message, your configuration is ready to use. If you receive an error code, ensure your **Server URL** is correct. If it is, typically there was an error in the credential configuration and the configuration should be reconfigured.
 
 ## Configuring an SSO session ID token for CloudBees CD/RO
-The CloudBees CD/RO plugin allows you to authenticate actions using an SSO session ID token. Before starting:
+The CloudBees CD/RO Native Jenkins plugin allows you to authenticate actions using an SSO session ID token. Before starting:
 - You must have a generated CloudBees SSO session ID token. If you have not generated a CloudBees SSO session ID token, refer to [Generate an SSO session ID token](https://docs.cloudbees.com/docs/cloudbees-cd/latest/intro/sign-in-cd#_generate_a_sso_session_id_token) for help.
 - You must have already set up a **CloudBees CD** configuration and saved it to Jenkins. If not, follow the steps in [Connecting to your CloudBees CD/RO server](#connecting-to-your-cloudbees-cd-server) until **Credentials Type**.
 
@@ -76,13 +76,13 @@ The following steps describe how to configure a CloudBees SSO session ID token w
 
 # Supported Post Build Actions
 
-The CloudBees CD/RO plugin enables you to perform post-build actions for your Jenkins jobs. These actions can be executed separately or combined sequentially.
+The CloudBees CD/RO Native Jenkins plugin enables you to perform post-build actions for your Jenkins jobs. These actions can be executed separately or combined sequentially.
 
 > **_NOTE:_** To manage **Post-build Actions**, navigate to your Jenkins job's **Configuration** > **Post-build Actions**.
 
 ## Calling CloudBees CD/RO REST API
 
-The CloudBees CD/RO plugin allows you to make calls to CloudBees CD's REST API. You can make for post-build actions and as pipeline steps.
+The CloudBees CD/RO Native Jenkins plugin allows you to make calls to CloudBees CD's REST API. You can make for post-build actions and as pipeline steps.
 
 To configure a calls to CloudBees CD's REST API:
 1. Navigate to your job's **Configuration** > **Post-build Actions** menu.
@@ -125,7 +125,7 @@ pipeline{
 
 ## Creating and deploying applications from Deployment Packages to CloudBees CD/RO
 
-Using deployment packages generated from your Jenkins CI builds, the CloudBees CD/RO plugin allows you to create and deploy Java, .NET, or any other
+Using deployment packages generated from your Jenkins CI builds, the CloudBees CD/RO Native Jenkins plugin allows you to create and deploy Java, .NET, or any other
 application to any environment in CloudBees CD.
 
 > **_IMPORTANT:_** To create and deploy applications from a deployment package, the deployment package must contain a JSON manifest file and the artifacts to deploy.
@@ -149,7 +149,7 @@ node {
 
 ## Deploying applications using CloudBees CD/RO
 
-The CloudBees CD/RO plugin enables you to deploy applications.
+The CloudBees CD/RO Native Jenkins plugin enables you to deploy applications.
 
 To set up this post-build action:
 1. Navigate to your job's **Configuration** > **Post-build Actions** menu.
@@ -167,7 +167,7 @@ node{
 ```
 ## Publishing artifacts to CloudBees CD/RO
 
-The CloudBees CD/RO plugin allows you to publish artifacts for your applications generated as part of your Jenkins CI jobs directly to CloudBees CD.
+The CloudBees CD/RO Native Jenkins plugin allows you to publish artifacts for your applications generated as part of your Jenkins CI jobs directly to CloudBees CD.
 
 To set up this post-build action:
 1. Navigate to your job's **Configuration** > **Post-build Actions** menu.
@@ -186,7 +186,7 @@ node {
 ```
 ## Running pipelines in CloudBees CD/RO
 
-The CloudBees plugin allows you to run pipelines in CloudBees CD.
+The CloudBees CD/RO Native Jenkins plugin allows you to run pipelines in CloudBees CD.
 
 To set up this post-build action:
 1. Navigate to your job's **Configuration** > **Post-build Actions** menu.
@@ -205,7 +205,7 @@ node{
 
 ## Running procedures in CloudBees CD/RO
 
-The CloudBees CD/RO plugin allows you to run procedures in CloudBees CD/RO.
+The CloudBees CD/RO Native Jenkins plugin allows you to run procedures in CloudBees CD/RO.
 
 To set up this post-build action:
 1. Navigate to your job's **Configuration** > **Post-build Actions** menu.
