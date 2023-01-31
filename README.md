@@ -280,6 +280,10 @@ You can use the following workarounds instead of the **Add** button to help you 
 
 # Release Notes
 
+## Version 1.1.30 (January 27, 2023)
+
+- Removed CGI scripts
+
 ## Version 1.1.29 (November 25, 2022)
 
 - Fixed plugin dependencies
