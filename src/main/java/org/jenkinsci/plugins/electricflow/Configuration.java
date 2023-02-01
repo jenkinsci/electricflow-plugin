@@ -109,6 +109,13 @@ public class Configuration extends AbstractDescribableImpl<Configuration> {
     return overrideCredential;
   }
 
+  public String getCredentialId() {
+    if (getOverrideCredential() == null) {
+      return null;
+    }
+    return getOverrideCredential().getCredentialId();
+  }
+
   public String getCredsType() {
     return credsType;
   }
