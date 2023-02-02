@@ -34,4 +34,24 @@ public class ConfigurationAsCodeTest {
     assertEquals("/rest/v1.0", configuration.getElectricFlowApiVersion());
     assertTrue(configuration.getIgnoreSslConnectionErrors());
   }
+
+  @Test
+  @ConfiguredWithCode("casc/configuration-as-code-cred-id.yml")
+  public void shouldBeAbleToAcceptConfigurationWithCredId() {
+    final ElectricFlowGlobalConfiguration electricFlowGlobalConfiguration =
+            ExtensionList.lookupSingleton(ElectricFlowGlobalConfiguration.class);
+    assertNotNull(electricFlowGlobalConfiguration);
+
+    final List<Configuration> configurations = electricFlowGlobalConfiguration.getConfigurations();
+    assertThat(configurations, Matchers.iterableWithSize(1));
+
+    final Configuration configuration = configurations.get(0);
+    assertEquals("this is the second configuration", configuration.getConfigurationName());
+    assertEquals("cred-id-1", configuration.getCredentialId());
+    assertEquals("cred-id-1", configuration.getOverrideCredential().getCredentialId());
+    assertEquals("storedCreds", configuration.getCredsType());
+    assertEquals("https://test-url", configuration.getElectricFlowUrl());
+    assertEquals("/rest/v1.0", configuration.getElectricFlowApiVersion());
+    assertTrue(configuration.getIgnoreSslConnectionErrors());
+  }
 }

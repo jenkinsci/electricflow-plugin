@@ -1,0 +1,9 @@
+unclassified:
+  electricflow:
+    configurations:
+      - configurationName: "this is the second configuration"
+        credentialId: "cred-id-1"
+        credsType: "storedCreds"
+        electricFlowUrl: "https://test-url/"
+        electricFlowApiVersion: "/rest/v1.0"
+        ignoreSslConnectionErrors: true
