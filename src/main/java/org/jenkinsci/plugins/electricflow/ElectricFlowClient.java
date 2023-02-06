@@ -547,9 +547,15 @@ public class ElectricFlowClient {
 
       return conn;
     } else if (isSecretCreds()) {
-      conn.setRequestProperty("Cookie", "sessionId=" + secret);
-      conn.setRequestProperty("Accept", "application/json");
-      return conn;
+      if (endpoint.contains("/loginSso?token=")) {
+        return conn;
+      } else {
+        String jsonResult = runRestAPI("/loginSso?token="+secret, POST, "{}");
+        String sessionId = JSONObject.fromObject(jsonResult).getString("sessionId");
+        conn.setRequestProperty("Cookie", "sessionId=" + sessionId);
+        conn.setRequestProperty("Accept", "application/json");
+        return conn;
+      }
     }
     throw new RuntimeException("Credentials are not provided");
   }
