@@ -5,22 +5,25 @@
   <parent>
     <groupId>org.jenkins-ci.plugins</groupId>
     <artifactId>plugin</artifactId>
-    <version>4.46</version>
+    <version>4.51</version>
     <relativePath />
   </parent>
 
   <artifactId>electricflow</artifactId>
-  <version>1.1.31-SNAPSHOT</version>
+  <version>${revision}${changelist}</version>
   <packaging>hpi</packaging>
 
   <properties>
+    <revision>1.1.31</revision>
+    <changelist>-SNAPSHOT</changelist>
     <jenkins.version>2.289.3</jenkins.version>
+    <gitHubRepo>jenkinsci/${project.artifactId}-plugin</gitHubRepo>
     <slf4jVersion>1.7.26</slf4jVersion>
   </properties>
 
   <name>CloudBees CD</name>
   <description>CloudBees CD Application Release Orchestration</description>
-  <url>https://github.com/jenkinsci/electricflow-plugin</url>
+  <url>https://github.com/jenkinsci/${project.artifactId}-plugin</url>
 
   <licenses>
     <license>
@@ -38,10 +41,10 @@
   </developers>
 
   <scm>
-    <connection>scm:git:git://github.com/jenkinsci/${project.artifactId}-plugin.git</connection>
-    <developerConnection>scm:git:git@github.com:jenkinsci/${project.artifactId}-plugin.git</developerConnection>
-    <url>https://github.com/jenkinsci/${project.artifactId}-plugin</url>
-    <tag>HEAD</tag>
+    <connection>scm:git:https://github.com/${gitHubRepo}.git</connection>
+    <developerConnection>scm:git:git@github.com:${gitHubRepo}.git</developerConnection>
+    <url>https://github.com/${gitHubRepo}</url>
+    <tag>${scmTag}</tag>
   </scm>
 
   <repositories>
