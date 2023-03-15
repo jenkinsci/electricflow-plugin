@@ -510,6 +510,8 @@ public class ElectricFlowPipelinePublisher extends Recorder implements SimpleBui
         summaryText =
             Utils.getExtraHTML(stagesToRun, summaryText, "stageName", "stageValue", "Stages To Run");
         break;
+      default:
+        break;
     }
     summaryText =
         Utils.getParametersHTML(parameters, summaryText, "parameterName", "parameterValue");
