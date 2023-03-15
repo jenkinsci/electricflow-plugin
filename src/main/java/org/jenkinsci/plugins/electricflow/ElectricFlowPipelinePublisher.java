@@ -37,6 +37,7 @@ import hudson.util.FormValidation;
 import hudson.util.ListBoxModel;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -52,6 +53,7 @@ import org.jenkinsci.Symbol;
 import org.jenkinsci.plugins.electricflow.action.CloudBeesCDPBABuildDetails;
 import org.jenkinsci.plugins.electricflow.data.CloudBeesFlowBuildData;
 import org.jenkinsci.plugins.electricflow.exceptions.FlowRuntimeException;
+import org.jenkinsci.plugins.electricflow.exceptions.PluginException;
 import org.jenkinsci.plugins.electricflow.factories.ElectricFlowClientFactory;
 import org.jenkinsci.plugins.electricflow.models.CIBuildDetail;
 import org.jenkinsci.plugins.electricflow.models.CIBuildDetail.BuildAssociationType;
@@ -83,6 +85,9 @@ public class ElectricFlowPipelinePublisher extends Recorder implements SimpleBui
   private RunAndWaitOption runAndWaitOption;
   private String addParam;
   private JSONArray additionalOption;
+  private String stageOption;
+  private String startingStage;
+  private String stagesToRun;
 
   // ~ Constructors -----------------------------------------------------------
 
@@ -162,15 +167,40 @@ public class ElectricFlowPipelinePublisher extends Recorder implements SimpleBui
 
       String pipelineResult;
       JSONArray parameters = getPipelineParameters();
+      JSONArray stages = null;
 
-      if (parameters.isEmpty()) {
-        pipelineResult = efClient.runPipeline(projectName, pipelineName);
-      } else {
-        expandParameters(parameters, env);
-        pipelineResult = efClient.runPipeline(projectName, pipelineName, parameters);
+      String actualStaringStage = null;
+      List<String> actualStagesToRun = null;
+      if (stageOption != null && !stageOption.isEmpty()) {
+        switch (stageOption) {
+          case "startingStage":
+            actualStaringStage = startingStage;
+            break;
+          case "stagesToRun":
+            stages = getStagesToRunJson();
+            actualStagesToRun = new ArrayList<>();
+            if (stages.size() > 0) {
+              for (int i = 0; i < stages.size(); i++) {
+                JSONObject stage = stages.getJSONObject(i);
+                if (stage.getBoolean("stageValue")) {
+                  actualStagesToRun.add(stage.getString("stageName"));
+                }
+              }
+            }
+            break;
+        }
       }
 
-      String summaryHtml = getSummaryHtml(efClient, pipelineResult, parameters, null);
+      expandParameters(parameters, env);
+      pipelineResult = efClient.runPipeline(
+              projectName,
+              pipelineName,
+              stageOption,
+              actualStaringStage,
+              actualStagesToRun,
+              parameters);
+
+      String summaryHtml = getSummaryHtml(efClient, pipelineResult, parameters, stages, null);
       SummaryTextAction action = new SummaryTextAction(run, summaryHtml);
 
       String flowRuntimeId = getFlowRuntimeIdFromResponse(pipelineResult);
@@ -233,7 +263,7 @@ public class ElectricFlowPipelinePublisher extends Recorder implements SimpleBui
 
           summaryHtml =
               getSummaryHtml(
-                  efClient, pipelineResult, parameters, responseData);
+                  efClient, pipelineResult, parameters, stages, responseData);
           action = new SummaryTextAction(run, summaryHtml);
           run.addOrReplaceAction(action);
           run.save();
@@ -253,7 +283,7 @@ public class ElectricFlowPipelinePublisher extends Recorder implements SimpleBui
           return ciBuildResult;
         }
       }
-    } catch (IOException | InterruptedException e) {
+    } catch (IOException | InterruptedException | PluginException e) {
       logger.println(e.getMessage());
       log.error(e.getMessage(), e);
 
@@ -283,6 +313,38 @@ public class ElectricFlowPipelinePublisher extends Recorder implements SimpleBui
 
   public String getStoredAddParam() {
     return addParam;
+  }
+
+  public String getStageOption() {
+    return stageOption;
+  }
+
+  @DataBoundSetter
+  public void setStageOption(String stageOption) {
+    this.stageOption = getSelectItemValue(stageOption);
+  }
+
+
+  public String getStartingStage() {
+    return startingStage;
+  }
+
+  @DataBoundSetter
+  public void setStartingStage(String startingStage) {
+    this.startingStage = getSelectItemValue(startingStage);
+  }
+
+  public String getStagesToRun() {
+    return stagesToRun;
+  }
+
+  @DataBoundSetter
+  public void setStagesToRun(String stagesToRun) {
+    this.stagesToRun = getSelectItemValue(stagesToRun);
+  }
+
+  public String getStoredStagesToRun() {
+    return stagesToRun;
   }
 
   public String getConfiguration() {
@@ -351,6 +413,16 @@ public class ElectricFlowPipelinePublisher extends Recorder implements SimpleBui
     return new JSONArray();
   }
 
+  private JSONArray getStagesToRunJson() {
+    if (stagesToRun != null && !stagesToRun.isEmpty() && !"{}".equals(stagesToRun)) {
+      JSONObject pipelineJsonObject = JSONObject.fromObject(stagesToRun).getJSONObject("pipeline");
+      if (pipelineJsonObject.containsKey("stages")) {
+        return JSONArray.fromObject(pipelineJsonObject.getString("stages"));
+      }
+    }
+    return new JSONArray();
+  }
+
   public String getProjectName() {
     return projectName;
   }
@@ -386,6 +458,7 @@ public class ElectricFlowPipelinePublisher extends Recorder implements SimpleBui
       ElectricFlowClient efClient,
       String pipelineResult,
       JSONArray parameters,
+      JSONArray stagesToRun,
       GetPipelineRuntimeDetailsResponseData getPipelineRuntimeDetailsResponseData) {
     JSONObject flowRuntime = JSONObject.fromObject(pipelineResult).getJSONObject("flowRuntime");
     String pipelineId = (String) flowRuntime.get("pipelineId");
@@ -417,8 +490,27 @@ public class ElectricFlowPipelinePublisher extends Recorder implements SimpleBui
             + "    <td>"
             + HtmlUtils.encodeForHtml(projectName)
             + "</td>    \n"
+            + "  </tr>"
+            + "  <tr>\n"
+            + "    <td>Stage Option:</td>\n"
+            + "    <td>"
+            + HtmlUtils.encodeForHtml(stageOption)
+            + "</td>    \n"
             + "  </tr>";
-
+    switch (stageOption) {
+      case "startingStage":
+        summaryText += "  <tr>\n"
+            + "    <td>Starting Stage:</td>\n"
+            + "    <td>"
+            + HtmlUtils.encodeForHtml(startingStage)
+            + "</td>    \n"
+            + "  </tr>";
+        break;
+      case "stagesToRun":
+        summaryText =
+            Utils.getExtraHTML(stagesToRun, summaryText, "stageName", "stageValue", "Stages To Run");
+        break;
+    }
     summaryText =
         Utils.getParametersHTML(parameters, summaryText, "parameterName", "parameterValue");
     if (getPipelineRuntimeDetailsResponseData != null) {
@@ -467,6 +559,25 @@ public class ElectricFlowPipelinePublisher extends Recorder implements SimpleBui
     }
 
     // ~ Methods ------------------------------------------------------------
+
+    static Map<String, String> getStagesToRunMapFromParams(String stagesToRun) {
+      Map<String, String> paramsMap = new HashMap<>();
+
+      if (stagesToRun == null || stagesToRun.isEmpty() || stagesToRun.equals("{}")) {
+        return paramsMap;
+      }
+
+      JSONObject json = JSONObject.fromObject(stagesToRun);
+
+      if (!json.containsKey("pipeline") || !json.getJSONObject("pipeline").containsKey("stages")) {
+        return paramsMap;
+      }
+
+      return getParamsMap(
+              JSONArray.fromObject(json.getJSONObject("pipeline").getString("stages")),
+              "stageName",
+              "stageValue");
+    }
 
     static Map<String, String> getParamsMapFromAddParam(String addParam) {
       Map<String, String> paramsMap = new HashMap<>();
@@ -535,6 +646,67 @@ public class ElectricFlowPipelinePublisher extends Recorder implements SimpleBui
         return SelectFieldUtils.getFormValidationBasedOnSelectItemValidationWrapper(value);
       }
       return FormValidation.ok();
+    }
+
+    public FormValidation doCheckStagesToRun(
+            @QueryParameter String value,
+            @QueryParameter boolean validationTrigger,
+            @AncestorInPath Item item) {
+      if (item == null || !item.hasPermission(Item.CONFIGURE)) {
+        return FormValidation.ok();
+      }
+      if (isSelectItemValidationWrapper(value)) {
+        return SelectFieldUtils.getFormValidationBasedOnSelectItemValidationWrapper(value);
+      }
+      return FormValidation.ok();
+    }
+
+    public ListBoxModel doFillStartingStageItems(
+            @QueryParameter String configuration,
+            @QueryParameter boolean overrideCredential,
+            @QueryParameter @RelativePath("overrideCredential") String credentialId,
+            @QueryParameter String projectName,
+            @QueryParameter String pipelineName,
+            @AncestorInPath Item item)
+            throws Exception {
+      if (item == null || !item.hasPermission(Item.CONFIGURE)) {
+        return new ListBoxModel();
+      }
+      try {
+        ListBoxModel m = new ListBoxModel();
+
+        m.add("Select starting stage", "");
+
+        if (projectName.isEmpty()
+                || pipelineName.isEmpty()
+                || configuration.isEmpty()
+                || checkAnySelectItemsIsValidationWrappers(projectName, pipelineName)) {
+          return m;
+        }
+
+        Credential overrideCredentialObj = overrideCredential ? new Credential(credentialId) : null;
+        ElectricFlowClient client =
+                ElectricFlowClientFactory.getElectricFlowClient(
+                        configuration, overrideCredentialObj, item, null);
+
+        List<String> stages = client.getPipelineStagesNames(projectName, pipelineName);
+        for (String stage : stages) {
+          m.add(stage);
+        }
+
+        return m;
+      } catch (Exception e) {
+        Credential overrideCredentialObj = overrideCredential ? new Credential(credentialId) : null;
+        if (Utils.isEflowAvailable(configuration, overrideCredentialObj, item)) {
+          log.error(
+                  "Error when fetching values for this parameter - starting stage. Error message: "
+                          + e.getMessage(),
+                  e);
+          return SelectFieldUtils.getListBoxModelOnException("Select starting stage");
+        } else {
+          return SelectFieldUtils.getListBoxModelOnWrongConf("Select starting stage");
+        }
+      }
     }
 
     public ListBoxModel doFillAddParamItems(
@@ -611,6 +783,88 @@ public class ElectricFlowPipelinePublisher extends Recorder implements SimpleBui
                   FieldValidationStatus.ERROR,
                   "Error when fetching set of pipeline parameters. Connection to CloudBees CD Server Failed. Please fix connection information and reload this page.",
                   "{}");
+        }
+        m.add(selectItemValidationWrapper.getJsonStr());
+        return m;
+      }
+    }
+
+    public ListBoxModel doFillStagesToRunItems(
+            @QueryParameter String configuration,
+            @QueryParameter boolean overrideCredential,
+            @QueryParameter @RelativePath("overrideCredential") String credentialId,
+            @QueryParameter String projectName,
+            @QueryParameter String pipelineName,
+            @QueryParameter String stagesToRun,
+            @AncestorInPath Item item) {
+      if (item == null || !item.hasPermission(Item.CONFIGURE)) {
+        return new ListBoxModel();
+      }
+      try {
+        ListBoxModel m = new ListBoxModel();
+
+        if (configuration.isEmpty()
+                || pipelineName.isEmpty()
+                || checkAnySelectItemsIsValidationWrappers(pipelineName)) {
+          m.add("{}");
+
+          return m;
+        }
+
+        Map<String, String> storedStagesToRun = new HashMap<>();
+
+        String stagesToRunValue = getSelectItemValue(stagesToRun);
+
+        if (!stagesToRunValue.isEmpty() && !"{}".equals(stagesToRunValue)) {
+          JSONObject json = JSONObject.fromObject(stagesToRunValue);
+          JSONObject jsonArray = json.getJSONObject("pipeline");
+
+          if (pipelineName.equals(jsonArray.get("pipelineName"))) {
+            storedStagesToRun = getStagesToRunMapFromParams(stagesToRunValue);
+          }
+        }
+
+        Credential overrideCredentialObj = overrideCredential ? new Credential(credentialId) : null;
+        ElectricFlowClient efClient =
+                ElectricFlowClientFactory.getElectricFlowClient(
+                        configuration, overrideCredentialObj, item, null);
+        List<String> stages = efClient.getPipelineStagesNames(projectName, pipelineName);
+        JSONObject main =
+                JSONObject.fromObject(
+                        "{'pipeline':{'pipelineName':'" + pipelineName + "','stages':[]}}");
+
+        JSONArray stagesArray = main.getJSONObject("pipeline").getJSONArray("stages");
+
+        addParametersToJsonAndPreserveStored(
+                stages, stagesArray, "stageName", "stageValue", storedStagesToRun);
+
+        m.add(main.toString());
+
+        if (m.isEmpty()) {
+          m.add("{}");
+        }
+
+        return m;
+      } catch (Exception e) {
+        ListBoxModel m = new ListBoxModel();
+        SelectItemValidationWrapper selectItemValidationWrapper;
+
+        Credential overrideCredentialObj = overrideCredential ? new Credential(credentialId) : null;
+        if (Utils.isEflowAvailable(configuration, overrideCredentialObj, item)) {
+          log.error(
+                  "Error when fetching stages to run. Error message: " + e.getMessage(),
+                  e);
+          selectItemValidationWrapper =
+                  new SelectItemValidationWrapper(
+                          FieldValidationStatus.ERROR,
+                          "Error when fetching stages to run. Check the Jenkins logs for more details.",
+                          "{}");
+        } else {
+          selectItemValidationWrapper =
+                  new SelectItemValidationWrapper(
+                          FieldValidationStatus.ERROR,
+                          "Error when fetching stages to run. Connection to CloudBees CD Server Failed. Please fix connection information and reload this page.",
+                          "{}");
         }
         m.add(selectItemValidationWrapper.getJsonStr());
         return m;
@@ -699,10 +953,12 @@ public class ElectricFlowPipelinePublisher extends Recorder implements SimpleBui
         @QueryParameter("projectName") final String projectName,
         @QueryParameter("pipelineName") final String pipelineName,
         @QueryParameter("addParam") final String addParam,
+        @QueryParameter("stagesToRun") final String stagesToRun,
         @QueryParameter("storedConfiguration") final String storedConfiguration,
         @QueryParameter("storedProjectName") final String storedProjectName,
         @QueryParameter("storedPipelineName") final String storedPipelineName,
         @QueryParameter("storedAddParam") final String storedAddParam,
+        @QueryParameter("storedStagesToRun") final String storedStagesToRun,
         @AncestorInPath Item item) {
       if (item == null || !item.hasPermission(Item.CONFIGURE)) {
         return FormValidation.ok();
@@ -711,6 +967,10 @@ public class ElectricFlowPipelinePublisher extends Recorder implements SimpleBui
       String projectNameValue = getSelectItemValue(projectName);
       String pipelineNameValue = getSelectItemValue(pipelineName);
       String addParamValue = getSelectItemValue(addParam);
+      String stagesToRunValue = getSelectItemValue(stagesToRun);
+
+      Map<String, String> stagesToRunMap = getStagesToRunMapFromParams(stagesToRunValue);
+      Map<String, String> storedStagesToRunMap = getStagesToRunMapFromParams(storedStagesToRun);
 
       Map<String, String> pipelineParamsMap = getParamsMapFromAddParam(addParamValue);
       Map<String, String> storedPipelineParamsMap = getParamsMapFromAddParam(storedAddParam);
@@ -722,12 +982,15 @@ public class ElectricFlowPipelinePublisher extends Recorder implements SimpleBui
               + getValidationComparisonRow("Project Name", storedProjectName, projectNameValue)
               + getValidationComparisonRow("Pipeline Name", storedPipelineName, pipelineNameValue)
               + getValidationComparisonRowsForExtraParameters(
+                  "Stages to run", storedStagesToRunMap, stagesToRunMap)
+              + getValidationComparisonRowsForExtraParameters(
                   "Pipeline Parameters", storedPipelineParamsMap, pipelineParamsMap)
               + "</table>";
 
       if (configurationValue.equals(storedConfiguration)
           && projectNameValue.equals(storedProjectName)
           && pipelineNameValue.equals(storedPipelineName)
+          && stagesToRunMap.equals(storedStagesToRunMap)
           && pipelineParamsMap.equals(storedPipelineParamsMap)) {
         return FormValidation.okWithMarkup("No changes detected:<br>" + comparisonTable);
       } else {

@@ -224,15 +224,23 @@ public class Utils {
     return summaryText;
   }
 
-  public static String getParametersHTML(
-      JSONArray parameters, String summaryText, String parameterName, String parameterValue) {
+  public static String getParametersHTML(JSONArray parameters, String summaryText, String parameterName, String parameterValue) {
+    return getExtraHTML(parameters,
+            summaryText,
+            "parameterName",
+            "parameterValue",
+            "Parameters");
+  }
+
+  public static String getExtraHTML(
+      JSONArray parameters, String summaryText, String parameterName, String parameterValue, String sectionName) {
 
     if (!parameters.isEmpty()) {
       StringBuilder strBuilder = new StringBuilder(summaryText);
 
       strBuilder.append(
           "  <tr>\n"
-              + "    <td>&nbsp;<b>Parameters</b></td>\n"
+              + "    <td>&nbsp;<b>" + sectionName + "</b></td>\n"
               + "    <td></td>    \n"
               + "  </tr>\n");
 
