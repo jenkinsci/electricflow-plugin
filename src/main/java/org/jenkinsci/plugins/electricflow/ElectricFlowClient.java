@@ -24,6 +24,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -33,9 +34,11 @@ import net.sf.json.JSONObject;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jenkinsci.plugins.electricflow.exceptions.PluginException;
 import org.jenkinsci.plugins.electricflow.models.CIBuildDetail;
 import org.jenkinsci.plugins.electricflow.models.cdrestdata.jobs.GetJobStatusResponseData;
 import org.jenkinsci.plugins.electricflow.models.cdrestdata.jobs.GetPipelineRuntimeDetailsResponseData;
+import org.jenkinsci.plugins.electricflow.models.cdrestdata.jobs.StageResponseData;
 
 public class ElectricFlowClient {
 
@@ -101,18 +104,14 @@ public class ElectricFlowClient {
     return runRestAPI(requestEndpoint, POST, obj.toString());
   }
 
-  public String runPipeline(String projectName, String pipelineName) throws IOException {
-    String requestEndpoint =
-        "/pipelines?pipelineName="
-            + Utils.encodeURL(pipelineName)
-            + "&projectName="
-            + Utils.encodeURL(projectName);
-
-    return runRestAPI(requestEndpoint, POST);
-  }
-
-  public String runPipeline(String projectName, String pipelineName, JSONArray additionalOptions)
-      throws IOException {
+  public String runPipeline(
+          String projectName,
+          String pipelineName,
+          String stageOption,
+          String startingStage,
+          List<String> stagesToRun,
+          JSONArray additionalOptions)
+          throws IOException, PluginException {
     JSONObject obj = new JSONObject();
     JSONArray parameters =
         getParameters(additionalOptions, "actualParameterName", "parameterName", "parameterValue");
@@ -120,6 +119,34 @@ public class ElectricFlowClient {
     obj.put("actualParameter", parameters);
     obj.put("pipelineName", pipelineName);
     obj.put("projectName", projectName);
+
+    if (stageOption == null || stageOption.isEmpty()) {
+      log.info("Running pipeline with all stages selected (default option)");
+    } else {
+      switch (stageOption) {
+        case "runAllStages":
+          log.info("Running pipeline with all stages selected");
+          break;
+        case "startingStage":
+          log.info("Running pipeline with starting stage selected: "
+                  + startingStage);
+          obj.put("startingStage", startingStage);
+          break;
+        case "stagesToRun":
+          if (stagesToRun.isEmpty()) {
+            log.info("Running pipeline with stages to run selected: "
+                    + stagesToRun
+                    + " (equals to running pipeline with all stages selected");
+          } else {
+            log.info("Running pipeline with stages to run selected: "
+                    + stagesToRun);
+          }
+          obj.put("stagesToRun", stagesToRun);
+          break;
+        default:
+          throw new PluginException("Unexpected stage option: " + stageOption);
+      }
+    }
 
     if (log.isDebugEnabled()) {
       log.debug("Constructed JSON is: " + obj.toString());
@@ -738,6 +765,23 @@ public class ElectricFlowClient {
     }
 
     return formalParameters;
+  }
+
+  public List<String> getPipelineStagesNames(String projectName, String pipelineName) throws IOException {
+    List<StageResponseData> stages = getPipelineStages(projectName, pipelineName);
+
+    return stages.stream().map(StageResponseData::getStageName).collect(Collectors.toList());
+  }
+
+  public List<StageResponseData> getPipelineStages(String projectName, String pipelineName) throws IOException {
+    String requestEndpoint = "/projects/" + projectName + "/stages?pipelineName=" + pipelineName;
+    String result = runRestAPI(requestEndpoint, GET);
+    List<StageResponseData> stages = new ArrayList<>();
+    for (Object object: JSONObject.fromObject(result).getJSONArray("stage")) {
+      stages.add(new ObjectMapper().readValue(object.toString(), StageResponseData.class));
+    }
+    stages.sort(Comparator.comparing(StageResponseData::getIndex));
+    return stages;
   }
 
   public String getPipelineId(String projectName, String pipelineName) throws Exception {

@@ -22,9 +22,23 @@ All rights reserved.
         <f:select id="projectN" onchange="deleteParameterRows()"/>
     </f:entry>
 
-
     <f:entry title="Pipeline Name" field="pipelineName" >
-        <f:select id="pipelineN" onchange="fillParameters()"/>
+        <f:select id="pipelineN" onchange="fillParameters(); fillStagesToRun();"/>
+    </f:entry>
+
+    <f:entry title="Stage Option">
+        <f:radioBlock inline="true" name="stageOption" checked="${instance.stageOption == null || instance.stageOption == '' || instance.stageOption == 'runAllStages'}" title="Run All Stages" value="runAllStages">
+        </f:radioBlock>
+        <f:radioBlock inline="true" name="stageOption" checked="${instance.stageOption == 'startingStage'}" title="Choose Starting Stage" value="startingStage">
+            <f:entry  title="Starting Stage" field="startingStage">
+                <f:select id="ef_rp_startingStage"/>
+            </f:entry>
+        </f:radioBlock>
+        <f:radioBlock inline="true" name="stageOption" checked="${instance.stageOption == 'stagesToRun'}" title="Choose Stages To Run" value="stagesToRun">
+            <f:entry title="" field="stagesToRun" >
+                <f:select id="stagesToRunEntry" onchange="fillStagesToRun();" style="display:none;"/>
+            </f:entry>
+        </f:radioBlock>
     </f:entry>
 
     <f:entry title="" field="addParam" >
@@ -73,9 +87,17 @@ All rights reserved.
 
     <script>
         fillParameters();
+        fillStagesToRun();
 
         function deleteParameterRows() {
             var paramRows = document.querySelectorAll("._ef_row");
+            [].forEach.call(paramRows, function (row) {
+                row.parentNode.removeChild(row);
+            });
+        }
+
+        function deleteStagesToRun() {
+            var paramRows = document.querySelectorAll("._ef_row_stages");
             [].forEach.call(paramRows, function (row) {
                 row.parentNode.removeChild(row);
             });
@@ -102,36 +124,96 @@ All rights reserved.
 
             if (json) {
                 if (json.pipeline) {
+                    var parameters;
                     try {
-                        json = JSON.parse(json.pipeline.parameters);
+                        parameters = JSON.parse(json.pipeline.parameters);
                     }
                     catch (error) {
-                        json = json.pipeline.parameters;
+                        parameters = json.pipeline.parameters;
                     }
 
                     if (table == null) {
-                        if (json.length) {
+                        if (parameters.length) {
                             var el = document.createElement("div");
                             el.innerHTML = "&lt;br&gt;&lt;b&gt;Pipeline Parameters&lt;/b&gt;";
                             el.className = "_ef_row";
-                            var div = document.getElementById("pipelineN");
+                            var div = document.getElementById("addP");
                             div = cbcd_insertAfter(div, el);
-                            json.forEach(function (elem) {
+                            parameters.forEach(function (elem) {
                                 var el_param = document.createElement("div");
                                 el_param.className = "_ef_parameters _ef_row";
                                 div = cbcd_insertAfter(div, el_param);
-                                addParameterRowForRunPipeline(el_param, elem.parameterName, elem.parameterValue, false);
+                                addParameterRowForRunPipeline(el_param, elem.parameterName, elem.parameterValue, false, false, updateJsonParameters);
                             });
                         }
                     } else {
                         var row1 = table.insertRow(table.rows.length - 2);
                         row1.className = "_ef_row";
-                        if (json.length) {
+                        if (parameters.length) {
                             row1.appendChild(createTitleForRunPipeline());
-                            json.forEach(function (elem) {
+                            parameters.forEach(function (elem) {
                                 var row = table.insertRow(table.rows.length - 2);
                                 row.className = "_ef_parameters _ef_row";
-                                addParameterRowForRunPipeline(row, elem.parameterName, elem.parameterValue, true);
+                                addParameterRowForRunPipeline(row, elem.parameterName, elem.parameterValue, false, true, updateJsonParameters);
+                            });
+                        }
+                    }
+                }
+            }
+        }
+
+        function fillStagesToRun() {
+            deleteStagesToRun();
+
+            if (!document.getElementById('stagesToRunEntry')) {
+                return;
+            }
+
+            var option = document.getElementById('stagesToRunEntry').options[0];
+            var param = '{}';
+            if (option) {
+                param = option.value;
+            }
+            var json = JSON.parse(param);
+
+            var table = document.querySelector("[descriptorid='electricFlowSettings'] table");
+            if (table == null) {
+                table = getElementByXpath("//select[@checkdependson='validationTrigger']/ancestor::table[@name]");
+            }
+
+            if (json) {
+                if (json.pipeline) {
+                    var stages;
+                    try {
+                        stages = JSON.parse(json.pipeline.stages);
+                    }
+                    catch (error) {
+                        stages = json.pipeline.stages;
+                    }
+
+                    if (table == null) {
+                        if (stages.length) {
+                            var el = document.createElement("div");
+                            el.innerHTML = "&lt;br&gt;&lt;b&gt;Stages To Run&lt;/b&gt;";
+                            el.className = "_ef_row_stages";
+                            var div = document.getElementById("stagesToRunEntry");
+                            div = cbcd_insertAfter(div, el);
+                            stages.forEach(function (elem) {
+                                var el_param = document.createElement("div");
+                                el_param.className = "_ef_rp_stages _ef_row_stages";
+                                div = cbcd_insertAfter(div, el_param);
+                                addParameterRowForRunPipeline(el_param, elem.stageName, elem.stageValue, true, false, updateJsonStagesToRun);
+                            });
+                        }
+                    } else {
+                        var row1 = table.insertRow(table.rows.length - 2);
+                        row1.className = "_ef_row_stages";
+                        if (stages.length) {
+                            row1.appendChild(createTitleForTriggerRelease("Stages to run"));
+                            stages.forEach(function (elem) {
+                                var row = table.insertRow(table.rows.length - 2);
+                                row.className = "_ef_rp_stages _ef_row_stages";
+                                addParameterRowForRunPipeline(row, elem.stageName, elem.stageValue, true, true, updateJsonStagesToRun);
                             });
                         }
                     }
@@ -143,7 +225,7 @@ All rights reserved.
             return referenceNode.parentNode.insertBefore(newNode, referenceNode.nextSibling);
         }
 
-        function updateJson() {
+        function updateJsonParameters() {
             var pipelineName = document.getElementById("pipelineN").value;
             var json = JSON.parse('{"pipeline":{"pipelineName":"' + pipelineName + '","parameters":[]}}');
             var parameters = document.querySelectorAll("._ef_parameters");
@@ -157,6 +239,21 @@ All rights reserved.
             document.getElementById('addP').options[0].textContent = JSON.stringify(json);
         }
 
+        function updateJsonStagesToRun() {
+            var pipelineName = document.getElementById("pipelineN").value;
+            var json = JSON.parse('{"pipeline":{"pipelineName":"' + pipelineName + '","stages":[]}}');
+            var stages = document.querySelectorAll("._ef_rp_stages");
+            [].forEach.call(stages, function (elem) {
+                json.pipeline.stages.push({
+                    'stageName': elem.querySelector(".setting-name").textContent,
+                    'stageValue': elem.querySelector(".setting-input").checked
+                })
+            });
+
+            document.getElementById('stagesToRunEntry').options[0].value = JSON.stringify(json);
+            document.getElementById('stagesToRunEntry').options[0].textContent = JSON.stringify(json);
+        }
+
         function createTitleForRunPipeline() {
             var td = document.createElement('td');
             td.colSpan = 4;
@@ -167,7 +264,7 @@ All rights reserved.
             return td;
         }
 
-        function addParameterRowForRunPipeline(row, label, value, isTable) {
+        function addParameterRowForRunPipeline(row, label, value, isCheckbox, isTable, onChangeFunction) {
             var td1 = document.createElement(isTable ? 'td' : 'div');
             td1.className = 'setting-leftspace';
             td1.textContent = '';
@@ -182,8 +279,15 @@ All rights reserved.
             td3.className = 'setting-main';
             var input1 = document.createElement('input');
             input1.name = 'parameterName';
+            if (isCheckbox) {
+                input1.type = "checkbox";
+                if (value === "true") {
+                    input1.checked = value;
+                }
+                input1.style="width: auto;";
+            }
             input1.value = value;
-            input1.onchange = updateJson;
+            input1.onchange = onChangeFunction;
             input1.className = 'setting-input';
             td3.appendChild(input1);
             row.appendChild(td3);
