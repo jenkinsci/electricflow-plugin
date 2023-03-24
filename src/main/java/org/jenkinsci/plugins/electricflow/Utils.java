@@ -235,7 +235,7 @@ public class Utils {
   public static String getExtraHTML(
       JSONArray parameters, String summaryText, String parameterName, String parameterValue, String sectionName) {
 
-    if (!parameters.isEmpty()) {
+    if (parameters != null && !parameters.isEmpty()) {
       StringBuilder strBuilder = new StringBuilder(summaryText);
 
       strBuilder.append(

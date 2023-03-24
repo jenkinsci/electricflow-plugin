@@ -41,6 +41,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import javax.servlet.ServletException;
@@ -324,6 +325,9 @@ public class ElectricFlowPipelinePublisher extends Recorder implements SimpleBui
     this.stageOption = getSelectItemValue(stageOption);
   }
 
+  public String getStoredStageOption() {
+    return stageOption;
+  }
 
   public String getStartingStage() {
     return startingStage;
@@ -332,6 +336,10 @@ public class ElectricFlowPipelinePublisher extends Recorder implements SimpleBui
   @DataBoundSetter
   public void setStartingStage(String startingStage) {
     this.startingStage = getSelectItemValue(startingStage);
+  }
+
+  public String getStoredStartingStage() {
+    return startingStage;
   }
 
   public String getStagesToRun() {
@@ -951,16 +959,20 @@ public class ElectricFlowPipelinePublisher extends Recorder implements SimpleBui
     }
 
     public FormValidation doShowOldValues(
-        @QueryParameter("configuration") final String configuration,
-        @QueryParameter("projectName") final String projectName,
-        @QueryParameter("pipelineName") final String pipelineName,
-        @QueryParameter("addParam") final String addParam,
-        @QueryParameter("stagesToRun") final String stagesToRun,
-        @QueryParameter("storedConfiguration") final String storedConfiguration,
-        @QueryParameter("storedProjectName") final String storedProjectName,
-        @QueryParameter("storedPipelineName") final String storedPipelineName,
-        @QueryParameter("storedAddParam") final String storedAddParam,
-        @QueryParameter("storedStagesToRun") final String storedStagesToRun,
+        @QueryParameter("configuration") String configuration,
+        @QueryParameter("projectName") String projectName,
+        @QueryParameter("pipelineName") String pipelineName,
+        @QueryParameter("stageOption") String stageOption,
+        @QueryParameter("startingStage") String startingStage,
+        @QueryParameter("stagesToRun") String stagesToRun,
+        @QueryParameter("addParam") String addParam,
+        @QueryParameter("storedConfiguration") String storedConfiguration,
+        @QueryParameter("storedProjectName") String storedProjectName,
+        @QueryParameter("storedPipelineName") String storedPipelineName,
+        @QueryParameter("storedStageOption") String storedStageOption,
+        @QueryParameter("storedStartingStage") String storedStartingStage,
+        @QueryParameter("storedStagesToRun") String storedStagesToRun,
+        @QueryParameter("storedAddParam") String storedAddParam,
         @AncestorInPath Item item) {
       if (item == null || !item.hasPermission(Item.CONFIGURE)) {
         return FormValidation.ok();
@@ -968,8 +980,18 @@ public class ElectricFlowPipelinePublisher extends Recorder implements SimpleBui
       String configurationValue = configuration;
       String projectNameValue = getSelectItemValue(projectName);
       String pipelineNameValue = getSelectItemValue(pipelineName);
-      String addParamValue = getSelectItemValue(addParam);
+      String stageOptionValue = getSelectItemValue(stageOption);
+      String startingStageValue = getSelectItemValue(startingStage);
       String stagesToRunValue = getSelectItemValue(stagesToRun);
+      String addParamValue = getSelectItemValue(addParam);
+
+      stageOptionValue = Objects.toString(stageOptionValue, "");
+      startingStageValue = Objects.toString(startingStageValue, "");
+      stagesToRunValue = Objects.toString(stagesToRunValue, "");
+
+      storedStageOption = Objects.toString(storedStageOption, "");
+      storedStartingStage = Objects.toString(storedStartingStage, "");
+      storedStagesToRun = Objects.toString(storedStagesToRun, "");
 
       Map<String, String> stagesToRunMap = getStagesToRunMapFromParams(stagesToRunValue);
       Map<String, String> storedStagesToRunMap = getStagesToRunMapFromParams(storedStagesToRun);
@@ -978,14 +1000,23 @@ public class ElectricFlowPipelinePublisher extends Recorder implements SimpleBui
       Map<String, String> storedPipelineParamsMap = getParamsMapFromAddParam(storedAddParam);
 
       String comparisonTable =
-          "<table>"
+          "<table name=\"runPipelineCompare\">"
               + getValidationComparisonHeaderRow()
               + getValidationComparisonRow("Configuration", storedConfiguration, configurationValue)
               + getValidationComparisonRow("Project Name", storedProjectName, projectNameValue)
               + getValidationComparisonRow("Pipeline Name", storedPipelineName, pipelineNameValue)
-              + getValidationComparisonRowsForExtraParameters(
-                  "Stages to run", storedStagesToRunMap, stagesToRunMap)
-              + getValidationComparisonRowsForExtraParameters(
+              + getValidationComparisonRow("Stage Option", storedStageOption, stageOptionValue);
+
+      if (stageOptionValue.equals("startingStage") || storedStageOption.equals("startingStage")) {
+        comparisonTable += getValidationComparisonRow("Starting Stage", storedStartingStage, startingStageValue);
+      }
+
+      if (stageOptionValue.equals("stagesToRun") || storedStageOption.equals("stagesToRun")) {
+        comparisonTable += getValidationComparisonRowsForExtraParameters(
+                "Stages to run", storedStagesToRunMap, stagesToRunMap);
+      }
+
+      comparisonTable += getValidationComparisonRowsForExtraParameters(
                   "Pipeline Parameters", storedPipelineParamsMap, pipelineParamsMap)
               + "</table>";
 

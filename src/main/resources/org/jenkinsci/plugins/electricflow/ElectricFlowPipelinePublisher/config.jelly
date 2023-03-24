@@ -59,6 +59,15 @@ All rights reserved.
         <f:readOnlyTextbox field="storedPipelineName"/>
     </f:invisibleEntry>
     <f:invisibleEntry>
+        <f:readOnlyTextbox field="storedStageOption"/>
+    </f:invisibleEntry>
+    <f:invisibleEntry>
+        <f:readOnlyTextbox field="storedStartingStage"/>
+    </f:invisibleEntry>
+    <f:invisibleEntry>
+        <f:readOnlyTextbox field="storedStagesToRun"/>
+    </f:invisibleEntry>
+    <f:invisibleEntry>
         <f:readOnlyTextbox field="storedAddParam"/>
     </f:invisibleEntry>
 
@@ -81,7 +90,7 @@ All rights reserved.
             <f:validateButton title="Compare Before Apply"
                               progress="Comparing values..."
                               method="showOldValues"
-                              with="configuration,projectName,pipelineName,addParam,storedConfiguration,storedProjectName,storedPipelineName,storedAddParam" />
+                              with="configuration,projectName,pipelineName,stageOption,startingStage,stagesToRun,addParam,storedConfiguration,storedProjectName,storedPipelineName,storedStageOption,storedStartingStage,storedStagesToRun,storedAddParam" />
         </j:if>
     </f:entry>
 
@@ -117,7 +126,7 @@ All rights reserved.
             }
             var json = JSON.parse(param);
 
-            var table = document.querySelector("[descriptorid='electricFlowSettings'] table");
+            var table = document.querySelector("[descriptorid='electricFlowSettings'] table:not([name='runPipelineCompare'])");
             if (table == null) {
               table = getElementByXpath("//select[@checkdependson='validationTrigger']/ancestor::table[@name]");
             }
@@ -176,7 +185,7 @@ All rights reserved.
             }
             var json = JSON.parse(param);
 
-            var table = document.querySelector("[descriptorid='electricFlowSettings'] table");
+            var table = document.querySelector("[descriptorid='electricFlowSettings'] table:not([name='runPipelineCompare'])");
             if (table == null) {
                 table = getElementByXpath("//select[@checkdependson='validationTrigger']/ancestor::table[@name]");
             }
