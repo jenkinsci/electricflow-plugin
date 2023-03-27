@@ -774,7 +774,7 @@ public class ElectricFlowClient {
   }
 
   public List<StageResponseData> getPipelineStages(String projectName, String pipelineName) throws IOException {
-    String requestEndpoint = "/projects/" + projectName + "/stages?pipelineName=" + pipelineName;
+    String requestEndpoint = "/projects/" + Utils.encodeURL(projectName) + "/stages?pipelineName=" + Utils.encodeURL(pipelineName);
     String result = runRestAPI(requestEndpoint, GET);
     List<StageResponseData> stages = new ArrayList<>();
     for (Object object: JSONObject.fromObject(result).getJSONArray("stage")) {
