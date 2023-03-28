@@ -474,6 +474,10 @@ public class ElectricFlowPipelinePublisher extends Recorder implements SimpleBui
     String pipelineRunUrl =
         efClient.getElectricFlowUrl() + "/flow/#pipeline-run/" + pipelineId + "/" + flowRuntimeId;
     String pipelineUrl = efClient.getElectricFlowUrl() + "/flow/#pipeline-kanban/" + pipelineId;
+    String stageOptionTxt = Objects.toString(stageOption, "").isEmpty()
+            ? "Not provided (runAllStages by default)"
+            : stageOption;
+
     String summaryText =
         "<h3>CloudBees CD Run Pipeline</h3>"
             + "<table cellspacing=\"2\" cellpadding=\"4\"> \n"
@@ -502,10 +506,10 @@ public class ElectricFlowPipelinePublisher extends Recorder implements SimpleBui
             + "  <tr>\n"
             + "    <td>Stage Option:</td>\n"
             + "    <td>"
-            + HtmlUtils.encodeForHtml(stageOption)
+            + HtmlUtils.encodeForHtml(stageOptionTxt)
             + "</td>    \n"
             + "  </tr>";
-    switch (stageOption) {
+    switch (Objects.toString(stageOption, "")) {
       case "startingStage":
         summaryText += "  <tr>\n"
             + "    <td>Starting Stage:</td>\n"
