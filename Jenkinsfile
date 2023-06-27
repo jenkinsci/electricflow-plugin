@@ -1,4 +1,4 @@
-buildPlugin(configurations: [
+buildPluginWithGradle(configurations: [
           // Sanity on the minimum required Jenkins version
          [ platform: "linux", jdk: "8" ],
 
