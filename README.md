@@ -284,6 +284,17 @@ You can use the following workarounds instead of the **Add** button to help you 
 
 # Release Notes
 
+## Version 1.1.32 (May 05, 2023)
+
+- Added option to only run specified stages.
+- Updated UI snippet generator to generate scripts that support running only specified stages.
+- Improved Post Build Actions to support running only specified stages.
+- Fixed issue where credentials could not be added to new Cloudbees CD configuration.
+- Fixed issue with **Test Connection** failing when using token authentication. 
+- Fixed issue with **Compare Before Apply** not comparing stage options that were changed. 
+- Fixed issue with **Run Pipeline**, where when configuring a **Starting Stage**, an error was returned for fetching pipeline stages to run.
+- Fixed issue when running **Run Pipeline** post build actions a `NullPointerException` was returned causing the associated build step to fail. 
+
 ## Version 1.1.31 (February 14, 2023)
 
 - Added CloudBees CD/RO version dependencies section
