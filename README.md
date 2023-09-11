@@ -284,6 +284,12 @@ You can use the following workarounds instead of the **Add** button to help you 
 
 # Release Notes
 
+## Version 1.1.31 (February 14, 2023)
+
+- Added CloudBees CD/RO version dependencies section
+- Fixed configuration as code issue with credentials ID.
+- Updated connection configurations to support SSO.
+
 ## Version 1.1.30 (January 27, 2023)
 
 - Removed dependencies on platform CGI scripts
