@@ -303,154 +303,151 @@ You can use the following workarounds instead of the **Add** button to help you 
 
 ## Version 1.1.30 (January 27, 2023)
 
-- Removed dependencies on platform CGI scripts
+- Removed dependencies on platform CGI scripts.
 
 ## Version 1.1.29 (November 25, 2022)
 
-- Fixed plugin dependencies
+- Fixed plugin dependencies.
 
 ## Version 1.1.28 (November 15, 2022)
 
-- Updated plugin's global configuration by possibility to use stored credentials. Username and password or secret text (token) can be used for connecting to CloudBees CD
-- Added support of cloudbees cd tokens which now can be configured as stored credential (secret text) for main or override configurations;
-- Improved handling of override credentials
-- Fixed handling of stages in Trigger Release
+- Updated the plugin global configuration to support using stored credentials. *Username and password* or *Secret text (token)* can be used for connecting to CloudBees CD.
+- Added support for Cloudbees CD tokens, which now can be configured default stored credentials (secret text) or to override configurations.
+- Improved handling of override credentials.
+- Fixed handling of stages in **Trigger Release**.
 
 ## Version 1.1.25 (January 14, 2022)
 
-- Added support of folder credentials which now can be used within override credentials functionality
-- Fixed Upload Artifact when using agent 
-- Improved integration of CloudBees CI and CD
+- Added support of folder credentials which now can be used within override credentials functionality.
+- Fixed **Upload Artifact** when using agent.
+- Improved integration of CloudBees CI and CD.
 
 ## Version 1.1.21 (March 12, 2021)
 
-- Updated dependencies
+- Updated dependencies.
 
 ## Version 1.1.20 (March 10, 2021)
 
-- Updated dependencies
+- Updated dependencies.
 
 ## Version 1.1.19 (February 11, 2021)
 
-- Updated Run And Wait option to allow interruption of the build when Flow runtime was not finished successfully. This enhancement is applied to the following methods:
-    - Trigger Release
-    - Run Pipeline
-    - Run Procedure
-    - Publish Application
-    - Create and Deploy Application from Deployment Package
-- Updated Deploy application by possibility to specify project for environment if it is other than project for application
-- Fixed the following procedures for new Jenkins (2.264+) according to Jenkins forms tabular to div changes: Run Procedure, Run Pipeline, Deploy Application, Trigger Release 
+- Improved the **Run And Wait** option to support interrupting builds when Flow runtime was not finished successfully. This enhancement is applied to the following procedures:
+    - **Trigger Release**
+    - **Run Pipeline**
+    - **Run Procedure**
+    - **Publish Application**
+    - **Create and Deploy Application from Deployment Package**
+- Updated **Deploy application** to support specifying an environment project if it is different from the application project.
+- Fixed the following procedures for new Jenkins (2.264+) according to Jenkins forms `tabular to div` changes: **Run Procedure**, **Run Pipeline**, **Deploy Application**, and **Trigger Release**.
 
 ## Version 1.1.18 (September 14, 2020)
 
-- Updated Publish Artifact by Relative Workspace parameter
-- Updated Run And Wait checkInterval by min value
-- Updated "Depend on CD job/pipeline outcome" functionality by association of CloudBees CD job/pipeline outcome "Warning" with CloudBees CI build result "Unstable"
-- Updated build summary links for Run Pipeline, Publish Artifact, Trigger Release
-- Fixed snippet generator UI for pipeline steps with extra parameters (Run Procedure, Trigger Release, Run Pipeline, Deploy Application)
-- Event-based build watchers have been improved and now they are also sending build information after the build is finished.
-- CloudBees CD Multibranch Pipelines support has been improved.
-- Bug fixes and improvements
+- Updated **Publish Artifact** with **Relative Workspace** parameter.
+- **Updated Run And Wait** parameter **checkInterval** with *minimum value*.
+- Updated **Depend on CD job/pipeline outcome** functionality by association of CloudBees CD job/pipeline outcome _Warning_ with CloudBees CI build result _Unstable_.
+- Updated build summary links for **Run Pipeline**, **Publish Artifact**, **Trigger Release**.
+- Fixed snippet generator UI for pipeline steps with extra parameters, including **Run Procedure**, **Trigger Release**, **Run Pipeline**, **Deploy Application**).
+- Event-based build watchers were improved and can now send build information after builds are finished.
+- CloudBees CD **Multibranch Pipelines** support has been improved.
+- Bug fixes and improvements.
 
 ## Version 1.1.17 (July 17, 2020)
 
-Improvements:
+- Improvements:
 
-- Updated the following post build actions by Run and Wait option with possibility to depend on CD job or pipeline outcome:
-  - Run Pipeline
-  - Trigger Release
-  - Run Procedure
-  - Deploy Application
-  - Create and Deploy Application from Deployment Package
+    - Updated the following post build actions with a **Run and Wait** option with possibility to depend on CD job or pipeline outcome:
+        - **Run Pipeline**
+        - **Trigger Release**
+        - **Run Procedure**
+        - **Deploy Application**
+        - **Create and Deploy Application from Deployment Package**
 
 ## Version 1.1.16 (June 26, 2020)
 
-Improvements:
+- Improvements:
+    - Improved **Run Procedure** with a **RunAndWait** option that includes additional **dependOnCdJobOutcome** and **checkInterval** sub-options.
+    - Improved **Trigger Pipeline** error messages.
+    - Improved **Run Procedure** error handling.
+    - Improved build summary of **Deploy Application** with links to CD applications.
 
-- Updated Run Procedure by “RunAndWait” option which includes extra dependOnCdJobOutcome and checkInterval sub-options
-- Improved error messages in Trigger Pipeline PBA
-- Improved error handling in Run Procedure PBA
-- Updated build summary of Deploy Application by an extra link to CD application
+- Bugfixes:
+    - Fixed an issue where **Publish Artifact** to created incorrect repository structures if artifacts were published from Jenkins agent nodes.
+    - Fixed an issue cased by double slashes in **CD Artifacts URL**.
+    - **Deploy Application** PBA now has a link to the exact application deployed instead of a link to all applications on customer instance.
+    - Fixed an issue in EC-Jenkins when artifact URLs could not be retrieved for the **Report** stage of **Run And Monitor** and **Run And Wait** under certain conditions.
+    - Fixed release retrieval code
+    - Fixed issue where **Publish Artifacts** was failing successful builds under some conditions.
+    - Fixed a bug when parameter **Stages to run** was ignored and all stages were running.
 
-Bugfixes:
-
-- Fixed an issue when Publish Artifact has been creating a wrong repository structure if the artifact has been published from the Jenkins agent node
-- Fixed an error when CD Artifacts URL had a double slash under some conditions
-- Deploy Application PBA now has a link to the exact application that has been deployed instead of a link to all applications on customer instance
-- Fixed an issue in EC-Jenkins when artifacts URL could not be retrieved for the Report stage of Run And Monitor and Run And Wait under certain conditions
-- Fixed release retrieval code
-- Fixed an error when "Publish Artifacts" was turning a successful build into failed build under some conditions
-- Fixed a bug when parameter "Stages to run" has been ignored and all stages were running
-
-Documentation, help tips and labels:
-
-- Updated plugin documentation by new screenshots and pipeline code snaps
-- Parameters label for Trigger release has been changed to be more concrete
-- Updated help tips for "Publish Artifacts" and "Create/Deploy Application from Deployment Package" PBAs has been improved and now has the list of supported cases
+- Documentation, help tips and labels:
+    - Updated plugin documentation with new screenshots and pipeline code samples.
+    - Updated parameter labels for **Trigger release** to improve usability.
+    - Updated help tips and added supported use cases for **Publish Artifacts** and **Create/Deploy Application from Deployment Package** to improve usability.
 
 ## Version 1.1.15 (June 1, 2020)
 
-  - Added support for new CI Build Detail APIs:
-    - New Post Build Action - Associate Build To Release to allow attaching CI Build Data of the independent builds to releases or release runs
-    - Run Pipeline now attaches CI Build Data to the triggered pipeline run
-    - Trigger Release now attaches CI Build Data to the triggered release pipeline run
-    
-  - Improved integration with CloudBees CD:
-    - CI Build Data infrastructure has been created
-    - Event-based watchers have been created to send build data to CloudBees CD automatically if build has been triggered by CloudBees CD.
-    
-  - Re-branding: renaming from "CloudBees Flow" to "CloudBees CD"
+- Added support for new CI Build Detail APIs:
+    - Added new Post Build Action **Associate Build To Release** to allow attaching CI Build Data of the independent builds to releases or release runs.
+    - **Run Pipeline** now attaches CI Build Data to the triggered pipeline run.
+    - **Trigger Release** now attaches CI Build Data to the triggered release pipeline run.
+
+- Improved integration with CloudBees CD:
+    - CI Build Data infrastructure has been created.
+    - Created event-based watchers to send build data to CloudBees CD automatically if build is triggered by CloudBees CD.
+
+- Renamed from "CloudBees Flow" to "CloudBees CD".
 
 ## Version 1.1.14 (May 6, 2020)
 
-  - Added support of Configuration as Code
-  - Updated plugin dependencies
+- Added support of Configuration as Code.
+- Updated plugin dependencies.
 
 ## Version 1.1.13 (Apr 21, 2020)
 
-  - All Post Build Actions now have the ability to connect to CloudBees Flow as a user other than the one mentioned in the electricflow Plugin configuration, under "Manage Jenkins".  These credentials which are used to override the connection credential at the level of the PBA only supports global credentials at this time.
-  - Fixed parameters collision for pipelines with the same name in the following Post Build Actions: Trigger Release, Run Pipeline
-  - Fixed corrupted artifact uploading in the following Post Build Actions: Publish Artifact
-  - Updated plugin dependencies
+- All Post Build Actions can now connect to CloudBees Flow as a user other than the one mentioned in the `electricflow` Plugin configuration, under **Manage Jenkins**.  These credentials which are used to override the connection credential at the level of the PBA only supports global credentials at this time.
+- Fixed parameters collision for pipelines with the same name in the **Trigger Release** and  **Run Pipeline** Post Build Actions.
+- Fixed corrupted artifact uploading in the **Publish Artifact** Post Build Action.
+- Updated plugin dependencies.
 
 ## Version 1.1.12 (Dec 17, 2019)
 
-Migrated plugin documentation from Wiki to GitHub
+Migrated plugin documentation from Wiki to GitHub.
 
 ## Version 1.1.11 (Dec 11, 2019)
 
-Updated "CloudBees Flow - Publish Artifact"
-  - Added pipeline compatibility
-  - Fixed support of running on agents
-  
-Updated "CloudBees Flow - Create and Deploy Application from Deployment Package"
-  - Added pipeline compatibility
-  - Fixed support of running on agents
-  - Added link to CloudBees Flow job within summary of a build
-  
-Added pipeline function aliases for all post build actions.
+Updated CloudBees Flow - **Publish Artifact**:
+- Added pipeline compatibility.
+- Fixed support of running on agents.
 
-Added expand environment variable functionality for the following post build actions:
-  - CloudBees Flow - Call REST API
-  - CloudBees Flow - Run Procedure
-  - CloudBees Flow - Deploy Application
+- Updated CloudBees Flow - **Create and Deploy Application from Deployment Package**:
+    - Added pipeline compatibility.
+    - Fixed support of running on agents.
+    - Added link to CloudBees Flow job within summary of a build.
 
-Added a sample Jenkinsfile to the plugin repository
+- Added pipeline function aliases for all post build actions.
+
+- Added expand environment variable functionality for the following post build actions:
+    - CloudBees Flow - **Call REST API**
+    - CloudBees Flow - **Run Procedure**
+    - CloudBees Flow - **Deploy Application**
+
+- Added a sample [Jenkinsfile](https://github.com/jenkinsci/electricflow-plugin/blob/master/Jenkinsfile) to the plugin repository.
 
 ## Version 1.1.10 (Sep 26, 2019)
 
-Updated "CloudBees Flow - Call REST API" related functionality:
+- Updated **CloudBees Flow - Call REST API** related functionality:
 
--   Added support of the new workflow step "CloudBees Flow - Call REST
-    API" which is based on the same functionality as corresponded post
-    build action. Snippet generator UI is available for the new workflow
-    step
--   Result of calling CloudBees Flow REST API (JSON output) now can be
-    stored within environment variable available within build and also
-    can be returned by the new workflow step within scripted pipelines
--   Fixed URL on summary page of Call REST API jobs
+    -   Added support for a new workflow step, **CloudBees Flow - Call REST
+        API**, which is based on the same functionality as corresponded post
+        build action. Additionally, a snippet generator UI is available for the new workflow
+        step.
+    -   Result of calling CloudBees Flow REST API (JSON output) now can be
+        stored within environment variables available within builds. They can
+        also be returned by the new workflow step within scripted pipelines.
+    -   Fixed URL on summary page of **Call REST API** jobs.
 
-Changed Jenkins baseline version for the plugin to 2.138.4
+- Changed Jenkins baseline version for the plugin to 2.138.4.
 
 ## Version 1.1.9 (Jun 12, 2019)
 
@@ -474,46 +471,45 @@ Changed Jenkins baseline version for the plugin to 2.138.4
 
 ## Version 1.1.5 (Dec 19, 2018)
 
-Support for the following New Post Build Actions have been added:
+- Support for the following **New Post Build Actions** have been added:
 
--   ElectricFlow - Deploy Application
--   ElectricFlow - Trigger Release
--   ElectricFlow - Call REST API
--   ElectricFlow - Run Procedure
+    -   ElectricFlow - Deploy Application
+    -   ElectricFlow - Trigger Release
+    -   ElectricFlow - Call REST API
+    -   ElectricFlow - Run Procedure
 
-Post Build Action "ElectricFlow - Run Pipeline" modified as follows:
+- Post Build Action **ElectricFlow - Run Pipeline** modified as follows:
 
--   It can now be run for pipelines without parameters
+    -   It can now be run for pipelines without parameters.
 
-Post Build Action "ElectricFlow - Publish Artifact" modified as follows:
+- Post Build Action **ElectricFlow - Publish Artifact** modified as follows:
 
--   Added support for publishing to both directories and sub-directories
--   Explicit error messages added for build runs
+    -   Added support for publishing to both directories and subdirectories.
+    -   Explicit error messages added for build runs.
 
-Usability Changes
+- Usability changes:
 
--   Post Build Action page shows dynamically retrieved values all the
-    time
--   Two new buttons "Validate Before Apply" and "Compare Before Apply"
-    added in Post Build Action Pages for Deploy Application, Trigger
-    Release, Run Procedure and Run Pipeline, to make sure that failure
-    to retrieve information is handled gracefully (no stack traces) and
-    at the same time, users can understand the field errors before
-    saving the configuration.
--   More descriptive Help tips.
--   More verbose messages when Test Connection fails with Electric Flow.
--   More verbose logging on response body for failed Rest API calls.
--   New option called "Override Electric Flow SSL Validation Check"
-    introduced for testing connection with Electric Flow, where there is
-    a need to test Electric Flow Post Build Actions before doing the SSL
-    setup.
+    -   **Post Build Action** page shows dynamically retrieved values all the
+        time.
+    -   Two new buttons **Validate Before Apply** and **Compare Before Apply**
+        added in **Post Build Action Pages for Deploy Applicatio**, **Trigger
+        Release**, **Run Procedure** and **Run Pipeline**. This is to help ensure failures
+        to retrieve information is handled gracefully (no stack traces), and users can understand the field errors before
+        saving the configuration.
+    -   More descriptive Help tips.
+    -   More verbose messages when Test Connection fails with Electric Flow.
+    -   More verbose logging on response body for failed Rest API calls.
+    -   New option called **Override Electric Flow SSL Validation Check"** was
+        introduced for testing connection with Electric Flow, where there is
+        a need to test Electric Flow Post Build Actions before doing the SSL
+        setup.
 
 ## Version 1.1.4 (Nov 22, 2017)
 
 Post Build Action "ElectricFlow - Publish Artifact" modified as follows:
 
--   Fixed Scenarios where Build Step fails with exceptions
--   Added Support for remoting (build on remote windows machines)
+-   Fixed Scenarios where Build Step fails with exceptions.
+-   Added Support for remoting (build on remote Windows machines).
 
 ## Version 1.1.3 (May 9, 2017)
 
@@ -522,8 +518,8 @@ Support added for running plugin tasks from jenkins pipeline as per
 
 ## Version 1.1.2 (Apr 28, 2017)
 
-More detailed output from plugin on build page results.  
-Hierarchy files output added to build page.
+- More detailed output from plugin on build page results.
+- Hierarchy files output added to build page.
 
 ## Version 1.1.1 (Apr 27, 2017)
 
@@ -532,4 +528,3 @@ General clean up of code.
 ## Version 1.0 (Apr 26, 2017)
 
 Initial Release.
-
