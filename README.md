@@ -1,6 +1,6 @@
-# CloudBees CD/RO
+# CloudBees CD
 
-CloudBees Continuous Deployment and Release Orchestration (CD/RO) is 
+CloudBees Continuous Deployment and Release Orchestration (CD/RO), formerly CloudBees CD, is 
 an enterprise-grade DevOps release automation platform that simplifies 
 provisioning, building, and releasing multi-tiered applications. 
 Our model-driven approach for managing environments and applications 
