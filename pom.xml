@@ -22,7 +22,7 @@
   </properties>
 
   <name>CloudBees CD</name>
-  <description>CloudBees CD Application Release Orchestration</description>
+  <description>Integrate features and APIs and from CloudBees CD/RO directly with Jenkins.</description>
   <url>https://github.com/jenkinsci/${project.artifactId}-plugin</url>
 
   <licenses>
