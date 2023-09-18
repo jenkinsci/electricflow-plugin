@@ -1,4 +1,4 @@
-# CloudBees CD
+# CloudBees CD/RO plugin
 
 CloudBees Continuous Deployment and Release Orchestration (CD/RO), formerly CloudBees CD, is 
 an enterprise-grade DevOps release automation platform that simplifies 
