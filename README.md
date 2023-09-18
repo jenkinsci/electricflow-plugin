@@ -10,7 +10,7 @@ and auditable way.
 
 # Plugin overview
 
-The CloudBees CD plugin allows to integrate features and APIs and from CloudBees CD/RO directly in your Jenkins instances. From running piplelines that compile your applications to deploying them, the CloudBees CD plugin help reduce the inherant complexity of continuous deployment and release orchestration. For more information on the capabilities of this plugin, refer to [Features](#plugin-features). 
+The CloudBees CD plugin allows to integrate features and APIs and from CloudBees CD/RO directly in your Jenkins instances. From running piplelines that compile your applications to deploying them, the CloudBees CD plugin help reduce the inherant complexity of continuous deployment and release orchestration. For more information on the capabilities of this plugin, refer to [Plugin features](#plugin-features). 
 
 # CloudBees CD/RO version dependencies
 
