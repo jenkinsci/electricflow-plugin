@@ -1,20 +1,22 @@
-# CloudBees CD
-CloudBees CD Application Release Orchestration.
+# CloudBees CD/RO plugin
 
-# Overview
+CloudBees Continuous Deployment and Release Orchestration (CD/RO), formerly CloudBees CD, is 
+an enterprise-grade DevOps release automation platform that simplifies 
+provisioning, building, and releasing multi-tiered applications. 
+Our model-driven approach for managing environments and applications 
+allows teams to collaborate and coordinate across multiple pipelines and 
+releases within hybrid infrastructures in an efficient, predictable, 
+and auditable way.
 
-CloudBees CD is an enterprise-grade DevOps Release Automation platform
-that simplifies the provisioning, building, and releasing of multi-tiered
-applications. Our model-driven approach to managing environments and
-applications allows teams to collaborate on and coordinate multiple
-pipelines and releases across hybrid infrastructure in an efficient,
-predictable, and auditable way.
+# Plugin overview
+
+The CloudBees CD plugin allows you to integrate features and APIs and from CloudBees CD/RO directly in your Jenkins instances. From running piplelines that compile your applications to deploying them, the CloudBees CD plugin helps reduce the inherant complexity of continuous deployment and release orchestration. For more information on the capabilities of this plugin, refer to [Plugin features](#plugin-features). 
 
 # CloudBees CD/RO version dependencies
 
 Starting with CloudBees CD/RO v2023.02.0, you must upgrade to CloudBees CD plugin v1.1.30. Failure to do so will result in failed plugin procedures. v1.1.30 is backwards compatible with previous CloudBees CD/RO releases.
 
-# Features
+# Plugin features
 
 With the CloudBees CD plugin you can:
 -   [Connect to your CloudBees CD server](#connecting-to-your-cloudbees-cd-server)
