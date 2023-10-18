@@ -24,6 +24,7 @@ import java.io.OutputStreamWriter;
 import java.io.PrintStream;
 import java.io.Writer;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
@@ -112,24 +113,6 @@ public class FileHelper {
     return list;
   }
 
-  static List<File> getFilesFromDirectory(final File folder) {
-    List<File> fileList = new ArrayList<>();
-    File[] list = folder.listFiles();
-
-    if (list == null) {
-      return fileList;
-    }
-
-    for (final File fileEntry : list) {
-
-      if (!fileEntry.isDirectory()) {
-        fileList.add(fileEntry);
-      }
-    }
-
-    return fileList;
-  }
-
   static List<File> getFilesFromDirectoryWildcardDirScanner(
           String includePattern,
           boolean fullPath,
@@ -148,7 +131,9 @@ public class FileHelper {
           fileString = s;
         }
         File retFile = new File(fileString);
-        readFileList.add(retFile);
+        if (retFile.toPath().toRealPath().startsWith(new File(fullPathValue).toPath().toRealPath())) {
+          readFileList.add(retFile);
+        }
       }
     });
     return readFileList;
@@ -236,6 +221,10 @@ public class FileHelper {
     File[] files = dir.listFiles();
     if (files != null) {
       for (final File file : files) {
+        if (Files.isSymbolicLink(file.toPath())) {
+          boolean symlinkRemoved = file.delete();
+          continue;
+        }
         __deleteDirectory(file);
       }
     }

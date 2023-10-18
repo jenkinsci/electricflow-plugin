@@ -416,7 +416,8 @@ public class ElectricFlowClient {
     // http://swarm/reviews/137432/
     String phpUrl = this.electricFlowUrl + "/commander/publishArtifact.php";
     String cgiUrl = this.electricFlowUrl + "/commander/cgi-bin/publishArtifactAPI.cgi";
-    String requestURL = checkIfEndpointReachable("/commander/publishArtifact.php") ? phpUrl : cgiUrl;
+    boolean isPhpEndpoint = checkIfEndpointReachable("/commander/publishArtifact.php");
+    String requestURL = isPhpEndpoint ? phpUrl : cgiUrl;
 
     MultipartUtility multipart =
         new MultipartUtility(requestURL, CHARSET, this.getIgnoreSslConnectionErrors());
@@ -428,20 +429,7 @@ public class ElectricFlowClient {
     multipart.addFormField("commanderSessionId", sessionId);
 
     for (File file : fileList) {
-      if (file.isDirectory()) {
-
-        if (!uploadDirectory) {
-          continue;
-        }
-
-        List<File> dirFiles = FileHelper.getFilesFromDirectory(file);
-
-        for (File f : dirFiles) {
-          multipart.addFilePart("files", f, uploadWorkspace);
-        }
-      } else {
-        multipart.addFilePart("files", file, uploadWorkspace);
-      }
+      multipart.addFilePart(isPhpEndpoint ? "files[]" : "files", file, uploadWorkspace);
     }
 
     List<String> response = multipart.finish();
