@@ -286,6 +286,10 @@ You can use the following workarounds instead of the **Add** button to help you 
 
 # Release Notes
 
+## Version 1.1.33 (October 18, 2023)
+
+- Internal improvements. 
+
 ## Version 1.1.32 (May 05, 2023)
 
 - Added option to only run specified stages.
