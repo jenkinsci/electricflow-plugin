@@ -227,8 +227,8 @@ public class Utils {
   public static String getParametersHTML(JSONArray parameters, String summaryText, String parameterName, String parameterValue) {
     return getExtraHTML(parameters,
             summaryText,
-            "parameterName",
-            "parameterValue",
+            parameterName,
+            parameterValue,
             "Parameters");
   }
 
