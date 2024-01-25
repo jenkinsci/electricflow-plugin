@@ -95,7 +95,7 @@ To configure calls to CloudBees CD's REST API:
     >
     >* `/objects?request=sendReportingData`
     
-    > **_TIP:_** You can use CloudBees CD/RO's Swagger UI to reference CloudBees CD/RO REST API resources. To access the Swagger UI, navigate to `https://<cloudbees-cd-server_hostname>/rest/doc/v1.0/`, where `<cloudbees-cd-server_hostname>` is the host name or IP address of your CloudBees CD/RO server.
+    > **_TIP:_** To reference CloudBees CD/RO REST API resources and descriptions, you can use CloudBees CD/RO's Swagger UI. To access the Swagger UI, navigate to `https://<cloudbees-cd-server_hostname>/rest/doc/v1.0/`, where `<cloudbees-cd-server_hostname>` is the host name or IP address of your CloudBees CD/RO server.
     >
     > For more information on the Swagger UI, refer to [Access the Swagger UI](https://docs.cloudbees.com/docs/cloudbees-cd-api-rest/latest/#_access_the_swagger_ui).
 
