@@ -84,7 +84,7 @@ The CloudBees CD plugin enables you to perform post-build actions for your Jenki
 
 ## Calling CloudBees CD REST API
 
-The CloudBees CD plugin allows you to make calls to CloudBees CD's REST API. You can make for post-build actions and as pipeline steps. For more information on using the CloudBees CD REST API, refer to [Use the CloudBees CD/RO RESTful API](https://docs.cloudbees.com/docs/cloudbees-cd-api-rest/latest/).  
+The CloudBees CD plugin allows you to make calls to CloudBees CD's REST API for post-build actions and as pipeline steps. For more information on using the CloudBees CD REST API, refer to [Use the CloudBees CD/RO RESTful API](https://docs.cloudbees.com/docs/cloudbees-cd-api-rest/latest/).  
 
 To configure calls to CloudBees CD's REST API:
 1. Navigate to your job's **Configuration** > **Post-build Actions** menu.
