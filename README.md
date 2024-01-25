@@ -91,9 +91,9 @@ To configure calls to CloudBees CD's REST API:
 2. Select **Add post-build action**.
 3. In the filter field, enter `CloudBees CD - Call REST API`. 
 4. Complete the fields with your configuration details. Select the **?** icon to view field information in a new dialog.
-    > **_IMPORTANT:_** For API parameters that include the phrase,  "`request=sendReportingData` must appear in your query string" in their description, you must include `request=sendReportingData` in the **Path URL** field. For example:
+    > **_IMPORTANT:_** For API parameters that include the phrase, "`request=<API-NAME>` must appear in your query string" in their description, you must include `?request=<API-NAME>` in the **Path URL** field. For example:
     >
-    >* `/objects?request=sendReportingData`
+    >* `/objects?request=sendReportingData`: Where `?` designates a query string, `request` and `sendReportingData` are required by the `POST object` API. 
     
     > **_TIP:_** To reference CloudBees CD/RO REST API resources and descriptions, you can use CloudBees CD/RO's Swagger UI. To access the Swagger UI, navigate to `https://<cloudbees-cd-server_hostname>/rest/doc/v1.0/`, where `<cloudbees-cd-server_hostname>` is the host name or IP address of your CloudBees CD/RO server.
     >
