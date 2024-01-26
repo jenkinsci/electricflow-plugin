@@ -84,13 +84,22 @@ The CloudBees CD plugin enables you to perform post-build actions for your Jenki
 
 ## Calling CloudBees CD REST API
 
-The CloudBees CD plugin allows you to make calls to CloudBees CD's REST API. You can make for post-build actions and as pipeline steps.
+The CloudBees CD plugin allows you to make calls to CloudBees CD's REST API for post-build actions and as pipeline steps. For more information on using the CloudBees CD REST API, refer to [Use the CloudBees CD/RO RESTful API](https://docs.cloudbees.com/docs/cloudbees-cd-api-rest/latest/).  
 
-To configure a calls to CloudBees CD's REST API:
+To configure calls to CloudBees CD's REST API:
 1. Navigate to your job's **Configuration** > **Post-build Actions** menu.
 2. Select **Add post-build action**.
 3. In the filter field, enter `CloudBees CD - Call REST API`. 
-4. Complete the fields with your configuration details. Select the **?** icon to view field information in a new dialog. 
+4. Complete the fields with your configuration details. Select the **?** icon to view field information in a new dialog.
+    > **_IMPORTANT:_** For API parameters that include the phrase, "`request=<API-NAME>` must appear in your query string" in their description, you must include `?request=<API-NAME>` in the **Path URL** field. For example:
+    >
+    >* `/objects?request=sendReportingData`: Where `?` designates a query string, `request` and `sendReportingData` are required by the `POST object` API. 
+    
+    > **_TIP:_** To reference CloudBees CD/RO REST API resources and descriptions, you can use CloudBees CD/RO's Swagger UI. To access the Swagger UI, navigate to `https://<cloudbees-cd-server_hostname>/rest/doc/v1.0/`, where `<cloudbees-cd-server_hostname>` is the host name or IP address of your CloudBees CD/RO server.
+    >
+    > For more information on the Swagger UI, refer to [Access the Swagger UI](https://docs.cloudbees.com/docs/cloudbees-cd-api-rest/latest/#_access_the_swagger_ui).
+
+
 5. To apply the configuration to your job, select **Save** in the Jenkins UI.
 
 ### Pipeline script example for REST API calls in a Scripted Pipeline step
