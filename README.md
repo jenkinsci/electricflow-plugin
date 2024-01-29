@@ -14,7 +14,7 @@ The CloudBees CD plugin allows you to integrate features and APIs CloudBees CD/R
 
 # CloudBees CD/RO version dependencies
 
-Starting with CloudBees CD/RO v2023.02.0, you must upgrade to CloudBees CD plugin v1.1.30 or later. Failure to do so will result in failed plugin procedures. Plugin versions v1.1.30 are backwards compatible with previous CloudBees CD/RO releases.
+Starting with CloudBees CD/RO v2023.02.0, you must upgrade to CloudBees CD plugin v1.1.30 or later. Failure to do so will result in failed plugin procedures. Plugin versions v1.1.30 or later are backwards compatible with previous CloudBees CD/RO releases.
 
 # Plugin features
 
