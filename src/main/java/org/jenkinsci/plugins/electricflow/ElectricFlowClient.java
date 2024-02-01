@@ -434,18 +434,18 @@ public class ElectricFlowClient {
 
     List<String> response = multipart.finish();
 
-    String resultLine = "";
+    StringBuilder resultLine = new StringBuilder();
 
     for (String line : response) {
 
-      resultLine = resultLine + line;
+        resultLine.append(line);
 
-      if (log.isDebugEnabled()) {
+        if (log.isDebugEnabled()) {
         log.debug("Response: " + line);
       }
     }
 
-    return resultLine;
+    return resultLine.toString();
   }
 
   private boolean checkIfEndpointReachable(String destination) {
