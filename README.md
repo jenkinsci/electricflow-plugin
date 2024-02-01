@@ -297,7 +297,7 @@ You can use the following workarounds instead of the **Add** button to help you 
 
 ## Version 1.1.34 (January 26, 2024)
 
-- Internal improvements.
+- Fixed issue where *Run Procedure* failed if configured to run with parameters. 
 - Improved tool tips and documentation for *Calling CloudBees CD REST API* procedure.
 
 ## Version 1.1.33 (October 18, 2023)
