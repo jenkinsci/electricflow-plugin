@@ -10,7 +10,7 @@ and auditable way.
 
 # Plugin overview
 
-The CloudBees CD plugin allows you to integrate features and APIs CloudBees CD/RO directly in your Jenkins instances. From running pipelines that compile your applications to deploying them, the CloudBees CD plugin helps reduce the inherent complexity of continuous deployment and release orchestration. For more information on the capabilities of this plugin, refer to [Plugin features](#plugin-features). 
+The CloudBees CD plugin allows you to integrate CloudBees CD/RO features and APIs directly in your Jenkins instances. From running pipelines that compile your applications to deploying them, the CloudBees CD plugin helps reduce the inherent complexity of continuous deployment and release orchestration. For more information on the capabilities of this plugin, refer to [Plugin features](#plugin-features). 
 
 # CloudBees CD/RO version dependencies
 
@@ -294,6 +294,11 @@ You can use the following workarounds instead of the **Add** button to help you 
 - Add your credentials as described in Jenkins' [Configuring credentials](https://www.jenkins.io/doc/book/using/using-credentials/#configuring-credentials).
 
 # Release Notes
+
+## Version 1.1.34 (January 26, 2024)
+
+- Internal improvements.
+- Improved tool tips and documentation for *Calling CloudBees CD REST API* procedure.
 
 ## Version 1.1.33 (October 18, 2023)
 
