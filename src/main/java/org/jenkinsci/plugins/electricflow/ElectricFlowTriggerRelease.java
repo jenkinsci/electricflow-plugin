@@ -143,7 +143,8 @@ public class ElectricFlowTriggerRelease extends Recorder implements SimpleBuildS
       if (stages.size() > 0) {
         for (int i = 0; i < stages.size(); i++) {
           JSONObject stage = stages.getJSONObject(i);
-          if (stage.getBoolean("stageValue")) {
+          String stageValue = stage.get("stageValue").toString();
+          if (stageValue.equals("true")) {
             stagesToRun.add(stage.getString("stageName"));
           }
         }
