@@ -295,6 +295,11 @@ You can use the following workarounds instead of the **Add** button to help you 
 
 # Release Notes
 
+## Version 1.1.36 (June 12, 2024)
+
+- Improved the UI for *Trigger Release* as like as *Run Pipeline* post build action.
+- Fixed an issue that *Trigger Release* post build action fails if Stage to start not specified.
+
 ## Version 1.1.34 (January 26, 2024)
 
 - Fixed issue where *Run Procedure* failed if configured to run with parameters. 

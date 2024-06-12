@@ -10,21 +10,40 @@ All rights reserved.
 <?jelly escape-by-default='true'?>
 <j:jelly xmlns:j="jelly:core" xmlns:f="/lib/form" xmlns:st="jelly:stapler">
     <f:entry title="Configuration" field="configuration" >
-        <f:select onchange="deleteReleaseParameterRows()"/>
+        <f:select onchange="deleteReleaseParameterRows(); deleteStagesToRun();"/>
     </f:entry>
     <st:include class="org.jenkinsci.plugins.electricflow.Credential" page="overrideCredential.jelly" />
     <st:include class="org.jenkinsci.plugins.electricflow.RunAndWaitOption" page="runAndWaitOption.jelly" />
     <f:entry title="Project Name" field="projectName" >
-        <f:select onchange="deleteReleaseParameterRows()"/>
+        <f:select onchange="deleteReleaseParameterRows();deleteStagesToRun();"/>
     </f:entry>
     <f:entry title="Release Name" field="releaseName" >
-        <f:select onchange="fillReleasesParameters()" id="ef_sr_releaseName"/>
+        <f:select onchange="fillReleasesParameters();fillStagesToRun();" id="ef_sr_releaseName"/>
     </f:entry>
-    <f:entry  title="Starting Stage" field="startingStage">
-        <f:select id="ef_sr_startingStage"/>
+    <j:if test="${instance.parameters != null and instance.parameters != ''}">
+        <j:invokeStatic var="stageOptionChecked" className="org.jenkinsci.plugins.electricflow.triggerRelease.TriggerReleaseIsStagesChecked" method="getCheckedValue">
+            <j:arg value="${instance.parameters}"/>
+            <j:arg value="${instance.startingStage}"/>
+            <j:arg value="${instance.stageOptions}"/>
+        </j:invokeStatic>
+    </j:if>
+    <f:entry title="Stage Option">
+        <f:radioBlock inline="true" name="stageOptions" checked="${stageOptionChecked == 'runAllStages'}" title="Run All Stages" value="runAllStages">
+        </f:radioBlock>
+        <f:radioBlock inline="true" name="stageOptions" checked="${stageOptionChecked == 'startingStage'}" title="Choose Starting Stage" value="startingStage">
+            <f:entry  title="Starting Stage" field="startingStage">
+                <f:select id="ef_sr_startingStage"/>
+            </f:entry>
+        </f:radioBlock>
+        <f:radioBlock inline="true" name="stageOptions" checked="${stageOptionChecked == 'stagesToRun'}" title="Choose Stages To Run" value="stagesToRun">
+            <f:entry title="" field="stagesToRun" >
+                <f:select id="ef_rt_stagesToRunEntry" onchange="fillStagesToRun();" style="display:none;"/>
+            </f:entry>
+        </f:radioBlock>
     </f:entry>
+
     <f:entry title="" field="parameters" >
-        <f:select id="ef_sr_parameters" onchange="fillReleasesParameters()" style="display:none;"/>
+        <f:select id="ef_sr_parameters" onchange="fillReleasesParameters();fillStagesToRun();" style="display:none;"/>
     </f:entry>
 
     <f:invisibleEntry>
@@ -72,9 +91,16 @@ All rights reserved.
 
     <script>
         fillReleasesParameters();
+        fillStagesToRun();
 
         function deleteReleaseParameterRows() {
             var paramRows = document.querySelectorAll("._ef_st_row");
+            [].forEach.call(paramRows, function (row) {
+                row.parentNode.removeChild(row);
+            });
+        }
+        function deleteStagesToRun() {
+            var paramRows = document.querySelectorAll("._ef_str_row");
             [].forEach.call(paramRows, function (row) {
                 row.parentNode.removeChild(row);
             });
@@ -115,7 +141,7 @@ All rights reserved.
                             var el = document.createElement("div");
                             el.innerHTML = "&lt;br&gt;&lt;b&gt;Release pipeline parameters&lt;/b&gt;";
                             el.className = "_ef_st_row";
-                            var div = document.getElementById("ef_sr_startingStage");
+                            var div = document.getElementById("ef_sr_parameters");
                             div = cbcd_insertAfter(div, el);
                             parameters.forEach(function (elem) {
                                 var el_param = document.createElement("div");
@@ -137,44 +163,60 @@ All rights reserved.
                         }
                     }
 
-                    var stages;
-                    try {
-                        stages = JSON.parse(json.release.stages);
-                    }
-                    catch (error) {
-                        stages = json.release.stages;
-                    }
 
-                    if (table == null) {
-                        if (stages.length) {
-                            var el = document.createElement("div");
-                            el.innerHTML = "&lt;br&gt;&lt;b&gt;Stages to run&lt;/b&gt;";
-                            el.className = "_ef_st_row";
-                            var div = document.getElementById("ef_sr_startingStage");
-                            div = cbcd_insertAfter(div, el);
-                            stages.forEach(function (elem) {
-                                var el_param = document.createElement("div");
-                                el_param.className = "_ef_sr_stages _ef_st_row";
-                                div = cbcd_insertAfter(div, el_param);
-                                addParameterRowForTriggerRelease(el_param, elem.stageName, elem.stageValue, true, false);
-                            });
-                        }
-                    } else {
-                        var row1 = table.insertRow(table.rows.length - 2);
-                        row1.className = "_ef_st_row";
-                        if (stages.length) {
-                            row1.appendChild(createTitleForTriggerRelease("Stages to run"));
-                            stages.forEach(function (elem) {
-                                var row = table.insertRow(table.rows.length - 2);
-                                row.className = "_ef_sr_stages _ef_st_row";
-                                addParameterRowForTriggerRelease(row, elem.stageName, elem.stageValue, true, true);
-                            });
-                        }
-                    }
                 }
             }
         }
+        function fillStagesToRun() {
+            deleteStagesToRun();
+            if (!document.getElementById('ef_sr_parameters')) {
+                return;
+            }
+            var option = document.getElementById('ef_sr_parameters').options[0];
+            var param = '{}';
+            if (option) {
+                param = option.value;
+            }
+            var json = JSON.parse(param);
+            var table = document.querySelector("[descriptorid='electricFlowTriggerRelease'] table");
+            if (table == null) {
+                table = getElementByXpath("//select[@checkdependson='validationTrigger']/ancestor::table[@name]");
+            }
+            var stages;
+            try {
+                stages = JSON.parse(json.release.stages);
+            }
+            catch (error) {
+                stages = json.release.stages;
+            }
 
+            if (table == null) {
+                if (stages.length) {
+                    var el = document.createElement("div");
+                    el.innerHTML = "&lt;br&gt;&lt;b&gt;Stages to run&lt;/b&gt;";
+                    el.className = "_ef_str_row";
+                    var div = document.getElementById("ef_rt_stagesToRunEntry");
+                    div = cbcd_insertAfter(div, el);
+                    stages.forEach(function (elem) {
+                        var el_param = document.createElement("div");
+                        el_param.className = "_ef_sr_stages _ef_str_row";
+                        div = cbcd_insertAfter(div, el_param);
+                        addParameterRowForTriggerRelease(el_param, elem.stageName, elem.stageValue, true, false);
+                    });
+                }
+            } else {
+                var row1 = table.insertRow(table.rows.length - 2);
+                row1.className = "_ef_str_row";
+                if (stages.length) {
+                    row1.appendChild(createTitleForTriggerRelease("Stages to run"));
+                    stages.forEach(function (elem) {
+                        var row = table.insertRow(table.rows.length - 2);
+                        row.className = "_ef_sr_stages _ef_str_row";
+                        addParameterRowForTriggerRelease(row, elem.stageName, elem.stageValue, true, true);
+                    });
+                }
+            }
+        }
         function cbcd_insertAfter(referenceNode, newNode) {
             return referenceNode.parentNode.insertBefore(newNode, referenceNode.nextSibling);
         }

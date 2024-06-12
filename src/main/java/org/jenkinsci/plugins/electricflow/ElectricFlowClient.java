@@ -990,15 +990,18 @@ public class ElectricFlowClient {
         release.setFlowRuntimeId(releaseObject.getString("flowRuntimeId"));
       }
 
-      JSONObject stages = releaseObject.getJSONObject("stages");
-      if (!stages.isEmpty()) {
-        JSONArray stagesArray = stages.getJSONArray("stage");
+      String stagesEndpoint = "/projects/" + Utils.encodeURL(projectName) + "/stages?pipelineName=" + Utils.encodeURL(gotPipelineName) + "&releaseName=" +Utils.encodeURL(gotReleaseName);
+      String stagesResult = runRestAPI(stagesEndpoint, GET);
+      JSONObject stagesObject = JSONObject.fromObject(stagesResult);
+      if (!stagesObject.isEmpty()) {
+        JSONArray stagesArray = stagesObject.getJSONArray("stage");
 
         if (stagesArray != null && !stagesArray.isEmpty()) {
           List<String> stagesList = new ArrayList<>();
 
           for (int j = 0; j < stagesArray.size(); j++) {
-            String stageName = stagesArray.getJSONObject(j).getString("name");
+            String stagePropertyName = stagesArray.getJSONObject(j).has("name") ? "name" : "stageName";
+            String stageName = stagesArray.getJSONObject(j).getString(stagePropertyName);
             if (stagesList.contains(stageName)) {
               continue;
             }
