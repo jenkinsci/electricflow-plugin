@@ -183,37 +183,38 @@ All rights reserved.
                 table = getElementByXpath("//select[@checkdependson='validationTrigger']/ancestor::table[@name]");
             }
             var stages;
-            try {
-                stages = JSON.parse(json.release.stages);
-            }
-            catch (error) {
-                stages = json.release.stages;
-            }
-
-            if (table == null) {
-                if (stages.length) {
-                    var el = document.createElement("div");
-                    el.innerHTML = "&lt;br&gt;&lt;b&gt;Stages to run&lt;/b&gt;";
-                    el.className = "_ef_str_row";
-                    var div = document.getElementById("ef_rt_stagesToRunEntry");
-                    div = cbcd_insertAfter(div, el);
-                    stages.forEach(function (elem) {
-                        var el_param = document.createElement("div");
-                        el_param.className = "_ef_sr_stages _ef_str_row";
-                        div = cbcd_insertAfter(div, el_param);
-                        addParameterRowForTriggerRelease(el_param, elem.stageName, elem.stageValue, true, false);
-                    });
+            if (typeof json.release !== "undefined") {
+                try {
+                    stages = JSON.parse(json.release.stages);
+                } catch (error) {
+                    stages = json.release.stages;
                 }
-            } else {
-                var row1 = table.insertRow(table.rows.length - 2);
-                row1.className = "_ef_str_row";
-                if (stages.length) {
-                    row1.appendChild(createTitleForTriggerRelease("Stages to run"));
-                    stages.forEach(function (elem) {
-                        var row = table.insertRow(table.rows.length - 2);
-                        row.className = "_ef_sr_stages _ef_str_row";
-                        addParameterRowForTriggerRelease(row, elem.stageName, elem.stageValue, true, true);
-                    });
+
+                if (table == null) {
+                    if (stages.length) {
+                        var el = document.createElement("div");
+                        el.innerHTML = "&lt;br&gt;&lt;b&gt;Stages to run&lt;/b&gt;";
+                        el.className = "_ef_str_row";
+                        var div = document.getElementById("ef_rt_stagesToRunEntry");
+                        div = cbcd_insertAfter(div, el);
+                        stages.forEach(function (elem) {
+                            var el_param = document.createElement("div");
+                            el_param.className = "_ef_sr_stages _ef_str_row";
+                            div = cbcd_insertAfter(div, el_param);
+                            addParameterRowForTriggerRelease(el_param, elem.stageName, elem.stageValue, true, false);
+                        });
+                    }
+                } else {
+                    var row1 = table.insertRow(table.rows.length - 2);
+                    row1.className = "_ef_str_row";
+                    if (stages.length) {
+                        row1.appendChild(createTitleForTriggerRelease("Stages to run"));
+                        stages.forEach(function (elem) {
+                            var row = table.insertRow(table.rows.length - 2);
+                            row.className = "_ef_sr_stages _ef_str_row";
+                            addParameterRowForTriggerRelease(row, elem.stageName, elem.stageValue, true, true);
+                        });
+                    }
                 }
             }
         }
