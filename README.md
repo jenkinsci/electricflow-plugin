@@ -297,8 +297,8 @@ You can use the following workarounds instead of the **Add** button to help you 
 
 ## Version 1.1.36 (June 12, 2024)
 
-- Improved the UI for *Trigger Release* as like as *Run Pipeline* post build action.
-- Fixed an issue that *Trigger Release* post build action fails if Stage to start not specified.
+- Improved the *Starting Stage* options for the *Trigger Release* post-build action. 
+- Fixed issue that caused the *Trigger Release* post-build action to fail if *Starting Stage* was not defined. Now, if a value is not provided, the action defaults to *Run All Stages*. 
 
 ## Version 1.1.34 (January 26, 2024)
 
