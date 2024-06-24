@@ -37,15 +37,13 @@ import hudson.util.FormValidation;
 import hudson.util.ListBoxModel;
 import java.io.IOException;
 import java.io.PrintStream;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import jenkins.tasks.SimpleBuildStep;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jenkinsci.Symbol;
@@ -81,6 +79,7 @@ public class ElectricFlowTriggerRelease extends Recorder implements SimpleBuildS
   private String releaseName;
   private String startingStage;
   private String parameters;
+  private String stageOptions;
 
   // ~ Constructors -----------------------------------------------------------
 
@@ -133,7 +132,23 @@ public class ElectricFlowTriggerRelease extends Recorder implements SimpleBuildS
         this.setReleaseName(release.getString("releaseName"));
       }
     }
-    if (startingStage == null || startingStage.isEmpty()) {
+    if (!StringUtils.isEmpty(stageOptions)) {
+      if (stageOptions.equalsIgnoreCase("runAllStages")) {
+        stagesToRun.addAll(getAllStagesForRelease(efClient));
+        this.startingStage = stagesToRun.get(0);
+      }else if (stageOptions.equalsIgnoreCase("stagesToRun")) {
+        if (stages.size() > 0) {
+          for (int i = 0; i < stages.size(); i++) {
+            JSONObject stage = stages.getJSONObject(i);
+            String stageValue = stage.get("stageValue").toString();
+            if (stageValue.equals("true")) {
+              startingStage = "";
+              stagesToRun.add(stage.getString("stageName"));
+            }
+          }
+        }
+      }
+    }else if (startingStage == null || startingStage.isEmpty()) {
       /* Now we are handling the following logic.
        1. If there are no startingStage AND the stages object is non-empty:
        we are going to read the stages and find the starting stages from array
@@ -143,22 +158,14 @@ public class ElectricFlowTriggerRelease extends Recorder implements SimpleBuildS
       if (stages.size() > 0) {
         for (int i = 0; i < stages.size(); i++) {
           JSONObject stage = stages.getJSONObject(i);
-          if (stage.getBoolean("stageValue")) {
+          String stageValue = stage.get("stageValue").toString();
+          if (stageValue.equals("true")) {
             stagesToRun.add(stage.getString("stageName"));
           }
         }
       }
       else {
-        Release releaseInfo;
-
-        try {
-          releaseInfo = efClient.getRelease(this.configuration, this.projectName, this.releaseName);
-        } catch (Exception e) {
-          log.info("Can't get release information");
-          throw new RuntimeException("Can't get release information.");
-        }
-        List<String> releaseInfoStages = releaseInfo.getStartStages();
-        stagesToRun.addAll(releaseInfoStages);
+        stagesToRun.addAll(getAllStagesForRelease(efClient));
         this.startingStage = stagesToRun.get(0);
       }
     }
@@ -267,6 +274,17 @@ public class ElectricFlowTriggerRelease extends Recorder implements SimpleBuildS
     }
   }
 
+  private List<String> getAllStagesForRelease (ElectricFlowClient efClient) {
+    Release releaseInfo;
+
+    try {
+      releaseInfo = efClient.getRelease(this.configuration, this.projectName, this.releaseName);
+    } catch (Exception e) {
+      log.info("Can't get release information");
+      throw new RuntimeException("Can't get release information.");
+    }
+    return releaseInfo.getStartStages();
+  }
   private String getReleaseNameFromResponse(String releaseResult) {
     JSONObject releaseJSON = JSONObject.fromObject(releaseResult).getJSONObject("release");
     return (String) releaseJSON.get("releaseName");
@@ -382,6 +400,14 @@ public class ElectricFlowTriggerRelease extends Recorder implements SimpleBuildS
 
   @DataBoundSetter
   public void setValidationTrigger(String validationTrigger) {}
+
+  public String getStageOptions() {
+    return stageOptions;
+  }
+  @DataBoundSetter
+  public void setStageOptions(String stageOptions) {
+    this.stageOptions = getSelectItemValue(stageOptions);
+  }
 
   private String getSummaryHtml(
       ElectricFlowClient efClient,
@@ -573,7 +599,18 @@ public class ElectricFlowTriggerRelease extends Recorder implements SimpleBuildS
       }
       return FormValidation.ok();
     }
-
+    public FormValidation doCheckStagesToRun(
+            @QueryParameter String value,
+            @QueryParameter boolean validationTrigger,
+            @AncestorInPath Item item) {
+      if (item == null || !item.hasPermission(Item.CONFIGURE)) {
+        return FormValidation.ok();
+      }
+      if (isSelectItemValidationWrapper(value)) {
+        return SelectFieldUtils.getFormValidationBasedOnSelectItemValidationWrapper(value);
+      }
+      return FormValidation.ok();
+    }
     public FormValidation doCheckParameters(
         @QueryParameter String value,
         @QueryParameter boolean validationTrigger,
@@ -666,6 +703,94 @@ public class ElectricFlowTriggerRelease extends Recorder implements SimpleBuildS
               "parameterName",
               "parameterValue",
               storedPipelineParams);
+          m.add(main.toString());
+        }
+
+        if (m.isEmpty()) {
+          m.add("{}");
+        }
+
+        return m;
+      } catch (Exception e) {
+        ListBoxModel m = new ListBoxModel();
+        SelectItemValidationWrapper selectItemValidationWrapper;
+
+        Credential overrideCredentialObj = overrideCredential ? new Credential(credentialId) : null;
+        if (Utils.isEflowAvailable(configuration, overrideCredentialObj, item)) {
+          log.error("Error when fetching set of parameters. Error message: " + e.getMessage(), e);
+          selectItemValidationWrapper =
+                  new SelectItemValidationWrapper(
+                          FieldValidationStatus.ERROR,
+                          "Error when fetching set of parameters. Check the Jenkins logs for more details.",
+                          "{}");
+        } else {
+          selectItemValidationWrapper =
+                  new SelectItemValidationWrapper(
+                          FieldValidationStatus.ERROR,
+                          "Error when fetching set of deploy parameters. Connection to CloudBees CD Server Failed. Please fix connection information and reload this page.",
+                          "{}");
+        }
+        m.add(selectItemValidationWrapper.getJsonStr());
+        return m;
+      }
+    }
+
+    public ListBoxModel doFillStagesToRunItems(
+            @QueryParameter String configuration,
+            @QueryParameter boolean overrideCredential,
+            @QueryParameter @RelativePath("overrideCredential") String credentialId,
+            @QueryParameter String projectName,
+            @QueryParameter String releaseName,
+            @QueryParameter String parameters,
+            @AncestorInPath Item item) {
+      if (item == null || !item.hasPermission(Item.CONFIGURE)) {
+        return new ListBoxModel();
+      }
+      try {
+        ListBoxModel m = new ListBoxModel();
+
+        if (projectName.isEmpty()
+                || releaseName.isEmpty()
+                || configuration.isEmpty()
+                || checkAnySelectItemsIsValidationWrappers(projectName, releaseName)) {
+          m.add("{}");
+
+          return m;
+        }
+
+        Map<String, String> storedStagesToRun = new HashMap<>();
+
+        String parametersValue = getSelectItemValue(parameters);
+
+        // During reload if at least one value filled, return old values
+        if (!parametersValue.isEmpty() && !"{}".equals(parametersValue)) {
+          JSONObject json = JSONObject.fromObject(parametersValue);
+          JSONObject jsonArray = json.getJSONObject("release");
+
+          if (releaseName.equals(jsonArray.getString("releaseName"))) {
+            storedStagesToRun = getStagesToRunMapFromParams(parametersValue);
+          }
+        }
+
+        if (!configuration.isEmpty() && !releaseName.isEmpty()) {
+          Credential overrideCredentialObj =
+                  overrideCredential ? new Credential(credentialId) : null;
+          ElectricFlowClient client =
+                  ElectricFlowClientFactory.getElectricFlowClient(
+                          configuration, overrideCredentialObj, item, null);
+          Release release = client.getRelease(configuration, projectName, releaseName);
+
+          List<String> stages = release.getStartStages();
+          JSONObject main =
+                  JSONObject.fromObject(
+                          "{'release':{'releaseName':'"
+                                  + releaseName
+                                  + "','stages':[], pipelineName:'"
+                                  + release.getPipelineName()
+                                  + "'}}");
+          JSONArray stagesArray = main.getJSONObject("release").getJSONArray("stages");
+          addParametersToJsonAndPreserveStored(
+                  stages, stagesArray, "stageName", "stageValue", storedStagesToRun);
           m.add(main.toString());
         }
 

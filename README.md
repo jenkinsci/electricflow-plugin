@@ -295,6 +295,11 @@ You can use the following workarounds instead of the **Add** button to help you 
 
 # Release Notes
 
+## Version 1.1.36 (June 12, 2024)
+
+- Improved the *Starting Stage* options for the *Trigger Release* post-build action. 
+- Fixed issue that caused the *Trigger Release* post-build action to fail if *Starting Stage* was not defined. Now, if a value is not provided, the action defaults to *Run All Stages*. 
+
 ## Version 1.1.34 (January 26, 2024)
 
 - Fixed issue where *Run Procedure* failed if configured to run with parameters. 

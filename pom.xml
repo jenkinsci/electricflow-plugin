@@ -14,7 +14,7 @@
   <packaging>hpi</packaging>
 
   <properties>
-    <revision>1.1.35</revision>
+    <revision>1.1.36</revision>
     <changelist>-SNAPSHOT</changelist>
     <jenkins.version>2.289.3</jenkins.version>
     <gitHubRepo>jenkinsci/${project.artifactId}-plugin</gitHubRepo>
