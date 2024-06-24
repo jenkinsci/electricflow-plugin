@@ -103,18 +103,16 @@ public class ElectricFlowAssociateBuildToRelease extends Recorder implements Sim
       args.put("buildName", cloudBeesFlowBuildData.getDisplayName());
       args.put("releaseId", release.getReleaseId());
 
-      if (flowRuntimeId != null && !flowRuntimeId.equals("")){
-        args.put("flowRuntimeId", flowRuntimeId);
-      }
-      else {
-        args.put("flowRuntimeId", release.getFlowRuntimeId());
-      }
+      String actualFlowRuntimeId = flowRuntimeId != null && !flowRuntimeId.equals("")
+              ? flowRuntimeId
+              : release.getFlowRuntimeId();
+      args.put("flowRuntimeId", actualFlowRuntimeId);
       try {
         CloudBeesCDPBABuildDetails.applyToRuntime(
                 run,
                 configuration,
                 overrideCredential,
-                flowRuntimeId,
+                actualFlowRuntimeId,
                 null,
                 projectName,
                 releaseName,
