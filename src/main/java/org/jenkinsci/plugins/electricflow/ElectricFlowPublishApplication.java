@@ -62,14 +62,14 @@ public class ElectricFlowPublishApplication extends Recorder implements SimpleBu
 
   // ~ Static fields/initializers ---------------------------------------------
 
-  public static final String deploymentPackageName = "deployment_package.zip";
-  private static final Log log = LogFactory.getLog(ElectricFlowPublishApplication.class);
-  private static List<File> zipFiles = new ArrayList<>();
+  public final static String deploymentPackageName = "deployment_package.zip";
+  private final static Log log = LogFactory.getLog(ElectricFlowPublishApplication.class);
+  private final static List<File> zipFiles = new ArrayList<>();
   private static boolean isCutTopLevelDir;
 
   // ~ Instance fields --------------------------------------------------------
 
-  private final String MANIFEST_NAME = "manifest.json";
+  private final static String MANIFEST_NAME = "manifest.json";
   private final String configuration;
   private Credential overrideCredential;
   private RunAndWaitOption runAndWaitOption;

@@ -9,7 +9,6 @@ import hudson.util.Secret;
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.LinkedList;
 import org.jenkinsci.plugins.electricflow.Configuration;
 import org.jenkinsci.plugins.electricflow.ElectricFlowGlobalConfiguration;
 import org.junit.ClassRule;
@@ -39,8 +38,6 @@ public class BasicUnitTestsWithJenkins {
                 .getDescriptorByName(
                     "org.jenkinsci.plugins.electricflow.ElectricFlowGlobalConfiguration");
 
-    electricFlowGlobalConfiguration.configurations = new LinkedList<>();
-
     Configuration configuration =
         new Configuration(
             FLOW_CONFIG_NAME,
@@ -52,7 +49,7 @@ public class BasicUnitTestsWithJenkins {
             false,
             null, null);
 
-    electricFlowGlobalConfiguration.configurations.add(configuration);
+    electricFlowGlobalConfiguration.getConfigurations().add(configuration);
     electricFlowGlobalConfiguration.save();
 
     assertTrue(electricFlowGlobalConfiguration.getConfigurations().size() == 1);

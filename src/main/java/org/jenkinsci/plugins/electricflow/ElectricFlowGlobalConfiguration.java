@@ -9,6 +9,8 @@
 package org.jenkinsci.plugins.electricflow;
 
 import hudson.Extension;
+
+import java.util.ArrayList;
 import java.util.List;
 import jenkins.model.GlobalConfiguration;
 import net.sf.json.JSONObject;
@@ -22,7 +24,7 @@ public class ElectricFlowGlobalConfiguration extends GlobalConfiguration {
 
   // ~ Instance fields --------------------------------------------------------
 
-  public List<Configuration> configurations;
+  private List<Configuration> configurations = new ArrayList<>();
   @Deprecated private transient List<Configuration> efConfigurations;
 
   // ~ Constructors -----------------------------------------------------------
@@ -35,7 +37,6 @@ public class ElectricFlowGlobalConfiguration extends GlobalConfiguration {
 
   @Override
   public boolean configure(StaplerRequest req, JSONObject formData) throws FormException {
-    this.configurations = null;
     req.bindJSON(this, formData);
     save();
 

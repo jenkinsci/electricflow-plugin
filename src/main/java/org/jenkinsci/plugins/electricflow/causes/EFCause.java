@@ -5,12 +5,12 @@ import org.kohsuke.stapler.export.ExportedBean;
 
 @ExportedBean
 public class EFCause extends hudson.model.Cause {
-  @Exported public String flowRuntimeId = "";
-  @Exported public String projectName = "";
-  @Exported public String releaseName = "";
-  @Exported public String flowRuntimeStateId = "";
-  @Exported public String stageName = "";
-  final String LAUNCHED_BY_CD_TEXT = "Launched by CloudBees CD";
+  @Exported private String flowRuntimeId = "";
+  @Exported private String projectName = "";
+  @Exported private String releaseName = "";
+  @Exported private String flowRuntimeStateId = "";
+  @Exported private String stageName = "";
+  private final static String LAUNCHED_BY_CD_TEXT = "Launched by CloudBees CD";
   // @Exported
   public String getFlowRuntimeId() {
     return flowRuntimeId;

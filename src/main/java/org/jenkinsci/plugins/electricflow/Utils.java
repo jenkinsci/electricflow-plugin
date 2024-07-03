@@ -193,8 +193,8 @@ public class Utils {
     ElectricFlowGlobalConfiguration cred =
         GlobalConfiguration.all().get(ElectricFlowGlobalConfiguration.class);
 
-    if (cred != null && cred.configurations != null) {
-      return cred.configurations;
+    if (cred != null && cred.getConfigurations() != null) {
+      return cred.getConfigurations();
     }
 
     return new ArrayList<>();

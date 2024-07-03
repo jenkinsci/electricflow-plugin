@@ -13,14 +13,14 @@ import org.kohsuke.stapler.export.ExportedBean;
 // TODO: Since we have now 2 classes that are doing pretty match the same
 @ExportedBean
 public class CloudBeesCDPBABuildDetails implements Action {
-  @Exported public String flowRuntimeId = "";
-  @Exported public String projectName = "";
-  @Exported public String releaseName = "";
-  @Exported public String flowRuntimeStateId = "";
-  @Exported public String stageName = "";
-  @Exported public String configurationName = "";
-  @Exported public CIBuildDetail.BuildTriggerSource triggerSource;
-  @Exported public CIBuildDetail.BuildAssociationType buildAssociationType;
+  @Exported private String flowRuntimeId = "";
+  @Exported private String projectName = "";
+  @Exported private String releaseName = "";
+  @Exported private String flowRuntimeStateId = "";
+  @Exported private String stageName = "";
+  @Exported private String configurationName = "";
+  @Exported private CIBuildDetail.BuildTriggerSource triggerSource;
+  @Exported private CIBuildDetail.BuildAssociationType buildAssociationType;
   private Credential overriddenCredential = null;
 
   public  CloudBeesCDPBABuildDetails() { }
