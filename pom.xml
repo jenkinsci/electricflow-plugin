@@ -10,11 +10,11 @@
   </parent>
 
   <artifactId>electricflow</artifactId>
-  <version>1.1.36</version>
+  <version>${revision}${changelist}</version>
   <packaging>hpi</packaging>
 
   <properties>
-    <revision>1.1.36</revision>
+    <revision>1.1.37</revision>
     <changelist>-SNAPSHOT</changelist>
     <jenkins.version>2.289.3</jenkins.version>
     <gitHubRepo>jenkinsci/${project.artifactId}-plugin</gitHubRepo>
