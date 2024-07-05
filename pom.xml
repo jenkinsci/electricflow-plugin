@@ -15,7 +15,7 @@
 
   <properties>
     <revision>1.1.36</revision>
-    <changelist></changelist>
+    <changelist>-SNAPSHOT</changelist>
     <jenkins.version>2.361.4</jenkins.version>
     <gitHubRepo>jenkinsci/${project.artifactId}-plugin</gitHubRepo>
     <slf4jVersion>1.7.26</slf4jVersion>
