@@ -295,6 +295,10 @@ You can use the following workarounds instead of the **Add** button to help you 
 
 # Release Notes
 
+## Version 1.1.37 (July 26, 2024)
+
+- Enabled Jenkins Security Scan
+
 ## Version 1.1.36 (June 12, 2024)
 
 - Improved the *Starting Stage* options for the *Trigger Release* post-build action. 
