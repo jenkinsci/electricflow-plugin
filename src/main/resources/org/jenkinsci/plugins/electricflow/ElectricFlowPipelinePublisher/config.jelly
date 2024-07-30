@@ -27,6 +27,7 @@ All rights reserved.
     </f:entry>
 
     <f:entry title="Stage Option">
+     <f:nested>
         <f:radioBlock inline="true" name="stageOption" checked="${instance.stageOption == null || instance.stageOption == '' || instance.stageOption == 'runAllStages'}" title="Run All Stages" value="runAllStages">
         </f:radioBlock>
         <f:radioBlock inline="true" name="stageOption" checked="${instance.stageOption == 'startingStage'}" title="Choose Starting Stage" value="startingStage">
@@ -39,6 +40,7 @@ All rights reserved.
                 <f:select id="stagesToRunEntry" onchange="fillStagesToRun();" style="display:none;"/>
             </f:entry>
         </f:radioBlock>
+        </f:nested>
     </f:entry>
 
     <f:entry title="" field="addParam" >
