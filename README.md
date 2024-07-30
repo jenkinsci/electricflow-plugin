@@ -295,6 +295,10 @@ You can use the following workarounds instead of the **Add** button to help you 
 
 # Release Notes
 
+## Version 1.1.38 (TBD)
+
+- Update **Stage Option** tool tips for **Run Pipeline** procedure.
+
 ## Version 1.1.37 (July 26, 2024)
 
 - Enabled Jenkins Security Scan
