@@ -11,11 +11,13 @@ public class CloudBeesFlowMultiBranchPipeline implements ExtensionPoint {
     public CloudBeesFlowMultiBranchPipeline() {
         this.scmBranchName = "";
     }
+
     public static CloudBeesFlowMultiBranchPipeline build(Run run) {
         CloudBeesFlowMultiBranchPipeline retval = new CloudBeesFlowMultiBranchPipeline();
         final Jenkins jenkins = Jenkins.get();
         if (jenkins != null) {
-            final ExtensionList<CloudBeesFlowMultiBranchPipeline> makers = ExtensionList.lookup(CloudBeesFlowMultiBranchPipeline.class);
+            final ExtensionList<CloudBeesFlowMultiBranchPipeline> makers =
+                    ExtensionList.lookup(CloudBeesFlowMultiBranchPipeline.class);
             for (CloudBeesFlowMultiBranchPipeline m : makers) {
                 retval = m.generate(run);
                 if (m.getScmBranchName() != null && !m.getScmBranchName().equals("")) {
@@ -26,14 +28,21 @@ public class CloudBeesFlowMultiBranchPipeline implements ExtensionPoint {
         return retval;
     }
     // this method is required to use it in the optional extension
-    public boolean isApplicable() {return false;}
+    public boolean isApplicable() {
+        return false;
+    }
 
     public String getScmBranchName() {
         return scmBranchName;
     }
+
     public void setScmBranchName(String branchName) {
         this.scmBranchName = branchName;
     }
+
     public void populate(Run<?, ?> run) {}
-    public CloudBeesFlowMultiBranchPipeline generate(Run<?, ?> run) { return null; }
+
+    public CloudBeesFlowMultiBranchPipeline generate(Run<?, ?> run) {
+        return null;
+    }
 }

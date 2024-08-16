@@ -5,86 +5,89 @@ import static org.jenkinsci.plugins.electricflow.Utils.formatJsonOutput;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.io.IOException;
-import org.jenkinsci.plugins.electricflow.Utils;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class GetJobStatusResponseData implements FlowRuntimeResponseData {
 
-  @JsonProperty() private String jobId;
-  @JsonProperty() private CdJobStatus status = CdJobStatus.unknown;
-  @JsonProperty() private CdJobOutcome outcome = CdJobOutcome.unknown;
-  private String content;
+    @JsonProperty()
+    private String jobId;
 
-  public String getJobId() {
-    return jobId;
-  }
+    @JsonProperty()
+    private CdJobStatus status = CdJobStatus.unknown;
 
-  public void setJobId(String jobId) {
-    this.jobId = jobId;
-  }
+    @JsonProperty()
+    private CdJobOutcome outcome = CdJobOutcome.unknown;
 
-  public CdJobStatus getStatus() {
-    return status;
-  }
+    private String content;
 
-  public void setStatus(CdJobStatus status) {
-    this.status = status;
-  }
-
-  public CdJobOutcome getOutcome() {
-    return outcome;
-  }
-
-  public void setOutcome(CdJobOutcome outcome) {
-    this.outcome = outcome;
-  }
-
-  public String getContent() {
-    return content;
-  }
-
-  public void setContent(String content) {
-    this.content = content;
-  }
-
-  @Override
-  public String toString() {
-    if ((getStatus() == CdJobStatus.unknown || getOutcome() == CdJobOutcome.unknown)
-        && getContent() != null) {
-      try {
-        return "CD Job Status Response (unexpected json): " + formatJsonOutput(getContent());
-      } catch (IOException e) {
-        return "CD Job Status Response (unexpected content): " + getContent();
-      }
+    public String getJobId() {
+        return jobId;
     }
-    return "CD Job Status Response Data: {"
-        + "jobId="
-        + jobId
-        + ", status="
-        + status
-        + ", outcome="
-        + outcome
-        + '}';
-  }
 
-  @Override
-  public Boolean isCompleted() {
-    return status.equals(CdJobStatus.completed);
-  }
+    public void setJobId(String jobId) {
+        this.jobId = jobId;
+    }
 
-  @Override
-  public String getRuntimeOutcome() {
-    return getOutcome().toString();
-  }
+    public CdJobStatus getStatus() {
+        return status;
+    }
 
-  @Override
-  public String getRuntimeStatus() {
-    return getStatus().toString();
-  }
+    public void setStatus(CdJobStatus status) {
+        this.status = status;
+    }
 
-  @Override
-  public String getRuntimeId() {
-    return getJobId();
-  }
+    public CdJobOutcome getOutcome() {
+        return outcome;
+    }
 
+    public void setOutcome(CdJobOutcome outcome) {
+        this.outcome = outcome;
+    }
+
+    public String getContent() {
+        return content;
+    }
+
+    public void setContent(String content) {
+        this.content = content;
+    }
+
+    @Override
+    public String toString() {
+        if ((getStatus() == CdJobStatus.unknown || getOutcome() == CdJobOutcome.unknown) && getContent() != null) {
+            try {
+                return "CD Job Status Response (unexpected json): " + formatJsonOutput(getContent());
+            } catch (IOException e) {
+                return "CD Job Status Response (unexpected content): " + getContent();
+            }
+        }
+        return "CD Job Status Response Data: {"
+                + "jobId="
+                + jobId
+                + ", status="
+                + status
+                + ", outcome="
+                + outcome
+                + '}';
+    }
+
+    @Override
+    public Boolean isCompleted() {
+        return status.equals(CdJobStatus.completed);
+    }
+
+    @Override
+    public String getRuntimeOutcome() {
+        return getOutcome().toString();
+    }
+
+    @Override
+    public String getRuntimeStatus() {
+        return getStatus().toString();
+    }
+
+    @Override
+    public String getRuntimeId() {
+        return getJobId();
+    }
 }

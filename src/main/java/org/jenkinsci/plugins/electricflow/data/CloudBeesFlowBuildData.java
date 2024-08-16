@@ -17,338 +17,335 @@ import org.jenkinsci.plugins.electricflow.extension.*;
 
 public class CloudBeesFlowBuildData {
 
-  private static final Log log = LogFactory.getLog(CloudBeesFlowBuildData.class);
+    private static final Log log = LogFactory.getLog(CloudBeesFlowBuildData.class);
 
-  protected String jobName;
-  protected String displayName;
-  protected String launchedBy;
-  protected int buildNumber;
-  protected boolean building;
-  protected String result;
-  protected String reason;
-  protected long duration;
-  protected long estimatedDuration;
-  protected long timestamp;
-  protected String logs;
-  protected String url;
-  protected String blueOceanUrl;
-  // Adding as a part of NTVEPLUGIN-377
-  // branchName will be set only if we're creating build data
-  // in MultiBranchPipeline context
-  protected String branchName;
-  // End of NTVEPLUGIN-377
-  protected CloudBeesFlowPipelineData stages;
-  protected CloudBeesFlowSCMData changeSets;
-  protected CloudBeesFlowArtifactData artifacts;
-  protected CloudBeesFlowTestResultData testResult;
+    protected String jobName;
+    protected String displayName;
+    protected String launchedBy;
+    protected int buildNumber;
+    protected boolean building;
+    protected String result;
+    protected String reason;
+    protected long duration;
+    protected long estimatedDuration;
+    protected long timestamp;
+    protected String logs;
+    protected String url;
+    protected String blueOceanUrl;
+    // Adding as a part of NTVEPLUGIN-377
+    // branchName will be set only if we're creating build data
+    // in MultiBranchPipeline context
+    protected String branchName;
+    // End of NTVEPLUGIN-377
+    protected CloudBeesFlowPipelineData stages;
+    protected CloudBeesFlowSCMData changeSets;
+    protected CloudBeesFlowArtifactData artifacts;
+    protected CloudBeesFlowTestResultData testResult;
 
-  // constructor
-  public CloudBeesFlowBuildData(Run<?, ?> run) {
+    // constructor
+    public CloudBeesFlowBuildData(Run<?, ?> run) {
 
-    this.jobName = run.getCharacteristicEnvVars().get("JOB_NAME");
+        this.jobName = run.getCharacteristicEnvVars().get("JOB_NAME");
 
-    Jenkins instance = Jenkins.get();
-    String rootUrl = instance.getRootUrl();
+        Jenkins instance = Jenkins.get();
+        String rootUrl = instance.getRootUrl();
 
-    this.setBuildNumber(run.getNumber());
-    // this.setDisplayName(this.getJobName() + run.getDisplayName());
-    // As been said in NTVEPLUGIN-297: no more calculations of getfulldisplayname
-    this.setDisplayName(run.getFullDisplayName());
-    this.setBuilding(run.isBuilding());
+        this.setBuildNumber(run.getNumber());
+        // this.setDisplayName(this.getJobName() + run.getDisplayName());
+        // As been said in NTVEPLUGIN-297: no more calculations of getfulldisplayname
+        this.setDisplayName(run.getFullDisplayName());
+        this.setBuilding(run.isBuilding());
 
-    try {
-      List<String> runLogs = run.getLog(200);
-      String logLines = String.join("\n", runLogs);
-      this.setLogs(logLines);
-    } catch (IOException e) {
-      log.error(e.getMessage());
-    }
-
-    // todo: improve result handling
-    Result result = run.getResult();
-    if (result != null) {
-      this.setResult(result.toString());
-    }
-
-    // resolve the launchedBy
-    List<Cause> causes = run.getCauses();
-    if (!causes.isEmpty()) {
-      // 1. Trying to get EFCause. If it is present, then we will set launched by from there.
-
-      EFCause efCause = run.getCause(EFCause.class);
-      if (efCause != null) {
-        this.setLaunchedBy(efCause.getLaunchedByText());
-      }
-      else {
-        if (causes.stream().findFirst().isPresent()) {
-          Cause cause = causes.stream().findFirst().get();
-          this.setLaunchedBy(cause.getShortDescription());
+        try {
+            List<String> runLogs = run.getLog(200);
+            String logLines = String.join("\n", runLogs);
+            this.setLogs(logLines);
+        } catch (IOException e) {
+            log.error(e.getMessage());
         }
-        else {
-          this.setLaunchedBy("");
+
+        // todo: improve result handling
+        Result result = run.getResult();
+        if (result != null) {
+            this.setResult(result.toString());
         }
-      }
+
+        // resolve the launchedBy
+        List<Cause> causes = run.getCauses();
+        if (!causes.isEmpty()) {
+            // 1. Trying to get EFCause. If it is present, then we will set launched by from there.
+
+            EFCause efCause = run.getCause(EFCause.class);
+            if (efCause != null) {
+                this.setLaunchedBy(efCause.getLaunchedByText());
+            } else {
+                if (causes.stream().findFirst().isPresent()) {
+                    Cause cause = causes.stream().findFirst().get();
+                    this.setLaunchedBy(cause.getShortDescription());
+                } else {
+                    this.setLaunchedBy("");
+                }
+            }
+        }
+
+        // todo: Improve reason handling
+        long duration = run.getDuration();
+        if (duration == 0) {
+            duration = Math.max(System.currentTimeMillis() - run.getStartTimeInMillis(), 0);
+        }
+        this.setDuration(duration);
+        this.setEstimatedDuration(run.getEstimatedDuration());
+        this.setTimestamp(run.getTimestamp().getTimeInMillis());
+        this.setUrl(rootUrl + run.getUrl());
+
+        // getting changesets information:
+        RunWithSCM<?, ?> abstractBuild = (RunWithSCM<?, ?>) run;
+        List<ChangeLogSet<? extends ChangeLogSet.Entry>> changeSets = abstractBuild.getChangeSets();
+
+        // Getting multibranch pipeline data:
+        CloudBeesFlowMultiBranchPipeline multiBranchPipeline = CloudBeesFlowMultiBranchPipeline.build(run);
+        this.setBranchName(multiBranchPipeline.getScmBranchName());
+        this.changeSets = new CloudBeesFlowSCMData(changeSets);
+        this.testResult = new CloudBeesFlowTestResultData(run);
+        this.artifacts = new CloudBeesFlowArtifactData(run);
+        this.stages = new CloudBeesFlowPipelineData(run);
     }
 
-    // todo: Improve reason handling
-    long duration = run.getDuration();
-    if (duration == 0) {
-      duration = Math.max(System.currentTimeMillis() - run.getStartTimeInMillis(), 0);
-    }
-    this.setDuration(duration);
-    this.setEstimatedDuration(run.getEstimatedDuration());
-    this.setTimestamp(run.getTimestamp().getTimeInMillis());
-    this.setUrl(rootUrl + run.getUrl());
+    public JSONObject toJsonObject() {
+        JSONObject json = new JSONObject();
 
-    // getting changesets information:
-    RunWithSCM<?, ?> abstractBuild = (RunWithSCM<?, ?>) run;
-    List<ChangeLogSet<? extends ChangeLogSet.Entry>> changeSets = abstractBuild.getChangeSets();
+        // adding non-complex values of this
+        if (this.getDisplayName() != null) {
+            json.put("displayName", this.getDisplayName());
+        }
 
-    // Getting multibranch pipeline data:
-    CloudBeesFlowMultiBranchPipeline multiBranchPipeline = CloudBeesFlowMultiBranchPipeline.build(run);
-    this.setBranchName(multiBranchPipeline.getScmBranchName());
-    this.changeSets = new CloudBeesFlowSCMData(changeSets);
-    this.testResult = new CloudBeesFlowTestResultData(run);
-    this.artifacts = new CloudBeesFlowArtifactData(run);
-    this.stages = new CloudBeesFlowPipelineData(run);
-  }
+        if (this.getLaunchedBy() != null) {
+            json.put("launchedBy", this.getLaunchedBy());
+        }
 
-  public JSONObject toJsonObject() {
-    JSONObject json = new JSONObject();
+        json.put("buildNumber", Integer.toString(this.getBuildNumber()));
 
-    // adding non-complex values of this
-    if (this.getDisplayName() != null) {
-      json.put("displayName", this.getDisplayName());
-    }
+        json.put("building", this.isBuilding());
 
-    if (this.getLaunchedBy() != null) {
-      json.put("launchedBy", this.getLaunchedBy());
-    }
+        if (this.getResult() != null) {
+            json.put("result", this.getResult());
+        }
+        if (this.getReason() != null) {
+            json.put("reason", this.getReason());
+        }
+        json.put("duration", this.getDuration());
+        json.put("estimatedDuration", this.getEstimatedDuration());
+        json.put("timestamp", this.getTimestamp());
 
-    json.put("buildNumber", Integer.toString(this.getBuildNumber()));
+        if (this.getLogs() != null) {
+            json.put("logs", this.getLogs());
+        }
 
-    json.put("building", this.isBuilding());
+        if (this.getUrl() != null) {
+            json.put("url", this.getUrl());
+            blueOceanUrl = this.getUrl()
+                    .replace(
+                            "job/" + this.jobName,
+                            "blue/organizations/jenkins/" + this.jobName + "/detail/" + this.jobName);
+            json.put("consoleLogUrl", this.getUrl() + "console");
+            json.put("blueOceanUrl", this.blueOceanUrl);
+        }
 
-    if (this.getResult() != null) {
-      json.put("result", this.getResult());
-    }
-    if (this.getReason() != null) {
-      json.put("reason", this.getReason());
-    }
-    json.put("duration", this.getDuration());
-    json.put("estimatedDuration", this.getEstimatedDuration());
-    json.put("timestamp", this.getTimestamp());
+        // adding branch object to the top level of JSON as per NTVEPLUGIN-377
+        if (this.getBranchName() != null && !this.getBranchName().equals("")) {
+            json.put("ciJobBranchName", this.getBranchName());
+        }
+        // now adding object values to json
 
-    if (this.getLogs() != null) {
-      json.put("logs", this.getLogs());
-    }
+        // processing pipeline data
+        CloudBeesFlowPipelineData pipelineData = this.getStages();
+        if (pipelineData != null
+                && pipelineData.getPipelineData() != null
+                && pipelineData.getPipelineData().size() > 0) {
+            JSONArray pipelineJsonArray = new JSONArray();
+            List<CloudBeesFlowPipeline> pipelineRows = pipelineData.getPipelineData();
+            for (int i = 0; i < pipelineRows.size(); i++) {
+                pipelineJsonArray.add(pipelineRows.get(i).toJsonObject());
+            }
 
-    if (this.getUrl() != null) {
-      json.put("url", this.getUrl());
-      blueOceanUrl =
-          this.getUrl()
-              .replace(
-                  "job/" + this.jobName,
-                  "blue/organizations/jenkins/" + this.jobName + "/detail/" + this.jobName);
-      json.put("consoleLogUrl", this.getUrl() + "console");
-      json.put("blueOceanUrl", this.blueOceanUrl);
-    }
+            json.put("stage", pipelineJsonArray);
+        }
 
-    // adding branch object to the top level of JSON as per NTVEPLUGIN-377
-    if (this.getBranchName() != null && !this.getBranchName().equals("")) {
-      json.put("ciJobBranchName", this.getBranchName());
-    }
-    // now adding object values to json
+        // processing artifacts data
+        CloudBeesFlowArtifactData artifactsData = this.getArtifacts();
 
-    // processing pipeline data
-    CloudBeesFlowPipelineData pipelineData = this.getStages();
-    if (pipelineData != null
-        && pipelineData.getPipelineData() != null
-        && pipelineData.getPipelineData().size() > 0) {
-      JSONArray pipelineJsonArray = new JSONArray();
-      List<CloudBeesFlowPipeline> pipelineRows = pipelineData.getPipelineData();
-      for (int i = 0; i < pipelineRows.size(); i++) {
-        pipelineJsonArray.add(pipelineRows.get(i).toJsonObject());
-      }
+        // TODO: Improve not-null validation here
+        if (artifactsData != null
+                && artifactsData.getArtifactData() != null
+                && artifactsData.getArtifactData().size() > 0) {
+            JSONArray artifactsJsonArray = new JSONArray();
+            List<CloudBeesFlowArtifact> artifactRows = artifactsData.getArtifactData();
+            for (int i = 0; i < artifactRows.size(); i++) {
+                artifactsJsonArray.add(artifactRows.get(i).toJsonObject());
+            }
+            json.put("artifacts", artifactsJsonArray);
+        }
 
-      json.put("stage", pipelineJsonArray);
-    }
+        // processing test results data
+        CloudBeesFlowTestResultData testResultData = this.getTestResult();
+        if (testResultData != null
+                && testResultData.getTestResultData() != null
+                && testResultData.getTestResultData().size() > 0) {
+            JSONArray testResultsJsonArray = new JSONArray();
+            List<CloudBeesFlowTestResult> testResultRows = testResultData.getTestResultData();
+            for (int i = 0; i < testResultRows.size(); i++) {
+                testResultsJsonArray.add(testResultRows.get(i).toJsonObject());
+            }
+            json.put("testResult", testResultsJsonArray);
+        }
+        // processing SCM data
+        CloudBeesFlowSCMData scmData = this.getChangeSets();
+        if (scmData != null && scmData.getScmData().size() > 0) {
+            JSONArray scmJsonArray = new JSONArray();
+            List<CloudBeesFlowSCM> scmRows = scmData.getScmData();
+            for (int i = 0; i < scmRows.size(); i++) {
+                scmJsonArray.add(scmRows.get(i).toJsonObject());
+            }
+            json.put("changeSets", scmJsonArray);
+        }
 
-    // processing artifacts data
-    CloudBeesFlowArtifactData artifactsData = this.getArtifacts();
-
-    // TODO: Improve not-null validation here
-    if (artifactsData != null
-        && artifactsData.getArtifactData() != null
-        && artifactsData.getArtifactData().size() > 0) {
-      JSONArray artifactsJsonArray = new JSONArray();
-      List<CloudBeesFlowArtifact> artifactRows = artifactsData.getArtifactData();
-      for (int i = 0; i < artifactRows.size(); i++) {
-        artifactsJsonArray.add(artifactRows.get(i).toJsonObject());
-      }
-      json.put("artifacts", artifactsJsonArray);
-    }
-
-    // processing test results data
-    CloudBeesFlowTestResultData testResultData = this.getTestResult();
-    if (testResultData != null
-        && testResultData.getTestResultData() != null
-        && testResultData.getTestResultData().size() > 0) {
-      JSONArray testResultsJsonArray = new JSONArray();
-      List<CloudBeesFlowTestResult> testResultRows = testResultData.getTestResultData();
-      for (int i = 0; i < testResultRows.size(); i++) {
-        testResultsJsonArray.add(testResultRows.get(i).toJsonObject());
-      }
-      json.put("testResult", testResultsJsonArray);
-    }
-    // processing SCM data
-    CloudBeesFlowSCMData scmData = this.getChangeSets();
-    if (scmData != null && scmData.getScmData().size() > 0) {
-      JSONArray scmJsonArray = new JSONArray();
-      List<CloudBeesFlowSCM> scmRows = scmData.getScmData();
-      for (int i = 0; i < scmRows.size(); i++) {
-        scmJsonArray.add(scmRows.get(i).toJsonObject());
-      }
-      json.put("changeSets", scmJsonArray);
+        return json;
     }
 
-    return json;
-  }
+    // end of constructor
+    public String getDisplayName() {
+        return displayName;
+    }
 
-  // end of constructor
-  public String getDisplayName() {
-    return displayName;
-  }
+    public void setDisplayName(String displayName) {
+        this.displayName = displayName;
+    }
 
-  public void setDisplayName(String displayName) {
-    this.displayName = displayName;
-  }
+    public String getLaunchedBy() {
+        return launchedBy;
+    }
 
-  public String getLaunchedBy() {
-    return launchedBy;
-  }
+    public void setLaunchedBy(String launchedBy) {
+        this.launchedBy = launchedBy;
+    }
 
-  public void setLaunchedBy(String launchedBy) {
-    this.launchedBy = launchedBy;
-  }
+    public int getBuildNumber() {
+        return buildNumber;
+    }
 
-  public int getBuildNumber() {
-    return buildNumber;
-  }
+    public void setBuildNumber(int buildNumber) {
+        this.buildNumber = buildNumber;
+    }
 
-  public void setBuildNumber(int buildNumber) {
-    this.buildNumber = buildNumber;
-  }
+    public boolean isBuilding() {
+        return building;
+    }
 
-  public boolean isBuilding() {
-    return building;
-  }
+    public void setBuilding(boolean building) {
+        this.building = building;
+    }
 
-  public void setBuilding(boolean building) {
-    this.building = building;
-  }
+    public String getResult() {
+        return result;
+    }
 
-  public String getResult() {
-    return result;
-  }
+    public void setResult(String result) {
+        this.result = result;
+    }
 
-  public void setResult(String result) {
-    this.result = result;
-  }
+    public String getReason() {
+        return reason;
+    }
 
-  public String getReason() {
-    return reason;
-  }
+    public void setReason(String reason) {
+        this.reason = reason;
+    }
 
-  public void setReason(String reason) {
-    this.reason = reason;
-  }
+    public long getDuration() {
+        return duration;
+    }
 
-  public long getDuration() {
-    return duration;
-  }
+    public void setDuration(long duration) {
+        this.duration = duration;
+    }
 
-  public void setDuration(long duration) {
-    this.duration = duration;
-  }
+    public long getEstimatedDuration() {
+        return estimatedDuration;
+    }
 
-  public long getEstimatedDuration() {
-    return estimatedDuration;
-  }
+    public void setEstimatedDuration(long estimatedDuration) {
+        this.estimatedDuration = estimatedDuration;
+    }
 
-  public void setEstimatedDuration(long estimatedDuration) {
-    this.estimatedDuration = estimatedDuration;
-  }
+    public long getTimestamp() {
+        return timestamp;
+    }
 
-  public long getTimestamp() {
-    return timestamp;
-  }
+    public void setTimestamp(long timestamp) {
+        this.timestamp = timestamp;
+    }
 
-  public void setTimestamp(long timestamp) {
-    this.timestamp = timestamp;
-  }
+    public String getLogs() {
+        return logs;
+    }
 
-  public String getLogs() {
-    return logs;
-  }
+    public void setLogs(String logs) {
+        this.logs = logs;
+    }
 
-  public void setLogs(String logs) {
-    this.logs = logs;
-  }
+    public String getUrl() {
+        return url;
+    }
 
-  public String getUrl() {
-    return url;
-  }
+    public void setUrl(String url) {
+        this.url = url;
+    }
 
-  public void setUrl(String url) {
-    this.url = url;
-  }
+    public String getJobName() {
+        return jobName;
+    }
 
-  public String getJobName() {
-    return jobName;
-  }
+    public void setJobName(String jobName) {
+        this.jobName = jobName;
+    }
 
-  public void setJobName(String jobName) {
-    this.jobName = jobName;
-  }
+    public CloudBeesFlowPipelineData getStages() {
+        return stages;
+    }
 
-  public CloudBeesFlowPipelineData getStages() {
-    return stages;
-  }
+    public void setStages(CloudBeesFlowPipelineData stages) {
+        this.stages = stages;
+    }
 
-  public void setStages(CloudBeesFlowPipelineData stages) {
-    this.stages = stages;
-  }
+    public CloudBeesFlowSCMData getChangeSets() {
+        return changeSets;
+    }
 
-  public CloudBeesFlowSCMData getChangeSets() {
-    return changeSets;
-  }
+    public void setChangeSets(CloudBeesFlowSCMData changeSets) {
+        this.changeSets = changeSets;
+    }
 
-  public void setChangeSets(CloudBeesFlowSCMData changeSets) {
-    this.changeSets = changeSets;
-  }
+    public CloudBeesFlowArtifactData getArtifacts() {
+        return artifacts;
+    }
 
-  public CloudBeesFlowArtifactData getArtifacts() {
-    return artifacts;
-  }
+    public void setArtifacts(CloudBeesFlowArtifactData artifacts) {
+        this.artifacts = artifacts;
+    }
 
-  public void setArtifacts(CloudBeesFlowArtifactData artifacts) {
-    this.artifacts = artifacts;
-  }
+    public CloudBeesFlowTestResultData getTestResult() {
+        return testResult;
+    }
 
-  public CloudBeesFlowTestResultData getTestResult() {
-    return testResult;
-  }
+    public void setTestResult(CloudBeesFlowTestResultData testResult) {
+        this.testResult = testResult;
+    }
 
-  public void setTestResult(CloudBeesFlowTestResultData testResult) {
-    this.testResult = testResult;
-  }
+    public String getBranchName() {
+        return branchName;
+    }
 
-  public String getBranchName() {
-    return branchName;
-  }
-
-  public void setBranchName(String branchName) {
-    this.branchName = branchName;
-  }
+    public void setBranchName(String branchName) {
+        this.branchName = branchName;
+    }
 }

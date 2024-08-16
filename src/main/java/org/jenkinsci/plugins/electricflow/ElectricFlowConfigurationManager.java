@@ -12,27 +12,27 @@ import java.util.List;
 
 public class ElectricFlowConfigurationManager {
 
-  // ~ Instance fields --------------------------------------------------------
+    // ~ Instance fields --------------------------------------------------------
 
-  public List<Configuration> efConfigurations;
+    public List<Configuration> efConfigurations;
 
-  // ~ Constructors -----------------------------------------------------------
+    // ~ Constructors -----------------------------------------------------------
 
-  public ElectricFlowConfigurationManager() {
-    efConfigurations = Utils.getConfigurations();
-  }
-
-  // ~ Methods ----------------------------------------------------------------
-
-  public Configuration getConfigurationByName(String name) {
-
-    for (Configuration cred : this.efConfigurations) {
-
-      if (cred.getConfigurationName().equals(name)) {
-        return cred;
-      }
+    public ElectricFlowConfigurationManager() {
+        efConfigurations = Utils.getConfigurations();
     }
 
-    return null;
-  }
+    // ~ Methods ----------------------------------------------------------------
+
+    public Configuration getConfigurationByName(String name) {
+
+        for (Configuration cred : this.efConfigurations) {
+
+            if (cred.getConfigurationName().equals(name)) {
+                return cred;
+            }
+        }
+
+        return null;
+    }
 }
