@@ -16,7 +16,7 @@
   <properties>
     <revision>1.1.38</revision>
     <changelist>-SNAPSHOT</changelist>
-    <jenkins.version>2.361.4</jenkins.version>
+    <jenkins.version>2.426.3</jenkins.version>
     <gitHubRepo>jenkinsci/${project.artifactId}-plugin</gitHubRepo>
     <!-- TODO fix existing violations -->
     <spotbugs.threshold>High</spotbugs.threshold>
