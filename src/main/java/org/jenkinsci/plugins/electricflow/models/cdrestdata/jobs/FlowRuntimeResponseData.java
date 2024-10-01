@@ -2,12 +2,11 @@ package org.jenkinsci.plugins.electricflow.models.cdrestdata.jobs;
 
 public interface FlowRuntimeResponseData {
 
-  Boolean isCompleted();
+    Boolean isCompleted();
 
-  String getRuntimeOutcome();
+    String getRuntimeOutcome();
 
-  String getRuntimeStatus();
+    String getRuntimeStatus();
 
-  String getRuntimeId();
-
+    String getRuntimeId();
 }

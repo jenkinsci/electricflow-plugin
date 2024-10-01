@@ -50,466 +50,449 @@ import org.jenkinsci.plugins.electricflow.ui.SelectItemValidationWrapper;
 
 public class Utils {
 
-  public static final String CONFIG_SKIP_CHECK_CONNECTION = "__SKIP_CHECK_CONNECTION__";
-  private static final Log log = LogFactory.getLog(Utils.class);
+    public static final String CONFIG_SKIP_CHECK_CONNECTION = "__SKIP_CHECK_CONNECTION__";
+    private static final Log log = LogFactory.getLog(Utils.class);
 
-  public static void addParametersToJson(
-      List<String> pipelineParameters,
-      JSONArray parametersArray,
-      String parameterName,
-      String parameterValue) {
+    public static void addParametersToJson(
+            List<String> pipelineParameters, JSONArray parametersArray, String parameterName, String parameterValue) {
 
-    for (String param : pipelineParameters) {
-      JSONObject mainJson = new JSONObject();
+        for (String param : pipelineParameters) {
+            JSONObject mainJson = new JSONObject();
 
-      mainJson.put(parameterName, param);
-      mainJson.put(parameterValue, "");
-      parametersArray.add(mainJson);
-    }
-  }
-
-  public static LinkedHashMap<String, String> getParamsMap(
-      JSONArray paramsJsonArray, String parameterName, String parameterValue) {
-    LinkedHashMap<String, String> paramsMap = new LinkedHashMap<>();
-
-    for (int i = 0; i < paramsJsonArray.size(); i++) {
-      JSONObject param = paramsJsonArray.getJSONObject(i);
-      paramsMap.put(param.getString(parameterName), param.getString(parameterValue));
+            mainJson.put(parameterName, param);
+            mainJson.put(parameterValue, "");
+            parametersArray.add(mainJson);
+        }
     }
 
-    return paramsMap;
-  }
+    public static LinkedHashMap<String, String> getParamsMap(
+            JSONArray paramsJsonArray, String parameterName, String parameterValue) {
+        LinkedHashMap<String, String> paramsMap = new LinkedHashMap<>();
 
-  public static void addParametersToJsonAndPreserveStored(
-      List<String> pipelineParameters,
-      JSONArray parametersArray,
-      String parameterName,
-      String parameterValue,
-      Map<String, String> storedParamsMap) {
-
-    for (String param : pipelineParameters) {
-      JSONObject mainJson = new JSONObject();
-
-      mainJson.put(parameterName, param);
-      mainJson.put(parameterValue, storedParamsMap.getOrDefault(param, ""));
-      parametersArray.add(mainJson);
-    }
-  }
-
-  public static String encodeURL(String url) throws UnsupportedEncodingException {
-    return URLEncoder.encode(url, "UTF-8").replaceAll("\\+", "%20");
-  }
-
-  public static void expandParameters(JSONArray parameters, EnvReplacer env) {
-
-    for (Object jsonObject : parameters) {
-      JSONObject json = (JSONObject) jsonObject;
-      String parameterValue = (String) json.get("parameterValue");
-      String expandValue = env.expandEnv(parameterValue);
-
-      json.put("parameterValue", expandValue);
-    }
-  }
-
-  public static void expandParameters(JSONArray parameters, EnvReplacer env, String propertyName) {
-    for (Object jsonObject : parameters) {
-      JSONObject json = (JSONObject) jsonObject;
-      String parameterValue = (String) json.get(propertyName);
-      String expandValue = env.expandEnv(parameterValue);
-      json.put(propertyName, expandValue);
-    }
-  }
-
-  public static ListBoxModel fillConfigurationItems() {
-    ListBoxModel m = new ListBoxModel();
-
-    m.add("Select configuration", "");
-
-    for (Configuration cred : getConfigurations()) {
-      m.add(cred.getConfigurationName(), cred.getConfigurationName());
-    }
-
-    return m;
-  }
-
-  public static String formatJsonOutput(String result) throws IOException {
-    ObjectMapper mapper = new ObjectMapper();
-    Object json = mapper.readValue(result, Object.class);
-
-    return mapper.writerWithDefaultPrettyPrinter().writeValueAsString(json);
-  }
-
-  public static FormValidation validateValueOnEmpty(String value, String fieldName) {
-
-    if (!value.isEmpty()) {
-      return FormValidation.ok();
-    } else {
-      return FormValidation.warning(fieldName + " field should not be empty.");
-    }
-  }
-
-  public static FormValidation validateConfiguration(String configuration, Item item) {
-    if (configuration == null || configuration.isEmpty()) {
-      return FormValidation.warning("Configuration field should not be empty.");
-    }
-
-    if (configuration.equals(CONFIG_SKIP_CHECK_CONNECTION)) {
-      return FormValidation.ok();
-    }
-
-    try {
-      ElectricFlowClientFactory.getElectricFlowClient(
-              configuration,
-              null,
-              item,
-              null
-      ).testConnection();
-    } catch (Exception e) {
-      log.error(
-          "Connection to CloudBees CD Server Failed. Please fix connection information and reload this page. Error message: "
-              + e.getMessage(),
-          e);
-      return FormValidation.error(
-          "Connection to CloudBees CD Server Failed. Please fix connection information and reload this page. Error message: "
-              + e.getMessage());
-    }
-
-    return FormValidation.ok();
-  }
-
-  public static Configuration getConfigurationByName(String name) {
-
-    for (Configuration cred : getConfigurations()) {
-
-      if (cred.getConfigurationName().equals(name)) {
-        return cred;
-      }
-    }
-
-    return null;
-  }
-
-  public static List<Configuration> getConfigurations() {
-    ElectricFlowGlobalConfiguration cred =
-        GlobalConfiguration.all().get(ElectricFlowGlobalConfiguration.class);
-
-    if (cred != null && cred.configurations != null) {
-      return cred.configurations;
-    }
-
-    return new ArrayList<>();
-  }
-
-  public static String getParametersHTML(List<String> parameters, String summaryText) {
-
-    if (!parameters.isEmpty()) {
-      StringBuilder strBuilder = new StringBuilder(summaryText);
-
-      strBuilder
-          .append("  <tr>\n" + "    <td>&nbsp;<b>Stages to run</b></td>\n")
-          .append("    <td></td>    \n")
-          .append("  </tr>\n");
-
-      for (String param : parameters) {
-        strBuilder
-            .append("  <tr>\n" + "    <td>&nbsp;&nbsp;&nbsp;&nbsp;")
-            .append(HtmlUtils.encodeForHtml(param))
-            .append("</td>\n")
-            .append("  </tr>\n");
-      }
-
-      summaryText = strBuilder.toString();
-    }
-
-    return summaryText;
-  }
-
-  public static String getParametersHTML(JSONArray parameters, String summaryText, String parameterName, String parameterValue) {
-    return getExtraHTML(parameters,
-            summaryText,
-            parameterName,
-            parameterValue,
-            "Parameters");
-  }
-
-  public static String getExtraHTML(
-      JSONArray parameters, String summaryText, String parameterName, String parameterValue, String sectionName) {
-
-    if (parameters != null && !parameters.isEmpty()) {
-      StringBuilder strBuilder = new StringBuilder(summaryText);
-
-      strBuilder.append(
-          "  <tr>\n"
-              + "    <td>&nbsp;<b>" + sectionName + "</b></td>\n"
-              + "    <td></td>    \n"
-              + "  </tr>\n");
-
-      for (int i = 0; i < parameters.size(); i++) {
-        JSONObject json = parameters.getJSONObject(i);
-        String name = json.getString(parameterName);
-        String value = json.getString(parameterValue);
-
-        strBuilder
-            .append("  <tr>\n" + "    <td>&nbsp;&nbsp;&nbsp;&nbsp;")
-            .append(HtmlUtils.encodeForHtml(name))
-            .append(":</td>\n" + "    <td>")
-            .append(HtmlUtils.encodeForHtml(value))
-            .append("</td>    \n" + "  </tr>\n");
-      }
-
-      summaryText = strBuilder.toString();
-    }
-
-    return summaryText;
-  }
-
-  public static ListBoxModel getPipelines(
-      String configuration, Credential overrideCredential, Item item, String projectName) {
-    try {
-      ListBoxModel m = new ListBoxModel();
-
-      m.add("Select pipeline", "");
-
-      if (!projectName.isEmpty()
-          && !configuration.isEmpty()
-          && SelectFieldUtils.checkAllSelectItemsAreNotValidationWrappers(projectName)) {
-        ElectricFlowClient efClient =
-            ElectricFlowClientFactory.getElectricFlowClient(
-                configuration, overrideCredential, item, null);
-        String pipelinesString = efClient.getPipelines(projectName);
-
-        if (log.isDebugEnabled()) {
-          log.debug("Got pipelines: " + pipelinesString);
+        for (int i = 0; i < paramsJsonArray.size(); i++) {
+            JSONObject param = paramsJsonArray.getJSONObject(i);
+            paramsMap.put(param.getString(parameterName), param.getString(parameterValue));
         }
 
-        JSONObject jsonObject;
+        return paramsMap;
+    }
 
-        jsonObject = JSONObject.fromObject(pipelinesString);
+    public static void addParametersToJsonAndPreserveStored(
+            List<String> pipelineParameters,
+            JSONArray parametersArray,
+            String parameterName,
+            String parameterValue,
+            Map<String, String> storedParamsMap) {
 
-        JSONArray pipelines = new JSONArray();
+        for (String param : pipelineParameters) {
+            JSONObject mainJson = new JSONObject();
 
-        if (!jsonObject.isEmpty()) {
-          pipelines = jsonObject.getJSONArray("pipeline");
+            mainJson.put(parameterName, param);
+            mainJson.put(parameterValue, storedParamsMap.getOrDefault(param, ""));
+            parametersArray.add(mainJson);
+        }
+    }
+
+    public static String encodeURL(String url) throws UnsupportedEncodingException {
+        return URLEncoder.encode(url, "UTF-8").replaceAll("\\+", "%20");
+    }
+
+    public static void expandParameters(JSONArray parameters, EnvReplacer env) {
+
+        for (Object jsonObject : parameters) {
+            JSONObject json = (JSONObject) jsonObject;
+            String parameterValue = (String) json.get("parameterValue");
+            String expandValue = env.expandEnv(parameterValue);
+
+            json.put("parameterValue", expandValue);
+        }
+    }
+
+    public static void expandParameters(JSONArray parameters, EnvReplacer env, String propertyName) {
+        for (Object jsonObject : parameters) {
+            JSONObject json = (JSONObject) jsonObject;
+            String parameterValue = (String) json.get(propertyName);
+            String expandValue = env.expandEnv(parameterValue);
+            json.put(propertyName, expandValue);
+        }
+    }
+
+    public static ListBoxModel fillConfigurationItems() {
+        ListBoxModel m = new ListBoxModel();
+
+        m.add("Select configuration", "");
+
+        for (Configuration cred : getConfigurations()) {
+            m.add(cred.getConfigurationName(), cred.getConfigurationName());
         }
 
-        for (int i = 0; i < pipelines.size(); i++) {
-          String gotPipelineName = pipelines.getJSONObject(i).getString("pipelineName");
+        return m;
+    }
 
-          m.add(gotPipelineName, gotPipelineName);
+    public static String formatJsonOutput(String result) throws IOException {
+        ObjectMapper mapper = new ObjectMapper();
+        Object json = mapper.readValue(result, Object.class);
+
+        return mapper.writerWithDefaultPrettyPrinter().writeValueAsString(json);
+    }
+
+    public static FormValidation validateValueOnEmpty(String value, String fieldName) {
+
+        if (!value.isEmpty()) {
+            return FormValidation.ok();
+        } else {
+            return FormValidation.warning(fieldName + " field should not be empty.");
         }
-      }
-
-      return m;
-    } catch (Exception e) {
-      if (Utils.isEflowAvailable(configuration, overrideCredential, item)) {
-        log.error(
-            "Error when fetching values for this parameter - pipeline. Error message: "
-                + e.getMessage(),
-            e);
-        return SelectFieldUtils.getListBoxModelOnException("Select pipeline");
-      } else {
-        return SelectFieldUtils.getListBoxModelOnWrongConf("Select pipeline");
-      }
     }
-  }
 
-  public static boolean isEflowAvailable(String configuration, Credential overrideCredential, Run run) {
-    return isEflowAvailable(configuration, overrideCredential, new RunCredentialHandler(run));
-  }
-
-  public static boolean isEflowAvailable(String configuration, Credential overrideCredential, Item item) {
-    return isEflowAvailable(configuration, overrideCredential, new ItemCredentialHandler(item));
-  }
-
-  public static boolean isEflowAvailable(String configuration, Credential overrideCredential, CredentialHandler credentialHandler) {
-    try {
-      ElectricFlowClientFactory.getElectricFlowClient(configuration, overrideCredential, credentialHandler, null)
-          .testConnection();
-      return true;
-    } catch (Exception e) {
-      return false;
-    }
-  }
-
-  public static ListBoxModel getProjects(String configuration, Credential overrideCredential) {
-    return getProjects(configuration, overrideCredential, true);
-  }
-
-  public static ListBoxModel getProjects(String configuration, Credential overrideCredential, boolean warnOnSelectProject) {
-    return getProjects(configuration, overrideCredential, null, warnOnSelectProject);
-  }
-
-  public static ListBoxModel getProjects(String configuration, Credential overrideCredential, Item item, boolean warnOnSelectProject) {
-    try {
-      ListBoxModel m = new ListBoxModel();
-
-      if (warnOnSelectProject) {
-        m.add(
-            "Select project",
-            new SelectItemValidationWrapper(
-                    FieldValidationStatus.WARN, "Project name field should not be empty.", "")
-                .getJsonStr());
-      }
-      if (!configuration.isEmpty()) {
-        ElectricFlowClient efClient =
-            ElectricFlowClientFactory.getElectricFlowClient(
-                configuration, overrideCredential, new ItemCredentialHandler(item), null);
-        String projectsString = efClient.getProjects();
-        JSONObject jsonObject = JSONObject.fromObject(projectsString);
-        JSONArray projects = jsonObject.getJSONArray("project");
-
-        for (int i = 0; i < projects.size(); i++) {
-
-          if (projects.getJSONObject(i).has("pluginKey")) {
-            continue;
-          }
-
-          String gotProjectName = projects.getJSONObject(i).getString("projectName");
-
-          m.add(gotProjectName, gotProjectName);
+    public static FormValidation validateConfiguration(String configuration, Item item) {
+        if (configuration == null || configuration.isEmpty()) {
+            return FormValidation.warning("Configuration field should not be empty.");
         }
-      }
 
-      return m;
-    } catch (Exception e) {
-      if (Utils.isEflowAvailable(configuration, overrideCredential, item)) {
-        log.error(
-            "Error when fetching values for this parameter - project. Error message: "
-                + e.getMessage(),
-            e);
-        return SelectFieldUtils.getListBoxModelOnException("Select project");
-      } else {
-        return SelectFieldUtils.getListBoxModelOnWrongConf("Select project");
-      }
-    }
-  }
+        if (configuration.equals(CONFIG_SKIP_CHECK_CONNECTION)) {
+            return FormValidation.ok();
+        }
 
-  public static String getValidationComparisonHeaderRow() {
-    return "<thead style=\"background-color: #e0e0e0;\"><td>Parameter Name</td><td>Old Value</td><td>New Value</td></thead>";
-  }
+        try {
+            ElectricFlowClientFactory.getElectricFlowClient(configuration, null, item, null)
+                    .testConnection();
+        } catch (Exception e) {
+            log.error(
+                    "Connection to CloudBees CD Server Failed. Please fix connection information and reload this page. Error message: "
+                            + e.getMessage(),
+                    e);
+            return FormValidation.error(
+                    "Connection to CloudBees CD Server Failed. Please fix connection information and reload this page. Error message: "
+                            + e.getMessage());
+        }
 
-  public static String getValidationComparisonRow(
-      String parameterName, Object oldValue, Object newValue) {
-    String rowStyleAttr = "";
-    if (!newValue.equals(oldValue)) {
-      rowStyleAttr = "style=\"background-color: #e2db0c;\"";
-    }
-    return "<tr "
-        + rowStyleAttr
-        + "><td>"
-        + HtmlUtils.encodeForHtml(parameterName)
-        + "</td><td>"
-        + HtmlUtils.encodeForHtml(String.valueOf(oldValue))
-        + "</td><td>"
-        + HtmlUtils.encodeForHtml(String.valueOf(newValue))
-        + "</td></tr>";
-  }
-
-  public static String getValidationComparisonRowOldParam(String parameterName, Object oldValue) {
-    String rowStyleAttr = "style=\"background-color: #fa9a76;\"";
-    return "<tr "
-        + rowStyleAttr
-        + "><td>"
-        + HtmlUtils.encodeForHtml(parameterName)
-        + "</td><td>"
-        + HtmlUtils.encodeForHtml(String.valueOf(oldValue))
-        + "</td><td></td></tr>";
-  }
-
-  public static String getValidationComparisonRowNewParam(String parameterName, Object newValue) {
-    String rowStyleAttr = "style=\"background-color: #82dc84;\"";
-    return "<tr "
-        + rowStyleAttr
-        + "><td>"
-        + HtmlUtils.encodeForHtml(parameterName)
-        + "</td><td></td><td>"
-        + HtmlUtils.encodeForHtml(String.valueOf(newValue))
-        + "</td></tr>";
-  }
-
-  public static String getValidationComparisonRowsForExtraParameters(
-      String sectionName, Map<String, String> oldParamsMap, Map<String, String> newParamsMap) {
-    if (oldParamsMap.isEmpty() && newParamsMap.isEmpty()) {
-      return "";
+        return FormValidation.ok();
     }
 
-    StringBuilder rows = new StringBuilder();
-    rows.append("<tr><td></td><td></td><td></td></tr>");
-    rows.append("<tr><td>" + HtmlUtils.encodeForHtml(sectionName) + "</td><td></td><td></td></tr>");
+    public static Configuration getConfigurationByName(String name) {
 
-    Set<String> oldKeysSet = new HashSet<String>(oldParamsMap.keySet());
-    oldKeysSet.removeAll(newParamsMap.keySet());
+        for (Configuration cred : getConfigurations()) {
 
-    Set<String> matchingKeysSet = new HashSet<String>(oldParamsMap.keySet());
-    matchingKeysSet.retainAll(newParamsMap.keySet());
+            if (cred.getConfigurationName().equals(name)) {
+                return cred;
+            }
+        }
 
-    for (String oldKey : oldKeysSet) {
-      rows.append(getValidationComparisonRowOldParam(oldKey, oldParamsMap.get(oldKey)));
+        return null;
     }
 
-    for (Map.Entry<String, String> entry : newParamsMap.entrySet()) {
-      if (matchingKeysSet.contains(entry.getKey())) {
-        rows.append(
-            getValidationComparisonRow(
-                entry.getKey(), oldParamsMap.get(entry.getKey()), entry.getValue()));
-      } else {
-        rows.append(getValidationComparisonRowNewParam(entry.getKey(), entry.getValue()));
-      }
+    public static List<Configuration> getConfigurations() {
+        ElectricFlowGlobalConfiguration cred = GlobalConfiguration.all().get(ElectricFlowGlobalConfiguration.class);
+
+        if (cred != null && cred.configurations != null) {
+            return cred.configurations;
+        }
+
+        return new ArrayList<>();
     }
 
-    return rows.toString();
-  }
+    public static String getParametersHTML(List<String> parameters, String summaryText) {
 
-  public static EnvVars getNodeEnvVars() {
-    DescribableList<NodeProperty<?>, NodePropertyDescriptor> globalNodeProperties =
-        Jenkins.get().getGlobalNodeProperties();
-    List<EnvironmentVariablesNodeProperty> envVarsNodePropertyList =
-        globalNodeProperties.getAll(hudson.slaves.EnvironmentVariablesNodeProperty.class);
+        if (!parameters.isEmpty()) {
+            StringBuilder strBuilder = new StringBuilder(summaryText);
 
-    if (envVarsNodePropertyList == null || envVarsNodePropertyList.isEmpty()) {
-      EnvironmentVariablesNodeProperty newEnvVarsNodeProperty =
-          new hudson.slaves.EnvironmentVariablesNodeProperty();
-      globalNodeProperties.add(newEnvVarsNodeProperty);
-      return newEnvVarsNodeProperty.getEnvVars();
-    } else {
-      return envVarsNodePropertyList.get(0).getEnvVars();
+            strBuilder
+                    .append("  <tr>\n" + "    <td>&nbsp;<b>Stages to run</b></td>\n")
+                    .append("    <td></td>    \n")
+                    .append("  </tr>\n");
+
+            for (String param : parameters) {
+                strBuilder
+                        .append("  <tr>\n" + "    <td>&nbsp;&nbsp;&nbsp;&nbsp;")
+                        .append(HtmlUtils.encodeForHtml(param))
+                        .append("</td>\n")
+                        .append("  </tr>\n");
+            }
+
+            summaryText = strBuilder.toString();
+        }
+
+        return summaryText;
     }
-  }
 
-  public static PrintStream getLogger(BuildListener bl, TaskListener tl) {
-    PrintStream logger = null;
-
-    if (bl != null) {
-      logger = bl.getLogger();
-      return logger;
+    public static String getParametersHTML(
+            JSONArray parameters, String summaryText, String parameterName, String parameterValue) {
+        return getExtraHTML(parameters, summaryText, parameterName, parameterValue, "Parameters");
     }
-    if (tl != null) {
-      logger = tl.getLogger();
-      return logger;
-    }
-    return logger;
-  }
 
-  public static Result getCorrespondedCiBuildResult(CdPipelineStatus cdPipelineStatus) {
-    switch (cdPipelineStatus) {
-      case success:
-        return Result.SUCCESS;
-      case warning:
-        return Result.UNSTABLE;
-      default:
-        return Result.FAILURE;
-    }
-  }
+    public static String getExtraHTML(
+            JSONArray parameters, String summaryText, String parameterName, String parameterValue, String sectionName) {
 
-  public static Result getCorrespondedCiBuildResult(CdJobOutcome cdJobOutcome) {
-    switch (cdJobOutcome) {
-      case success:
-        return Result.SUCCESS;
-      case warning:
-        return Result.UNSTABLE;
-      default:
-        return Result.FAILURE;
-    }
-  }
+        if (parameters != null && !parameters.isEmpty()) {
+            StringBuilder strBuilder = new StringBuilder(summaryText);
 
+            strBuilder.append("  <tr>\n"
+                    + "    <td>&nbsp;<b>" + sectionName + "</b></td>\n"
+                    + "    <td></td>    \n"
+                    + "  </tr>\n");
+
+            for (int i = 0; i < parameters.size(); i++) {
+                JSONObject json = parameters.getJSONObject(i);
+                String name = json.getString(parameterName);
+                String value = json.getString(parameterValue);
+
+                strBuilder
+                        .append("  <tr>\n" + "    <td>&nbsp;&nbsp;&nbsp;&nbsp;")
+                        .append(HtmlUtils.encodeForHtml(name))
+                        .append(":</td>\n" + "    <td>")
+                        .append(HtmlUtils.encodeForHtml(value))
+                        .append("</td>    \n" + "  </tr>\n");
+            }
+
+            summaryText = strBuilder.toString();
+        }
+
+        return summaryText;
+    }
+
+    public static ListBoxModel getPipelines(
+            String configuration, Credential overrideCredential, Item item, String projectName) {
+        try {
+            ListBoxModel m = new ListBoxModel();
+
+            m.add("Select pipeline", "");
+
+            if (!projectName.isEmpty()
+                    && !configuration.isEmpty()
+                    && SelectFieldUtils.checkAllSelectItemsAreNotValidationWrappers(projectName)) {
+                ElectricFlowClient efClient =
+                        ElectricFlowClientFactory.getElectricFlowClient(configuration, overrideCredential, item, null);
+                String pipelinesString = efClient.getPipelines(projectName);
+
+                if (log.isDebugEnabled()) {
+                    log.debug("Got pipelines: " + pipelinesString);
+                }
+
+                JSONObject jsonObject;
+
+                jsonObject = JSONObject.fromObject(pipelinesString);
+
+                JSONArray pipelines = new JSONArray();
+
+                if (!jsonObject.isEmpty()) {
+                    pipelines = jsonObject.getJSONArray("pipeline");
+                }
+
+                for (int i = 0; i < pipelines.size(); i++) {
+                    String gotPipelineName = pipelines.getJSONObject(i).getString("pipelineName");
+
+                    m.add(gotPipelineName, gotPipelineName);
+                }
+            }
+
+            return m;
+        } catch (Exception e) {
+            if (Utils.isEflowAvailable(configuration, overrideCredential, item)) {
+                log.error(
+                        "Error when fetching values for this parameter - pipeline. Error message: " + e.getMessage(),
+                        e);
+                return SelectFieldUtils.getListBoxModelOnException("Select pipeline");
+            } else {
+                return SelectFieldUtils.getListBoxModelOnWrongConf("Select pipeline");
+            }
+        }
+    }
+
+    public static boolean isEflowAvailable(String configuration, Credential overrideCredential, Run run) {
+        return isEflowAvailable(configuration, overrideCredential, new RunCredentialHandler(run));
+    }
+
+    public static boolean isEflowAvailable(String configuration, Credential overrideCredential, Item item) {
+        return isEflowAvailable(configuration, overrideCredential, new ItemCredentialHandler(item));
+    }
+
+    public static boolean isEflowAvailable(
+            String configuration, Credential overrideCredential, CredentialHandler credentialHandler) {
+        try {
+            ElectricFlowClientFactory.getElectricFlowClient(configuration, overrideCredential, credentialHandler, null)
+                    .testConnection();
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    public static ListBoxModel getProjects(String configuration, Credential overrideCredential) {
+        return getProjects(configuration, overrideCredential, true);
+    }
+
+    public static ListBoxModel getProjects(
+            String configuration, Credential overrideCredential, boolean warnOnSelectProject) {
+        return getProjects(configuration, overrideCredential, null, warnOnSelectProject);
+    }
+
+    public static ListBoxModel getProjects(
+            String configuration, Credential overrideCredential, Item item, boolean warnOnSelectProject) {
+        try {
+            ListBoxModel m = new ListBoxModel();
+
+            if (warnOnSelectProject) {
+                m.add(
+                        "Select project",
+                        new SelectItemValidationWrapper(
+                                        FieldValidationStatus.WARN, "Project name field should not be empty.", "")
+                                .getJsonStr());
+            }
+            if (!configuration.isEmpty()) {
+                ElectricFlowClient efClient = ElectricFlowClientFactory.getElectricFlowClient(
+                        configuration, overrideCredential, new ItemCredentialHandler(item), null);
+                String projectsString = efClient.getProjects();
+                JSONObject jsonObject = JSONObject.fromObject(projectsString);
+                JSONArray projects = jsonObject.getJSONArray("project");
+
+                for (int i = 0; i < projects.size(); i++) {
+
+                    if (projects.getJSONObject(i).has("pluginKey")) {
+                        continue;
+                    }
+
+                    String gotProjectName = projects.getJSONObject(i).getString("projectName");
+
+                    m.add(gotProjectName, gotProjectName);
+                }
+            }
+
+            return m;
+        } catch (Exception e) {
+            if (Utils.isEflowAvailable(configuration, overrideCredential, item)) {
+                log.error(
+                        "Error when fetching values for this parameter - project. Error message: " + e.getMessage(), e);
+                return SelectFieldUtils.getListBoxModelOnException("Select project");
+            } else {
+                return SelectFieldUtils.getListBoxModelOnWrongConf("Select project");
+            }
+        }
+    }
+
+    public static String getValidationComparisonHeaderRow() {
+        return "<thead style=\"background-color: #e0e0e0;\"><td>Parameter Name</td><td>Old Value</td><td>New Value</td></thead>";
+    }
+
+    public static String getValidationComparisonRow(String parameterName, Object oldValue, Object newValue) {
+        String rowStyleAttr = "";
+        if (!newValue.equals(oldValue)) {
+            rowStyleAttr = "style=\"background-color: #e2db0c;\"";
+        }
+        return "<tr "
+                + rowStyleAttr
+                + "><td>"
+                + HtmlUtils.encodeForHtml(parameterName)
+                + "</td><td>"
+                + HtmlUtils.encodeForHtml(String.valueOf(oldValue))
+                + "</td><td>"
+                + HtmlUtils.encodeForHtml(String.valueOf(newValue))
+                + "</td></tr>";
+    }
+
+    public static String getValidationComparisonRowOldParam(String parameterName, Object oldValue) {
+        String rowStyleAttr = "style=\"background-color: #fa9a76;\"";
+        return "<tr "
+                + rowStyleAttr
+                + "><td>"
+                + HtmlUtils.encodeForHtml(parameterName)
+                + "</td><td>"
+                + HtmlUtils.encodeForHtml(String.valueOf(oldValue))
+                + "</td><td></td></tr>";
+    }
+
+    public static String getValidationComparisonRowNewParam(String parameterName, Object newValue) {
+        String rowStyleAttr = "style=\"background-color: #82dc84;\"";
+        return "<tr "
+                + rowStyleAttr
+                + "><td>"
+                + HtmlUtils.encodeForHtml(parameterName)
+                + "</td><td></td><td>"
+                + HtmlUtils.encodeForHtml(String.valueOf(newValue))
+                + "</td></tr>";
+    }
+
+    public static String getValidationComparisonRowsForExtraParameters(
+            String sectionName, Map<String, String> oldParamsMap, Map<String, String> newParamsMap) {
+        if (oldParamsMap.isEmpty() && newParamsMap.isEmpty()) {
+            return "";
+        }
+
+        StringBuilder rows = new StringBuilder();
+        rows.append("<tr><td></td><td></td><td></td></tr>");
+        rows.append("<tr><td>" + HtmlUtils.encodeForHtml(sectionName) + "</td><td></td><td></td></tr>");
+
+        Set<String> oldKeysSet = new HashSet<String>(oldParamsMap.keySet());
+        oldKeysSet.removeAll(newParamsMap.keySet());
+
+        Set<String> matchingKeysSet = new HashSet<String>(oldParamsMap.keySet());
+        matchingKeysSet.retainAll(newParamsMap.keySet());
+
+        for (String oldKey : oldKeysSet) {
+            rows.append(getValidationComparisonRowOldParam(oldKey, oldParamsMap.get(oldKey)));
+        }
+
+        for (Map.Entry<String, String> entry : newParamsMap.entrySet()) {
+            if (matchingKeysSet.contains(entry.getKey())) {
+                rows.append(
+                        getValidationComparisonRow(entry.getKey(), oldParamsMap.get(entry.getKey()), entry.getValue()));
+            } else {
+                rows.append(getValidationComparisonRowNewParam(entry.getKey(), entry.getValue()));
+            }
+        }
+
+        return rows.toString();
+    }
+
+    public static EnvVars getNodeEnvVars() {
+        DescribableList<NodeProperty<?>, NodePropertyDescriptor> globalNodeProperties =
+                Jenkins.get().getGlobalNodeProperties();
+        List<EnvironmentVariablesNodeProperty> envVarsNodePropertyList =
+                globalNodeProperties.getAll(hudson.slaves.EnvironmentVariablesNodeProperty.class);
+
+        if (envVarsNodePropertyList == null || envVarsNodePropertyList.isEmpty()) {
+            EnvironmentVariablesNodeProperty newEnvVarsNodeProperty =
+                    new hudson.slaves.EnvironmentVariablesNodeProperty();
+            globalNodeProperties.add(newEnvVarsNodeProperty);
+            return newEnvVarsNodeProperty.getEnvVars();
+        } else {
+            return envVarsNodePropertyList.get(0).getEnvVars();
+        }
+    }
+
+    public static PrintStream getLogger(BuildListener bl, TaskListener tl) {
+        PrintStream logger = null;
+
+        if (bl != null) {
+            logger = bl.getLogger();
+            return logger;
+        }
+        if (tl != null) {
+            logger = tl.getLogger();
+            return logger;
+        }
+        return logger;
+    }
+
+    public static Result getCorrespondedCiBuildResult(CdPipelineStatus cdPipelineStatus) {
+        switch (cdPipelineStatus) {
+            case success:
+                return Result.SUCCESS;
+            case warning:
+                return Result.UNSTABLE;
+            default:
+                return Result.FAILURE;
+        }
+    }
+
+    public static Result getCorrespondedCiBuildResult(CdJobOutcome cdJobOutcome) {
+        switch (cdJobOutcome) {
+            case success:
+                return Result.SUCCESS;
+            case warning:
+                return Result.UNSTABLE;
+            default:
+                return Result.FAILURE;
+        }
+    }
 }

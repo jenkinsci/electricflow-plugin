@@ -6,43 +6,48 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class StageResponseData {
 
-  @JsonProperty private String stageId;
-  @JsonProperty private String stageName;
-  @JsonProperty private int index;
+    @JsonProperty
+    private String stageId;
 
-  public String getStageId() {
-    return stageId;
-  }
+    @JsonProperty
+    private String stageName;
 
-  public void setStageId(String stageId) {
-    this.stageId = stageId;
-  }
+    @JsonProperty
+    private int index;
 
-  public String getStageName() {
-    return stageName;
-  }
+    public String getStageId() {
+        return stageId;
+    }
 
-  public void setStageName(String stageName) {
-    this.stageName = stageName;
-  }
+    public void setStageId(String stageId) {
+        this.stageId = stageId;
+    }
 
-  public int getIndex() {
-    return index;
-  }
+    public String getStageName() {
+        return stageName;
+    }
 
-  public void setIndex(int index) {
-    this.index = index;
-  }
+    public void setStageName(String stageName) {
+        this.stageName = stageName;
+    }
 
-  @Override
-  public String toString() {
-    return "CD Pipeline Stage Response Data: {"
-        + "stageId="
-        + stageId
-        + ", stageName="
-        + stageName
-        + ", index="
-        + index
-        + '}';
-  }
+    public int getIndex() {
+        return index;
+    }
+
+    public void setIndex(int index) {
+        this.index = index;
+    }
+
+    @Override
+    public String toString() {
+        return "CD Pipeline Stage Response Data: {"
+                + "stageId="
+                + stageId
+                + ", stageName="
+                + stageName
+                + ", index="
+                + index
+                + '}';
+    }
 }

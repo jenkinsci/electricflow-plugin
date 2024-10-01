@@ -12,39 +12,38 @@ import org.jenkinsci.plugins.plaincredentials.StringCredentials;
 
 public class ItemCredentialHandler implements CredentialHandler {
 
-  private Item item;
+    private Item item;
 
-  public ItemCredentialHandler(Item item) {
-    this.item = item;
-  }
-
-  @Override
-  public StandardCredentials getStandardCredentialsById(
-      String credentialsId) {
-    if (credentialsId == null) {
-      return null;
+    public ItemCredentialHandler(Item item) {
+        this.item = item;
     }
 
-    StandardCredentials credentials = CredentialsMatchers.firstOrNull(
-        lookupCredentials(
-            StandardUsernamePasswordCredentials.class,
-            item,
-            ACL.SYSTEM,
-            new SchemeRequirement("http"),
-            new SchemeRequirement("https")),
-        CredentialsMatchers.withId(credentialsId));
+    @Override
+    public StandardCredentials getStandardCredentialsById(String credentialsId) {
+        if (credentialsId == null) {
+            return null;
+        }
 
-    if (credentials != null) {
-      return credentials;
+        StandardCredentials credentials = CredentialsMatchers.firstOrNull(
+                lookupCredentials(
+                        StandardUsernamePasswordCredentials.class,
+                        item,
+                        ACL.SYSTEM,
+                        new SchemeRequirement("http"),
+                        new SchemeRequirement("https")),
+                CredentialsMatchers.withId(credentialsId));
+
+        if (credentials != null) {
+            return credentials;
+        }
+
+        return CredentialsMatchers.firstOrNull(
+                lookupCredentials(
+                        StringCredentials.class,
+                        item,
+                        ACL.SYSTEM,
+                        new SchemeRequirement("http"),
+                        new SchemeRequirement("https")),
+                CredentialsMatchers.withId(credentialsId));
     }
-
-    return CredentialsMatchers.firstOrNull(
-            lookupCredentials(
-                    StringCredentials.class,
-                    item,
-                    ACL.SYSTEM,
-                    new SchemeRequirement("http"),
-                    new SchemeRequirement("https")),
-            CredentialsMatchers.withId(credentialsId));
-  }
 }

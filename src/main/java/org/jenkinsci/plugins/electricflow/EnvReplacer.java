@@ -15,23 +15,23 @@ import java.io.IOException;
 
 public class EnvReplacer {
 
-  // ~ Instance fields --------------------------------------------------------
+    // ~ Instance fields --------------------------------------------------------
 
-  private TaskListener listener;
-  private Run run;
-  private EnvVars treeMap;
+    private TaskListener listener;
+    private Run run;
+    private EnvVars treeMap;
 
-  // ~ Constructors -----------------------------------------------------------
+    // ~ Constructors -----------------------------------------------------------
 
-  public EnvReplacer(Run run, TaskListener listener) throws IOException, InterruptedException {
-    this.listener = listener;
-    this.run = run;
-    this.treeMap = this.run.getEnvironment(this.listener);
-  }
+    public EnvReplacer(Run run, TaskListener listener) throws IOException, InterruptedException {
+        this.listener = listener;
+        this.run = run;
+        this.treeMap = this.run.getEnvironment(this.listener);
+    }
 
-  // ~ Methods ----------------------------------------------------------------
+    // ~ Methods ----------------------------------------------------------------
 
-  public String expandEnv(String pattern) {
-    return this.treeMap.expand(pattern);
-  }
+    public String expandEnv(String pattern) {
+        return this.treeMap.expand(pattern);
+    }
 }

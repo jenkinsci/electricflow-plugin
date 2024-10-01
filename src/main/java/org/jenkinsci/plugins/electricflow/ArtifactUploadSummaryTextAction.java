@@ -10,23 +10,23 @@ import org.kohsuke.stapler.export.ExportedBean;
 @ExportedBean
 public class ArtifactUploadSummaryTextAction extends SummaryTextAction {
 
-  private ArtifactUploadData artifactUploadData;
+    private ArtifactUploadData artifactUploadData;
 
-  public ArtifactUploadSummaryTextAction(Run<?, ?> run, String summaryText) {
-    super(run, summaryText);
+    public ArtifactUploadSummaryTextAction(Run<?, ?> run, String summaryText) {
+        super(run, summaryText);
 
-    List<SummaryTextAction> projectActions = new ArrayList<>();
+        List<SummaryTextAction> projectActions = new ArrayList<>();
 
-    projectActions.add(this);
-    this.projectActions = projectActions;
-  }
+        projectActions.add(this);
+        this.projectActions = projectActions;
+    }
 
-  @Exported
-  public ArtifactUploadData getArtifactUploadData() {
-    return artifactUploadData;
-  }
+    @Exported
+    public ArtifactUploadData getArtifactUploadData() {
+        return artifactUploadData;
+    }
 
-  public void setArtifactUploadData(ArtifactUploadData artifactUploadData) {
-    this.artifactUploadData = artifactUploadData;
-  }
+    public void setArtifactUploadData(ArtifactUploadData artifactUploadData) {
+        this.artifactUploadData = artifactUploadData;
+    }
 }

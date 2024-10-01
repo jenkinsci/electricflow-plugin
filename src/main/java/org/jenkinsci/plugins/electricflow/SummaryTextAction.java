@@ -19,55 +19,55 @@ import jenkins.tasks.SimpleBuildStep;
 
 public class SummaryTextAction implements Action, SimpleBuildStep.LastBuildAction {
 
-  // ~ Instance fields --------------------------------------------------------
+    // ~ Instance fields --------------------------------------------------------
 
-  protected final Run<?, ?> run;
-  protected String summaryText;
-  protected List<SummaryTextAction> projectActions;
+    protected final Run<?, ?> run;
+    protected String summaryText;
+    protected List<SummaryTextAction> projectActions;
 
-  // ~ Constructors -----------------------------------------------------------
+    // ~ Constructors -----------------------------------------------------------
 
-  public SummaryTextAction(Run<?, ?> run, String summaryText) {
-    this.run = run;
-    this.summaryText = summaryText;
+    public SummaryTextAction(Run<?, ?> run, String summaryText) {
+        this.run = run;
+        this.summaryText = summaryText;
 
-    List<SummaryTextAction> projectActions = new ArrayList<>();
+        List<SummaryTextAction> projectActions = new ArrayList<>();
 
-    projectActions.add(this);
-    this.projectActions = projectActions;
-  }
+        projectActions.add(this);
+        this.projectActions = projectActions;
+    }
 
-  // ~ Methods ----------------------------------------------------------------
+    // ~ Methods ----------------------------------------------------------------
 
-  @Override
-  public String getDisplayName() {
-    return null;
-  }
+    @Override
+    public String getDisplayName() {
+        return null;
+    }
 
-  @Override
-  public String getIconFileName() {
-    return null;
-  }
+    @Override
+    public String getIconFileName() {
+        return null;
+    }
 
-  @Override
-  public Collection<? extends Action> getProjectActions() {
-    return this.projectActions;
-  }
+    @Override
+    public Collection<? extends Action> getProjectActions() {
+        return this.projectActions;
+    }
 
-  public Run<?, ?> getRun() {
-    return this.run;
-  }
+    public Run<?, ?> getRun() {
+        return this.run;
+    }
 
-  public String getSummaryText() {
-    return getHtmlPolicy().sanitize(this.summaryText);
-  }
+    public String getSummaryText() {
+        return getHtmlPolicy().sanitize(this.summaryText);
+    }
 
-  public void setSummaryText(String summaryText) {
-    this.summaryText = summaryText;
-  }
+    public void setSummaryText(String summaryText) {
+        this.summaryText = summaryText;
+    }
 
-  @Override
-  public String getUrlName() {
-    return null;
-  }
+    @Override
+    public String getUrlName() {
+        return null;
+    }
 }

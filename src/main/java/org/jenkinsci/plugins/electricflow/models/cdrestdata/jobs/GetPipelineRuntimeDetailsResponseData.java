@@ -11,83 +11,85 @@ import org.jenkinsci.plugins.electricflow.utils.JsonUtils.NumericBooleanDeserial
 import org.jenkinsci.plugins.electricflow.utils.JsonUtils.NumericBooleanSerializer;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class GetPipelineRuntimeDetailsResponseData  implements FlowRuntimeResponseData  {
+public class GetPipelineRuntimeDetailsResponseData implements FlowRuntimeResponseData {
 
-  @JsonProperty private String flowRuntimeId;
+    @JsonProperty
+    private String flowRuntimeId;
 
-  @JsonProperty
-  @JsonSerialize(using = NumericBooleanSerializer.class)
-  @JsonDeserialize(using = NumericBooleanDeserializer.class)
-  private Boolean completed;
+    @JsonProperty
+    @JsonSerialize(using = NumericBooleanSerializer.class)
+    @JsonDeserialize(using = NumericBooleanDeserializer.class)
+    private Boolean completed;
 
-  @JsonProperty private CdPipelineStatus status = CdPipelineStatus.unknown;
-  private String content;
+    @JsonProperty
+    private CdPipelineStatus status = CdPipelineStatus.unknown;
 
-  public String getFlowRuntimeId() {
-    return flowRuntimeId;
-  }
+    private String content;
 
-  public void setFlowRuntimeId(String flowRuntimeId) {
-    this.flowRuntimeId = flowRuntimeId;
-  }
-
-  public Boolean isCompleted() {
-    return completed;
-  }
-
-  // TODO: Get the pipeline failed stage Error summary
-  @Override
-  public String getRuntimeOutcome() {
-    return status.toString();
-  }
-
-  @Override
-  public String getRuntimeStatus() {
-    return status.toString();
-  }
-
-  @Override
-  public String getRuntimeId() {
-    return flowRuntimeId;
-  }
-
-  public void setCompleted(Boolean completed) {
-    this.completed = completed;
-  }
-
-  public CdPipelineStatus getStatus() {
-    return status;
-  }
-
-  public void setStatus(CdPipelineStatus status) {
-    this.status = status;
-  }
-
-  public String getContent() {
-    return content;
-  }
-
-  public void setContent(String content) {
-    this.content = content;
-  }
-
-  @Override
-  public String toString() {
-    if (getStatus() == CdPipelineStatus.unknown && getContent() != null) {
-      try {
-        return "CD Pipeline Runtime Details Response (unexpected json): "
-            + formatJsonOutput(getContent());
-      } catch (IOException e) {
-        return "CD Pipeline Runtime Details Response (unexpected content): " + getContent();
-      }
+    public String getFlowRuntimeId() {
+        return flowRuntimeId;
     }
-    return "CD Pipeline Runtime Details Response Data: {"
-        + "flowRuntimeId="
-        + flowRuntimeId
-        + ", completed="
-        + completed
-        + ", status="
-        + status
-        + '}';
-  }
+
+    public void setFlowRuntimeId(String flowRuntimeId) {
+        this.flowRuntimeId = flowRuntimeId;
+    }
+
+    public Boolean isCompleted() {
+        return completed;
+    }
+
+    // TODO: Get the pipeline failed stage Error summary
+    @Override
+    public String getRuntimeOutcome() {
+        return status.toString();
+    }
+
+    @Override
+    public String getRuntimeStatus() {
+        return status.toString();
+    }
+
+    @Override
+    public String getRuntimeId() {
+        return flowRuntimeId;
+    }
+
+    public void setCompleted(Boolean completed) {
+        this.completed = completed;
+    }
+
+    public CdPipelineStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(CdPipelineStatus status) {
+        this.status = status;
+    }
+
+    public String getContent() {
+        return content;
+    }
+
+    public void setContent(String content) {
+        this.content = content;
+    }
+
+    @Override
+    public String toString() {
+        if (getStatus() == CdPipelineStatus.unknown && getContent() != null) {
+            try {
+                return "CD Pipeline Runtime Details Response (unexpected json): " + formatJsonOutput(getContent());
+            } catch (IOException e) {
+                return "CD Pipeline Runtime Details Response (unexpected content): " + getContent();
+            }
+        }
+        return "CD Pipeline Runtime Details Response Data: {"
+                + "flowRuntimeId="
+                + flowRuntimeId
+                + ", completed="
+                + completed
+                + ", status="
+                + status
+                + '}';
+    }
 }

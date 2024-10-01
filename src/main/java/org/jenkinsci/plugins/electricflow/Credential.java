@@ -18,54 +18,54 @@ import org.kohsuke.stapler.DataBoundConstructor;
 
 public class Credential extends AbstractDescribableImpl<Credential> {
 
-  private String credentialId;
+    private String credentialId;
 
-  @DataBoundConstructor
-  public Credential(String credentialId) {
-    this.credentialId = credentialId;
-  }
-
-  public String getCredentialId(EnvReplacer envReplacer) {
-    return envReplacer == null ? getCredentialId() : envReplacer.expandEnv(getCredentialId());
-  }
-
-  public String getCredentialId() {
-    return credentialId;
-  }
-
-  @Extension
-  public static class DescriptorImpl extends Descriptor<Credential> {
-
-    public static ListBoxModel doFillCredentialIdItems(@AncestorInPath Item item) {
-
-      if (item == null && !Jenkins.get().hasPermission(Jenkins.ADMINISTER)) {
-        return new StandardListBoxModel();
-      }
-      if (item != null
-          && !item.hasPermission(Item.EXTENDED_READ) /*implied by Item.CONFIGURE*/
-          && !item.hasPermission(CredentialsProvider.USE_ITEM)) {
-        return new StandardListBoxModel();
-      }
-
-      return new StandardListBoxModel()
-          .includeEmptyValue()
-          .includeMatchingAs(
-              ACL.SYSTEM,
-              item,
-              StandardUsernamePasswordCredentials.class,
-              Collections.emptyList(),
-              CredentialsMatchers.always())
-          .includeMatchingAs(
-              ACL.SYSTEM,
-              item,
-              StringCredentials.class,
-              Collections.emptyList(),
-              CredentialsMatchers.always());
+    @DataBoundConstructor
+    public Credential(String credentialId) {
+        this.credentialId = credentialId;
     }
 
-    @Override
-    public String getDisplayName() {
-      return "Credential";
+    public String getCredentialId(EnvReplacer envReplacer) {
+        return envReplacer == null ? getCredentialId() : envReplacer.expandEnv(getCredentialId());
     }
-  }
+
+    public String getCredentialId() {
+        return credentialId;
+    }
+
+    @Extension
+    public static class DescriptorImpl extends Descriptor<Credential> {
+
+        public static ListBoxModel doFillCredentialIdItems(@AncestorInPath Item item) {
+
+            if (item == null && !Jenkins.get().hasPermission(Jenkins.ADMINISTER)) {
+                return new StandardListBoxModel();
+            }
+            if (item != null
+                    && !item.hasPermission(Item.EXTENDED_READ) /*implied by Item.CONFIGURE*/
+                    && !item.hasPermission(CredentialsProvider.USE_ITEM)) {
+                return new StandardListBoxModel();
+            }
+
+            return new StandardListBoxModel()
+                    .includeEmptyValue()
+                    .includeMatchingAs(
+                            ACL.SYSTEM,
+                            item,
+                            StandardUsernamePasswordCredentials.class,
+                            Collections.emptyList(),
+                            CredentialsMatchers.always())
+                    .includeMatchingAs(
+                            ACL.SYSTEM,
+                            item,
+                            StringCredentials.class,
+                            Collections.emptyList(),
+                            CredentialsMatchers.always());
+        }
+
+        @Override
+        public String getDisplayName() {
+            return "Credential";
+        }
+    }
 }

@@ -4,33 +4,31 @@ import com.cloudbees.plugins.credentials.CredentialsProvider;
 import com.cloudbees.plugins.credentials.common.StandardCredentials;
 import com.cloudbees.plugins.credentials.common.StandardUsernamePasswordCredentials;
 import hudson.model.Run;
-import org.jenkinsci.plugins.plaincredentials.StringCredentials;
-
 import java.util.Collections;
+import org.jenkinsci.plugins.plaincredentials.StringCredentials;
 
 public class RunCredentialHandler implements CredentialHandler {
 
-  private Run run;
+    private Run run;
 
-  public RunCredentialHandler(Run run) {
-    this.run = run;
-  }
-
-  @Override
-  public StandardCredentials getStandardCredentialsById(
-      String credentialsId) {
-    if (credentialsId == null) {
-      return null;
+    public RunCredentialHandler(Run run) {
+        this.run = run;
     }
 
-    StandardCredentials credentials = CredentialsProvider.findCredentialById(
-        credentialsId, StandardUsernamePasswordCredentials.class, run, Collections.emptyList());
+    @Override
+    public StandardCredentials getStandardCredentialsById(String credentialsId) {
+        if (credentialsId == null) {
+            return null;
+        }
 
-    if (credentials != null) {
-      return credentials;
+        StandardCredentials credentials = CredentialsProvider.findCredentialById(
+                credentialsId, StandardUsernamePasswordCredentials.class, run, Collections.emptyList());
+
+        if (credentials != null) {
+            return credentials;
+        }
+
+        return CredentialsProvider.findCredentialById(
+                credentialsId, StringCredentials.class, run, Collections.emptyList());
     }
-
-    return CredentialsProvider.findCredentialById(
-            credentialsId, StringCredentials.class, run, Collections.emptyList());
-  }
 }

@@ -20,44 +20,46 @@ import org.kohsuke.stapler.StaplerRequest;
 @Symbol("electricflow")
 public class ElectricFlowGlobalConfiguration extends GlobalConfiguration {
 
-  // ~ Instance fields --------------------------------------------------------
+    // ~ Instance fields --------------------------------------------------------
 
-  public List<Configuration> configurations;
-  @Deprecated private transient List<Configuration> efConfigurations;
+    public List<Configuration> configurations;
 
-  // ~ Constructors -----------------------------------------------------------
+    @Deprecated
+    private transient List<Configuration> efConfigurations;
 
-  public ElectricFlowGlobalConfiguration() {
-    load();
-  }
+    // ~ Constructors -----------------------------------------------------------
 
-  // ~ Methods ----------------------------------------------------------------
-
-  @Override
-  public boolean configure(StaplerRequest req, JSONObject formData) throws FormException {
-    this.configurations = null;
-    req.bindJSON(this, formData);
-    save();
-
-    return true;
-  }
-
-  public List<Configuration> getConfigurations() {
-    return this.configurations;
-  }
-
-  @DataBoundSetter
-  public void setConfigurations(List<Configuration> configurations) {
-    this.configurations = configurations;
-  }
-
-  /*
-   * This is required to transform the old efConfigurations to the new configurations
-   */
-  private Object readResolve() {
-    if (efConfigurations != null) {
-      this.configurations = efConfigurations;
+    public ElectricFlowGlobalConfiguration() {
+        load();
     }
-    return this;
-  }
+
+    // ~ Methods ----------------------------------------------------------------
+
+    @Override
+    public boolean configure(StaplerRequest req, JSONObject formData) throws FormException {
+        this.configurations = null;
+        req.bindJSON(this, formData);
+        save();
+
+        return true;
+    }
+
+    public List<Configuration> getConfigurations() {
+        return this.configurations;
+    }
+
+    @DataBoundSetter
+    public void setConfigurations(List<Configuration> configurations) {
+        this.configurations = configurations;
+    }
+
+    /*
+     * This is required to transform the old efConfigurations to the new configurations
+     */
+    private Object readResolve() {
+        if (efConfigurations != null) {
+            this.configurations = efConfigurations;
+        }
+        return this;
+    }
 }

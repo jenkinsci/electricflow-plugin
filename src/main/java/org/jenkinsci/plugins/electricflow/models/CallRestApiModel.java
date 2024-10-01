@@ -8,52 +8,52 @@ import org.jenkinsci.plugins.electricflow.Pair;
 
 public interface CallRestApiModel {
 
-  String getConfiguration();
+    String getConfiguration();
 
-  Credential getOverrideCredential();
+    Credential getOverrideCredential();
 
-  String getUrlPath();
+    String getUrlPath();
 
-  String getHttpMethod();
+    String getHttpMethod();
 
-  List<Pair> getParameters();
+    List<Pair> getParameters();
 
-  default List<Pair> getParameters(EnvReplacer envReplacer) {
-    return getParameters().stream()
-        .map(it -> new Pair(it.getKey(), envReplacer.expandEnv(it.getValue())))
-        .collect(Collectors.toList());
-  }
+    default List<Pair> getParameters(EnvReplacer envReplacer) {
+        return getParameters().stream()
+                .map(it -> new Pair(it.getKey(), envReplacer.expandEnv(it.getValue())))
+                .collect(Collectors.toList());
+    }
 
-  String getBody();
+    String getBody();
 
-  default String getEnvVarNameForResult() {
-    return "";
-  }
+    default String getEnvVarNameForResult() {
+        return "";
+    }
 
-  default boolean isEnvVarNameForResultSet() {
-    return getEnvVarNameForResult() != null && !getEnvVarNameForResult().isEmpty();
-  }
+    default boolean isEnvVarNameForResultSet() {
+        return getEnvVarNameForResult() != null && !getEnvVarNameForResult().isEmpty();
+    }
 
-  default String getSummary() {
-    return "Configuration: "
-        + getConfiguration()
-        + "; "
-        + "URL Path: "
-        + getUrlPath()
-        + "; "
-        + "HTTP Method: "
-        + getHttpMethod()
-        + "; "
-        + "Parameters: ["
-        + getParameters().stream()
-            .map(it -> it.getKey() + ": " + it.getValue())
-            .collect(Collectors.joining(";"))
-        + "]; "
-        + "Body: "
-        + getBody()
-        + "; "
-        + (isEnvVarNameForResultSet()
-            ? ""
-            : "Environment variable name for storing result: " + getEnvVarNameForResult());
-  }
+    default String getSummary() {
+        return "Configuration: "
+                + getConfiguration()
+                + "; "
+                + "URL Path: "
+                + getUrlPath()
+                + "; "
+                + "HTTP Method: "
+                + getHttpMethod()
+                + "; "
+                + "Parameters: ["
+                + getParameters().stream()
+                        .map(it -> it.getKey() + ": " + it.getValue())
+                        .collect(Collectors.joining(";"))
+                + "]; "
+                + "Body: "
+                + getBody()
+                + "; "
+                + (isEnvVarNameForResultSet()
+                        ? ""
+                        : "Environment variable name for storing result: " + getEnvVarNameForResult());
+    }
 }

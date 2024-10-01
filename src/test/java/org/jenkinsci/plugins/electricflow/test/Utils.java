@@ -8,21 +8,17 @@ import org.jvnet.hudson.test.JenkinsRule;
 
 public class Utils {
 
-  public static void createConfigurationInJenkinsRule(JenkinsRule jenkinsRule, String configName) {
-    ElectricFlowGlobalConfiguration electricFlowGlobalConfiguration =
-        (ElectricFlowGlobalConfiguration)
-            jenkinsRule
+    public static void createConfigurationInJenkinsRule(JenkinsRule jenkinsRule, String configName) {
+        ElectricFlowGlobalConfiguration electricFlowGlobalConfiguration = (ElectricFlowGlobalConfiguration) jenkinsRule
                 .getInstance()
-                .getDescriptorByName(
-                    "org.jenkinsci.plugins.electricflow.ElectricFlowGlobalConfiguration");
+                .getDescriptorByName("org.jenkinsci.plugins.electricflow.ElectricFlowGlobalConfiguration");
 
-    electricFlowGlobalConfiguration.configurations = new LinkedList<>();
+        electricFlowGlobalConfiguration.configurations = new LinkedList<>();
 
-    Configuration configuration =
-        new Configuration(
-            configName, "localhost", "user", Secret.fromString("password"), "/rest/path", true, false, null, null);
+        Configuration configuration = new Configuration(
+                configName, "localhost", "user", Secret.fromString("password"), "/rest/path", true, false, null, null);
 
-    electricFlowGlobalConfiguration.configurations.add(configuration);
-    electricFlowGlobalConfiguration.save();
-  }
+        electricFlowGlobalConfiguration.configurations.add(configuration);
+        electricFlowGlobalConfiguration.save();
+    }
 }

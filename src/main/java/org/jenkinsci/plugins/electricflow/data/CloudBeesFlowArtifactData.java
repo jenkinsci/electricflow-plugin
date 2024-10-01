@@ -13,53 +13,50 @@ import org.jenkinsci.plugins.electricflow.extension.CloudBeesFlowArtifact;
 
 public class CloudBeesFlowArtifactData {
 
-  // ~ Instance fields --------------------------------------------------------
+    // ~ Instance fields --------------------------------------------------------
 
-  private List<CloudBeesFlowArtifact> artifactData;
+    private List<CloudBeesFlowArtifact> artifactData;
 
-  // ~ Constructors -----------------------------------------------------------
+    // ~ Constructors -----------------------------------------------------------
 
-  public CloudBeesFlowArtifactData(Run<?, ?> run) {
-    this.artifactData = new ArrayList<>();
+    public CloudBeesFlowArtifactData(Run<?, ?> run) {
+        this.artifactData = new ArrayList<>();
 
-    List<ArtifactUploadSummaryTextAction> artifactUploadSummaryTextActions =
-        run.getActions(ArtifactUploadSummaryTextAction.class);
-    ArtifactList artifactList = (ArtifactList) run.getArtifacts();
+        List<ArtifactUploadSummaryTextAction> artifactUploadSummaryTextActions =
+                run.getActions(ArtifactUploadSummaryTextAction.class);
+        ArtifactList artifactList = (ArtifactList) run.getArtifacts();
 
-    Map<String, ArtifactUploadData> artifactUploadDataMap = new HashMap<>();
+        Map<String, ArtifactUploadData> artifactUploadDataMap = new HashMap<>();
 
-    for (ArtifactUploadSummaryTextAction artifactUploadSummaryTextAction :
-        artifactUploadSummaryTextActions) {
-      ArtifactUploadData artifactUploadData =
-          artifactUploadSummaryTextAction.getArtifactUploadData();
-      artifactUploadDataMap.put(artifactUploadData.getFilePath(), artifactUploadData);
+        for (ArtifactUploadSummaryTextAction artifactUploadSummaryTextAction : artifactUploadSummaryTextActions) {
+            ArtifactUploadData artifactUploadData = artifactUploadSummaryTextAction.getArtifactUploadData();
+            artifactUploadDataMap.put(artifactUploadData.getFilePath(), artifactUploadData);
+        }
+
+        for (Object artifactRow : artifactList) {
+            Artifact artifact = (Artifact) artifactRow;
+            CloudBeesFlowArtifact cloudBeesFlowArtifact;
+
+            // we've found a match!
+            if (artifactUploadDataMap.containsKey(artifact.getHref())) {
+                cloudBeesFlowArtifact =
+                        CloudBeesFlowArtifact.build(artifact, artifactUploadDataMap.get(artifact.getHref()));
+            } else {
+                cloudBeesFlowArtifact =
+                        CloudBeesFlowArtifact.build(artifact, null /* No matching artifact published to flow */);
+            }
+
+            this.artifactData.add(cloudBeesFlowArtifact);
+        }
     }
 
-    for (Object artifactRow : artifactList) {
-      Artifact artifact = (Artifact) artifactRow;
-      CloudBeesFlowArtifact cloudBeesFlowArtifact;
+    // ~ Methods ----------------------------------------------------------------
 
-      // we've found a match!
-      if (artifactUploadDataMap.containsKey(artifact.getHref())) {
-        cloudBeesFlowArtifact =
-            CloudBeesFlowArtifact.build(artifact, artifactUploadDataMap.get(artifact.getHref()));
-      } else {
-        cloudBeesFlowArtifact =
-            CloudBeesFlowArtifact.build(
-                artifact, null /* No matching artifact published to flow */);
-      }
-
-      this.artifactData.add(cloudBeesFlowArtifact);
+    public List<CloudBeesFlowArtifact> getArtifactData() {
+        return artifactData;
     }
-  }
 
-  // ~ Methods ----------------------------------------------------------------
-
-  public List<CloudBeesFlowArtifact> getArtifactData() {
-    return artifactData;
-  }
-
-  public void setArtifactData(List<CloudBeesFlowArtifact> artifactData) {
-    this.artifactData = artifactData;
-  }
+    public void setArtifactData(List<CloudBeesFlowArtifact> artifactData) {
+        this.artifactData = artifactData;
+    }
 }

@@ -15,29 +15,29 @@ import org.kohsuke.stapler.DataBoundConstructor;
 
 public class Pair extends AbstractDescribableImpl<Pair> {
 
-  private String key;
-  private String value;
+    private String key;
+    private String value;
 
-  @DataBoundConstructor
-  public Pair(String key, String value) {
-    this.key = key;
-    this.value = value;
-  }
-
-  public String getKey() {
-    return key;
-  }
-
-  public String getValue() {
-    return value;
-  }
-
-  @Extension
-  public static class DescriptorImpl extends Descriptor<Pair> {
-
-    @Override
-    public String getDisplayName() {
-      return "Parr";
+    @DataBoundConstructor
+    public Pair(String key, String value) {
+        this.key = key;
+        this.value = value;
     }
-  }
+
+    public String getKey() {
+        return key;
+    }
+
+    public String getValue() {
+        return value;
+    }
+
+    @Extension
+    public static class DescriptorImpl extends Descriptor<Pair> {
+
+        @Override
+        public String getDisplayName() {
+            return "Parr";
+        }
+    }
 }
