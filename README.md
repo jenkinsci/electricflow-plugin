@@ -298,6 +298,7 @@ You can use the following workarounds instead of the **Add** button to help you 
 ## Version 1.1.38 (TBD)
 
 - Update **Stage Option** tool tips for **Run Pipeline** procedure.
+- Fix issue in **Post Build Action - Run Procedure** where the dropdown icon for the **config** field would shift when choosing **Procedure Name**.
 
 ## Version 1.1.37 (July 26, 2024)
 
