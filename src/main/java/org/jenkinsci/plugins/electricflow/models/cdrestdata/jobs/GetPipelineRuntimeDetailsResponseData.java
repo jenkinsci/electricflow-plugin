@@ -34,6 +34,7 @@ public class GetPipelineRuntimeDetailsResponseData implements FlowRuntimeRespons
         this.flowRuntimeId = flowRuntimeId;
     }
 
+    @Override
     public Boolean isCompleted() {
         return completed;
     }

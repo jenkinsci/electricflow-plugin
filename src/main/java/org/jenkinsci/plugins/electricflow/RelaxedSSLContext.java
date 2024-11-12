@@ -11,6 +11,7 @@ import javax.net.ssl.X509TrustManager;
 public class RelaxedSSLContext {
     // hostname verifier for which all hosts valid
     public static final HostnameVerifier allHostsValid = new HostnameVerifier() {
+        @Override
         public boolean verify(String hostname, SSLSession session) {
             return true;
         }
@@ -18,14 +19,17 @@ public class RelaxedSSLContext {
     // trust manager that does not validate certificate
     static final TrustManager[] trustAllCerts = new TrustManager[] {
         new X509TrustManager() {
+            @Override
             public java.security.cert.X509Certificate[] getAcceptedIssuers() {
                 return null;
             }
 
+            @Override
             public void checkClientTrusted(java.security.cert.X509Certificate[] certs, String authType) {
                 // No need to implement.
             }
 
+            @Override
             public void checkServerTrusted(java.security.cert.X509Certificate[] certs, String authType) {
                 // No need to implement.
             }

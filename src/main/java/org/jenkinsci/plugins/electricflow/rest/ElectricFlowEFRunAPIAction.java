@@ -41,16 +41,19 @@ public class ElectricFlowEFRunAPIAction<T extends Job<?, ?> & Queue.Task> implem
 
     // Interface methods
 
+    @Override
     public String getIconFileName() {
         // return "/plugin/electricflow-integration/img/flow-icon-white.svg";
         return null;
         // return null; // Invisible
     }
 
+    @Override
     public String getDisplayName() {
         return null; // Invisible
     }
 
+    @Override
     public String getUrlName() {
         return URL_NAME;
     }

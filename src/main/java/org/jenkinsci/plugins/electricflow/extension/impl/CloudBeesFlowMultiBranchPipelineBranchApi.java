@@ -16,6 +16,7 @@ public class CloudBeesFlowMultiBranchPipelineBranchApi extends CloudBeesFlowMult
         this.scmBranchName = "";
     }
 
+    @Override
     public CloudBeesFlowMultiBranchPipeline generate(Run<?, ?> run) {
         ItemGroup parent = run.getParent().getParent();
         CloudBeesFlowMultiBranchPipeline retval = new CloudBeesFlowMultiBranchPipeline();
