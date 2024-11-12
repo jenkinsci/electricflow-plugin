@@ -4,13 +4,13 @@ import org.jenkinsci.plugins.electricflow.models.cdrestdata.jobs.FlowRuntimeResp
 
 public class FlowRuntimeException extends RuntimeException {
 
-  FlowRuntimeResponseData runtimeResponseData;
-  String status;
+    FlowRuntimeResponseData runtimeResponseData;
+    String status;
 
-  public FlowRuntimeException(FlowRuntimeResponseData runtimeResponseData) {
-    super(runtimeResponseData.toString());
+    public FlowRuntimeException(FlowRuntimeResponseData runtimeResponseData) {
+        super(runtimeResponseData.toString());
 
-    this.runtimeResponseData = runtimeResponseData;
-    this.status = runtimeResponseData.getRuntimeStatus();
-  }
+        this.runtimeResponseData = runtimeResponseData;
+        this.status = runtimeResponseData.getRuntimeStatus();
+    }
 }

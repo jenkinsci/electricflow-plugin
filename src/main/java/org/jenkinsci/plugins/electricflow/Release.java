@@ -13,90 +13,90 @@ import java.util.List;
 
 public class Release {
 
-  // ~ Instance fields --------------------------------------------------------
+    // ~ Instance fields --------------------------------------------------------
 
-  private String configuration;
-  private String releaseName;
-  private String projectName;
-  private String releaseId;
-  private String flowRuntimeId;
-  private List<String> startStages;
-  private String pipelineId;
-  private String pipelineName;
-  private List<String> pipelineParameters;
+    private String configuration;
+    private String releaseName;
+    private String projectName;
+    private String releaseId;
+    private String flowRuntimeId;
+    private List<String> startStages;
+    private String pipelineId;
+    private String pipelineName;
+    private List<String> pipelineParameters;
 
-  public Release(String configuration, String projectName, String releaseName) {
-    this.configuration = configuration;
-    this.releaseName = releaseName;
-    this.projectName = projectName;
-  }
+    public Release(String configuration, String projectName, String releaseName) {
+        this.configuration = configuration;
+        this.releaseName = releaseName;
+        this.projectName = projectName;
+    }
 
-  // ~ Constructors -----------------------------------------------------------
+    // ~ Constructors -----------------------------------------------------------
 
-  public String getProjectName() {
-    return projectName;
-  }
+    public String getProjectName() {
+        return projectName;
+    }
 
-  // ~ Methods ----------------------------------------------------------------
+    // ~ Methods ----------------------------------------------------------------
 
-  public String getReleaseId() {
-    return releaseId;
-  }
+    public String getReleaseId() {
+        return releaseId;
+    }
 
-  public void setReleaseId(String releaseId) {
-    this.releaseId = releaseId;
-  }
+    public void setReleaseId(String releaseId) {
+        this.releaseId = releaseId;
+    }
 
-  public String getConfiguration() {
-    return configuration;
-  }
+    public String getConfiguration() {
+        return configuration;
+    }
 
-  public String getPipelineId() {
-    return pipelineId;
-  }
+    public String getPipelineId() {
+        return pipelineId;
+    }
 
-  public void setPipelineId(String pipelineId) {
-    this.pipelineId = pipelineId;
-  }
+    public void setPipelineId(String pipelineId) {
+        this.pipelineId = pipelineId;
+    }
 
-  public String getPipelineName() {
-    return pipelineName;
-  }
+    public String getPipelineName() {
+        return pipelineName;
+    }
 
-  public void setPipelineName(String pipelineName) {
-    this.pipelineName = pipelineName;
-  }
+    public void setPipelineName(String pipelineName) {
+        this.pipelineName = pipelineName;
+    }
 
-  public String getReleaseName() {
-    return releaseName;
-  }
+    public String getReleaseName() {
+        return releaseName;
+    }
 
-  public void setReleaseName(String releaseName) {
-    this.releaseName = releaseName;
-  }
+    public void setReleaseName(String releaseName) {
+        this.releaseName = releaseName;
+    }
 
-  public String getFlowRuntimeId() {
-    return flowRuntimeId;
-  }
+    public String getFlowRuntimeId() {
+        return flowRuntimeId;
+    }
 
-  public void setFlowRuntimeId(String flowRuntimeId) {
-    this.flowRuntimeId = flowRuntimeId;
-  }
+    public void setFlowRuntimeId(String flowRuntimeId) {
+        this.flowRuntimeId = flowRuntimeId;
+    }
 
-  public List<String> getPipelineParameters() {
-    return pipelineParameters;
-  }
+    public List<String> getPipelineParameters() {
+        return pipelineParameters;
+    }
 
-  public void setPipelineParameters(List<String> pipelineParameters) {
-    this.pipelineParameters = pipelineParameters;
-  }
+    public void setPipelineParameters(List<String> pipelineParameters) {
+        this.pipelineParameters = pipelineParameters;
+    }
 
-  public List<String> getStartStages() {
-    return startStages;
-  }
+    public List<String> getStartStages() {
+        return startStages;
+    }
 
-  public void setStartStages(List<String> startStages) {
-    Collections.sort(startStages, String::compareTo);
-    this.startStages = startStages;
-  }
+    public void setStartStages(List<String> startStages) {
+        Collections.sort(startStages, String::compareTo);
+        this.startStages = startStages;
+    }
 }

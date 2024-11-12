@@ -1,12 +1,12 @@
 package org.jenkinsci.plugins.electricflow;
 
-import com.github.tomakehurst.wiremock.junit.WireMockRule;
-import org.hamcrest.MatcherAssert;
-import org.hamcrest.Matchers;
-import org.junit.Rule;
-import org.junit.Test;
-import org.jvnet.hudson.test.Issue;
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.post;
+import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
+import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 
+import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
@@ -16,12 +16,11 @@ import java.io.PrintWriter;
 import java.lang.reflect.Field;
 import java.nio.charset.StandardCharsets;
 import java.util.Objects;
-
-import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
-import static com.github.tomakehurst.wiremock.client.WireMock.post;
-import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
-import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
+import org.hamcrest.MatcherAssert;
+import org.hamcrest.Matchers;
+import org.junit.Rule;
+import org.junit.Test;
+import org.jvnet.hudson.test.Issue;
 
 public class MultipartUtilityTest {
 
@@ -34,20 +33,20 @@ public class MultipartUtilityTest {
         wireMockRule.resetAll();
 
         stubFor(post(urlEqualTo("/commander/publishArtifact.php"))
-            .willReturn(aResponse()
-                .withStatus(200)));
+                .willReturn(aResponse().withStatus(200)));
 
-        File file1 = new File(Objects.requireNonNull(MultipartUtilityTest.class.getResource("file1.txt")).getFile());
-        File file2 = new File(Objects.requireNonNull(MultipartUtilityTest.class.getResource("file2.dat")).getFile());
-        File file3 = new File(Objects.requireNonNull(MultipartUtilityTest.class.getResource("file3.xml")).getFile());
+        File file1 = new File(Objects.requireNonNull(MultipartUtilityTest.class.getResource("file1.txt"))
+                .getFile());
+        File file2 = new File(Objects.requireNonNull(MultipartUtilityTest.class.getResource("file2.dat"))
+                .getFile());
+        File file3 = new File(Objects.requireNonNull(MultipartUtilityTest.class.getResource("file3.xml"))
+                .getFile());
 
         MultipartUtility utility = new MultipartUtility(
-            wireMockRule.url("/commander/publishArtifact.php"),
-            StandardCharsets.UTF_8.name(),
-            true);
+                wireMockRule.url("/commander/publishArtifact.php"), StandardCharsets.UTF_8.name(), true);
 
         try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
-             OutputStreamWriter osWriter = new OutputStreamWriter(baos, StandardCharsets.UTF_8.name())) {
+                OutputStreamWriter osWriter = new OutputStreamWriter(baos, StandardCharsets.UTF_8.name())) {
 
             // Reflection to capture the stream being printed
             Field osField = MultipartUtility.class.getDeclaredField("outputStream");
@@ -73,7 +72,7 @@ public class MultipartUtilityTest {
             utility.addFilePart("files", file3, file3.getParentFile().getAbsolutePath());
             utility.finish();
 
-            // Check the boundary are properly set, counting occurrences of opening/closing boundaries 
+            // Check the boundary are properly set, counting occurrences of opening/closing boundaries
             // (split would return number of occurrences + 1)
             MatcherAssert.assertThat(baos.toString().split("--" + boundary + lineFeed), Matchers.arrayWithSize(4));
             MatcherAssert.assertThat(baos.toString().split(lineFeed + "--" + boundary), Matchers.arrayWithSize(4));
@@ -86,18 +85,16 @@ public class MultipartUtilityTest {
         wireMockRule.resetAll();
 
         stubFor(post(urlEqualTo("/commander/publishArtifact.php"))
-            .willReturn(aResponse()
-                .withStatus(200)));
+                .willReturn(aResponse().withStatus(200)));
 
-        File file1 = new File(Objects.requireNonNull(MultipartUtilityTest.class.getResource("file1.txt")).getFile());
+        File file1 = new File(Objects.requireNonNull(MultipartUtilityTest.class.getResource("file1.txt"))
+                .getFile());
 
         MultipartUtility utility = new MultipartUtility(
-            wireMockRule.url("/commander/publishArtifact.php"),
-            StandardCharsets.UTF_8.name(),
-            true);
+                wireMockRule.url("/commander/publishArtifact.php"), StandardCharsets.UTF_8.name(), true);
 
         try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
-             OutputStreamWriter osWriter = new OutputStreamWriter(baos, StandardCharsets.UTF_8.name())) {
+                OutputStreamWriter osWriter = new OutputStreamWriter(baos, StandardCharsets.UTF_8.name())) {
 
             // Reflection to capture the stream being printed
             Field osField = MultipartUtility.class.getDeclaredField("outputStream");
@@ -121,7 +118,7 @@ public class MultipartUtilityTest {
             utility.addFilePart("files", file1, file1.getParentFile().getAbsolutePath());
             utility.finish();
 
-            // Check the boundary are properly set 
+            // Check the boundary are properly set
             MatcherAssert.assertThat(baos.toString().split("--" + boundary + lineFeed), Matchers.arrayWithSize(2));
             MatcherAssert.assertThat(baos.toString().split(lineFeed + "--" + boundary), Matchers.arrayWithSize(2));
         }

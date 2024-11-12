@@ -5,66 +5,66 @@ import hudson.ExtensionPoint;
 
 public class ElectricFlowChangeSet implements ExtensionPoint {
 
-  protected String authorName;
-  protected String authorEmail;
-  protected String commitId;
-  protected String comments;
+    protected String authorName;
+    protected String authorEmail;
+    protected String commitId;
+    protected String comments;
 
-  public ElectricFlowChangeSet() {}
+    public ElectricFlowChangeSet() {}
 
-  public static ElectricFlowChangeSet getChangeset(Object obj) {
-    return null;
-  }
-
-  public static ElectricFlowChangeSet getChangesetFromObject(Object obj) {
-    ExtensionList.lookup(ElectricFlowChangeSet.class);
-    ExtensionList<ElectricFlowChangeSet> makers = ExtensionList.lookup(ElectricFlowChangeSet.class);
-    for (ElectricFlowChangeSet m : makers) {
-      boolean applicable = m.isApplicable(obj);
-      if (applicable) {
-        m.populate(obj);
-        return m;
-      }
+    public static ElectricFlowChangeSet getChangeset(Object obj) {
+        return null;
     }
 
-    return null;
-  }
+    public static ElectricFlowChangeSet getChangesetFromObject(Object obj) {
+        ExtensionList.lookup(ElectricFlowChangeSet.class);
+        ExtensionList<ElectricFlowChangeSet> makers = ExtensionList.lookup(ElectricFlowChangeSet.class);
+        for (ElectricFlowChangeSet m : makers) {
+            boolean applicable = m.isApplicable(obj);
+            if (applicable) {
+                m.populate(obj);
+                return m;
+            }
+        }
 
-  public String getAuthorName() {
-    return this.authorName;
-  }
+        return null;
+    }
 
-  public void setAuthorName(String authorName) {
-    this.authorName = authorName;
-  }
+    public String getAuthorName() {
+        return this.authorName;
+    }
 
-  public String getAuthorEmail() {
-    return this.authorEmail;
-  }
+    public void setAuthorName(String authorName) {
+        this.authorName = authorName;
+    }
 
-  public void setAuthorEmail(String authorEmail) {
-    this.authorEmail = authorEmail;
-  }
+    public String getAuthorEmail() {
+        return this.authorEmail;
+    }
 
-  public String getCommitId() {
-    return this.commitId;
-  }
+    public void setAuthorEmail(String authorEmail) {
+        this.authorEmail = authorEmail;
+    }
 
-  public void setCommitId(String commitId) {
-    this.commitId = commitId;
-  }
+    public String getCommitId() {
+        return this.commitId;
+    }
 
-  public String getComments() {
-    return this.comments;
-  }
+    public void setCommitId(String commitId) {
+        this.commitId = commitId;
+    }
 
-  public void setComments(String comments) {
-    this.comments = comments;
-  }
+    public String getComments() {
+        return this.comments;
+    }
 
-  public boolean isApplicable(Object object) {
-    return false;
-  }
+    public void setComments(String comments) {
+        this.comments = comments;
+    }
 
-  public void populate(Object object) {}
+    public boolean isApplicable(Object object) {
+        return false;
+    }
+
+    public void populate(Object object) {}
 }
