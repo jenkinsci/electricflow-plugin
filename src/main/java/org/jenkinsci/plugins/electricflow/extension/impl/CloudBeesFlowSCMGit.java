@@ -11,6 +11,7 @@ public class CloudBeesFlowSCMGit extends CloudBeesFlowSCM {
 
     private static final Log log = LogFactory.getLog(CloudBeesFlowSCMGit.class);
 
+    @Override
     public void populate(Object obj) {
         GitChangeSet object = (GitChangeSet) obj;
         this.setAuthor(object.getAuthorName());
@@ -31,6 +32,7 @@ public class CloudBeesFlowSCMGit extends CloudBeesFlowSCM {
         this.setScmType("git");
     }
 
+    @Override
     public CloudBeesFlowSCM generate() {
         CloudBeesFlowSCM retval = new CloudBeesFlowSCM();
 
@@ -70,6 +72,7 @@ public class CloudBeesFlowSCMGit extends CloudBeesFlowSCM {
         return retval;
     }
 
+    @Override
     public boolean isApplicable(Object object) {
         return object instanceof GitChangeSet;
     }

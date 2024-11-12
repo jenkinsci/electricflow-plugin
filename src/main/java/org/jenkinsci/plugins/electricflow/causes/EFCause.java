@@ -64,6 +64,7 @@ public class EFCause extends hudson.model.Cause {
         this.stageName = stageName;
     }
 
+    @Override
     public String getShortDescription() {
         return "CloudBees CD Triggered this build";
     }

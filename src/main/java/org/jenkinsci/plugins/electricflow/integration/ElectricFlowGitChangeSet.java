@@ -6,6 +6,7 @@ import org.jenkinsci.plugins.variant.OptionalExtension;
 @OptionalExtension(requirePlugins = "git")
 public class ElectricFlowGitChangeSet extends ElectricFlowChangeSet {
 
+    @Override
     public void populate(Object obj) {
         GitChangeSet object = (GitChangeSet) obj;
         this.commitId = object.getCommitId();
@@ -14,6 +15,7 @@ public class ElectricFlowGitChangeSet extends ElectricFlowChangeSet {
         this.comments = object.getComment();
     }
 
+    @Override
     public boolean isApplicable(Object object) {
         return object instanceof GitChangeSet;
     }

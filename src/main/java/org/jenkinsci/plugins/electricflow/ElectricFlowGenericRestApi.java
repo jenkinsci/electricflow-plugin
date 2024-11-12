@@ -72,6 +72,7 @@ public class ElectricFlowGenericRestApi extends Recorder implements SimpleBuildS
         this.configuration = configuration;
     }
 
+    @Override
     public Credential getOverrideCredential() {
         return overrideCredential;
     }

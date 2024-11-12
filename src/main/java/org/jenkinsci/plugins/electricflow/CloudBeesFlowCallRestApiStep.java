@@ -54,6 +54,7 @@ public class CloudBeesFlowCallRestApiStep extends Step implements CallRestApiMod
         this.configuration = configuration;
     }
 
+    @Override
     public Credential getOverrideCredential() {
         return overrideCredential;
     }
