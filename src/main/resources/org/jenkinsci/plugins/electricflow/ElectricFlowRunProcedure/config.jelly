@@ -109,7 +109,7 @@ All rights reserved.
                             var el = document.createElement("div");
                             el.innerHTML = "&lt;br&gt;&lt;b&gt;Procedure Parameters&lt;/b&gt;";
                             el.className = "_ef_rp_row";
-                            var div = document.getElementById("ef_rp_procedureName");
+                            var div = document.getElementById("ef_rp_procedureName").closest('.jenkins-select');
                             div = cbcd_insertAfter(div, el);
                             parameters.forEach(function (elem) {
                                 var el_param = document.createElement("div");

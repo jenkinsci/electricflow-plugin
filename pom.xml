@@ -12,7 +12,6 @@
   <artifactId>electricflow</artifactId>
   <version>${revision}${changelist}</version>
   <packaging>hpi</packaging>
-
   <name>CloudBees CD</name>
   <description>Integrate features and APIs and from CloudBees CD/RO directly with Jenkins.</description>
   <url>https://github.com/jenkinsci/${project.artifactId}-plugin</url>
@@ -42,7 +41,7 @@
   <properties>
     <revision>1.1.38</revision>
     <changelist>-SNAPSHOT</changelist>
-    <jenkins.version>2.361.4</jenkins.version>
+    <jenkins.version>2.426.3</jenkins.version>
     <gitHubRepo>jenkinsci/${project.artifactId}-plugin</gitHubRepo>
     <!-- TODO fix existing violations -->
     <spotbugs.threshold>High</spotbugs.threshold>
@@ -121,13 +120,6 @@
       <version>1.2.2</version>
     </dependency>
     <dependency>
-      <groupId>com.github.tomakehurst</groupId>
-      <artifactId>wiremock-jre8-standalone</artifactId>
-      <version>2.35.2</version>
-      <scope>test</scope>
-    </dependency>
-
-    <dependency>
       <groupId>io.jenkins</groupId>
       <artifactId>configuration-as-code</artifactId>
       <scope>test</scope>
@@ -142,7 +134,12 @@
       <artifactId>mockito-core</artifactId>
       <scope>test</scope>
     </dependency>
-
+    <dependency>
+      <groupId>org.wiremock</groupId>
+      <artifactId>wiremock-standalone</artifactId>
+      <version>3.9.1</version>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
 
   <repositories>
