@@ -1,0 +1,3 @@
+# .git-blame-ignore-revs
+# Format source code with `mvn spotless:apply` (#377)
+0b097a628d81995c3c665be798957a7a1a8ad35a
