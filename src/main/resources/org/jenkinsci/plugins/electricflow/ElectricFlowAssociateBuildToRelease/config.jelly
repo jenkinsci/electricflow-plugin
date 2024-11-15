@@ -52,7 +52,7 @@ All rights reserved.
     <f:entry>
         <div style="float:right">
             <span class="yui-button yui-push-button yui-button validate-button">
-                <button type="button" onclick="triggerExtraValidationForSetJenkinsBuildDetails();">Validate Before Apply</button>
+                <button type="button" class="validate-before-apply-btn">Validate Before Apply</button>
             </span>
         </div>
         <j:if test="${instance != null}">
@@ -63,16 +63,6 @@ All rights reserved.
         </j:if>
     </f:entry>
 
-    <script>
-        function updateReleaseJson() {
-            var procedureName = document.getElementById("ef_abtr_releaseName").value;
-            var json = JSON.parse('{"release":{"releaseName":"' + releaseName + '"}}');
-        }
-
-
-        function triggerExtraValidationForSetJenkinsBuildDetails() {
-            document.getElementById("ef_abtr_validationTrigger").click();
-        }
-    </script>
+    <st:adjunct includes="org.jenkinsci.plugins.electricflow.ElectricFlowAssociateBuildToRelease.ef-associate-build-to-release"/>
 
 </j:jelly>
