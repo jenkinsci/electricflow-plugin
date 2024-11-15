@@ -11,17 +11,14 @@ All rights reserved.
 <j:jelly xmlns:j="jelly:core" xmlns:f="/lib/form" xmlns:st="jelly:stapler">
     <f:entry title="Configuration" field="configuration" >
         <f:select clazz="ef-release-config"/>
-<!--        <f:select onchange="deleteReleaseParameterRows(); deleteStagesToRun();"/>-->
     </f:entry>
     <st:include class="org.jenkinsci.plugins.electricflow.Credential" page="overrideCredential.jelly" />
     <st:include class="org.jenkinsci.plugins.electricflow.RunAndWaitOption" page="runAndWaitOption.jelly" />
     <f:entry title="Project Name" field="projectName" >
         <f:select clazz="ef-release-project" />
-<!--        <f:select onchange="deleteReleaseParameterRows();deleteStagesToRun();"/>-->
     </f:entry>
     <f:entry title="Release Name" field="releaseName" >
         <f:select id="ef_sr_releaseName"/>
-<!--        <f:select onchange="fillReleasesParameters();fillStagesToRun();" id="ef_sr_releaseName"/>-->
     </f:entry>
     <j:if test="${instance.parameters != null and instance.parameters != ''}">
         <j:invokeStatic var="stageOptionChecked" className="org.jenkinsci.plugins.electricflow.triggerRelease.TriggerReleaseIsStagesChecked" method="getCheckedValue">
@@ -41,14 +38,12 @@ All rights reserved.
         <f:radioBlock inline="true" name="stageOptions" checked="${stageOptionChecked == 'stagesToRun'}" title="Choose Stages To Run" value="stagesToRun">
             <f:entry title="" field="stagesToRun" >
                 <f:select id="ef_rt_stagesToRunEntry" style="display:none;"/>
-<!--                <f:select id="ef_rt_stagesToRunEntry" onchange="fillStagesToRun();" style="display:none;"/>-->
             </f:entry>
         </f:radioBlock>
     </f:entry>
 
     <f:entry title="" field="parameters" >
         <f:select id="ef_sr_parameters" style="display:none;"/>
-<!--        <f:select id="ef_sr_parameters" onchange="fillReleasesParameters();fillStagesToRun();" style="display:none;"/>-->
     </f:entry>
 
     <f:invisibleEntry>
@@ -84,7 +79,6 @@ All rights reserved.
         <div style="float:right">
             <span class="yui-button yui-push-button yui-button validate-button">
                 <button type="button" class="validate-before-apply-btn">Validate Before Apply</button>
-<!--                <button type="button" onclick="triggerExtraValidationForTriggerRelease();">Validate Before Apply</button>-->
             </span>
         </div>
         <j:if test="${instance != null}">
@@ -96,213 +90,5 @@ All rights reserved.
     </f:entry>
 
     <st:adjunct includes="org.jenkinsci.plugins.electricflow.ElectricFlowTriggerRelease.ef-trigger-release"/>
-<!--    <script>-->
-<!--        fillReleasesParameters();-->
-<!--        fillStagesToRun();-->
-
-<!--        function deleteReleaseParameterRows() {-->
-<!--            var paramRows = document.querySelectorAll("._ef_st_row");-->
-<!--            [].forEach.call(paramRows, function (row) {-->
-<!--                row.parentNode.removeChild(row);-->
-<!--            });-->
-<!--        }-->
-<!--        function deleteStagesToRun() {-->
-<!--            var paramRows = document.querySelectorAll("._ef_str_row");-->
-<!--            [].forEach.call(paramRows, function (row) {-->
-<!--                row.parentNode.removeChild(row);-->
-<!--            });-->
-<!--        }-->
-
-<!--        function fillReleasesParameters() {-->
-<!--            deleteReleaseParameterRows();-->
-
-<!--            if (!document.getElementById('ef_sr_parameters')) {-->
-<!--                return;-->
-<!--            }-->
-
-<!--            var option = document.getElementById('ef_sr_parameters').options[0];-->
-<!--            var param = '{}';-->
-<!--            if (option) {-->
-<!--                param = option.value;-->
-<!--            }-->
-<!--            var json = JSON.parse(param);-->
-
-<!--            var table = document.querySelector("[descriptorid='electricFlowTriggerRelease'] table");-->
-<!--            if (table == null) {-->
-<!--                table = getElementByXpath("//select[@checkdependson='validationTrigger']/ancestor::table[@name]");-->
-<!--            }-->
-
-<!--            if (json) {-->
-
-<!--                if (json.release) {-->
-<!--                    var parameters;-->
-<!--                    try {-->
-<!--                        parameters = JSON.parse(json.release.parameters);-->
-<!--                    }-->
-<!--                    catch (error) {-->
-<!--                        parameters = json.release.parameters;-->
-<!--                    }-->
-
-<!--                    if (table == null) {-->
-<!--                        if (parameters.length) {-->
-<!--                            var el = document.createElement("div");-->
-<!--                            el.innerHTML = "&lt;br&gt;&lt;b&gt;Release pipeline parameters&lt;/b&gt;";-->
-<!--                            el.className = "_ef_st_row";-->
-<!--                            var div = document.getElementById("ef_sr_parameters");-->
-<!--                            div = cbcd_insertAfter(div, el);-->
-<!--                            parameters.forEach(function (elem) {-->
-<!--                                var el_param = document.createElement("div");-->
-<!--                                el_param.className = "_ef_sr_parameters _ef_st_row";-->
-<!--                                div = cbcd_insertAfter(div, el_param);-->
-<!--                                addParameterRowForTriggerRelease(el_param, elem.parameterName, elem.parameterValue, false, false);-->
-<!--                            });-->
-<!--                        }-->
-<!--                    } else {-->
-<!--                        var row1 = table.insertRow(table.rows.length - 2);-->
-<!--                        row1.className = "_ef_st_row";-->
-<!--                        if (parameters.length) {-->
-<!--                            row1.appendChild(createTitleForTriggerRelease("Release pipeline parameters"));-->
-<!--                            parameters.forEach(function (elem) {-->
-<!--                                var row = table.insertRow(table.rows.length - 2);-->
-<!--                                row.className = "_ef_sr_parameters _ef_st_row";-->
-<!--                                addParameterRowForTriggerRelease(row, elem.parameterName, elem.parameterValue, false, true);-->
-<!--                            });-->
-<!--                        }-->
-<!--                    }-->
-
-
-<!--                }-->
-<!--            }-->
-<!--        }-->
-<!--        function fillStagesToRun() {-->
-<!--            deleteStagesToRun();-->
-<!--            if (!document.getElementById('ef_sr_parameters')) {-->
-<!--                return;-->
-<!--            }-->
-<!--            var option = document.getElementById('ef_sr_parameters').options[0];-->
-<!--            var param = '{}';-->
-<!--            if (option) {-->
-<!--                param = option.value;-->
-<!--            }-->
-<!--            var json = JSON.parse(param);-->
-<!--            var table = document.querySelector("[descriptorid='electricFlowTriggerRelease'] table");-->
-<!--            if (table == null) {-->
-<!--                table = getElementByXpath("//select[@checkdependson='validationTrigger']/ancestor::table[@name]");-->
-<!--            }-->
-<!--            var stages;-->
-<!--            if (typeof json.release !== "undefined") {-->
-<!--                try {-->
-<!--                    stages = JSON.parse(json.release.stages);-->
-<!--                } catch (error) {-->
-<!--                    stages = json.release.stages;-->
-<!--                }-->
-
-<!--                if (table == null) {-->
-<!--                    if (stages.length) {-->
-<!--                        var el = document.createElement("div");-->
-<!--                        el.innerHTML = "&lt;br&gt;&lt;b&gt;Stages to run&lt;/b&gt;";-->
-<!--                        el.className = "_ef_str_row";-->
-<!--                        var div = document.getElementById("ef_rt_stagesToRunEntry");-->
-<!--                        div = cbcd_insertAfter(div, el);-->
-<!--                        stages.forEach(function (elem) {-->
-<!--                            var el_param = document.createElement("div");-->
-<!--                            el_param.className = "_ef_sr_stages _ef_str_row";-->
-<!--                            div = cbcd_insertAfter(div, el_param);-->
-<!--                            addParameterRowForTriggerRelease(el_param, elem.stageName, elem.stageValue, true, false);-->
-<!--                        });-->
-<!--                    }-->
-<!--                } else {-->
-<!--                    var row1 = table.insertRow(table.rows.length - 2);-->
-<!--                    row1.className = "_ef_str_row";-->
-<!--                    if (stages.length) {-->
-<!--                        row1.appendChild(createTitleForTriggerRelease("Stages to run"));-->
-<!--                        stages.forEach(function (elem) {-->
-<!--                            var row = table.insertRow(table.rows.length - 2);-->
-<!--                            row.className = "_ef_sr_stages _ef_str_row";-->
-<!--                            addParameterRowForTriggerRelease(row, elem.stageName, elem.stageValue, true, true);-->
-<!--                        });-->
-<!--                    }-->
-<!--                }-->
-<!--            }-->
-<!--        }-->
-<!--        function cbcd_insertAfter(referenceNode, newNode) {-->
-<!--            return referenceNode.parentNode.insertBefore(newNode, referenceNode.nextSibling);-->
-<!--        }-->
-
-<!--        function updateReleaseJson() {-->
-<!--            var releaseName = document.getElementById("ef_sr_releaseName").value;-->
-<!--            var json = JSON.parse('{"release":{"releaseName":"' + releaseName + '","stages":[], "parameters":[]}}');-->
-<!--            var stages = document.querySelectorAll("._ef_sr_stages");-->
-
-<!--            [].forEach.call(stages, function (elem) {-->
-<!--                json.release.stages.push({-->
-<!--                    'stageName': elem.querySelector(".setting-name").textContent,-->
-<!--                    'stageValue': elem.querySelector(".setting-input").checked-->
-<!--                })-->
-<!--            });-->
-
-<!--            var stages = document.querySelectorAll("._ef_sr_parameters");-->
-
-<!--            [].forEach.call(stages, function (elem) {-->
-<!--                json.release.parameters.push({-->
-<!--                    'parameterName': elem.querySelector(".setting-name").textContent,-->
-<!--                    'parameterValue': elem.querySelector(".setting-input").value-->
-<!--                })-->
-<!--            });-->
-<!--            document.getElementById('ef_sr_parameters').options[0].value = JSON.stringify(json);-->
-<!--            document.getElementById('ef_sr_parameters').options[0].textContent = JSON.stringify(json);-->
-<!--        }-->
-
-<!--        function createTitleForTriggerRelease(title) {-->
-<!--            var td = document.createElement('td');-->
-<!--            td.colSpan = 4;-->
-<!--            var div = document.createElement('div');-->
-<!--            div.className = "section-header";-->
-<!--            div.textContent = title;-->
-<!--            td.appendChild(div);-->
-<!--            return td;-->
-<!--        }-->
-
-<!--        function addParameterRowForTriggerRelease(row, label, value, isCheckbox, isTable) {-->
-<!--            var td1 = document.createElement(isTable ? 'td' : 'div');-->
-<!--            td1.className = 'setting-leftspace';-->
-<!--            td1.textContent = '';-->
-<!--            row.appendChild(td1);-->
-
-<!--            var td2 = document.createElement(isTable ? 'td' : 'div');-->
-<!--            td2.className = 'setting-name';-->
-<!--            td2.textContent = label;-->
-<!--            row.appendChild(td2);-->
-
-<!--            var td3 = document.createElement(isTable ? 'td' : 'div');-->
-<!--            td3.className = 'setting-main';-->
-<!--            var input1 = document.createElement('input');-->
-<!--            input1.name = 'parameterName';-->
-<!--            if (isCheckbox) {-->
-<!--                input1.type = "checkbox";-->
-<!--                if (value === "true") {-->
-<!--                    input1.checked = value;-->
-<!--                }-->
-<!--                input1.style="width: auto;";-->
-<!--            }-->
-<!--            input1.value = value;-->
-<!--            input1.onchange = updateReleaseJson;-->
-<!--            input1.className = 'setting-input';-->
-<!--            td3.appendChild(input1);-->
-<!--            row.appendChild(td3);-->
-
-<!--            var td4 = document.createElement(isTable ? 'td' : 'div');-->
-<!--            td4.className = 'setting-no-help';-->
-<!--            row.appendChild(td4);-->
-<!--        }-->
-
-<!--        function triggerExtraValidationForTriggerRelease() {-->
-<!--            document.getElementById("ef_sr_validationTrigger").click();-->
-<!--        }-->
-
-<!--        function getElementByXpath(path) {-->
-<!--            return document.evaluate(path, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;-->
-<!--        }-->
-<!--    </script>-->
 
 </j:jelly>
