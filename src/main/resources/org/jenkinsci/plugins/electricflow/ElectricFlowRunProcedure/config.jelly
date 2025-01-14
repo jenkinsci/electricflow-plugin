@@ -52,9 +52,11 @@ All rights reserved.
 
     <f:entry>
         <div style="float:right">
-            <span class="yui-button yui-push-button yui-button validate-button">
-                <button type="button" onclick="triggerExtraValidationForRunProcedure();">Validate Before Apply</button>
-            </span>
+            <button class="jenkins-button"
+                    type="button"
+                    onclick="triggerExtraValidationForRunProcedure();">
+                Validate Before Apply
+            </button>
         </div>
         <j:if test="${instance != null}">
             <f:validateButton title="Compare Before Apply"
