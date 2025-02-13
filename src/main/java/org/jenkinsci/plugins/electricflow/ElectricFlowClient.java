@@ -7,6 +7,7 @@ import static org.jenkinsci.plugins.electricflow.HttpMethod.PUT;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.Lists;
 import com.sun.istack.NotNull;
 import hudson.FilePath;
 import hudson.model.Run;
@@ -720,6 +721,7 @@ public class ElectricFlowClient {
                 log.debug("Formal parameter: " + parameterName);
             }
         }
+        formalParameters = Lists.reverse(formalParameters);
 
         return formalParameters;
     }
