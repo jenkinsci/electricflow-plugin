@@ -295,7 +295,13 @@ You can use the following workarounds instead of the **Add** button to help you 
 
 # Release Notes
 
-## Version 1.1.38 (TBD)
+## Version 1.1.39 (TBD)
+
+- Arranged the parameters for following procedures in a CD/RO-like order.
+    - **Run Pipeline**
+    - **Run Procedure**
+
+## Version 1.1.38 (January 20, 2025)
 
 - Update **Stage Option** tool tips for **Run Pipeline** procedure.
 - Fix issue in **Post Build Action - Run Procedure** where the dropdown icon for the **config** field would shift when choosing **Procedure Name**.

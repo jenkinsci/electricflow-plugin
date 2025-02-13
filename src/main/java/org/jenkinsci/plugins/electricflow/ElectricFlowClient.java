@@ -23,10 +23,7 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 import javax.net.ssl.HttpsURLConnection;
 import net.sf.json.JSONArray;
@@ -720,7 +717,7 @@ public class ElectricFlowClient {
                 log.debug("Formal parameter: " + parameterName);
             }
         }
-
+        Collections.reverse(formalParameters);
         return formalParameters;
     }
 
