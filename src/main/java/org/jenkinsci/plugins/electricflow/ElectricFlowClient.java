@@ -722,6 +722,7 @@ public class ElectricFlowClient {
             }
         }
         Collections.reverse(formalParameters);
+
         return formalParameters;
     }
 
