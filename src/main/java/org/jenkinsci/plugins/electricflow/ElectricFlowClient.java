@@ -7,7 +7,6 @@ import static org.jenkinsci.plugins.electricflow.HttpMethod.PUT;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.Lists;
 import com.sun.istack.NotNull;
 import hudson.FilePath;
 import hudson.model.Run;
@@ -690,11 +689,15 @@ public class ElectricFlowClient {
         String requestEndpoint = "/objects?request=findObjects";
         JSONObject obj = new JSONObject();
         JSONObject filter = new JSONObject();
+        JSONObject sort = new JSONObject();
 
         filter.put("operator", "equals");
         filter.put("propertyName", "container");
         filter.put("operand1", "pipeline-" + pipelineId);
         obj.put("filter", filter);
+        sort.put("propertyName", "orderIndex");
+        sort.put("order", "ascending");
+        obj.put("sort", sort);
         obj.put("objectType", "formalParameter");
 
         String result = runRestAPI(requestEndpoint, PUT, obj.toString());
@@ -721,7 +724,6 @@ public class ElectricFlowClient {
                 log.debug("Formal parameter: " + parameterName);
             }
         }
-        formalParameters = Lists.reverse(formalParameters);
 
         return formalParameters;
     }

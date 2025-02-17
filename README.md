@@ -299,7 +299,7 @@ You can use the following workarounds instead of the **Add** button to help you 
 
 - Arranged the parameters for following procedures in a CD/RO-like order.
     - **Run Pipeline**
-    - **Run Procedure**
+    - **Run Release**
 
 ## Version 1.1.38 (January 20, 2025)
 
