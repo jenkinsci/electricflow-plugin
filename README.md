@@ -295,7 +295,7 @@ You can use the following workarounds instead of the **Add** button to help you 
 
 # Release Notes
 
-## Version 1.1.39 (TBD)
+## Version 1.1.39 (March 3, 2025)
 
 - Arranged the parameters for following procedures in a CD/RO-like order.
     - **Run Pipeline**
