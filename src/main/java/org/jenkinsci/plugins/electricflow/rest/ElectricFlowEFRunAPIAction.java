@@ -11,6 +11,7 @@ import hudson.model.ParametersAction;
 import hudson.model.ParametersDefinitionProperty;
 import hudson.model.Queue;
 import hudson.model.StringParameterValue;
+import jakarta.servlet.ServletException;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -18,13 +19,12 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import javax.servlet.ServletException;
 import jenkins.model.Jenkins;
 import net.sf.json.JSONException;
 import net.sf.json.JSONObject;
 import org.jenkinsci.plugins.electricflow.causes.EFCause;
-import org.kohsuke.stapler.StaplerRequest;
-import org.kohsuke.stapler.StaplerResponse;
+import org.kohsuke.stapler.StaplerRequest2;
+import org.kohsuke.stapler.StaplerResponse2;
 import org.kohsuke.stapler.verb.GET;
 import org.kohsuke.stapler.verb.POST;
 
@@ -63,7 +63,7 @@ public class ElectricFlowEFRunAPIAction<T extends Job<?, ?> & Queue.Task> implem
     // action methods
     @GET
     @POST
-    public void doIndex(StaplerRequest req, StaplerResponse rsp) throws IOException, ServletException {
+    public void doIndex(StaplerRequest2 req, StaplerResponse2 rsp) throws IOException, ServletException {
         rsp.setStatus(201);
         JSONObject jsonObject = this.getEFRunIndexResponse();
         this.sendJSONResponse(rsp, jsonObject);
@@ -71,7 +71,7 @@ public class ElectricFlowEFRunAPIAction<T extends Job<?, ?> & Queue.Task> implem
 
     @POST
     @GET
-    public void doBuild(StaplerRequest req, StaplerResponse rsp
+    public void doBuild(StaplerRequest2 req, StaplerResponse2 rsp
             // @QueryParameter final JSONObject json
             // @QueryParameter("value") final String value,
             // JSONObject formData
@@ -237,11 +237,12 @@ public class ElectricFlowEFRunAPIAction<T extends Job<?, ?> & Queue.Task> implem
         return new ArrayList<ParameterDefinition>();
     }
 
-    private void sendJSONResponse(StaplerResponse rsp, JSONObject responseObject) throws IOException, ServletException {
+    private void sendJSONResponse(StaplerResponse2 rsp, JSONObject responseObject)
+            throws IOException, ServletException {
         this.sendJSONResponse(201, rsp, responseObject);
     }
 
-    private void sendJSONResponse(int responseCode, StaplerResponse rsp, JSONObject responseObject)
+    private void sendJSONResponse(int responseCode, StaplerResponse2 rsp, JSONObject responseObject)
             throws IOException, ServletException {
         rsp.setStatus(responseCode);
         String responseString = responseObject.toString();

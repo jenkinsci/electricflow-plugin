@@ -36,6 +36,7 @@ import hudson.tasks.Publisher;
 import hudson.tasks.Recorder;
 import hudson.util.FormValidation;
 import hudson.util.ListBoxModel;
+import jakarta.servlet.ServletException;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.ArrayList;
@@ -44,7 +45,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
-import javax.servlet.ServletException;
 import jenkins.tasks.SimpleBuildStep;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
@@ -68,8 +68,8 @@ import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.QueryParameter;
-import org.kohsuke.stapler.StaplerRequest;
-import org.kohsuke.stapler.StaplerResponse;
+import org.kohsuke.stapler.StaplerRequest2;
+import org.kohsuke.stapler.StaplerResponse2;
 
 public class ElectricFlowPipelinePublisher extends Recorder implements SimpleBuildStep {
 
@@ -871,7 +871,7 @@ public class ElectricFlowPipelinePublisher extends Recorder implements SimpleBui
         }
 
         @Override
-        public void doHelp(StaplerRequest req, StaplerResponse rsp) throws IOException, ServletException {
+        public void doHelp(StaplerRequest2 req, StaplerResponse2 rsp) throws IOException, ServletException {
             super.doHelp(req, rsp);
         }
 
