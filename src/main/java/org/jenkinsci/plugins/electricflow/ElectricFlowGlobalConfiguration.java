@@ -14,7 +14,7 @@ import jenkins.model.GlobalConfiguration;
 import net.sf.json.JSONObject;
 import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.DataBoundSetter;
-import org.kohsuke.stapler.StaplerRequest;
+import org.kohsuke.stapler.StaplerRequest2;
 
 @Extension
 @Symbol("electricflow")
@@ -36,7 +36,7 @@ public class ElectricFlowGlobalConfiguration extends GlobalConfiguration {
     // ~ Methods ----------------------------------------------------------------
 
     @Override
-    public boolean configure(StaplerRequest req, JSONObject formData) throws FormException {
+    public boolean configure(StaplerRequest2 req, JSONObject formData) throws FormException {
         this.configurations = null;
         req.bindJSON(this, formData);
         save();
