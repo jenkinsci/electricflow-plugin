@@ -250,7 +250,7 @@ public class ElectricFlowPipelinePublisher extends Recorder implements SimpleBui
 
                     summaryHtml = getSummaryHtml(efClient, pipelineResult, parameters, stages, responseData);
                     action = new SummaryTextAction(run, summaryHtml);
-                    run.addOrReplaceAction(action);
+                    run.addAction(action);
                     run.save();
                 } while (!responseData.isCompleted());
 
