@@ -193,8 +193,6 @@ public class ElectricFlowPipelinePublisher extends Recorder implements SimpleBui
                     projectName, pipelineName, stageOption, actualStaringStage, actualStagesToRun, parameters);
 
             String summaryHtml = getSummaryHtml(efClient, pipelineResult, parameters, stages, null);
-            SummaryTextAction action = new SummaryTextAction(run, summaryHtml);
-
             String flowRuntimeId = getFlowRuntimeIdFromResponse(pipelineResult);
             String projectName = getProjectNameFromResponse(pipelineResult);
 
@@ -226,11 +224,11 @@ public class ElectricFlowPipelinePublisher extends Recorder implements SimpleBui
                         null,
                         BuildTriggerSource.CI,
                         BuildAssociationType.TRIGGERED_BY_CI);
+                run.addAction(new SummaryTextAction(run, summaryHtml));
             } catch (RuntimeException exception) {
                 log.info("Can't attach CIBuildData to the pipeline run: " + exception.getMessage());
             }
 
-            run.addAction(action);
             run.save();
             logger.println("Pipeline triggered. Response JSON: " + formatJsonOutput(pipelineResult));
 
@@ -244,15 +242,12 @@ public class ElectricFlowPipelinePublisher extends Recorder implements SimpleBui
                 GetPipelineRuntimeDetailsResponseData responseData;
                 do {
                     TimeUnit.SECONDS.sleep(checkInterval);
-
                     responseData = efClient.getCdPipelineRuntimeDetails(flowRuntimeId);
                     logger.println(responseData);
-
-                    summaryHtml = getSummaryHtml(efClient, pipelineResult, parameters, stages, responseData);
-                    action = new SummaryTextAction(run, summaryHtml);
-                    run.addAction(action);
-                    run.save();
                 } while (!responseData.isCompleted());
+                summaryHtml = getSummaryHtml(efClient, pipelineResult, parameters, stages, responseData);
+                run.addAction(new SummaryTextAction(run, summaryHtml));
+                run.save();
 
                 logger.println("CD pipeline completed with " + responseData.getStatus() + " status");
                 if (runAndWaitOption.isDependOnCdJobOutcome()) {
