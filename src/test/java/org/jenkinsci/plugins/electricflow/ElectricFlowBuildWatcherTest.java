@@ -21,19 +21,25 @@ import org.jenkinsci.plugins.electricflow.factories.ElectricFlowClientFactory;
 import org.jenkinsci.plugins.electricflow.models.CIBuildDetail;
 import org.jenkinsci.plugins.workflow.job.WorkflowJob;
 import org.jenkinsci.plugins.workflow.job.WorkflowRun;
-import org.junit.ClassRule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import org.jvnet.hudson.test.JenkinsRule;
+import org.jvnet.hudson.test.junit.jupiter.WithJenkins;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 
-public class ElectricFlowBuildWatcherTest {
+@WithJenkins
+class ElectricFlowBuildWatcherTest {
 
-    @ClassRule
-    public static JenkinsRule jenkinsRule = new JenkinsRule();
+    private static JenkinsRule jenkinsRule;
+
+    @BeforeAll
+    static void setUp(JenkinsRule rule) {
+        jenkinsRule = rule;
+    }
 
     @Test
-    public void testSendCiBuildDataWithOverriddenCredentials() throws Exception {
+    void testSendCiBuildDataWithOverriddenCredentials() throws Exception {
 
         Folder folder = jenkinsRule.jenkins.createProject(Folder.class, "folder");
         WorkflowJob job = folder.createProject(WorkflowJob.class, "workflow");
