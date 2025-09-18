@@ -10,7 +10,7 @@
   </parent>
 
   <artifactId>electricflow</artifactId>
-  <version>${revision}${changelist}</version>
+  <version>1.1.41</version>
   <packaging>hpi</packaging>
   <name>CloudBees CD</name>
   <description>Integrate features and APIs and from CloudBees CD/RO directly with Jenkins.</description>
@@ -34,7 +34,7 @@
   <scm>
     <connection>scm:git:https://github.com/${gitHubRepo}.git</connection>
     <developerConnection>scm:git:git@github.com:${gitHubRepo}.git</developerConnection>
-    <tag>${scmTag}</tag>
+    <tag>electricflow-1.1.41</tag>
     <url>https://github.com/${gitHubRepo}</url>
   </scm>
 
