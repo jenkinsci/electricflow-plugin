@@ -10,7 +10,7 @@
   </parent>
 
   <artifactId>electricflow</artifactId>
-  <version>1.1.41</version>
+  <version>${revision}${changelist}</version>
   <packaging>hpi</packaging>
   <name>CloudBees CD</name>
   <description>Integrate features and APIs and from CloudBees CD/RO directly with Jenkins.</description>
@@ -39,7 +39,7 @@
   </scm>
 
   <properties>
-    <revision>1.1.41</revision>
+    <revision>1.1.42</revision>
     <changelist>-SNAPSHOT</changelist>
     <jenkins.baseline>2.479</jenkins.baseline>
     <jenkins.version>${jenkins.baseline}.1</jenkins.version>
