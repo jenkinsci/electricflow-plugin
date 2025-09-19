@@ -1,29 +1,35 @@
 package org.jenkinsci.plugins.electricflow;
 
 import static org.jenkinsci.plugins.electricflow.test.Utils.createConfigurationInJenkinsRule;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.google.inject.Inject;
-import org.junit.Before;
-import org.junit.ClassRule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.jvnet.hudson.test.JenkinsRule;
+import org.jvnet.hudson.test.junit.jupiter.WithJenkins;
 
-public class ElectricFlowTriggerReleaseTest {
-
-    @ClassRule
-    public static JenkinsRule jenkinsRule = new JenkinsRule();
+@WithJenkins
+class ElectricFlowTriggerReleaseTest {
 
     @Inject
     ElectricFlowTriggerRelease.DescriptorImpl descriptor;
 
-    @Before
-    public void setUp() {
+    private static JenkinsRule jenkinsRule;
+
+    @BeforeAll
+    static void setUp(JenkinsRule rule) {
+        jenkinsRule = rule;
+    }
+
+    @BeforeEach
+    void setUp() {
         jenkinsRule.getInstance().getInjector().injectMembers(this);
     }
 
     @Test
-    public void doConfigRoundTrip() throws Exception {
+    void doConfigRoundTrip() throws Exception {
         // Name is defined in the Utils.checkConfiguration() to skip the checkConnection
         String configurationName = org.jenkinsci.plugins.electricflow.Utils.CONFIG_SKIP_CHECK_CONNECTION;
         Credential overrideCredential = new Credential("credential");

@@ -1,5 +1,6 @@
 package org.jenkinsci.plugins.electricflow;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.hasSize;
 
@@ -14,27 +15,31 @@ import com.cloudbees.plugins.credentials.domains.Domain;
 import com.cloudbees.plugins.credentials.impl.UsernamePasswordCredentialsImpl;
 import hudson.model.FreeStyleProject;
 import hudson.util.ListBoxModel;
-import java.util.stream.Collectors;
-import org.hamcrest.MatcherAssert;
-import org.junit.ClassRule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import org.jvnet.hudson.test.JenkinsRule;
+import org.jvnet.hudson.test.junit.jupiter.WithJenkins;
 
-public class CredentialsTest {
+@WithJenkins
+class CredentialsTest {
 
-    @ClassRule
-    public static JenkinsRule jenkinsRule = new JenkinsRule();
+    private static JenkinsRule jenkinsRule;
+
+    @BeforeAll
+    static void setUp(JenkinsRule rule) {
+        jenkinsRule = rule;
+    }
 
     @Test
-    public void testFillCredentialsItems() throws Exception {
+    void testFillCredentialsItems() throws Exception {
 
         // When no credentials, assert that there is at least one value, the empty value
         Folder folder = jenkinsRule.jenkins.createProject(Folder.class, "folder");
         FreeStyleProject job = folder.createProject(FreeStyleProject.class, "freestyle");
 
-        MatcherAssert.assertThat(Credential.DescriptorImpl.doFillCredentialIdItems(null), hasSize(1));
-        MatcherAssert.assertThat(Credential.DescriptorImpl.doFillCredentialIdItems(folder), hasSize(1));
-        MatcherAssert.assertThat(Credential.DescriptorImpl.doFillCredentialIdItems(job), hasSize(1));
+        assertThat(Credential.DescriptorImpl.doFillCredentialIdItems(null), hasSize(1));
+        assertThat(Credential.DescriptorImpl.doFillCredentialIdItems(folder), hasSize(1));
+        assertThat(Credential.DescriptorImpl.doFillCredentialIdItems(job), hasSize(1));
 
         // System Credentials
         String systemCredId = "screds";
@@ -67,25 +72,25 @@ public class CredentialsTest {
         // From Root context
         // Assert we can see root credentials and system scoped, but not folder credentials
         ListBoxModel options = Credential.DescriptorImpl.doFillCredentialIdItems(null);
-        MatcherAssert.assertThat(options, hasSize(3));
-        MatcherAssert.assertThat(
-                options.stream().map(option -> option.value).collect(Collectors.toList()),
+        assertThat(options, hasSize(3));
+        assertThat(
+                options.stream().map(option -> option.value).toList(),
                 containsInAnyOrder("", globalCredId, systemCredId));
 
         // From Folder context
         // Assert we can see root credentials and folder credentials, but not system scoped
         options = Credential.DescriptorImpl.doFillCredentialIdItems(folder);
-        MatcherAssert.assertThat(options, hasSize(3));
-        MatcherAssert.assertThat(
-                options.stream().map(option -> option.value).collect(Collectors.toList()),
+        assertThat(options, hasSize(3));
+        assertThat(
+                options.stream().map(option -> option.value).toList(),
                 containsInAnyOrder("", globalCredId, folderCredId));
 
         // From Item context
         // Assert we can see root credentials and folder credentials, but not system scoped
         options = Credential.DescriptorImpl.doFillCredentialIdItems(job);
-        MatcherAssert.assertThat(options, hasSize(3));
-        MatcherAssert.assertThat(
-                options.stream().map(option -> option.value).collect(Collectors.toList()),
+        assertThat(options, hasSize(3));
+        assertThat(
+                options.stream().map(option -> option.value).toList(),
                 containsInAnyOrder("", globalCredId, folderCredId));
     }
 }

@@ -1,25 +1,27 @@
 package org.jenkinsci.plugins.electricflow;
 
-import org.jenkinsci.plugins.electricflow.ui.HtmlUtils;
-import org.junit.Assert;
-import org.junit.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-public class HtmlSanitizerTest {
+import org.jenkinsci.plugins.electricflow.ui.HtmlUtils;
+import org.junit.jupiter.api.Test;
+
+class HtmlSanitizerTest {
 
     @Test
-    public void simpleSanitize() {
+    void simpleSanitize() {
         String sanitized = HtmlUtils.getHtmlPolicy()
                 .sanitize("<html><head><script>alert('paco');</script></head><body><h1>Hi</h1></body></html>");
-        Assert.assertNotNull("Sanitized string should not be null", sanitized);
-        Assert.assertEquals("The sanitized html is not the one expected", "Hi", sanitized);
+        assertNotNull(sanitized, "Sanitized string should not be null");
+        assertEquals("Hi", sanitized, "The sanitized html is not the one expected");
     }
 
     @Test
-    public void sanitizeAllowedElements() {
+    void sanitizeAllowedElements() {
         String sanitized = HtmlUtils.getHtmlPolicy()
                 .sanitize(
                         "<html><head><script>alert('paco');</script></head><body><h3>hi</h3><b>this is right</b></body></html>");
-        Assert.assertNotNull("Sanitized string should not be null", sanitized);
-        Assert.assertEquals("The sanitized html is not the one expected", "<h3>hi</h3><b>this is right</b>", sanitized);
+        assertNotNull(sanitized, "Sanitized string should not be null");
+        assertEquals("<h3>hi</h3><b>this is right</b>", sanitized, "The sanitized html is not the one expected");
     }
 }
