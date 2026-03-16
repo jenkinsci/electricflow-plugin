@@ -324,6 +324,8 @@ public class ElectricFlowClient {
         conn.setUseCaches(false);
         conn.setDoInput(true);
         conn.setDoOutput(true);
+        // Set Content-Type to JSON
+        conn.setRequestProperty("Content-Type", "application/json");
 
         if (ignoreSsl && conn instanceof HttpsURLConnection) {
             HttpsURLConnection sslConn = (HttpsURLConnection) conn;
