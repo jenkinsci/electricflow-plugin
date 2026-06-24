@@ -224,11 +224,14 @@ public class ElectricFlowPipelinePublisher extends Recorder implements SimpleBui
                         null,
                         BuildTriggerSource.CI,
                         BuildAssociationType.TRIGGERED_BY_CI);
-                run.addAction(new SummaryTextAction(run, summaryHtml));
             } catch (RuntimeException exception) {
                 log.info("Can't attach CIBuildData to the pipeline run: " + exception.getMessage());
             }
 
+            // Always show the build summary, regardless of whether attaching CI build details
+            // succeeded. Attaching CIBuildData can fail (e.g. 403 when the CD user lacks modify
+            // privilege on the runtime) and must not suppress the summary.
+            run.addAction(new SummaryTextAction(run, summaryHtml));
             run.save();
             logger.println("Pipeline triggered. Response JSON: " + formatJsonOutput(pipelineResult));
 
