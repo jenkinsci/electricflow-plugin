@@ -73,8 +73,8 @@ public class ElectricFlowPipelinePublisherSummaryTest {
 
         try (MockedStatic<ElectricFlowClientFactory> factoryMock = mockStatic(ElectricFlowClientFactory.class)) {
             factoryMock
-                    .when(() -> ElectricFlowClientFactory.getElectricFlowClient(
-                            anyString(), any(), any(Run.class), any()))
+                    .when(() ->
+                            ElectricFlowClientFactory.getElectricFlowClient(anyString(), any(), any(Run.class), any()))
                     .thenReturn(mockClient);
 
             publisher.perform(build, build.getWorkspace(), jenkinsRule.createLocalLauncher(), TaskListener.NULL);
