@@ -1,6 +1,5 @@
 package org.jenkinsci.plugins.electricflow.triggerRelease;
 
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.json.JSONArray;
@@ -19,7 +18,7 @@ public class TriggerReleaseIsStagesChecked {
 
     public static String isStagesChecked(String parameters, String startingStage, Object stageOptions) {
         String checkedVal = (String) stageOptions;
-        if (StringUtils.isEmpty((String) stageOptions)) {
+        if (checkedVal == null || checkedVal.isEmpty()) {
             if (!startingStage.isEmpty()) {
                 checkedVal = "startingStage";
             } else {
