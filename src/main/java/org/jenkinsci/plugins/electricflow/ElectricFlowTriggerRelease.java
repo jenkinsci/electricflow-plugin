@@ -43,7 +43,6 @@ import java.util.concurrent.TimeUnit;
 import jenkins.tasks.SimpleBuildStep;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jenkinsci.Symbol;
@@ -128,7 +127,7 @@ public class ElectricFlowTriggerRelease extends Recorder implements SimpleBuildS
                 this.setReleaseName(release.getString("releaseName"));
             }
         }
-        if (!StringUtils.isEmpty(stageOptions)) {
+        if (stageOptions != null && !stageOptions.isEmpty()) {
             if (stageOptions.equalsIgnoreCase("runAllStages")) {
                 stagesToRun.addAll(getAllStagesForRelease(efClient));
                 this.startingStage = stagesToRun.get(0);
