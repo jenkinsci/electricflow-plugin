@@ -1,16 +1,19 @@
-import static org.junit.Assert.assertTrue;
+package org.jenkinsci.plugins.electricflow;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import hudson.util.FormValidation;
 import java.util.regex.Pattern;
-import org.jenkinsci.plugins.electricflow.Utils;
 import org.jenkinsci.plugins.electricflow.ui.FieldValidationStatus;
 import org.jenkinsci.plugins.electricflow.ui.SelectItemValidationWrapper;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-public class BasicUnitTests {
+class BasicUnitTests {
 
     @Test
-    public void testSelectItemValidationWrapper() {
+    void testSelectItemValidationWrapper() {
         SelectItemValidationWrapper selectItemValidationWrapper =
                 new SelectItemValidationWrapper(FieldValidationStatus.OK, "validation message", "value");
         System.out.println(selectItemValidationWrapper.getJsonStr());
@@ -28,15 +31,15 @@ public class BasicUnitTests {
     }
 
     @Test
-    public void checkValidateValueOnEmpty() {
+    void checkValidateValueOnEmpty() {
         FormValidation formValidation;
 
         formValidation = Utils.validateValueOnEmpty("", "Field name");
         System.out.println(formValidation.getMessage());
-        assertTrue(formValidation.getMessage().equals("Field name field should not be empty."));
-        assertTrue(formValidation.kind == FormValidation.Kind.WARNING);
+        assertEquals("Field name field should not be empty.", formValidation.getMessage());
+        assertSame(FormValidation.Kind.WARNING, formValidation.kind);
 
         formValidation = Utils.validateValueOnEmpty("test", "Field name");
-        assertTrue(formValidation.kind == FormValidation.Kind.OK);
+        assertSame(FormValidation.Kind.OK, formValidation.kind);
     }
 }

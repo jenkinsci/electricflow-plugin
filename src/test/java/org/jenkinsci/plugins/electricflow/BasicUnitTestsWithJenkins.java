@@ -1,4 +1,7 @@
-import static org.junit.Assert.assertTrue;
+package org.jenkinsci.plugins.electricflow;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import hudson.Functions;
 import hudson.model.FreeStyleBuild;
@@ -10,15 +13,13 @@ import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.LinkedList;
-import org.jenkinsci.plugins.electricflow.Configuration;
-import org.jenkinsci.plugins.electricflow.ElectricFlowGlobalConfiguration;
-import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
-import org.jvnet.hudson.test.BuildWatcher;
+import java.util.stream.Stream;
+import org.junit.jupiter.api.Test;
 import org.jvnet.hudson.test.JenkinsRule;
+import org.jvnet.hudson.test.junit.jupiter.WithJenkins;
 
-public class BasicUnitTestsWithJenkins {
+@WithJenkins
+class BasicUnitTestsWithJenkins {
     public static final String FLOW_CONFIG_NAME = "mockFlowConfig";
     public static final String FLOW_PROTOCOL = "https";
     public static final String FLOW_HOST = "localhost";
@@ -28,14 +29,8 @@ public class BasicUnitTestsWithJenkins {
     public static final String FLOW_PASSWORD = "password";
     public static final String FLOW_REST_API_URI_PATH = "/rest/v1.0";
 
-    @ClassRule
-    public static BuildWatcher buildWatcher = new BuildWatcher();
-
-    @Rule
-    public JenkinsRule jenkinsRule = new JenkinsRule();
-
     @Test
-    public void getConfigurationByDescriptor() {
+    void getConfigurationByDescriptor(JenkinsRule jenkinsRule) {
         ElectricFlowGlobalConfiguration electricFlowGlobalConfiguration = (ElectricFlowGlobalConfiguration) jenkinsRule
                 .getInstance()
                 .getDescriptorByName("org.jenkinsci.plugins.electricflow.ElectricFlowGlobalConfiguration");
@@ -56,11 +51,11 @@ public class BasicUnitTestsWithJenkins {
         electricFlowGlobalConfiguration.configurations.add(configuration);
         electricFlowGlobalConfiguration.save();
 
-        assertTrue(electricFlowGlobalConfiguration.getConfigurations().size() == 1);
+        assertEquals(1, electricFlowGlobalConfiguration.getConfigurations().size());
     }
 
     @Test
-    public void basicTestFreeStyleProject() throws Exception {
+    void basicTestFreeStyleProject(JenkinsRule jenkinsRule) throws Exception {
         String command = "echo hello";
         FreeStyleProject project = jenkinsRule.createFreeStyleProject();
         project.getBuildersList().add(Functions.isWindows() ? new BatchFile(command) : new Shell(command));
@@ -68,7 +63,9 @@ public class BasicUnitTestsWithJenkins {
         System.out.println(build.getDisplayName() + " completed");
         File logFile = build.getLogFile();
         StringBuilder log = new StringBuilder();
-        Files.lines(Paths.get(logFile.getPath())).forEachOrdered(log::append);
-        assertTrue(log.toString().contains("echo hello"));
+        try (Stream<String> lines = Files.lines(Paths.get(logFile.getPath()))) {
+            lines.forEachOrdered(log::append);
+            assertTrue(log.toString().contains("echo hello"));
+        }
     }
 }

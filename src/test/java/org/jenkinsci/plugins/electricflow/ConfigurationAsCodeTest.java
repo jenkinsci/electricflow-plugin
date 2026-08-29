@@ -2,9 +2,7 @@ package org.jenkinsci.plugins.electricflow;
 
 import static io.jenkins.plugins.casc.misc.Util.*;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -15,19 +13,18 @@ import io.jenkins.plugins.casc.ConfigurationContext;
 import io.jenkins.plugins.casc.ConfiguratorRegistry;
 import io.jenkins.plugins.casc.misc.ConfiguredWithCode;
 import io.jenkins.plugins.casc.misc.JenkinsConfiguredWithCodeRule;
+import io.jenkins.plugins.casc.misc.junit.jupiter.WithJenkinsConfiguredWithCode;
 import io.jenkins.plugins.casc.model.CNode;
 import java.util.List;
 import org.hamcrest.Matchers;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-public class ConfigurationAsCodeTest {
-    @Rule
-    public JenkinsConfiguredWithCodeRule r = new JenkinsConfiguredWithCodeRule();
+@WithJenkinsConfiguredWithCode
+class ConfigurationAsCodeTest {
 
     @Test
     @ConfiguredWithCode("casc/configuration-as-code.yml")
-    public void shouldBeAbleToAcceptConfiguration() {
+    void shouldBeAbleToAcceptConfiguration(JenkinsConfiguredWithCodeRule r) {
         final ElectricFlowGlobalConfiguration electricFlowGlobalConfiguration =
                 ExtensionList.lookupSingleton(ElectricFlowGlobalConfiguration.class);
         assertNotNull(electricFlowGlobalConfiguration);
@@ -46,7 +43,7 @@ public class ConfigurationAsCodeTest {
 
     @Test
     @ConfiguredWithCode("casc/configuration-as-code-cred-id.yml")
-    public void shouldBeAbleToAcceptConfigurationWithCredId() {
+    void shouldBeAbleToAcceptConfigurationWithCredId(JenkinsConfiguredWithCodeRule r) {
         final ElectricFlowGlobalConfiguration electricFlowGlobalConfiguration =
                 ExtensionList.lookupSingleton(ElectricFlowGlobalConfiguration.class);
         assertNotNull(electricFlowGlobalConfiguration);
@@ -66,7 +63,7 @@ public class ConfigurationAsCodeTest {
 
     @Test
     @ConfiguredWithCode("casc/configuration-as-code.yml")
-    public void shouldBeAbleToExportConfiguration() throws Exception {
+    void shouldBeAbleToExportConfiguration(JenkinsConfiguredWithCodeRule r) throws Exception {
         ConfiguratorRegistry registry = ConfiguratorRegistry.get();
         ConfigurationContext context = new ConfigurationContext(registry);
         CNode yourAttribute = getUnclassifiedRoot(context).get("electricflow");
@@ -97,7 +94,7 @@ public class ConfigurationAsCodeTest {
 
     @Test
     @ConfiguredWithCode("casc/configuration-as-code-cred-id.yml")
-    public void shouldBeAbleToExportConfigurationWithCredId() throws Exception {
+    void shouldBeAbleToExportConfigurationWithCredId(JenkinsConfiguredWithCodeRule r) throws Exception {
         ConfiguratorRegistry registry = ConfiguratorRegistry.get();
         ConfigurationContext context = new ConfigurationContext(registry);
         CNode yourAttribute = getUnclassifiedRoot(context).get("electricflow");
