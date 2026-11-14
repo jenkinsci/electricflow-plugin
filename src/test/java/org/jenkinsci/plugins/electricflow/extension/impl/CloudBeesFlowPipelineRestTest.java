@@ -7,6 +7,7 @@ import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.Matchers.is;
 
 import hudson.model.Result;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -16,7 +17,10 @@ import org.jenkinsci.plugins.electricflow.extension.CloudBeesFlowPipeline;
 import org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition;
 import org.jenkinsci.plugins.workflow.job.WorkflowJob;
 import org.jenkinsci.plugins.workflow.job.WorkflowRun;
+import org.jenkinsci.plugins.workflow.test.steps.SemaphoreStep;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.jvnet.hudson.test.JenkinsRule;
 import org.jvnet.hudson.test.junit.jupiter.WithJenkins;
 
@@ -113,6 +117,45 @@ class CloudBeesFlowPipelineRestTest {
         }
     }
 
+    @ParameterizedTest
+    @ValueSource(booleans = {false, true})
+    void runningBuild(boolean abort, JenkinsRule j) throws Exception {
+        WorkflowJob p = j.createProject(WorkflowJob.class, "running-" + abort);
+        p.setDefinition(new CpsFlowDefinition("stage('done') { echo 'x' }; stage('open') { semaphore 'wait' }", true));
+        WorkflowRun b = p.scheduleBuild2(0).waitForStart();
+        SemaphoreStep.waitForStart("wait/1", b);
+
+        Map<String, CloudBeesFlowPipeline> first = byName(CloudBeesFlowPipeline.build(b));
+        Thread.sleep(200);
+        Map<String, CloudBeesFlowPipeline> second = byName(CloudBeesFlowPipeline.build(b));
+        assertThat(second.keySet(), contains("done", "open"));
+        // the completed stage is fixed
+        assertThat(second.get("done").getTimestamp(), is(first.get("done").getTimestamp()));
+        assertThat(second.get("done").getDuration(), is(first.get("done").getDuration()));
+        // the open stage keeps its start time and its duration grows
+        assertThat(second.get("open").getTimestamp(), is(first.get("open").getTimestamp()));
+        assertThat(
+                second.get("open").getDuration(),
+                greaterThanOrEqualTo(first.get("open").getDuration() + 200));
+
+        if (abort) {
+            b.doStop();
+            j.assertBuildStatus(Result.ABORTED, j.waitForCompletion(b));
+        } else {
+            SemaphoreStep.success("wait/1", null);
+            j.assertBuildStatusSuccess(j.waitForCompletion(b));
+        }
+        Map<String, CloudBeesFlowPipeline> finished = byName(CloudBeesFlowPipeline.build(b));
+        assertThat(
+                finished.get("open").getDuration(),
+                greaterThanOrEqualTo(second.get("open").getDuration()));
+        Thread.sleep(200);
+        Map<String, CloudBeesFlowPipeline> later = byName(CloudBeesFlowPipeline.build(b));
+        assertThat(later.get("done").getDuration(), is(first.get("done").getDuration()));
+        assertThat(later.get("open").getTimestamp(), is(first.get("open").getTimestamp()));
+        assertThat(later.get("open").getDuration(), is(finished.get("open").getDuration()));
+    }
+
     private static WorkflowRun run(JenkinsRule j, String name, String script, boolean sandbox, Result expected)
             throws Exception {
         WorkflowJob p = j.createProject(WorkflowJob.class, name);
@@ -125,6 +168,8 @@ class CloudBeesFlowPipelineRestTest {
     }
 
     private static Map<String, CloudBeesFlowPipeline> byName(List<CloudBeesFlowPipeline> stages) {
-        return stages.stream().collect(Collectors.toMap(CloudBeesFlowPipeline::getStageName, Function.identity()));
+        return stages.stream()
+                .collect(Collectors.toMap(
+                        CloudBeesFlowPipeline::getStageName, Function.identity(), (a, b) -> a, LinkedHashMap::new));
     }
 }
